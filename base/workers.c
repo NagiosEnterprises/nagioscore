@@ -462,6 +462,7 @@ static int handle_worker_check(wproc_result *wpres, struct wproc_worker *wp, str
 	int result = ERROR;
 	check_result *cr = (check_result *)job->arg;
 
+	memcpy(&cr->rusage, &wpres->rusage, sizeof(wpres->rusage));
 	cr->start_time.tv_sec = wpres->start.tv_sec;
 	cr->start_time.tv_usec = wpres->start.tv_usec;
 	cr->finish_time.tv_sec = wpres->stop.tv_sec;
@@ -553,6 +554,42 @@ static int parse_worker_result(wproc_result *wpres, struct kvvec *kvv)
 		case WPRES_runtime:
 			/* ignored */
 			break;
+		case WPRES_ru_utime:
+			str2timeval(value, &wpres->rusage.ru_utime);
+			break;
+		case WPRES_ru_stime:
+			str2timeval(value, &wpres->rusage.ru_stime);
+			break;
+		case WPRES_ru_minflt:
+			wpres->rusage.ru_minflt = atoi(value);
+			break;
+		case WPRES_ru_majflt:
+			wpres->rusage.ru_majflt = atoi(value);
+			break;
+		case WPRES_ru_nswap:
+			wpres->rusage.ru_nswap = atoi(value);
+			break;
+		case WPRES_ru_inblock:
+			wpres->rusage.ru_inblock = atoi(value);
+			break;
+		case WPRES_ru_oublock:
+			wpres->rusage.ru_oublock = atoi(value);
+			break;
+		case WPRES_ru_msgsnd:
+			wpres->rusage.ru_msgsnd = atoi(value);
+			break;
+		case WPRES_ru_msgrcv:
+			wpres->rusage.ru_msgrcv = atoi(value);
+			break;
+		case WPRES_ru_nsignals:
+			wpres->rusage.ru_nsignals = atoi(value);
+			break;
+		case WPRES_ru_nvcsw:
+			wpres->rusage.ru_nsignals = atoi(value);
+			break;
+		case WPRES_ru_nivcsw:
+			wpres->rusage.ru_nsignals = atoi(value);
+			break;
 
 		default:
 			logit(NSLOG_RUNTIME_WARNING, TRUE, "wproc: Recognized but unhandled result variable: %s=%s\n", key, value);
@@ -585,8 +622,8 @@ static int handle_worker_result(int sd, int events, void *arg)
 	static struct kvvec kvv = KVVEC_INITIALIZER;
 	struct wproc_worker *wp = (struct wproc_worker *)arg;
 
-	if((ret = iocache_capacity(wp->ioc)) < 0) {
-		logit(NSLOG_RUNTIME_WARNING, TRUE, "wproc: iocache_capacity() is %d for worker %s.\n", ret, wp->name);
+	if(iocache_capacity(wp->ioc) == 0) {
+		logit(NSLOG_RUNTIME_WARNING, TRUE, "wproc: iocache_capacity() is 0 for worker %s.\n", wp->name);
 	}
 
 	ret = iocache_read(wp->ioc, wp->sd);
@@ -917,7 +954,21 @@ static int spawn_core_worker(void)
 	return ret;
 }
 
-int get_desired_workers(int desired_workers) {
+
+int init_workers(int desired_workers)
+{
+	specialized_workers = dkhash_create(512);
+	if (!specialized_workers) {
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "wproc: Failed to allocate specialized worker table.\n");
+		return -1;
+	}
+
+	/* Register our query handler before launching workers, so other workers
+	 * can join us whenever they're ready. */
+	if (!qh_register_handler("wproc", "Worker process management and info", 0, wproc_query_handler))
+		logit(NSLOG_INFO_MESSAGE, TRUE, "wproc: Successfully registered manager as @wproc with query handler\n");
+	else
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "wproc: Failed to register manager with query handler\n");
 
 	if (desired_workers <= 0) {
 		int cpus = online_cpus(); /* Always at least 1 CPU. */
@@ -941,28 +992,6 @@ int get_desired_workers(int desired_workers) {
 			}
 		}
 	}
-
-	return desired_workers;
-}
-
-/* if this function is updated, the function rlimit_problem_detection()
-   must be updated as well */
-int init_workers(int desired_workers)
-{
-	specialized_workers = dkhash_create(512);
-	if (!specialized_workers) {
-		logit(NSLOG_RUNTIME_ERROR, TRUE, "wproc: Failed to allocate specialized worker table.\n");
-		return -1;
-	}
-
-	/* Register our query handler before launching workers, so other workers
-	 * can join us whenever they're ready. */
-	if (!qh_register_handler("wproc", "Worker process management and info", 0, wproc_query_handler))
-		logit(NSLOG_INFO_MESSAGE, TRUE, "wproc: Successfully registered manager as @wproc with query handler\n");
-	else
-		logit(NSLOG_RUNTIME_ERROR, TRUE, "wproc: Failed to register manager with query handler\n");
-
-	desired_workers = get_desired_workers(desired_workers);
 	wproc_num_workers_desired = desired_workers;
 
 	if (workers_alive() == desired_workers)
@@ -972,10 +1001,8 @@ int init_workers(int desired_workers)
 	if (desired_workers < (int)workers.len)
 		return -1;
 
-	while (desired_workers-- > 0) {
-		int worker_pid = spawn_core_worker();
-		log_debug_info(DEBUGL_WORKERS, 2, "Spawned new worker with pid: (%d)\n", worker_pid);
-	}
+	while (desired_workers-- > 0)
+		spawn_core_worker();
 
 	return 0;
 }
@@ -987,13 +1014,12 @@ int init_workers(int desired_workers)
  */
 static int wproc_run_job(struct wproc_job *job, nagios_macros *mac)
 {
-	static struct kvvec * kvv;
+	static struct kvvec kvv = KVVEC_INITIALIZER;
 	struct kvvec_buf *kvvb;
 	struct kvvec *env_kvvp = NULL;
 	struct kvvec_buf *env_kvvb = NULL;
 	struct wproc_worker *wp;
 	int ret, result = OK;
-	int i = 0;
     ssize_t written = 0;
 
 	if (!job || !job->wp)
@@ -1001,32 +1027,29 @@ static int wproc_run_job(struct wproc_job *job, nagios_macros *mac)
 
 	wp = job->wp;
 
-	/* job_id, type, command and timeout 
-	   +2 extra to stop a kvvec_grow from happening 
-	   a grow occurs when add_num >= cur_num - 1 */
-	if ((kvv = kvvec_create(6)) == NULL)
+	if (!kvvec_init(&kvv, 4))	/* job_id, type, command and timeout */
 		return ERROR;
 
-	kvvec_addkv(kvv, "job_id", (char *)mkstr("%d", job->id));
-	kvvec_addkv(kvv, "type", (char *)mkstr("%d", job->type));
-	kvvec_addkv(kvv, "command", job->command);
-	kvvec_addkv(kvv, "timeout", (char *)mkstr("%u", job->timeout));
+	kvvec_addkv(&kvv, "job_id", (char *)mkstr("%d", job->id));
+	kvvec_addkv(&kvv, "type", (char *)mkstr("%d", job->type));
+	kvvec_addkv(&kvv, "command", job->command);
+	kvvec_addkv(&kvv, "timeout", (char *)mkstr("%u", job->timeout));
 
 	/* Add the macro environment variables */
 	if(mac) {
 		env_kvvp = macros_to_kvv(mac);
 		if(NULL != env_kvvp) {
 			env_kvvb = kvvec2buf(env_kvvp, '=', '\n', 0);
-			if(NULL != env_kvvb) {
-				kvvec_addkv_wlen(kvv, "env", strlen("env"), env_kvvb->buf,
+			if(NULL == env_kvvb) {
+				kvvec_destroy(env_kvvp, KVVEC_FREE_KEYS);
+			}
+			else {
+				kvvec_addkv_wlen(&kvv, "env", strlen("env"), env_kvvb->buf,
 						env_kvvb->buflen);
 			}
-			kvvec_destroy(env_kvvp, KVVEC_FREE_KEYS);
-			my_free(env_kvvb->buf);
-			my_free(env_kvvb);
 		}
 	}
-	kvvb = build_kvvec_buf(kvv);
+	kvvb = build_kvvec_buf(&kvv);
 	/* ret = write(wp->sd, kvvb->buf, kvvb->bufsize); */
 	ret = nwrite(wp->sd, kvvb->buf, kvvb->bufsize, &written);
 	if (ret != (int)kvvb->bufsize) {
@@ -1039,12 +1062,13 @@ static int wproc_run_job(struct wproc_job *job, nagios_macros *mac)
 		wp->jobs_started++;
 		loadctl.jobs_running++;
 	}
-
-	my_free(kvvb->buf);
-	my_free(kvvb);
-
-	/* no key/value flags, they were not allocated */
-	kvvec_destroy(kvv, 0);
+	if(NULL != env_kvvp) kvvec_destroy(env_kvvp, KVVEC_FREE_KEYS);
+	if(NULL != env_kvvb) {
+		free(env_kvvb->buf);
+		free(env_kvvb);
+	}
+	free(kvvb->buf);
+	free(kvvb);
 
 	return result;
 }

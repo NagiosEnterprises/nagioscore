@@ -80,14 +80,8 @@ unsigned long iocache_size(iocache *ioc)
 
 unsigned long iocache_capacity(iocache *ioc)
 {
-	if (!ioc)
-		return -1;
-
-	if (!ioc->ioc_buf)
-		return -2;
-
-	if (!ioc->ioc_bufsize)
-		return -3;
+	if (!ioc || !ioc->ioc_buf || !ioc->ioc_bufsize)
+		return 0;
 
 	iocache_move_data(ioc);
 
@@ -188,7 +182,7 @@ iocache *iocache_create(unsigned long size)
 
 int iocache_read(iocache *ioc, int fd)
 {
-	int to_read, bytes_read, ret;
+	int to_read, bytes_read;
 
 	if (!ioc || !ioc->ioc_buf || fd < 0)
 		return -1;
@@ -196,20 +190,8 @@ int iocache_read(iocache *ioc, int fd)
 	/* we make sure we've got as much room as possible */
 	iocache_move_data(ioc);
 
-	/* if we've maxed out our buflen, grow by 2x to be safe */
-	if (ioc->ioc_buflen >= ioc->ioc_bufsize) {
-
-		to_read = ioc->ioc_buflen + ioc->ioc_bufsize;
-		ret = iocache_grow(ioc, ioc->ioc_bufsize);
-		if (ret == -1) {
-			to_read = ioc->ioc_buflen;
-		}
-
-	} else {
-
-		/* calculate the size we should read */
-		to_read = ioc->ioc_bufsize - ioc->ioc_buflen;
-	}
+	/* calculate the size we should read */
+	to_read = ioc->ioc_bufsize - ioc->ioc_buflen;
 
 	bytes_read = read(fd, ioc->ioc_buf + ioc->ioc_buflen, to_read);
 	if (bytes_read > 0) {

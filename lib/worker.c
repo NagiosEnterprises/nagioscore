@@ -8,7 +8,6 @@
 #include <time.h>
 #include <syslog.h>
 #include "libnagios.h"
-#include "../include/config.h"
 
 #define MSG_DELIM "\1\0\0" /**< message limiter - note this ends up being
 			     \1\0\0\0 on the wire as "" strings null-terminate */
@@ -23,7 +22,6 @@ struct execution_information {
 	struct timeval start;
 	struct timeval stop;
 	float runtime;
-	/* 5DEPR: rusage is deprecated for Nagios, will be removed in 5.0.0 */
 	struct rusage rusage;
 };
 
@@ -259,6 +257,7 @@ static void destroy_job(child_process *cp)
 int finish_job(child_process *cp, int reason)
 {
 	static struct kvvec resp = KVVEC_INITIALIZER;
+	struct rusage *ru = &cp->ei->rusage;
 	int i, ret;
 
 	/* get rid of still open filedescriptors */
@@ -309,8 +308,14 @@ int finish_job(child_process *cp, int reason)
 	kvvec_add_tv(&resp, "stop", cp->ei->stop);
 	kvvec_addkv(&resp, "runtime", mkstr("%f", cp->ei->runtime));
 	if (!reason) {
-		/* child exited nicely */
+		/* child exited nicely (or with a signal, so check wait_status) */
 		kvvec_addkv(&resp, "exited_ok", "1");
+		kvvec_add_tv(&resp, "ru_utime", ru->ru_utime);
+		kvvec_add_tv(&resp, "ru_stime", ru->ru_stime);
+		kvvec_add_long(&resp, "ru_minflt", ru->ru_minflt);
+		kvvec_add_long(&resp, "ru_majflt", ru->ru_majflt);
+		kvvec_add_long(&resp, "ru_inblock", ru->ru_inblock);
+		kvvec_add_long(&resp, "ru_oublock", ru->ru_oublock);
 	} else {
 		/* some error happened */
 		kvvec_addkv(&resp, "exited_ok", "0");
@@ -327,8 +332,7 @@ int finish_job(child_process *cp, int reason)
 
 static int check_completion(child_process *cp, int flags)
 {
-	int status;
-	pid_t result;
+	int result, status;
 
 	if (!cp || !cp->ei->pid) {
 		return 0;
@@ -340,7 +344,7 @@ static int check_completion(child_process *cp, int flags)
 	 */
 	do {
 		errno = 0;
-		result = waitpid(cp->ei->pid, &status, flags);
+		result = wait4(cp->ei->pid, &status, flags, &cp->ei->rusage);
 	} while (result < 0 && errno == EINTR);
 
 	if (result == cp->ei->pid || (result < 0 && errno == ECHILD)) {
@@ -371,8 +375,7 @@ static int check_completion(child_process *cp, int flags)
  */
 static void kill_job(child_process *cp, int reason)
 {
-	pid_t ret;
-	int status, reaped = 0;
+	int ret, status, reaped = 0;
 	int pid = cp ? cp->ei->pid : 0;
 
 	/*
@@ -519,7 +522,8 @@ static void reap_jobs(void)
 	int reaped = 0;
 	do {
 		int pid, status;
-		pid = waitpid(-1, &status, WNOHANG);
+		struct rusage ru;
+		pid = wait3(&status, WNOHANG, &ru);
 		if (pid > 0) {
 			struct child_process *cp;
 
@@ -529,6 +533,7 @@ static void reap_jobs(void)
 				continue;
 			}
 			cp->ret = status;
+			memcpy(&cp->ei->rusage, &ru, sizeof(ru));
 			reaped++;
 			if (cp->ei->state != ESTALE)
 				finish_job(cp, cp->ei->state);

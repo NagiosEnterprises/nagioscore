@@ -32,7 +32,6 @@
 
 extern int             refresh_rate;
 extern int			   result_limit;
-extern int 			   enable_page_tour;
 
 extern char main_config_file[MAX_FILENAME_LENGTH];
 extern char url_html_path[MAX_FILENAME_LENGTH];
@@ -536,34 +535,32 @@ void document_header(int use_stylesheet) {
 	printf("<script type='text/javascript' src='%s%s'></script>\n", url_js_path, NAGFUNCS_JS);
 	/* JS function to append content to elements on page */
 	printf("<script type='text/javascript'>\n");
-	if (enable_page_tour == TRUE) {
-		printf("var vbox, vBoxId='status%d%d', vboxText = "
-				"'<a href=https://www.nagios.com/tours target=_blank>"
-				"Click here to watch the entire Nagios Core 4 Tour!</a>';\n",
-				display_type, group_style_type);
-		printf("$(document).ready(function() {\n"
-				"$('#top_page_numbers').append($('#bottom_page_numbers').html() );\n");
-		if (display_type == DISPLAY_HOSTS)
-			vidurl = "https://www.youtube.com/embed/ahDIJcbSEFM";
-		else if(display_type == DISPLAY_SERVICEGROUPS) {
-			if (group_style_type == STYLE_HOST_DETAIL)
-				vidurl = "https://www.youtube.com/embed/nNiRr0hDZag";
-			else if (group_style_type == STYLE_OVERVIEW)
-				vidurl = "https://www.youtube.com/embed/MyvgTKLyQhA";
-		} else {
-			if (group_style_type == STYLE_OVERVIEW)
-				vidurl = "https://www.youtube.com/embed/jUDrjgEDb2A";
-			else if (group_style_type == STYLE_HOST_DETAIL)
-				vidurl = "https://www.youtube.com/embed/nNiRr0hDZag";
-		}
-		if (vidurl) {
-			printf("var user = '%s';\nvBoxId += ';' + user;",
-				 current_authdata.username);
-			printf("vbox = new vidbox({pos:'lr',vidurl:'%s',text:vboxText,"
-					"vidid:vBoxId});\n", vidurl);
-		}
-		printf("});\n");
-		}
+	printf("var vbox, vBoxId='status%d%d', vboxText = "
+			"'<a href=https://www.nagios.com/tours target=_blank>"
+			"Click here to watch the entire Nagios Core 4 Tour!</a>';\n",
+			display_type, group_style_type);
+	printf("$(document).ready(function() {\n"
+			"$('#top_page_numbers').append($('#bottom_page_numbers').html() );\n");
+	if (display_type == DISPLAY_HOSTS)
+		vidurl = "https://www.youtube.com/embed/ahDIJcbSEFM";
+	else if(display_type == DISPLAY_SERVICEGROUPS) {
+		if (group_style_type == STYLE_HOST_DETAIL)
+			vidurl = "https://www.youtube.com/embed/nNiRr0hDZag";
+		else if (group_style_type == STYLE_OVERVIEW)
+			vidurl = "https://www.youtube.com/embed/MyvgTKLyQhA";
+	} else {
+		if (group_style_type == STYLE_OVERVIEW)
+			vidurl = "https://www.youtube.com/embed/jUDrjgEDb2A";
+		else if (group_style_type == STYLE_HOST_DETAIL)
+			vidurl = "https://www.youtube.com/embed/nNiRr0hDZag";
+	}
+	if (vidurl) {
+		printf("var user = '%s';\nvBoxId += ';' + user;",
+			 current_authdata.username);
+		printf("vbox = new vidbox({pos:'lr',vidurl:'%s',text:vboxText,"
+				"vidid:vBoxId});\n", vidurl);
+	}
+	printf("});\n");
 	printf("function set_limit(url) { \nthis.location = url+'&limit='+$('#limit').val();\n  }\n");
 
 	printf("</script>\n");
@@ -1739,16 +1736,13 @@ void show_service_detail(void) {
 				}
 			else if(temp_status->status == SERVICE_CRITICAL) {
 				strncpy(status, "CRITICAL", sizeof(status));
-				if(temp_status->problem_has_been_acknowledged == TRUE) {
-					status_class = "CRITICALACK";
+				status_class = "CRITICAL";
+				if(temp_status->problem_has_been_acknowledged == TRUE)
 					status_bg_class = "BGCRITICALACK";
-				} else if(temp_status->scheduled_downtime_depth > 0) {
-					status_class = "CRITICAL";
+				else if(temp_status->scheduled_downtime_depth > 0)
 					status_bg_class = "BGCRITICALSCHED";
-				} else {
-					status_class = "CRITICAL";
+				else
 					status_bg_class = "BGCRITICAL";
-					}
 				}
 			status[sizeof(status) - 1] = '\x0';
 

@@ -761,12 +761,14 @@ int main(int argc, char **argv) {
 		printf("<input type='text' name='backtrack' size='2' maxlength='2' value='%d'>\n", backtrack_archives);
 		printf("</td></tr>\n");
 
-		printf("<tr>");
-		printf("<td valign=top class='reportSelectSubTitle'>Output in CSV Format:</td>\n");
-		printf("<td valign=top class='reportSelectItem'>");
-		printf("<input type='checkbox' name='csvoutput' value=''>\n");
-		printf("</td>\n");
-		printf("</tr>\n");
+		if((display_type == DISPLAY_HOST_AVAIL && show_all_hosts == TRUE) || (display_type == DISPLAY_SERVICE_AVAIL && show_all_services == TRUE)) {
+			printf("<tr>");
+			printf("<td valign=top class='reportSelectSubTitle'>Output in CSV Format:</td>\n");
+			printf("<td valign=top class='reportSelectItem'>");
+			printf("<input type='checkbox' name='csvoutput' value=''>\n");
+			printf("</td>\n");
+			printf("</tr>\n");
+			}
 
 		printf("<tr><td></td><td align=left class='dateSelectItem'><input type='submit' value='Create Availability Report!'></td></tr>\n");
 
@@ -1036,8 +1038,7 @@ void document_header(int use_stylesheet) {
 	if(output_format == HTML_OUTPUT)
 		printf("Content-type: text/html; charset=utf-8\r\n\r\n");
 	else {
-		printf("Content-type: text/csv\r\n");
-		printf("Content-Disposition: attachment; filename=\"avail.csv\"\r\n\r\n");
+		printf("Content-type: text/csv\r\n\r\n");
 		return;
 		}
 

@@ -16,7 +16,7 @@ extra_started_commands="reload"
 # because the latter interacts weirdly with the config file argument.
 command="@bindir@/nagios"
 command_args="--daemon ${NAGIOS_CONFIG}"
-pidfile="@subsyslockfile@"
+pidfile="@lockfile@"
 
 depend(){
   # Most daemons don't really *need* the network; they're happy with

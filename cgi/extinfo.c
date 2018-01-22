@@ -36,7 +36,6 @@ static nagios_macros *mac;
 extern char             nagios_process_info[MAX_INPUT_BUFFER];
 extern int              nagios_process_state;
 extern int              refresh_rate;
-extern int 				enable_page_tour;
 
 extern int              buffer_stats[1][3];
 extern int              program_stats[MAX_CHECK_STATS_TYPES][3];
@@ -562,7 +561,7 @@ void document_header(int use_stylesheet) {
 	else if(display_type == DISPLAY_SERVICE_INFO)
 		vidurl = "https://www.youtube.com/embed/f_knwQOS6FI";
 
-	if (enable_page_tour == TRUE && vidurl) {
+	if (vidurl) {
 		printf("<script type='text/javascript' src='%s%s'></script>\n", url_js_path, JQUERY_JS);
 		printf("<script type='text/javascript' src='%s%s'></script>\n", url_js_path, NAGFUNCS_JS);
 		printf("<script type='text/javascript'>\n");
@@ -576,7 +575,7 @@ void document_header(int use_stylesheet) {
 		printf("vbox = new vidbox({pos:'lr',vidurl:'%s',text:vboxText,"
 				"vidid:vBoxId});\n", vidurl);
 		printf("});\n</script>\n");
-		}
+	}
 
 	printf("</head>\n");
 

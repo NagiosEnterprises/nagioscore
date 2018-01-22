@@ -131,44 +131,6 @@ char *my_strtok(char *buffer, const char *tokens) {
 	return sequence_head;
 	}
 
-/* fix the problem with my_strtok() strduping and causing intermittent memory leaks
- * use as regular my_strtok, specifying FALSE for free_orig
- * when done (before calling again), specify TRUE for free_orig for it to handle the free() */
-char *my_strtok_with_free(char *buffer, const char *tokens, int free_orig) {
-	char *token_position = NULL;
-	char *sequence_head = NULL;
-	static char *my_strtok_buffer = NULL;
-	static char *original_my_strtok_buffer = NULL;
-
-	if(buffer != NULL) {
-		my_free(original_my_strtok_buffer);
-		if((my_strtok_buffer = (char *)strdup(buffer)) == NULL)
-			return NULL;
-		original_my_strtok_buffer = my_strtok_buffer;
-		}
-	else if (free_orig == TRUE) {
-		my_free(original_my_strtok_buffer);
-		return NULL;
-		}
-
-	sequence_head = my_strtok_buffer;
-
-	if(sequence_head[0] == '\x0')
-		return NULL;
-
-	token_position = strchr(my_strtok_buffer, tokens[0]);
-
-	if(token_position == NULL) {
-		my_strtok_buffer = strchr(my_strtok_buffer, '\x0');
-		return sequence_head;
-		}
-
-	token_position[0] = '\x0';
-	my_strtok_buffer = token_position + 1;
-
-	return sequence_head;
-	}
-
 /* fixes compiler problems under Solaris, since strsep() isn't included */
 /* this code is taken from the glibc source */
 char *my_strsep(char **stringp, const char *delim) {

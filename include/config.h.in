@@ -29,9 +29,6 @@
 /* Event broker integration */
 #undef USE_EVENT_BROKER
 
-/* NERD / radio dispatch usage */
-#undef ENABLE_NERD
-
 /* commands used by CGIs */
 #undef TRACEROUTE_COMMAND
 #undef PING_COMMAND

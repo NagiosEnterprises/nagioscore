@@ -736,7 +736,6 @@ infodir
 docdir
 oldincludedir
 includedir
-runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -775,6 +774,7 @@ with_cgibindir
 with_logdir
 with_piddir
 with_pipedir
+with_lockfile
 with_root_group
 with_nagios_user
 with_nagios_group
@@ -845,7 +845,6 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
-runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE}'
@@ -1098,15 +1097,6 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
-  -runstatedir | --runstatedir | --runstatedi | --runstated \
-  | --runstate | --runstat | --runsta | --runst | --runs \
-  | --run | --ru | --r)
-    ac_prev=runstatedir ;;
-  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
-  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
-  | --run=* | --ru=* | --r=*)
-    runstatedir=$ac_optarg ;;
-
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1244,7 +1234,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir runstatedir
+		libdir localedir mandir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1397,7 +1387,6 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
-  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -1475,6 +1464,7 @@ Optional Packages:
   --with-logdir=DIR       where log files should be placed
   --with-piddir=DIR       where the PID file should be placed
   --with-pipedir=DIR      where socket and pipe files should be placed
+  --with-lockfile=<path>  sets path for lockfile
   --with-root-group=<grp> sets group name for installing init
   --with-nagios-user=<user>
                           sets user name to run nagios
@@ -5689,6 +5679,37 @@ $as_echo "$src_inetd" >&6; }
 
 
 
+if test $src_init != "default-init" -a \
+        $src_init != "default-service" -a \
+        $src_init != "openrc-init" -a \
+        $src_init != "upstart-init"; then
+
+	src_init="default-init"
+	init_type="sysv"
+	initdir="/etc/init.d"
+	initname="nagios"
+fi
+
+if test $subsyslockdir = "N/A"; then
+	if test -d "/var/run"; then
+		subsyslockdir="/var/run"
+		subsyslockfile="/var/run/nagios"
+	else
+		subsyslockdir="/usr/local/nagios/var/"
+		subsyslockfile="/usr/local/nagios/var/nagios.lock"
+	fi
+fi
+
+# Check whether --with-lockfile was given.
+if test "${with_lockfile+set}" = set; then :
+  withval=$with_lockfile; subsyslockfile=$withval
+else
+  subsyslockfile=$subsyslockfile
+
+fi
+
+
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for va_copy" >&5
 $as_echo_n "checking for va_copy... " >&6; }
 if ${ac_cv_HAVE_VA_COPY+:} false; then :
@@ -6405,7 +6426,6 @@ fi
 
 TRYGD=yep
 
-dnls 'NERD' is now disabled by default. enable it for functionality
 NERD=no
 NERD_O=""
 # Check whether --enable-nerd was given.

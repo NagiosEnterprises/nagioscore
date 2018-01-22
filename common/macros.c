@@ -115,13 +115,15 @@ int process_macros_r(nagios_macros *mac, char *input_buffer, char **output_buffe
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "process_macros_r()\n");
 
-	if(output_buffer == NULL)
+	if(output_buffer == NULL) {
 		return ERROR;
+	}
 
 	*output_buffer = (char *)strdup("");
 
-	if(input_buffer == NULL)
+	if(input_buffer == NULL) {
 		return ERROR;
+	}
 
 	in_macro = FALSE;
 
@@ -140,10 +142,11 @@ int process_macros_r(nagios_macros *mac, char *input_buffer, char **output_buffe
 		if(delim_ptr = strchr(buf_ptr, '$')) {
 			delim_ptr[0] = '\x0';
 			buf_ptr = (char *)delim_ptr + 1;
-			}
+		}
 		/* no delimiter found - we already have the last of the buffer */
-		else
+		else {
 			buf_ptr = NULL;
+		}
 
 		log_debug_info(DEBUGL_MACROS, 2, "  Processing part: '%s'\n", temp_buffer);
 
@@ -158,47 +161,52 @@ int process_macros_r(nagios_macros *mac, char *input_buffer, char **output_buffe
 
 			log_debug_info(DEBUGL_MACROS, 2, "  Not currently in macro.  Running output (%lu): '%s'\n", (unsigned long)strlen(*output_buffer), *output_buffer);
 			in_macro = TRUE;
-			}
+		}
 
 		/* looks like we're in a macro, so process it... */
 		else {
-			/* grab the macro value */
+
+			/* by default, we only free when instructed */
 			free_macro = FALSE;
+
+			/* grab the macro value */
 			result = grab_macro_value_r(mac, temp_buffer, &selected_macro, &macro_options, &free_macro);
 			log_debug_info(DEBUGL_MACROS, 2, "  Processed '%s', Free: %d\n", temp_buffer, free_macro);
 
 			/* an error occurred - we couldn't parse the macro, so continue on */
-			if(result == ERROR) {
+			if (result != OK) {
+
 				log_debug_info(DEBUGL_MACROS, 0, " WARNING: An error occurred processing macro '%s'!\n", temp_buffer);
-				if(free_macro == TRUE)
+				if(free_macro == TRUE) {
 					my_free(selected_macro);
 				}
 
-			if (result == OK)
-				; /* do nothing special if things worked out ok */
-			/* an escaped $ is done by specifying two $$ next to each other */
-			else if(!strcmp(temp_buffer, "")) {
-				log_debug_info(DEBUGL_MACROS, 2, "  Escaped $.  Running output (%lu): '%s'\n", (unsigned long)strlen(*output_buffer), *output_buffer);
-				*output_buffer = (char *)realloc(*output_buffer, strlen(*output_buffer) + 2);
-				strcat(*output_buffer, "$");
-				}
-
-			/* a non-macro, just some user-defined string between two $s */
-			else {
-				log_debug_info(DEBUGL_MACROS, 2, "  Non-macro.  Running output (%lu): '%s'\n", (unsigned long)strlen(*output_buffer), *output_buffer);
-
-				/* add the plain text to the end of the already processed buffer */
-				*output_buffer = (char *)realloc(*output_buffer, strlen(*output_buffer) + strlen(temp_buffer) + 3);
-				strcat(*output_buffer, "$");
-				strcat(*output_buffer, temp_buffer);
-
-				/* just could have been a stray $ */
-				if (buf_ptr != NULL)
+				/* an escaped $ is done by specifying two $$ next to each other */
+				if(!strcmp(temp_buffer, "")) {
+					log_debug_info(DEBUGL_MACROS, 2, "  Escaped $.  Running output (%lu): '%s'\n", (unsigned long)strlen(*output_buffer), *output_buffer);
+					*output_buffer = (char *)realloc(*output_buffer, strlen(*output_buffer) + 2);
 					strcat(*output_buffer, "$");
 				}
 
-			/* insert macro */
-			if(selected_macro != NULL) {
+				/* a non-macro, just some user-defined string between two $s */
+				else {
+					log_debug_info(DEBUGL_MACROS, 2, "  Non-macro.  Running output (%lu): '%s'\n", (unsigned long)strlen(*output_buffer), *output_buffer);
+
+					/* add the plain text to the end of the already processed buffer */
+					*output_buffer = (char *)realloc(*output_buffer, strlen(*output_buffer) + strlen(temp_buffer) + 3);
+					strcat(*output_buffer, "$");
+					strcat(*output_buffer, temp_buffer);
+
+					/* just could have been a stray $ */
+					if (buf_ptr != NULL) {
+						strcat(*output_buffer, "$");
+					}
+				}
+			}
+
+			/* insert macro otherwise */
+			else if(selected_macro != NULL) {
+
 				log_debug_info(DEBUGL_MACROS, 2, "  Processed '%s', Free: %d,  Cleaning options: %d\n", temp_buffer, free_macro, options);
 
 				/* URL encode the macro if requested - this allocates new memory */
@@ -207,24 +215,26 @@ int process_macros_r(nagios_macros *mac, char *input_buffer, char **output_buffe
 					selected_macro = get_url_encoded_string(selected_macro);
 					if(free_macro == TRUE) {
 						my_free(original_macro);
-						}
-					free_macro = TRUE;
 					}
+					free_macro = TRUE;
+				}
 
 				/* some macros should sometimes be cleaned */
 				if(macro_options & options & (STRIP_ILLEGAL_MACRO_CHARS | ESCAPE_MACRO_CHARS)) {
+
 					char *cleaned_macro = NULL;
 
 					/* add the (cleaned) processed macro to the end of the already processed buffer */
 					if(selected_macro != NULL && (cleaned_macro = clean_macro_chars(selected_macro, options)) != NULL) {
 						*output_buffer = (char *)realloc(*output_buffer, strlen(*output_buffer) + strlen(cleaned_macro) + 1);
 						strcat(*output_buffer, cleaned_macro);
-						if(*cleaned_macro)
+						if(*cleaned_macro) {
 							my_free(cleaned_macro);
+						}
 
 						log_debug_info(DEBUGL_MACROS, 2, "  Cleaned macro.  Running output (%lu): '%s'\n", (unsigned long)strlen(*output_buffer), *output_buffer);
-						}
 					}
+				}
 
 				/* others are not cleaned */
 				else {
@@ -234,19 +244,20 @@ int process_macros_r(nagios_macros *mac, char *input_buffer, char **output_buffe
 						strcat(*output_buffer, selected_macro);
 
 						log_debug_info(DEBUGL_MACROS, 2, "  Uncleaned macro.  Running output (%lu): '%s'\n", (unsigned long)strlen(*output_buffer), *output_buffer);
-						}
 					}
-
-				/* free memory if necessary (if we URL encoded the macro or we were told to do so by grab_macro_value()) */
-				if(free_macro == TRUE)
-					my_free(selected_macro);
-
-				log_debug_info(DEBUGL_MACROS, 2, "  Just finished macro.  Running output (%lu): '%s'\n", (unsigned long)strlen(*output_buffer), *output_buffer);
 				}
 
-			in_macro = FALSE;
+				/* free memory if necessary (if we URL encoded the macro or we were told to do so by grab_macro_value()) */
+				if(free_macro == TRUE) {
+					my_free(selected_macro);
+				}
+
+				log_debug_info(DEBUGL_MACROS, 2, "  Just finished macro.  Running output (%lu): '%s'\n", (unsigned long)strlen(*output_buffer), *output_buffer);
 			}
-		}
+
+			in_macro = FALSE;
+		} /* if(in_macro == TRUE) */
+	} /* while(buf_ptr) */
 
 	/* free copy of input buffer */
 	my_free(save_buffer);
@@ -255,7 +266,7 @@ int process_macros_r(nagios_macros *mac, char *input_buffer, char **output_buffe
 	log_debug_info(DEBUGL_MACROS, 1, "**** END MACRO PROCESSING *************\n");
 
 	return OK;
-	}
+}
 
 int process_macros(char *input_buffer, char **output_buffer, int options) {
 	return process_macros_r(&global_macros, input_buffer, output_buffer, options);
@@ -1830,8 +1841,9 @@ int grab_standard_host_macro_r(nagios_macros *mac, int macro_type, host *temp_ho
 			break;
 		case MACRO_HOSTINFOURL:
 			buf1 = get_url_encoded_string(temp_host->name);
-			asprintf(output, "%s/cgi-bin/extinfo.cgi?type=1&host=%s",
-					website_url ? website_url : "website_url not set", buf1);
+			*output = mkstr("%s/cgi-bin/extinfo.cgi?type=1&host=%s", 
+					website_url ? website_url : "website_url not set",
+					buf1);
 			my_free(buf1);
 			break;
 #endif
@@ -2176,16 +2188,11 @@ int grab_standard_service_macro_r(nagios_macros *mac, int macro_type, service *t
 
 			buf1 = get_url_encoded_string(temp_service->host_name);
 			buf2 = get_url_encoded_string(temp_service->description);
-			asprintf(output, "%s/cgi-bin/extinfo.cgi?type=2&host=%s&service=%s",
+			*output = mkstr("%s/cgi-bin/extinfo.cgi?type=2&host=%s&service=%s", 
 					website_url ? website_url : "website_url not set",
 					buf1, buf2);
 			my_free(buf1);
 			my_free(buf2);
-			break;
-
-
-
-			my_free(buf1);
 			break;
 #endif
 
@@ -2563,10 +2570,10 @@ char *get_url_encoded_string(char *input) {
 		   (char)input[x] == '.' ||
 		   (char)input[x] == '-' ||
 		   (char)input[x] == '_' ||
-		   (char)input[x] == '~')
-		{
+		   (char)input[x] == '~') {
+
 			encoded_url_string[y++] = input[x];
-		}
+			}
 
 		/* anything else gets represented by its hex value */
 		else {
@@ -2954,6 +2961,7 @@ int clear_service_macros_r(nagios_macros *mac) {
 	my_free(mac->x[MACRO_SERVICEACTIONURL]);
 	my_free(mac->x[MACRO_SERVICENOTESURL]);
 	my_free(mac->x[MACRO_SERVICENOTES]);
+	my_free(mac->x[MACRO_SERVICEINFOURL]);
 
 	my_free(mac->x[MACRO_SERVICEGROUPNAMES]);
 
@@ -2977,6 +2985,7 @@ int clear_host_macros_r(nagios_macros *mac) {
 	my_free(mac->x[MACRO_HOSTACTIONURL]);
 	my_free(mac->x[MACRO_HOSTNOTESURL]);
 	my_free(mac->x[MACRO_HOSTNOTES]);
+	my_free(mac->x[MACRO_HOSTINFOURL]);
 
 	/* numbers or by necessity autogenerated strings */
 	my_free(mac->x[MACRO_HOSTGROUPNAMES]);

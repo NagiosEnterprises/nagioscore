@@ -777,18 +777,25 @@ static inline void service_initial_handling(service *svc, check_result *cr, char
 	svc->last_state = svc->current_state;
 
 	/* save old plugin output */
-	if(svc->plugin_output)
+	if(svc->plugin_output) {
 		old_plugin_output = (char *)strdup(svc->plugin_output);
+		}
+
+	my_free(svc->plugin_output);
+	my_free(svc->long_plugin_output);
+	my_free(svc->perf_data);
 
 	/* parse check output to get: (1) short output, (2) long output, (3) perf data */
 	parse_check_output(cr->output, &svc->plugin_output, &svc->long_plugin_output, &svc->perf_data, TRUE, FALSE);
 
 	/* make sure the plugin output isn't null */
-	if(svc->plugin_output == NULL)
+	if(svc->plugin_output == NULL) {
 		svc->plugin_output = (char *)strdup("(No output returned from plugin)");
+		}
 	/* otherwise replace the semicolons with colons */
-	else
+	else {
 		replace_semicolons(svc->plugin_output, temp_ptr);
+		}
 
 	log_debug_info(DEBUGL_CHECKS, 2, 
 		"Parsing check output...\n"
@@ -813,18 +820,25 @@ static inline void host_initial_handling(host *hst, check_result *cr, char *old_
 	hst->last_state = hst->current_state;
 
 	/* save old plugin output */
-	if(hst->plugin_output)
+	if(hst->plugin_output) {
 		old_plugin_output = (char *)strdup(hst->plugin_output);
+		}
+
+	my_free(hst->plugin_output);
+	my_free(hst->long_plugin_output);
+	my_free(hst->perf_data);
 
 	/* parse check output to get: (1) short output, (2) long output, (3) perf data */
 	parse_check_output(cr->output, &hst->plugin_output, &hst->long_plugin_output, &hst->perf_data, TRUE, FALSE);
 
 	/* make sure the plugin output isn't null */
-	if(hst->plugin_output == NULL)
+	if(hst->plugin_output == NULL) {
 		hst->plugin_output = (char *)strdup("(No output returned from host check)");
+		}
 	/* otherwise replace the semicolons with colons */
-	else
+	else {
 		replace_semicolons(hst->plugin_output, temp_ptr);
+		}
 
 	log_debug_info(DEBUGL_CHECKS, 2, 
 		"Parsing check output...\n"
@@ -3346,19 +3360,16 @@ int parse_check_output(char *buf, char **short_output, char **long_output, char 
 			/* Get the short plugin output. If buf[0] is '|', strtok() will
 			 * return buf+1 or NULL if buf[1] is '\0'. We use my_strtok()
 			 * instead which returns a pointer to '\0' in this case. */
-			if ((ptr = my_strtok_with_free(buf, "|", FALSE))) {
+			if ((ptr = my_strtok(buf, "|"))) {
 				if (short_output) {
 					strip(ptr); /* Remove leading and trailing whitespace. */
 					*short_output = strdup(ptr);
 					}
 
 				/* Get the optional perf data. */
-				if ((ptr = my_strtok_with_free(NULL, "\n", FALSE))) {
+				if ((ptr = my_strtok(NULL, "\n")))
 					dbuf_strcat(&perf_text, ptr);
-					}
 				}
-
-				ptr = my_strtok_with_free(NULL, "\n", TRUE);
 
 			}
 		/* Additional lines contain long plugin output and optional perf data.
@@ -3373,7 +3384,7 @@ int parse_check_output(char *buf, char **short_output, char **long_output, char 
 		else if (strchr(buf, '|')) {
 			in_perf_data = TRUE;
 
-			if ((ptr = my_strtok_with_free(buf, "|", FALSE))) {
+			if ((ptr = my_strtok(buf, "|"))) {
 
 				/* Get the remaining long plugin output. */
 				if (current_line > 2)
@@ -3381,14 +3392,12 @@ int parse_check_output(char *buf, char **short_output, char **long_output, char 
 				dbuf_strcat(&long_text, ptr);
 
 				/* Get the perf data. */
-				if ((ptr = my_strtok_with_free(NULL, "\n", FALSE))) {
+				if ((ptr = my_strtok(NULL, "\n"))) {
 					if (perf_text.buf && *perf_text.buf)
 						dbuf_strcat(&perf_text, " ");
 					dbuf_strcat(&perf_text, ptr);
 					}
 				}
-
-				ptr = my_strtok_with_free(NULL, "\n", TRUE);
 
 			}
 		/* Otherwise it's still just long output. */

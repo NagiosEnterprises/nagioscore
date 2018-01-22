@@ -59,6 +59,36 @@ AC_NAGIOS_GET_INETD
 AC_NAGIOS_GET_PATHS
 AC_NAGIOS_GET_FILES
 
+dnl We only have these options available so we need to make them work until there are more
+if test $src_init != "default-init" -a \
+        $src_init != "default-service" -a \
+        $src_init != "openrc-init" -a \
+        $src_init != "upstart-init"; then
+
+	src_init="default-init"
+	init_type="sysv"
+	initdir="/etc/init.d"
+	initname="nagios"
+fi
+
+dnl We need to check for a lock file specified, also
+if test $subsyslockdir = "N/A"; then
+	if test -d "/var/run"; then
+		subsyslockdir="/var/run"
+		subsyslockfile="/var/run/nagios"
+	else
+		subsyslockdir="/usr/local/nagios/var/"
+		subsyslockfile="/usr/local/nagios/var/nagios.lock"
+	fi
+fi
+AC_ARG_WITH(lockfile,
+	AC_HELP_STRING([--with-lockfile=<path>],
+		[sets path for lockfile]),
+	subsyslockfile=$withval,
+	subsyslockfile=$subsyslockfile
+)
+
+
 dnl Check for asprintf() and friends...
 AC_CACHE_CHECK([for va_copy],ac_cv_HAVE_VA_COPY,[
 AC_TRY_LINK([#include <stdarg.h>
@@ -360,7 +390,7 @@ AC_ARG_WITH(gd-inc,
 
 TRYGD=yep
 
-dnls 'NERD' is now disabled by default. enable it for functionality
+dnl 'NERD' is now disabled by default. enable it for functionality
 NERD=no
 NERD_O=""
 AC_ARG_ENABLE(nerd,

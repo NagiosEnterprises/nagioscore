@@ -14,13 +14,13 @@ CC=@CC@
 CFLAGS=-Wall -I.. @CFLAGS@ @DEFS@ -DNSCORE
 
 # Compiler flags for use with gprof
-#CFLAGS=-pg -DHAVE_CONFIG_H -DNSCORE
+#CFLAGS=-pg -I.. -DHAVE_CONFIG_H -DNSCORE
 
 # Compiler flags for use with Valgrind
-#CFLAGS=-O0 -g -DHAVE_CONFIG_H -DNSCORE
+#CFLAGS=-O0 -I.. -g -DHAVE_CONFIG_H -DNSCORE
 
 # Compiler flags for optimization (overrides default)
-#CFLAGS=-O3 -Wall -fno-strict-aliasing -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs -DHAVE_CONFIG_H -DNSCORE
+#CFLAGS=-O3 -Wall -I.. -fno-strict-aliasing -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs -DHAVE_CONFIG_H -DNSCORE
 
 # Compiler flags for optimization (complements default)
 #CFLAGS_WARN=-Wall -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs
@@ -92,7 +92,7 @@ DDATAHDRS=
 DDATADEPS=$(DDATALIBS)
 
 
-OBJS=$(BROKER_O) $(SRC_COMMON)/shared.o nerd.o query-handler.o workers.o checks.o config.o commands.o events.o flapping.o logging.o macros-base.o netutils.o notifications.o sehandlers.o utils.o $(RDATALIBS) $(CDATALIBS) $(ODATALIBS) $(SDATALIBS) $(PDATALIBS) $(DDATALIBS) $(BASEEXTRALIBS)
+OBJS=$(BROKER_O) $(SRC_COMMON)/shared.o @NERD_O@ query-handler.o workers.o checks.o config.o commands.o events.o flapping.o logging.o macros-base.o netutils.o notifications.o sehandlers.o utils.o $(RDATALIBS) $(CDATALIBS) $(ODATALIBS) $(SDATALIBS) $(PDATALIBS) $(DDATALIBS) $(BASEEXTRALIBS)
 OBJDEPS=$(ODATADEPS) $(ODATADEPS) $(RDATADEPS) $(CDATADEPS) $(SDATADEPS) $(PDATADEPS) $(DDATADEPS) $(BROKER_H)
 
 all: nagios nagiostats

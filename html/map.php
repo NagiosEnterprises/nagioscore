@@ -71,19 +71,21 @@
 		<script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
 		<script type="text/javascript" src="js/nag_funcs.js"></script>
 
-		<script type='text/javascript'>
-			var vbox;
-			var vBoxId = "map";
-			var vboxText = "<a href=https://www.nagios.com/tours target=_blank>" +
-						"Click here to watch the entire Nagios Core 4 Tour!</a>";
-			$(document).ready(function() {
-				var user = "<?php echo $_SERVER['REMOTE_USER']; ?>";
+		<?php if ($cfg["enable_page_tour"]) { ?>
+			<script type='text/javascript'>
+				var vbox;
+				var vBoxId = "map";
+				var vboxText = "<a href=https://www.nagios.com/tours target=_blank>" +
+							"Click here to watch the entire Nagios Core 4 Tour!</a>";
+				$(document).ready(function() {
+					var user = "<?php echo $_SERVER['REMOTE_USER']; ?>";
 
-				vBoxId += ";" + user;
-				vbox = new vidbox({pos:'lr',vidurl:'https://www.youtube.com/embed/leaRdb3BElI',
-									text:vboxText,vidid:vBoxId});
-			});
-		</script>
+					vBoxId += ";" + user;
+					vbox = new vidbox({pos:'lr',vidurl:'https://www.youtube.com/embed/leaRdb3BElI',
+										text:vboxText,vidid:vBoxId});
+				});
+			</script>
+		<?php } ?>
 
 	</head>
 	<body ng-controller="mapCtrl" <?php echo $img; ?>>

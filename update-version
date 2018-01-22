@@ -60,6 +60,9 @@ perl -i -p -e "s/PKG_REL_DATE=.*\"/PKG_REL_DATE=\"$SHORTDATE\"/;" configure
 perl -i -p -e "s/PKG_VERSION=.*/PKG_VERSION=\"$newversion\"/;" configure.ac
 perl -i -p -e "s/PKG_REL_DATE=.*\"/PKG_REL_DATE=\"$SHORTDATE\"/;" configure.ac
 
+# Update version number in daemon files
+perl -i -p -e "s/Description=.*/Description=Nagios Core $newversion/;" startup/default-service.in
+
 # Update RPM spec file with version number
 perl -i -p -e "s/Version: .*/Version: $newversion/;" nagios.spec
 

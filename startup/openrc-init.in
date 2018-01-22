@@ -1,12 +1,12 @@
 #!/sbin/openrc-run
 
-# This is a custom variable, and has the following default value if a
-# specific config file is not defined by the user.
-: ${NAGIOS_CONFIG:="@sysconfdir@/nagios.cfg"}
-
 # These two facilitate the bindir variable substitution below.
 prefix=@prefix@
 exec_prefix=@exec_prefix@
+
+# This is a custom variable, and has the following default value if a
+# specific config file is not defined by the user.
+: ${NAGIOS_CONFIG:="@sysconfdir@/nagios.cfg"}
 
 # The rest are OpenRC variables.
 extra_commands="checkconfig"
@@ -16,7 +16,7 @@ extra_started_commands="reload"
 # because the latter interacts weirdly with the config file argument.
 command="@bindir@/nagios"
 command_args="--daemon ${NAGIOS_CONFIG}"
-pidfile="@lockfile@"
+pidfile="@subsyslockfile@"
 
 depend(){
   # Most daemons don't really *need* the network; they're happy with

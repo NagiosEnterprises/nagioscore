@@ -39,9 +39,14 @@ INSTALL_OPTS=@INSTALL_OPTS@
 COMMAND_OPTS=@COMMAND_OPTS@
 HTTPD_CONF=@HTTPD_CONF@
 LN_HTTPD_SITES_ENABLED=@LN_HTTPD_SITES_ENABLED@
-INIT_DIR=@init_dir@
+INIT_DIR=@initdir@
 INIT_OPTS=@INIT_OPTS@
 CGICFGDIR=$(CGIDIR)
+
+
+SRC_INIT=@src_init@
+INIT_FILE=@initname@
+#INIT_TYPE=@init_type@
 
 USE_EVENTBROKER=@USE_EVENTBROKER@
 USE_LIBTAP=@USE_LIBTAP@
@@ -197,7 +202,7 @@ distclean: clean
 	cd $(SRC_TTAP) && $(MAKE) $@
 	cd $(SRC_WORKERS) && $(MAKE) $@
 	rm -f sample-config/*.cfg  sample-config/*.conf sample-config/template-object/*.cfg
-	rm -f daemon-init openrc-init pkginfo
+	rm -f daemon-init daemon-service daemon-openrc pkginfo
 	rm -f Makefile subst
 	rm -f config.log config.status config.cache
 	rm -f tags
@@ -341,8 +346,8 @@ install-classicui:
 install-init: install-daemoninit
 
 install-daemoninit:
-	$(INSTALL) -m 755 -d $(INIT_OPTS) $(DESTDIR)$(INIT_DIR)
-	$(INSTALL) -m 755 $(INIT_OPTS) daemon-init $(DESTDIR)$(INIT_DIR)/nagios
+	$(INSTALL) -m 755 $(INIT_OPTS) startup/$(SRC_INIT) $(INIT_DIR)/$(INIT_FILE)
+
 
 	@echo ""
 	@echo "*** Init script installed ***"

@@ -1,0 +1,140 @@
+#!/bin/sh
+
+#----------------------
+# Initialize variables
+#----------------------
+dist="$1"
+uid="$2"
+gid="$3"
+rc=0
+
+#-------------------------------------
+# Check if the specified group exists
+#-------------------------------------
+group_exists(){
+	case $dist in
+		osx)	rc=`dscl . -read /Groups/$gid >/dev/null 2>&1; echo $?`	;;
+		hpux)	rc=`grget -n $gid >/dev/null 2>&1; echo $?`	;;
+		aix)	rc=`lsgroup -a $gid >/dev/null 2>&1; echo $?`	;;
+		*)		rc=`getent group $gid > /dev/null 2>&1; echo $?`	;;
+	esac
+
+	echo $rc
+}
+
+#------------------------
+# Add the specified user
+#------------------------
+add_user(){
+	rc=`id "$uid" > /dev/null 2>&1; echo $?`
+	if test $rc -eq 0; then
+		echo "User $uid already exists" > /dev/stderr
+		echo 0
+		return
+	fi
+
+	case $dist in
+		aix)
+			echo useradd -g $gid $uid > /dev/stderr
+			rc=`useradd -g $gid $uid; echo $?`
+			;;
+
+		hpux)
+			echo useradd -m -g $gid $uid > /dev/stderr
+			rc=`useradd -m -g $gid $uid; echo $?`
+			;;
+
+		solaris)
+			echo useradd -m -d /export/home/$uid -g $gid $uid > /dev/stderr
+			rc=`useradd -m -d /export/home/$uid -g $gid $uid; echo $?`
+			;;
+
+		osx)
+			newid=`dscl . -list /Users UniqueID | tr -s ' ' | cut -d' ' -f2 | sort -n | tail -1`
+			newid=`expr 1 + $newid`
+			echo dscl . -create /Users/$uid > /dev/stderr
+			dscl . -create /Users/$uid
+			echo dscl . -create /Users/$uid UniqueID $newid > /dev/stderr
+			dscl . -create /Users/$uid UniqueID $newid
+			echo dscl . -create /Users/$uid UserShell /usr/bin/false > /dev/stderr
+			dscl . -create /Users/$uid UserShell /usr/bin/false
+			echo dscl . -create /Users/$uid PrimaryGroupID 20 > /dev/stderr
+			dscl . -create /Users/$uid PrimaryGroupID 20
+			echo dscl . -append /Groups/$gid GroupMembership $uid > /dev/stderr
+			rc=`dscl . -append /Groups/$gid GroupMembership $uid; echo $?`
+			;;
+
+		freebsd)
+			echo pw add user $uid -g $gid -s /usr/bin/false > /dev/stderr
+			rc=`pw add user $uid -g $gid -s /usr/bin/false; echo $?`
+			;;
+
+		netbsd|openbsd)
+			echo useradd -g $gid $uid > /dev/stderr
+			rc=`useradd -g $gid $uid; echo $?`
+			;;
+
+		*)
+			echo useradd -r -g $gid $uid > /dev/stderr
+			rc=`useradd -r -g $gid $uid; echo $?`
+			;;
+	esac
+
+	echo $rc
+}
+
+#-------------------------
+# Add the specified group
+#-------------------------
+add_group(){
+	rc=`group_exists`
+	if test $rc -eq 0; then
+		echo "Group $gid already exists" > /dev/stderr
+		echo 0
+		return
+	fi
+
+	case $dist in
+		aix)
+			echo mkgroup $gid > /dev/stderr
+			rc=`mkgroup "$gid"; echo $?`
+			;;
+
+		hpux|solaris)
+			echo groupadd $gid > /dev/stderr
+			rc=`groupadd "$gid"; echo $?`
+			;;
+
+		osx)
+			newid=`dscl . -list /Groups gid | tr -s ' ' | cut -d' ' -f2 | sort -n | tail -1`
+			newid=`expr 1 + $newid`
+			echo dscl . -create /Groups/$gid gid $newid > /dev/stderr
+			rc=`dscl . -create /Groups/$gid gid $newid; echo $?`
+			;;
+
+		freebsd)
+			echo pw add group $gid > /dev/stderr
+			rc=`pw add group $gid; echo $?`
+			;;
+
+		netbsd|openbsd)
+			echo groupadd $gid > /dev/stderr
+			rc=`groupadd $gid; echo $?`
+			;;
+
+		*)
+			echo groupadd -r $gid > /dev/stderr
+			rc=`groupadd -r $gid; echo $?`
+			;;
+	esac
+
+	echo $rc
+}
+
+
+rc=`add_group`
+if test $rc -ne 0; then
+	exit 1;
+fi
+rc=`add_user`
+exit $rc

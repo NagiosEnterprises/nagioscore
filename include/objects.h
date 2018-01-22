@@ -87,6 +87,7 @@ NAGIOS_BEGIN_DECL
 #define OPT_UNKNOWN       (1 << STATE_UNKNOWN)
 #define OPT_RECOVERY      OPT_OK
 /* and now the "unreal" states... */
+#define OPT_NOTIFICATIONS (1 << 9)
 #define OPT_PENDING       (1 << 10)
 #define OPT_FLAPPING      (1 << 11)
 #define OPT_DOWNTIME      (1 << 12)
@@ -98,6 +99,7 @@ NAGIOS_BEGIN_DECL
 #define flag_isset(c, flag)  (flag_get((c), (flag)) == (unsigned int)(flag))
 #define flag_unset(c, flag)  (c &= ~(flag))
 #define should_stalk(o) flag_isset(o->stalking_options, 1 << o->current_state)
+#define should_stalk_notifications(o) flag_isset(o->stalking_options, OPT_NOTIFICATIONS)
 #define should_flap_detect(o) flag_isset(o->flap_detection_options, 1 << o->current_state)
 #define should_notify(o) flag_isset(o->notification_options, 1 << o->current_state)
 #define add_notified_on(o, f) (o->notified_on |= (1 << f))
@@ -170,6 +172,7 @@ typedef struct check_result {
 	int exited_ok;					/* did the plugin check return okay? */
 	int return_code;				/* plugin return code */
 	char *output;	                                /* plugin output */
+	/* 5DEPR: rusage is deprecated in Nagios, will be removed in 5.0.0 */
 	struct rusage rusage;   			/* resource usage by this check */
 	struct check_engine *engine;                    /* where did we get this check from? */
 	const void *source;				/* engine handles this */

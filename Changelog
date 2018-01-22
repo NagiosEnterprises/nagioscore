@@ -2,6 +2,35 @@
 Nagios Core 4 Change Log
 ########################
 
+4.4.0 - xxxx-xx-xx
+------------------
+ENHANCEMENTS
+* new status for check dependencies (John Frickson)
+* Allow more flexible requirements for comments (John Frickson)
+* Add a `statusCRITICALACK` class for the status column (John Frickson)
+* CSV output based on groups (all options) (John Frickson)
+* New Macro(s) to generate URL for host / service object to be used in notifications (John Frickson)
+* New Macro(s) to determine if host/service notifications are enabled (#419) (Bryan Heden)
+* New Macro(s) for obtaining the host/service notification periods (#350) (Bryan Heden)
+* enable_page_tour interface option (Bryan Heden)
+* Code cleanups in important sections (Workers, Handling Results) (Bryan Heden)
+* Automatic mail program detection (with same /bin/mail failback) (Bryan Heden)
+* Incorporated [autoconf-macros](https://github.com/NagiosEnterprises/autoconf-macros) into Core (Bryan Heden)
+* Lots of enhancements/additions to configure/make process. (Bryan Heden)
+    * Moved all files to startup/
+    * Added upstart job
+* Added system limit detection (RLIMIT_NPROC) to check for anticipated fork() failures (#434) (Bryan Heden)
+* Added stalking on notifications (`N` or `notifications` option when specifying `stalking_options`) (#342) (Bryan Heden)
+
+FIXES
+* Command line macro detection skips potential macros with no ending dollar sign (Bryan Heden, Jake Omann)
+* Fixed a lockup condition sometimes encountered on shutdown or restart (Aaron Beck)
+* Fixed negative time offset calculations computing incorrectly sometimes (bbeutel)
+* Fixed reloads causing defunct (zombie) processes (#441) (Bryan Heden)
+* Fixed wait3(), wait4() implementations (replaced with waitpid()) (#326) (Bryan Heden)
+* Fixed additive inheritance not testing for duplicates in hosts/services/(+escalations) (#392) (Bryan Heden)
+* Fixed very very (around 600k chars or greater) large plugin output crashing Nagios (#432) (Bryan Heden)
+
 
 4.3.4 - 2017-08-24
 ------------------
@@ -25,7 +54,7 @@ Nagios Core 4 Change Log
 
 4.3.2 - 2017-05-09
 ------------------
-FIXED
+FIXES
 * Every 15sec /var/log/messages is flooded with "nagios: set_environment_var" (John Frickson)
 * Changed release date to ISO format (yyyy-mm-dd) (John Frickson)
 * `make all` fails if unzip is not installed (John Frickson)

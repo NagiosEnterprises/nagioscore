@@ -94,7 +94,7 @@ check_config ()
 		return 0
 	fi
 
-	echo "Running configuration check...\n"
+	echo -n "Running configuration check... "
 
 	rm -f "$NagiosCfgtestFile";
 	if test -e "$NagiosCfgtestFile"; then
@@ -203,14 +203,14 @@ fi
 case "$1" in
 
 	start)
-		echo -n "Starting nagios:"
+		echo -n "Starting nagios: "
 
 		check_config
 
 		if test -f $NagiosRunFile; then
 			NagiosPID=`head -n 1 $NagiosRunFile`
 			if status_nagios; then
-				echo " another instance of nagios is already running."
+				echo "another instance of nagios is already running."
 				exit 0
 			fi
 		fi
@@ -220,11 +220,11 @@ case "$1" in
 		touch $NagiosRunFile
 		$NagiosBin -d $NagiosCfgFile
 
-		echo " done."
+		echo "done."
 		;;
 
 	stop)
-		echo -n "Stopping nagios:"
+		echo -n "Stopping nagios: "
 
 		pid_nagios
 		if [ $? -eq 1 ]; then
@@ -247,11 +247,11 @@ case "$1" in
 			fi
 		done
 		if status_nagios > /dev/null; then
-			echo ''
-			echo 'Warning - nagios did not exit in a timely manner - Killing it!'
+			echo ""
+			echo "Warning - nagios did not exit in a timely manner - Killing it!"
 			killproc_nagios KILL
 		else
-			echo ' done.'
+			echo "done."
 		fi
 
 		remove_commandfile
@@ -270,9 +270,9 @@ case "$1" in
 		check_config
 
 		if [ $? -eq 0 ]; then
-			echo " OK."
+			echo "OK."
 		else
-			echo " CONFIG ERROR!  Check your Nagios configuration."
+			echo "CONFIG ERROR!  Check your Nagios configuration."
 			exit 1
 		fi
 		;;
@@ -292,7 +292,7 @@ case "$1" in
 		else
 			pid_nagios
 			if status_nagios > /dev/null; then
-				printf "Reloading nagios configuration...\n"
+				echo -n "Reloading nagios configuration... "
 				killproc_nagios HUP
 				echo "done"
 			else

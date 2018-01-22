@@ -81,7 +81,6 @@ static const struct flag_map service_flag_map[] = {
 	{ OPT_OK, 'o', "ok" },
 	{ OPT_RECOVERY, 'r', "recovery" },
 	{ OPT_PENDING, 'p', "pending" },
-	{ OPT_NOTIFICATIONS, 'N', "notifications" },
 	{ 0, 0, NULL },
 };
 
@@ -92,7 +91,6 @@ static const struct flag_map host_flag_map[] = {
 	{ OPT_RECOVERY, 'r', "recovery" },
 	{ OPT_DOWNTIME, 's', "downtime" },
 	{ OPT_PENDING, 'p', "pending" },
-	{ OPT_NOTIFICATIONS, 'N', "notifications" },
 	{ 0, 0, NULL },
 };
 
@@ -1202,7 +1200,6 @@ contact *add_contact(char *name, char *alias, char *email, char *pager, char **a
 	new_contact = calloc(1, sizeof(*new_contact));
 	if(!new_contact)
 		return NULL;
-
 
 	new_contact->host_notification_period = htp ? (char *)strdup(htp->name) : NULL;
 	new_contact->service_notification_period = stp ? (char *)strdup(stp->name) : NULL;
@@ -2681,8 +2678,6 @@ int free_object_data(void) {
 		if(this_host->address != this_host->name)
 			my_free(this_host->address);
 		my_free(this_host->name);
-		my_free(this_host->check_period);
-		my_free(this_host->notification_period);
 #ifdef NSCORE
 		my_free(this_host->plugin_output);
 		my_free(this_host->long_plugin_output);
@@ -2796,8 +2791,6 @@ int free_object_data(void) {
 		my_free(this_contact->name);
 		my_free(this_contact->email);
 		my_free(this_contact->pager);
-		my_free(this_contact->host_notification_period);
-		my_free(this_contact->service_notification_period);
 		for(j = 0; j < MAX_CONTACT_ADDRESSES; j++)
 			my_free(this_contact->address[j]);
 
@@ -2864,9 +2857,7 @@ int free_object_data(void) {
 		if(this_service->display_name != this_service->description)
 			my_free(this_service->display_name);
 		my_free(this_service->description);
-		my_free(this_service->check_command);		
-		my_free(this_service->check_period);
-		my_free(this_service->notification_period);
+		my_free(this_service->check_command);
 #ifdef NSCORE
 		my_free(this_service->plugin_output);
 		my_free(this_service->long_plugin_output);

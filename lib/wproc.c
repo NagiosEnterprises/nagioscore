@@ -48,7 +48,7 @@ static simple_worker *spawn_worker(void (*init_func)(void *), void *init_arg)
 		simple_worker *worker = calloc(1, sizeof(simple_worker));
 		close(sv[1]);
 		if (!worker) {
-			kill(pid, SIGKILL);
+			kill(SIGKILL, pid);
 			close(sv[0]);
 			return NULL;
 		}
@@ -84,14 +84,14 @@ static void sighandler(int sig)
 
 static void child_exited(int sig)
 {
-	int status;
-	pid_t result;
+	struct rusage ru;
+	int status, result;
 
-	result = waitpid(-1, &status, 0);
-	printf("waitpid() status: %d; result %d: %s\n",
-		 status, (int) result, strerror(errno));
+	result = wait3(&status, 0, &ru);
+	printf("wait3() status: %d; return %d: %s\n",
+		 status, result, strerror(errno));
 	if (WIFEXITED(status)) {
-		printf("Child with pid %d exited normally\n", (int) result);
+		printf("Child with pid %d exited normally\n", result);
 	}
 	if (WIFSIGNALED(status)) {
 		printf("Child caught signal %d\n", WTERMSIG(status));

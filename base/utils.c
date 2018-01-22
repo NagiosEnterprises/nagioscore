@@ -33,10 +33,6 @@
 #include "../include/nebmodules.h"
 #include "../include/workers.h"
 
-#include <sys/time.h>
-#include <sys/resource.h>
-
-
 /* global variables only used by the daemon */
 char *nagios_binary_path = NULL;
 char *config_file = NULL;
@@ -198,10 +194,6 @@ char *website_url;
 int allow_empty_hostgroup_assignment;
 
 int host_down_disable_service_checks;
-int service_skip_check_dependency_status;
-int service_skip_check_parent_status;
-int service_skip_check_host_down_status;
-int host_skip_check_dependency_status;
 
 /*** perfdata variables ***/
 int     perfdata_timeout;
@@ -384,10 +376,6 @@ void init_main_cfg_vars(int first_time) {
 		allow_empty_hostgroup_assignment =
 				DEFAULT_ALLOW_EMPTY_HOSTGROUP_ASSIGNMENT;
 		host_down_disable_service_checks = FALSE;
-		service_skip_check_dependency_status = -1;
-		service_skip_check_parent_status = -1;
-		service_skip_check_host_down_status = -1;
-		host_skip_check_dependency_status = -1;
 		perfdata_timeout = 0;
 		host_perfdata_command = NULL;
 		service_perfdata_command = NULL;
@@ -1438,9 +1426,6 @@ time_t calculate_time_from_day_of_month(int year, int month, int monthday) {
 			day--;
 
 			/* make the new time */
-			t.tm_sec = 0;
-			t.tm_min = 0;
-			t.tm_hour = 0;
 			t.tm_mon = month;
 			t.tm_year = year;
 			t.tm_mday = day;
@@ -1632,8 +1617,6 @@ void setup_sighandler(void) {
 	sigaction(SIGHUP, &sig_action, NULL);
 	if(daemon_dumps_core == FALSE && daemon_mode == TRUE)
 		sigaction(SIGSEGV, &sig_action, NULL);
-	sig_action.sa_flags = SA_NOCLDWAIT;
-	sigaction(SIGCHLD, &sig_action, NULL);
 #else /* HAVE_SIGACTION */
 	signal(SIGPIPE, SIG_IGN);
 	signal(SIGQUIT, sighandler);
@@ -1641,7 +1624,6 @@ void setup_sighandler(void) {
 	signal(SIGHUP, sighandler);
 	if(daemon_dumps_core == FALSE && daemon_mode == TRUE)
 		signal(SIGSEGV, sighandler);
-	signal(SIGCHLD, sighandler);
 #endif /* HAVE_SIGACTION */
 
 	return;
@@ -1700,15 +1682,6 @@ void sighandler(int sig) {
 	/* we received a SIGHUP, so restart... */
 	if(sig == SIGHUP)
 		sigrestart = TRUE;
-
-	else if(sig == SIGCHLD) {
-		pid_t child_pid;
-		int status = 0;
-		logit(NSLOG_PROCESS_INFO, FALSE, "Caught SIGCHLD, calling waitpid() with WNOHANG|WUNTRACED\n");
-		while ((child_pid = waitpid(-1, &status, WNOHANG|WUNTRACED)) > 0) {
-			logit(NSLOG_PROCESS_INFO, FALSE, " * waitpid() on child_pid = (%d)\n", (int)child_pid);
-		}
-	}
 
 	/* else begin shutting down... */
 	else if(sig < 16) {
@@ -1856,7 +1829,7 @@ int daemon_init(void) {
 	int pidno = 0;
 	int lockfile = 0;
 	int val = 0;
-	char buf[256] = { 0 };
+	char buf[256];
 	struct flock lock;
 	char *homedir = NULL;
 	char *cp;
@@ -1933,14 +1906,8 @@ int daemon_init(void) {
 		return(ERROR);
 
 	/* parent process goes away.. */
-	else if((int)pid != 0) {
-
-		iobroker_destroy(nagios_iobs, IOBROKER_CLOSE_SOCKETS);
-		cleanup();
-		cleanup_performance_data();
-		cleanup_downtime_data();
+	else if((int)pid != 0)
 		exit(OK);
-		}
 
 	/* child continues... */
 
@@ -2127,13 +2094,12 @@ int process_check_result_queue(char *dirname) {
 		return ERROR;
 		}
 
-	log_debug_info(DEBUGL_CHECKS, 0, "Starting to read check result queue '%s'...\n", dirname);
+	log_debug_info(DEBUGL_CHECKS, 1, "Starting to read check result queue '%s'...\n", dirname);
 
 	start = time(NULL);
 
 	/* process all files in the directory... */
 	while((dirfile = readdir(dirp)) != NULL) {
-
 		/* bail out if we encountered a signal */
 		if (sigshutdown == TRUE || sigrestart == TRUE) {
 			log_debug_info(DEBUGL_CHECKS, 0, "Breaking out of check result reaper: signal encountered\n");
@@ -2150,13 +2116,7 @@ int process_check_result_queue(char *dirname) {
 		snprintf(file, sizeof(file), "%s/%s", dirname, dirfile->d_name);
 		file[sizeof(file) - 1] = '\x0';
 
-		/* process this if it's a check result file...
-		   remember it needs to be in the format of
-			 filename = cXXXXXX
-		   where X is any integer
-		   there must also be a filename present
-		   	 okfile = cXXXXXX.ok
-		   where the XXXXXX is the same as in the filename */
+		/* process this if it's a check result file... */
 		x = strlen(dirfile->d_name);
 		if(x == 7 && dirfile->d_name[0] == 'c') {
 
@@ -2192,18 +2152,14 @@ int process_check_result_queue(char *dirname) {
 			result = process_check_result_file(file);
 
 			/* break out if we encountered an error */
-			if(result == ERROR) {
-				log_debug_info(DEBUGL_CHECKS, 0, "Encountered an error processing the check result file\n");
+			if(result == ERROR)
 				break;
-				}
 
 			check_result_files++;
 			}
 		}
 
 	closedir(dirp);
-
-	log_debug_info(DEBUGL_CHECKS, 0, "Finished reaping %d check results\n", check_result_files);
 
 	return check_result_files;
 
@@ -2262,8 +2218,6 @@ int process_check_result_file(char *fname) {
 	char *input = NULL;
 	char *var = NULL;
 	char *val = NULL;
-	char *vartok = NULL;
-	char *valtok = NULL;
 	char *v1 = NULL, *v2 = NULL;
 	time_t current_time;
 	check_result cr;
@@ -2319,31 +2273,17 @@ int process_check_result_file(char *fname) {
 			cr.output_file = fname;
 			}
 
-		if((vartok = my_strtok_with_free(input, "=", FALSE)) == NULL)
+		if((var = my_strtok(input, "=")) == NULL)
 			continue;
-		if((valtok = my_strtok_with_free(NULL, "\n", FALSE)) == NULL) {
-			vartok = my_strtok_with_free(NULL, NULL, TRUE);
+		if((val = my_strtok(NULL, "\n")) == NULL)
 			continue;
-		}
-
-		/* clean up some memory before we go any further */
-		var = strdup(vartok);
-		val = strdup(valtok);
-		vartok = my_strtok_with_free(NULL, NULL, TRUE);
-
-		log_debug_info(DEBUGL_CHECKS, 2, " * %25s: %s\n", var, val);
 
 		/* found the file time */
 		if(!strcmp(var, "file_time")) {
 
 			/* file is too old - ignore check results it contains and delete it */
 			/* this will only work as intended if file_time comes before check results */
-			if(max_check_result_file_age > 0 
-				&& (current_time - (strtoul(val, NULL, 0)) > max_check_result_file_age)) {
-
-				log_debug_info(DEBUGL_CHECKS, 1, 
-					"Skipping check_result because file_time is %s and max cr file age is %d", 
-					val, max_check_result_file_age);
+			if(max_check_result_file_age > 0 && (current_time - (strtoul(val, NULL, 0)) > max_check_result_file_age)) {
 				break;
 				}
 			}
@@ -2398,8 +2338,6 @@ int process_check_result_file(char *fname) {
 				cr.output = unescape_check_result_output(val);
 			}
 		}
-
-	log_debug_info(DEBUGL_CHECKS, 2, " **************\n");
 
 	/* do we have the minimum amount of data? */
 	if(cr.host_name != NULL && cr.output != NULL) {
@@ -3369,7 +3307,6 @@ char *get_program_modification_date(void) {
 
 /* do some cleanup before we exit */
 void cleanup(void) {
-	xodtemplate_free_memory();
 
 #ifdef USE_EVENT_BROKER
 	/* unload modules */
@@ -3395,6 +3332,8 @@ void free_memory(nagios_macros *mac) {
 
 	/* free all allocated memory for the object definitions */
 	free_object_data();
+
+	/* free memory allocated to comments */
 	free_comment_data();
 
 	/* free event queue data */
@@ -3447,35 +3386,22 @@ void free_memory(nagios_macros *mac) {
 	mac->x[MACRO_TEMPFILE] = NULL; /* assigned from temp_file */
 	my_free(temp_path);
 	mac->x[MACRO_TEMPPATH] = NULL; /*assigned from temp_path */
+	my_free(check_result_path);
 	my_free(command_file);
 	mac->x[MACRO_COMMANDFILE] = NULL; /* assigned from command_file */
-
-	my_free(check_result_path);
 	my_free(log_archive_path);
 	my_free(website_url);
-	my_free(lock_file);
-	my_free(config_file);
-	my_free(config_file_dir);
-	my_free(nagios_binary_path);
-	my_free(status_file);
-	my_free(retention_file);
 
 	for (i = 0; i < MAX_USER_MACROS; i++) {
 		my_free(macro_user[i]);
 	}
 
 	/* these have no other reference */
-	my_free(mac->x[MACRO_PROCESSSTARTTIME]);
-	my_free(mac->x[MACRO_EVENTSTARTTIME]);
 	my_free(mac->x[MACRO_ADMINEMAIL]);
 	my_free(mac->x[MACRO_ADMINPAGER]);
 	my_free(mac->x[MACRO_RESOURCEFILE]);
 	my_free(mac->x[MACRO_OBJECTCACHEFILE]);
 	my_free(mac->x[MACRO_MAINCONFIGFILE]);
-	my_free(mac->x[MACRO_RETENTIONDATAFILE]);
-	my_free(mac->x[MACRO_HOSTPERFDATAFILE]);
-	my_free(mac->x[MACRO_STATUSDATAFILE]);
-	my_free(mac->x[MACRO_SERVICEPERFDATAFILE]);
 
 	return;
 	}
@@ -3578,127 +3504,3 @@ int reset_variables(void) {
 
 	return OK;
 	}
-
-/* try and detect any problems with sys limits 
-   we're specifically interested in NPROC
-   but could easily add NOFILE here if necessary */
-void rlimit_problem_detection(int desired_workers) {
-
-	log_debug_info(DEBUGL_PROCESS, 2, "rlimit_problem_detection()\n");
-
-	struct rlimit rlim;
-	int ilim;
-	host * temp_host = NULL;
-	service * temp_service = NULL;
-
-	/* how many times a worker forks/execs to run a plugin */
-	int forks_per_worker_per_check = 2;
-
-	/* time period to calculate over (in minutes) */
-	int time_period_calc = 5;
-
-	/* how many processes do we just want to account for? */
-	int arbitrary_user_processes = 300;
-
-	double checks_per_time_period = 0.0;
-	double this_interval = 0.0;
-	int total_num_procs = 0;
-
-
-	/* first, we grab the NPROC limit, then we check if it isn't unlimited
-	   if it isn't, but the max is, then we set the soft limit to the max
-	   if that doesn't work, or the max isn't unlimited, then we try and
-	   calculate what the current usage is really, and how many workers
-	   we expect to have, and calculate what our usage (generally) is 
-	   going to be */
-
-	ilim = getrlimit(RLIMIT_NPROC, &rlim);
-	if (ilim != 0) {
-
-		/* nothing we can do here, so just let it keep moving along */
-		logit(NSLOG_PROCESS_INFO, TRUE, "WARNING: getrlimit(RLIMIT_NPROC) failed with errno: %s\n", strerror(errno));
-		return;
-	}
-
-	if (rlim.rlim_cur == RLIM_INFINITY) {
-
-		/* we won't have any problems due to fork constraints */
-		log_debug_info(DEBUGL_PROCESS, 0, " * RLIMIT_NPROC is unlimited, no need to continue checking.\n");
-		return;
-	}
-
-	desired_workers = get_desired_workers(desired_workers);
-	
-	/* calculate the amount of checks
-	   and the worst-case (estimation) frequency in which they repeat */
-	for (temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
-
-		this_interval = 0;
-
-		if (!(temp_host->checks_enabled)) {
-			continue;
-		}
-
-		/* get the smallest possible */
-		if (temp_host->check_interval > temp_host->retry_interval 
-			&& temp_host->retry_interval != 0) {
-
-			this_interval = temp_host->retry_interval;
-		} else {
-			this_interval = temp_host->check_interval;
-		}
-
-		/* get them on an average scale (5 min) */
-		if (this_interval > 0) {
-			this_interval = ceil((double) time_period_calc / this_interval);
-		}
-
-		checks_per_time_period += this_interval;
-	}
-
-	for (temp_service = service_list; temp_service != NULL; temp_service = temp_service->next) {
-
-		this_interval = 0;
-
-		if (!(temp_service->checks_enabled)) {
-			continue;
-		}
-
-		/* get the smallest possible */
-		if (temp_service->check_interval > temp_service->retry_interval 
-			&& temp_service->retry_interval != 0) {
-			
-			this_interval = temp_service->retry_interval;
-		} else {
-			this_interval = temp_service->check_interval;
-		}
-
-		/* get them on an average scale (5 min) */
-		if (this_interval > 0) {
-			this_interval = ceil(time_period_calc / this_interval);
-		}
-
-		checks_per_time_period += this_interval;
-	}
-
-	total_num_procs = checks_per_time_period * forks_per_worker_per_check;
-	total_num_procs += desired_workers;
-	total_num_procs += arbitrary_user_processes;
-
-	log_debug_info(DEBUGL_PROCESS, 0, " * total_num_procs is:               %d\n", total_num_procs);
-	log_debug_info(DEBUGL_PROCESS, 0, " * using forks_per_worker_per_check: %d\n", forks_per_worker_per_check);
-	log_debug_info(DEBUGL_PROCESS, 0, " * using            desired_workers: %d\n", desired_workers);
-	log_debug_info(DEBUGL_PROCESS, 0, " * using   arbitrary_user_processes: %d\n", arbitrary_user_processes);
-
-
-	if (rlim.rlim_cur > total_num_procs) {
-
-		log_debug_info(DEBUGL_PROCESS, 0, " * RLIMIT_NPROC is %d, total max estimated processes is %d, everything looks okay!\n",
-			rlim.rlim_cur, total_num_procs);
-	} else {
-
-		/* just warn the user - no need to bail out */
-		logit(NSLOG_RUNTIME_WARNING, TRUE, "WARNING: RLIMIT_NPROC is %d, total max estimated processes is %d! You should increase your limits (ulimit -u, or limits.conf)\n",
-			rlim.rlim_cur, total_num_procs);
-	}
-}

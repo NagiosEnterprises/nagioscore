@@ -119,9 +119,6 @@ extern int host_freshness_check_interval;
 extern int auto_rescheduling_interval;
 extern int auto_rescheduling_window;
 
-extern int enable_soft_host_recovery;
-extern int enable_soft_service_recovery;
-
 extern int check_orphaned_services;
 extern int check_orphaned_hosts;
 extern int check_service_freshness;
@@ -191,10 +188,6 @@ extern unsigned long max_debug_file_size;
 extern int allow_empty_hostgroup_assignment;
 
 extern int host_down_disable_service_checks;
-extern int service_skip_check_dependency_status;
-extern int service_skip_check_parent_status;
-extern int service_skip_check_host_down_status;
-extern int host_skip_check_dependency_status;
 
 extern time_t last_program_stop;
 extern time_t event_start;
@@ -435,6 +428,13 @@ NAGIOS_BEGIN_DECL
 		retry_check_window(o) : \
 		normal_check_window(o))
 
+/** Nerd subscription type */
+struct nerd_subscription {
+	int sd;
+	struct nerd_channel *chan;
+	char *format; /* requested format (macro string) for this subscription */
+};
+
 /******************** FUNCTIONS **********************/
 extern int set_loadctl_options(char *opts, unsigned int len);
 
@@ -445,15 +445,6 @@ extern const char *state_type_name(int state_type);
 extern const char *check_type_name(int check_type);
 extern const char *check_result_source(check_result *cr);
 
-#ifdef ENABLE_NERD
-
-/** Nerd subscription type */
-struct nerd_subscription {
-	int sd;
-	struct nerd_channel *chan;
-	char *format; /* requested format (macro string) for this subscription */
-};
-
 /*** Nagios Event Radio Dispatcher functions ***/
 extern int nerd_init(void);
 extern int nerd_mkchan(const char *name, const char *description, int (*handler)(int, void *), unsigned int callbacks);
@@ -461,8 +452,6 @@ extern int nerd_cancel_subscriber(int sd);
 extern int nerd_get_channel_id(const char *chan_name);
 extern objectlist *nerd_get_subscriptions(int chan_id);
 extern int nerd_broadcast(unsigned int chan_id, void *buf, unsigned int len);
-
-#endif
 
 /*** Query Handler functions, types and macros*/
 typedef int (*qh_handler)(int, char *, unsigned int);
@@ -559,6 +548,7 @@ void handle_service_flap_detection_disabled(service *);		/* handles the details 
 int check_host_check_viability(host *, int, int *, time_t *);
 int adjust_host_check_attempt(host *, int);
 int determine_host_reachability(host *);
+int process_host_check_result(host *, int, char *, int, int, int, unsigned long);
 int perform_on_demand_host_check(host *, int *, int, int, unsigned long);
 int execute_sync_host_check(host *);
 int run_scheduled_host_check(host *, int, double);
@@ -633,7 +623,6 @@ void my_system_sighandler(int);				/* handles timeouts when executing commands v
 char *get_next_string_from_buf(char *buf, int *start_index, int bufsize);
 int compare_strings(char *, char *);                    /* compares two strings for equality */
 char *escape_newlines(char *);
-void rlimit_problem_detection(int);
 /**
  * Unescapes newlines and backslashes in a check result output string read from
  * a source that uses newlines as a delimiter (e.g., files in the checkresults

@@ -145,7 +145,6 @@ export PATH=%{_bindir}:/bin:\$PATH
 %{__cp} -a Documentation/html/* %{buildroot}%{_datadir}/nagios/documentation
 
 # Put the new RC script in place
-# TODO: this should be more automatically created with @initdir@, etc.
 %{__install} -m 0755 daemon-init %{buildroot}/%{_initrddir}/nagios
 %{__install} -d -m 0755 %{buildroot}/%{_sysconfdir}/sysconfig/
 %{__install} -m 0644 nagios.sysconfig %{buildroot}/%{_sysconfdir}/sysconfig/nagios

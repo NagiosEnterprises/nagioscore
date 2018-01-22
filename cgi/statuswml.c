@@ -113,7 +113,7 @@ int main(void) {
 		}
 
 	/* read the CGI configuration file */
-	result = read_cgi_config_file(get_cgi_config_location(), NULL);
+	result = read_cgi_config_file(get_cgi_config_location());
 	if(result == ERROR) {
 		printf("<P>Error: Could not open CGI configuration file '%s' for reading!</P>\n", get_cgi_config_location());
 		document_footer();

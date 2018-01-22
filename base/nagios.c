@@ -180,8 +180,6 @@ static int nagios_core_worker(const char *path)
 	}
 
 	enter_worker(sd, start_cmd);
-	free_worker_memory(WPROC_FORCE);
-	free_memory(get_global_macros());
 	return 0;
 }
 
@@ -347,7 +345,6 @@ int main(int argc, char **argv) {
 		printf("along with this program; if not, write to the Free Software\n");
 		printf("Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.\n\n");
 
-		cleanup();
 		exit(OK);
 		}
 
@@ -377,7 +374,6 @@ int main(int argc, char **argv) {
 		printf("the mailing lists, and commercial support options for Nagios.\n");
 		printf("\n");
 
-		cleanup();
 		exit(ERROR);
 		}
 
@@ -388,10 +384,7 @@ int main(int argc, char **argv) {
 	 */
 	config_file = nspath_absolute(argv[optind], NULL);
 	if(config_file == NULL) {
-		
 		printf("Error allocating memory.\n");
-
-		cleanup();
 		exit(ERROR);
 		}
 
@@ -433,7 +426,6 @@ int main(int argc, char **argv) {
 		result = read_main_config_file(config_file);
 		if(result != OK) {
 			printf("   Error processing main config file!\n\n");
-			cleanup();
 			exit(EXIT_FAILURE);
 			}
 
@@ -443,7 +435,6 @@ int main(int argc, char **argv) {
 		/* drop privileges */
 		if((result = drop_privileges(nagios_user, nagios_group)) == ERROR) {
 			printf("   Failed to drop privileges.  Aborting.");
-			cleanup();
 			exit(EXIT_FAILURE);
 			}
 
@@ -453,7 +444,6 @@ int main(int argc, char **argv) {
 		 */
 		if (!verify_config && test_configured_paths() == ERROR) {
 			printf("   One or more path problems detected. Aborting.\n");
-			cleanup();
 			exit(EXIT_FAILURE);
 			}
 
@@ -478,7 +468,6 @@ int main(int argc, char **argv) {
 			printf("     may have been removed or modified in this version.  Make sure to read\n");
 			printf("     the HTML documentation regarding the config files, as well as the\n");
 			printf("     'Whats New' section to find out what has changed.\n\n");
-			cleanup();
 			exit(EXIT_FAILURE);
 			}
 
@@ -499,7 +488,6 @@ int main(int argc, char **argv) {
 			printf("     may have been removed or modified in this version.  Make sure to read\n");
 			printf("     the HTML documentation regarding the config files, as well as the\n");
 			printf("     'Whats New' section to find out what has changed.\n\n");
-			cleanup();
 			exit(EXIT_FAILURE);
 			}
 
@@ -546,7 +534,8 @@ int main(int argc, char **argv) {
 
 		/* make valgrind shut up about still reachable memory */
 		neb_free_module_list();
-		cleanup();
+		free(config_file_dir);
+		free(config_file);
 
 		exit(result);
 		}
@@ -567,20 +556,17 @@ int main(int argc, char **argv) {
 
 		if (!nagios_binary_path) {
 			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Unable to allocate memory for nagios_binary_path\n");
-			cleanup();
 			exit(EXIT_FAILURE);
 			}
 
 		if (!(nagios_iobs = iobroker_create())) {
 			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Failed to create IO broker set: %s\n",
 				  strerror(errno));
-			cleanup();
 			exit(EXIT_FAILURE);
 			}
 
 		/* keep monitoring things until we get a shutdown command */
 		do {
-
 			/* reset internal book-keeping (in case we're restarting) */
 			wproc_num_workers_spawned = wproc_num_workers_online = 0;
 			caught_signal = sigshutdown = FALSE;
@@ -597,7 +583,6 @@ int main(int argc, char **argv) {
 			result = read_main_config_file(config_file);
 			if (result != OK) {
 				logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to process config file '%s'. Aborting\n", config_file);
-				cleanup();
 				exit(EXIT_FAILURE);
 				}
 			timing_point("Main config file read\n");
@@ -607,7 +592,7 @@ int main(int argc, char **argv) {
 			program_start = time(NULL);
 			my_free(mac->x[MACRO_PROCESSSTARTTIME]);
 			asprintf(&mac->x[MACRO_PROCESSSTARTTIME], "%llu", (unsigned long long)program_start);
-
+			
 			/* enter daemon mode (unless we're restarting...) */
 			if(daemon_mode == TRUE && sigrestart == FALSE) {
 
@@ -636,13 +621,11 @@ int main(int argc, char **argv) {
 			if (test_path_access(nagios_binary_path, X_OK)) {
 				logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: failed to access() %s: %s\n", nagios_binary_path, strerror(errno));
 				logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Spawning workers will be impossible. Aborting.\n");
-				cleanup();
 				exit(EXIT_FAILURE);
 				}
 
 			if (test_configured_paths() == ERROR) {
 				/* error has already been logged */
-				cleanup();
 				exit(EXIT_FAILURE);
 				}
 
@@ -681,11 +664,8 @@ int main(int argc, char **argv) {
 				exit(EXIT_FAILURE);
 			}
 			timing_point("Query handler initialized\n");
-
-#ifdef ENABLE_NERD
 			nerd_init();
 			timing_point("NERD initialized\n");
-#endif
 
 			/* initialize check workers */
 			if(init_workers(num_check_workers) < 0) {
@@ -710,7 +690,6 @@ int main(int argc, char **argv) {
 				/* if we're dumping core, we must remove all dl-files */
 				if (daemon_dumps_core)
 					neb_unload_all_modules(NEBMODULE_FORCE_UNLOAD, NEBMODULE_NEB_SHUTDOWN);
-				cleanup();
 				exit(EXIT_FAILURE);
 				}
 			timing_point("Modules loaded\n");
@@ -754,12 +733,6 @@ int main(int argc, char **argv) {
 				}
 
 			timing_point("Object configuration parsed and understood\n");
-			
-			/* lets do a quick system limit detection
-			   to determine if we're likely to run into any
-			   problems. */
-			rlimit_problem_detection(num_check_workers);
-			timing_point("Limit detection");
 
 			/* write the objects.cache file */
 			fcache_objects(object_cache_file);
@@ -774,7 +747,7 @@ int main(int argc, char **argv) {
 			broker_program_state(NEBTYPE_PROCESS_START, NEBFLAG_NONE, NEBATTR_NONE, NULL);
 #endif
 
-			/* initialize status data only if we're starting (no restarts) */
+			/* initialize status data unless we're starting */
 			if(sigrestart == FALSE) {
 				initialize_status_data(config_file);
 				timing_point("Status data initialized\n");
@@ -848,7 +821,7 @@ int main(int argc, char **argv) {
 			qh_deinit(qh_socket_path ? qh_socket_path : DEFAULT_QUERY_SOCKET);
 
 			/* 03/01/2007 EG Moved from sighandler() to prevent FUTEX locking problems under NPTL */
-			/* 03/21/2007 EG SIGSEGV signals are still logged in sighandler() so we don't lose them */
+			/* 03/21/2007 EG SIGSEGV signals are still logged in sighandler() so we don't loose them */
 			/* did we catch a signal? */
 			if(caught_signal == TRUE) {
 
@@ -876,7 +849,7 @@ int main(int argc, char **argv) {
 			/* clean up the scheduled downtime data */
 			cleanup_downtime_data();
 
-			/* clean up the status data if we are not restarting */
+			/* clean up the status data unless we're restarting */
 			if(sigrestart == FALSE) {
 				cleanup_status_data(TRUE);
 				}
@@ -884,7 +857,6 @@ int main(int argc, char **argv) {
 			free_worker_memory(WPROC_FORCE);
 			/* shutdown stuff... */
 			if(sigshutdown == TRUE) {
-				shutdown_command_file_worker();
 				iobroker_destroy(nagios_iobs, IOBROKER_CLOSE_SOCKETS);
 				nagios_iobs = NULL;
 
@@ -892,21 +864,8 @@ int main(int argc, char **argv) {
 				logit(NSLOG_PROCESS_INFO, TRUE, "Successfully shutdown... (PID=%d)\n", (int)getpid());
 				}
 
-			/* try and wait on any child processes that we didn't
-			   catch with the SIGCHLD handler */
-			if (sigrestart == TRUE) {
-
-				int status = 0;
-				pid_t child_pid;
-				log_debug_info(DEBUGL_PROCESS, 0, "Calling waitpid(,,WNOHANG|WUNTRACED) on all children...\n");
-
-				while ((child_pid = waitpid(-1, &status, WNOHANG | WUNTRACED)) > 0) {
-
-					log_debug_info(DEBUGL_PROCESS, 0, " * child PID: (%d), status: (%d)\n", child_pid, status);
-					}
-
-				log_debug_info(DEBUGL_PROCESS, 0, "All children have been wait()ed on\n");
-				}
+			/* clean up after ourselves */
+			cleanup();
 
 			/* close debug log */
 			close_debug_log();
@@ -918,7 +877,10 @@ int main(int argc, char **argv) {
 			unlink(lock_file);
 
 		/* free misc memory */
-		cleanup();
+		my_free(lock_file);
+		my_free(config_file);
+		my_free(config_file_dir);
+		my_free(nagios_binary_path);
 		}
 
 	return OK;

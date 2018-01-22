@@ -35,7 +35,7 @@
 #define DEFAULT_PHYSICAL_CGIBIN_PATH		"@sbindir@"
 #define DEFAULT_URL_CGIBIN_PATH			"@cgiurl@"
 #define DEFAULT_CGI_CONFIG_FILE			"@sysconfdir@/cgi.cfg"
-#define DEFAULT_LOCK_FILE			"@subsyslockfile@"
+#define DEFAULT_LOCK_FILE			"@lockfile@"
 #define DEFAULT_OBJECT_CACHE_FILE		"@localstatedir@/objects.cache"
 #define DEFAULT_PRECACHED_OBJECT_FILE		"@localstatedir@/objects.precache"
 #define DEFAULT_EVENT_BROKER_FILE		"@localstatedir@/broker.socket"

@@ -46,11 +46,8 @@ int kvvec_resize(struct kvvec *kvv, int hint)
 		return 0;
 
 	kv = realloc(kvv->kv, sizeof(struct key_value) * hint);
-	if (!kv) {
-		if (kvv->kv)
-			free(kvv->kv);
+	if (!kv)
 		return -1;
-	}
 
 	memset(&kv[kvv->kv_alloc], 0, (hint - kvv->kv_alloc) * sizeof(*kv));
 	kvv->kv = kv;

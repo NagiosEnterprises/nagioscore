@@ -37,7 +37,6 @@ typedef struct wproc_result {
 	int exited_ok;
 	int early_timeout;
 	struct kvvec *response;
-	/* 5DEPR: rusage is deprecated for Nagios, will be removed in 5.0.0 */
 	struct rusage rusage;
 } wproc_result;
 
@@ -49,7 +48,6 @@ extern void wproc_reap(int jobs, int msecs);
 extern int wproc_can_spawn(struct load_control *lc);
 extern void free_worker_memory(int flags);
 extern int workers_alive(void);
-extern int get_desired_workers(int desired_workers);
 extern int init_workers(int desired_workers);
 extern int wproc_run_check(check_result *cr, char *cmd, nagios_macros *mac);
 extern int wproc_notify(char *cname, char *hname, char *sdesc, char *cmd, nagios_macros *mac);

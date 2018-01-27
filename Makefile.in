@@ -347,7 +347,16 @@ install-init: install-daemoninit
 
 install-daemoninit:
 	$(INSTALL) -m 755 $(INIT_OPTS) startup/$(SRC_INIT) $(INIT_DIR)/$(INIT_FILE)
-
+	if [ x$(INIT_TYPE) = xsystemd ]; then \
+		if which systemctl >/dev/null 2>&1; then \
+			systemctl daemon-reload \
+		fi \
+	fi
+	if [ x$(INIT_TYPE) = xupstart ]; then \
+		if which initctl >/dev/null 2>&1; then \
+			initctl reload-configuration \
+		fi \
+	fi
 
 	@echo ""
 	@echo "*** Init script installed ***"

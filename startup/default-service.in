@@ -8,9 +8,9 @@ Type=forking
 PIDFile=@subsyslockfile@
 ExecStartPre=@bindir@/nagios -v @sysconfdir@/nagios.cfg
 ExecStart=@bindir@/nagios -d @sysconfdir@/nagios.cfg
-ExecStop=/bin/kill -s TERM ${MAINPID}
-ExecStopPost=/usr/bin/rm -f @localstatedir@/rw/nagios.cmd
-ExecReload=/bin/kill -s HUP ${MAINPID}
+ExecStop=@bin_kill@ -s TERM ${MAINPID}
+ExecStopPost=@bin_rm@ -f @localstatedir@/rw/nagios.cmd
+ExecReload=@bin_kill@ -s HUP ${MAINPID}
 
 [Install]
 WantedBy=multi-user.target

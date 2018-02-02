@@ -745,6 +745,8 @@ datarootdir
 libexecdir
 sbindir
 bindir
+bin_rm
+bin_kill
 program_transform_name
 prefix
 exec_prefix
@@ -5174,7 +5176,7 @@ if test ! -d "$subsyslockdir"; then
 	subsyslockdir="N/A"
 	subsyslockfile="N/A"
 else
-	subsyslockfile="$subsyslockdir/$INIT_PROG"
+	subsyslockfile="$subsyslockdir/nagios.lock"
 fi
 if test "$need_loc" = no; then
 	localedir="N/A"
@@ -5705,7 +5707,7 @@ fi
 if test $subsyslockdir = "N/A"; then
 	if test -d "/var/run"; then
 		subsyslockdir="/var/run"
-		subsyslockfile="/var/run/nagios"
+		subsyslockfile="/var/run/nagios.lock"
 	else
 		subsyslockdir="/usr/local/nagios/var/"
 		subsyslockfile="/usr/local/nagios/var/nagios.lock"
@@ -6240,6 +6242,22 @@ if test x$MAIL_PROG = x; then
 	else
 		MAIL_PROG="/bin/mail"
 	fi
+fi
+
+
+# Determine location of rm binary
+if test $dist_type = freebsd; then
+	bin_rm=`which rm`
+else
+	bin_rm=`type -P rm`
+fi
+
+
+# Determine location of kill binary
+if test $dist_type = freebsd; then
+	bin_kill=`which kill`
+else
+	bin_kill=`type -P kill`
 fi
 
 

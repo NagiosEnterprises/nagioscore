@@ -42,7 +42,9 @@ LN_HTTPD_SITES_ENABLED=@LN_HTTPD_SITES_ENABLED@
 INIT_DIR=@initdir@
 INIT_OPTS=@INIT_OPTS@
 CGICFGDIR=$(CGIDIR)
-
+NAGIOS_USER=@nagios_user@
+NAGIOS_GRP=@nagios_grp@
+DIST=@dist_type@
 
 SRC_INIT=@src_init@
 INIT_FILE=@initname@
@@ -95,6 +97,9 @@ all:
 	@echo ""
 	@echo "  make install-init"
 	@echo "     - This installs the init script in $(DESTDIR)$(INIT_DIR)"
+	@echo ""
+	@echo "  make install-groups-users"
+	@echo "     - This adds the users and groups if they do not exist"
 	@echo ""
 	@echo "  make install-commandmode"
 	@echo "     - This installs and configures permissions on the"
@@ -275,7 +280,6 @@ install-basic:
 	@echo "     - This installs sample config files in $(DESTDIR)$(CFGDIR)"
 	@echo ""
 
-
 install-config:
 	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(CFGDIR)
 	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(CFGDIR)/objects
@@ -298,6 +302,9 @@ install-config:
 	@echo "the documentation for more information on how to actually define"
 	@echo "services, hosts, etc. to fit your particular needs."
 	@echo ""
+
+install-groups-users:
+	@autoconf-macros/add_group_user $(DIST) $(NAGIOS_USER) $(NAGIOS_GRP)
 
 install-webconf:
 	$(INSTALL) -m 644 sample-config/httpd.conf $(DESTDIR)$(HTTPD_CONF)/nagios.conf

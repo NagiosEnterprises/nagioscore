@@ -5528,7 +5528,7 @@ case $init_type in #(
 			initname=${initname="rc.$INIT_PROG"}
 		fi ;; #(
   newbsd) :
-    initdir=${initdir="/etc/rc.d"}
+    initdir=${initdir="/usr/local/etc/rc.d"}
 		initname=${initname="$INIT_PROG"} ;; #(
   gentoo) :
     initdir=${initdir="/etc/init.d"}
@@ -5634,7 +5634,7 @@ case $init_type in #(
   newbsd) :
     if test $dist_type = freebsd ; then
 			bsd_enable="_enable"
-			src_init=newbsd-init
+			src_init=default-init
 		elif test $dist_type = openbsd ; then
 			bsd_enable="_flags"
 			src_init=openbsd-init
@@ -5696,6 +5696,8 @@ $as_echo "$src_inetd" >&6; }
 if test $src_init != "default-init" -a \
         $src_init != "default-service" -a \
         $src_init != "openrc-init" -a \
+        $src_init != "newbsd-init" -a \
+        $src_init != "openbsd-init" -a \
         $src_init != "upstart-init"; then
 
 	src_init="default-init"

@@ -46,7 +46,7 @@ CGICFGDIR=$(CGIDIR)
 
 SRC_INIT=@src_init@
 INIT_FILE=@initname@
-#INIT_TYPE=@init_type@
+INIT_TYPE=@init_type@
 
 USE_EVENTBROKER=@USE_EVENTBROKER@
 USE_LIBTAP=@USE_LIBTAP@
@@ -347,14 +347,27 @@ install-init: install-daemoninit
 
 install-daemoninit:
 	$(INSTALL) -m 755 $(INIT_OPTS) startup/$(SRC_INIT) $(INIT_DIR)/$(INIT_FILE)
+	if [ x$(INIT_TYPE) = xsysv ]; then \
+		if which chkconfig >/dev/null 2>&1; then \
+			chkconfig --add nagios; \
+		elif which update-rc.d >/dev/null 2>&1; then \
+			update-rc.d nagios defaults; \
+		fi \
+	fi
 	if [ x$(INIT_TYPE) = xsystemd ]; then \
 		if which systemctl >/dev/null 2>&1; then \
 			systemctl daemon-reload; \
+			systemctl enable nagios.service; \
 		fi \
 	fi
 	if [ x$(INIT_TYPE) = xupstart ]; then \
 		if which initctl >/dev/null 2>&1; then \
 			initctl reload-configuration; \
+		fi \
+	fi
+	if [ x$(INIT_TYPE) = xopenrc ]; then \
+		if which rc-update >/dev/null 2>&1; then \
+			rc-update add nagios default; \
 		fi \
 	fi
 

@@ -304,7 +304,7 @@ install-config:
 	@echo ""
 
 install-groups-users:
-	@autoconf-macros/add_group_user $(DIST) $(NAGIOS_USER) $(NAGIOS_GRP)
+	@autoconf-macros/add_group_user $(DIST) $(NAGIOS_USER) $(NAGIOS_GRP) 1
 
 install-webconf:
 	$(INSTALL) -m 644 sample-config/httpd.conf $(DESTDIR)$(HTTPD_CONF)/nagios.conf

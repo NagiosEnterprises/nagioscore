@@ -8,6 +8,18 @@ uid="$2"
 gid="$3"
 rc=0
 
+#------------------------------------------------------------------
+# Determine if the user should be created with a shell environment
+# 0 = no shell (more secure)
+# 1 = shell (less secure but sometimes required)
+#------------------------------------------------------------------
+shell=0
+if [ $# -eq 4 ]; then
+	if [ x$4 = x1 ]; then
+		shell=1
+	fi
+fi
+
 #-------------------------------------
 # Check if the specified group exists
 #-------------------------------------
@@ -56,8 +68,10 @@ add_user(){
 			dscl . -create /Users/$uid
 			echo dscl . -create /Users/$uid UniqueID $newid > /dev/stderr
 			dscl . -create /Users/$uid UniqueID $newid
-			echo dscl . -create /Users/$uid UserShell /usr/bin/false > /dev/stderr
-			dscl . -create /Users/$uid UserShell /usr/bin/false
+			if [ $shell = 0 ]; then
+				echo dscl . -create /Users/$uid UserShell /usr/bin/false > /dev/stderr
+				dscl . -create /Users/$uid UserShell /usr/bin/false
+			fi
 			echo dscl . -create /Users/$uid PrimaryGroupID 20 > /dev/stderr
 			dscl . -create /Users/$uid PrimaryGroupID 20
 			echo dscl . -append /Groups/$gid GroupMembership $uid > /dev/stderr
@@ -65,8 +79,13 @@ add_user(){
 			;;
 
 		freebsd)
-			echo pw add user $uid -g $gid -s /usr/bin/false > /dev/stderr
-			rc=`pw add user $uid -g $gid -s /usr/bin/false; echo $?`
+			if [ $shell = 0 ]; then
+				echo pw add user $uid -g $gid -s /usr/bin/false > /dev/stderr
+				rc=`pw add user $uid -g $gid -s /usr/bin/false; echo $?`
+			else
+				echo pw add user $uid -g $gid > /dev/stderr
+				rc=`pw add user $uid -g $gid; echo $?`
+			fi
 			;;
 
 		netbsd|openbsd)
@@ -75,8 +94,13 @@ add_user(){
 			;;
 
 		*)
-			echo useradd -r -g $gid $uid > /dev/stderr
-			rc=`useradd -r -g $gid $uid; echo $?`
+			if [ $shell = 0 ]; then
+				echo useradd -r -g $gid $uid > /dev/stderr
+				rc=`useradd -r -g $gid $uid; echo $?`
+			else
+				echo useradd -g $gid $uid > /dev/stderr
+				rc=`useradd -g $gid $uid; echo $?`
+			fi
 			;;
 	esac
 

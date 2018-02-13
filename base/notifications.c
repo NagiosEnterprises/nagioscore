@@ -549,8 +549,8 @@ int check_service_notification_viability(service *svc, int type, int options) {
 	/* check if delay of notifications is activated (ccztux) */
 	if(type == NOTIFICATION_NORMAL && svc->first_notification_delay > 0 && svc->current_notification_number == 0 && svc->current_state != STATE_OK) {
 
-        /* determine the time to use of the last problem point */
-        if(current_time < ((svc->last_hard_state_change > 0 ? svc->last_hard_state_change : program_start ) + (time_t)(svc->first_notification_delay * interval_length))) {
+		/* determine the time to use of the last problem point */
+		if(current_time < ((svc->last_hard_state_change > 0 ? svc->last_hard_state_change : program_start ) + (time_t)(svc->first_notification_delay * interval_length))) {
 			log_debug_info(DEBUGL_NOTIFICATIONS, 1, "Not enough time has elapsed since the service changed to a non-OK state, so we should not notify about this problem yet\n");
 			return ERROR;
 			}
@@ -1469,10 +1469,10 @@ int check_host_notification_viability(host *hst, int type, int options) {
 	/* 10/02/07 don't place restrictions on recoveries or non-normal notifications, must use last time up (or program start) in calculation */
 	/* it is reasonable to assume that if the host was never up, the program start time should be used in this calculation */
 	/* check if delay of notifications is activated (ccztux) */
-    if(type == NOTIFICATION_NORMAL && hst->first_notification_delay > 0 && hst->current_notification_number == 0 && hst->current_state != STATE_OK) {
+    	if(type == NOTIFICATION_NORMAL && hst->first_notification_delay > 0 && hst->current_notification_number == 0 && hst->current_state != STATE_OK) {
 
-        /* determine the time to use of the last problem point */
-        if(current_time < ((hst->last_hard_state_change > 0 ? hst->last_hard_state_change : program_start ) + (time_t)(hst->first_notification_delay * interval_length))) {
+		/* determine the time to use of the last problem point */
+		if(current_time < ((hst->last_hard_state_change > 0 ? hst->last_hard_state_change : program_start ) + (time_t)(hst->first_notification_delay * interval_length))) {
 			log_debug_info(DEBUGL_NOTIFICATIONS, 1, "Not enough time has elapsed since the host changed to a non-UP state (or since program start), so we shouldn't notify about this problem yet.\n");
 			return ERROR;
 			}

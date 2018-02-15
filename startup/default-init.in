@@ -46,7 +46,6 @@ NagiosStatusFile=@localstatedir@/status.dat
 NagiosRetentionFile=@localstatedir@/retention.dat
 NagiosCommandFile=@localstatedir@/rw/nagios.cmd
 NagiosVarDir=@localstatedir@
-NagiosRunFile=@subsyslockfile@
 NagiosCGIDir=@sbindir@
 NagiosUser=@nagios_user@
 NagiosGroup=@nagios_grp@
@@ -96,7 +95,7 @@ check_config ()
 
 	echo -n "Running configuration check... "
 
-	rm -f "$NagiosCfgtestFile";
+	@bin_rm@ -f "$NagiosCfgtestFile";
 	if test -e "$NagiosCfgtestFile"; then
 		echo "ERROR: Could not delete '$NagiosCfgtestFile'"
 		exit 8
@@ -113,13 +112,13 @@ check_config ()
 
 	if test "$WARN" = "0" && test "${ERR}" = "0"; then
 		echo "OK - Configuration check verified" > $NagiosCfgtestFile
-		/bin/rm "$TMPFILE"
+		@bin_rm@ "$TMPFILE"
 		return 0
 	elif test "${ERR}" = "0"; then
 		# Write the errors to a file we can have a script watching for.
 		echo "WARNING: Warnings in config files - see log for details: $NagiosCfgtestFile" > $NagiosCfgtestFile
 		egrep -i "(^warning|^error)" "$TMPFILE" >> $NagiosCfgtestFile
-		/bin/rm "$TMPFILE"
+		@bin_rm@ "$TMPFILE"
 		return 0
 	else
 		# Write the errors to a file we can have a script watching for.
@@ -153,7 +152,7 @@ printstatus_nagios ()
 
 killproc_nagios ()
 {
-	kill -s "$1" $NagiosPID
+	@bin_kill@ -s "$1" $NagiosPID
 }
 
 pid_nagios ()
@@ -183,7 +182,7 @@ remove_commandfile ()
 		(dd if=$NagiosCommandFile~ count=0 2>/dev/null & echo -n "" >$NagiosCommandFile~ &)
 	fi
 	
-	rm -f $NagiosCommandFile $NagiosCommandFile~
+	@bin_rm@ -f $NagiosCommandFile $NagiosCommandFile~
 }
 
 
@@ -197,6 +196,13 @@ fi
 if [ ! -f $NagiosCfgFile ]; then
     echo "Configuration file $NagiosCfgFile not found. Exiting."
     exit 1
+fi
+
+# Get the lock_file from nagios.cfg
+NagiosRunFile=`sed -n -e 's/^lock_file=*//p' $NagiosCfgFile`
+if [ $? -ne 0 ]; then
+	# If there was a problem the use the value from when Core was compiled
+	NagiosRunFile=@subsyslockfile@
 fi
 
 # See how we were called.
@@ -255,7 +261,7 @@ case "$1" in
 		fi
 
 		remove_commandfile
-		rm -f $NagiosStatusFile $NagiosRunFile
+		@bin_rm@ -f $NagiosStatusFile $NagiosRunFile
 		;;
 
 	status)

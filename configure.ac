@@ -260,6 +260,16 @@ fi
 AC_SUBST(HTTPD_CONF)
 AC_SUBST(LN_HTTPD_SITES_ENABLED)
 
+dnl Check if RLIMIT_PROC exists
+AC_TRY_COMPILE([#ifdef __STDC__
+#include <sys/time.h>
+#include <sys/resource.h>
+#endif],
+[struct rlimit rlim;
+int ilim = getrlimit(RLIMIT_NPROC, &rlim);],
+[AC_DEFINE(DETECT_RLIMIT_PROBLEM,1,[System has RLIMIT_PROC]) AC_MSG_RESULT([checking for RLIMIT_PROC... yes])],
+[AC_MSG_RESULT([checking for RLIMIT_PROC... no])])
+
 dnl Location of check result path
 CHECKRESULTDIR=no
 AC_ARG_WITH(checkresult-dir,

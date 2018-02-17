@@ -63,6 +63,8 @@ dnl We only have these options available so we need to make them work until ther
 if test $src_init != "default-init" -a \
         $src_init != "default-service" -a \
         $src_init != "openrc-init" -a \
+        $src_init != "newbsd-init" -a \
+        $src_init != "openbsd-init" -a \
         $src_init != "upstart-init"; then
 
 	src_init="default-init"
@@ -71,14 +73,16 @@ if test $src_init != "default-init" -a \
 	initname="nagios"
 fi
 
-dnl We need to check for a lock file specified, also
+dnl We need to check for a lock file specified
+dnl And if the built in check didn't work (the N/A)
+dnl then we need to find one!
 if test $subsyslockdir = "N/A"; then
 	if test -d "/var/run"; then
 		subsyslockdir="/var/run"
-		subsyslockfile="/var/run/nagios"
+		subsyslockfile="/var/run/$INIT_PROG"
 	else
 		subsyslockdir="/usr/local/nagios/var/"
-		subsyslockfile="/usr/local/nagios/var/nagios.lock"
+		subsyslockfile="/usr/local/nagios/var/$INIT_PROG"
 	fi
 fi
 AC_ARG_WITH(lockfile,
@@ -229,6 +233,20 @@ if test x$MAIL_PROG = x; then
 	fi
 fi
 AC_SUBST(MAIL_PROG)
+
+dnl Determine location of the rm binary
+BIN_RM=`which rm`
+if test $? -ne 0; then
+	BIN_RM='/bin/rm'
+fi
+AC_SUBST(BIN_RM)
+
+dnl Determine location of the kill binary
+BIN_KILL=`which kill`
+if test $? -ne 0; then
+	BIN_KILL='/bin/kill'
+fi
+AC_SUBST(BIN_KILL)
 
 dnl Check for location of Apache conf.d directory
 HTTP_CONF=no

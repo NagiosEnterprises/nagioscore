@@ -651,7 +651,7 @@ AS_CASE([$init_type],
 		fi,
 
 	[newbsd],
-		initdir=${initdir="/etc/rc.d"}
+		initdir=${initdir="/usr/local/etc/rc.d"}
 		initname=${initname="$INIT_PROG"},
 
 	[gentoo],

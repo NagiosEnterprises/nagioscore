@@ -652,6 +652,8 @@ TMPDIR
 CHECKRESULTDIR
 LN_HTTPD_SITES_ENABLED
 HTTPD_CONF
+BIN_KILL
+BIN_RM
 MAIL_PROG
 COMMAND_OPTS
 command_grp
@@ -736,7 +738,6 @@ infodir
 docdir
 oldincludedir
 includedir
-runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -846,7 +847,6 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
-runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE}'
@@ -1099,15 +1099,6 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
-  -runstatedir | --runstatedir | --runstatedi | --runstated \
-  | --runstate | --runstat | --runsta | --runst | --runs \
-  | --run | --ru | --r)
-    ac_prev=runstatedir ;;
-  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
-  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
-  | --run=* | --ru=* | --r=*)
-    runstatedir=$ac_optarg ;;
-
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1245,7 +1236,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir runstatedir
+		libdir localedir mandir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1398,7 +1389,6 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
-  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -5526,7 +5516,7 @@ case $init_type in #(
 			initname=${initname="rc.$INIT_PROG"}
 		fi ;; #(
   newbsd) :
-    initdir=${initdir="/etc/rc.d"}
+    initdir=${initdir="/usr/local/etc/rc.d"}
 		initname=${initname="$INIT_PROG"} ;; #(
   gentoo) :
     initdir=${initdir="/etc/init.d"}
@@ -5632,7 +5622,7 @@ case $init_type in #(
   newbsd) :
     if test $dist_type = freebsd ; then
 			bsd_enable="_enable"
-			src_init=newbsd-init
+			src_init=default-init
 		elif test $dist_type = openbsd ; then
 			bsd_enable="_flags"
 			src_init=openbsd-init
@@ -5694,6 +5684,8 @@ $as_echo "$src_inetd" >&6; }
 if test $src_init != "default-init" -a \
         $src_init != "default-service" -a \
         $src_init != "openrc-init" -a \
+        $src_init != "newbsd-init" -a \
+        $src_init != "openbsd-init" -a \
         $src_init != "upstart-init"; then
 
 	src_init="default-init"
@@ -5705,10 +5697,10 @@ fi
 if test $subsyslockdir = "N/A"; then
 	if test -d "/var/run"; then
 		subsyslockdir="/var/run"
-		subsyslockfile="/var/run/nagios"
+		subsyslockfile="/var/run/$INIT_PROG"
 	else
 		subsyslockdir="/usr/local/nagios/var/"
-		subsyslockfile="/usr/local/nagios/var/nagios.lock"
+		subsyslockfile="/usr/local/nagios/var/$INIT_PROG"
 	fi
 fi
 
@@ -6240,6 +6232,18 @@ if test x$MAIL_PROG = x; then
 	else
 		MAIL_PROG="/bin/mail"
 	fi
+fi
+
+
+BIN_RM=`which rm`
+if test $? -ne 0; then
+	BIN_RM='/bin/rm'
+fi
+
+
+BIN_KILL=`which kill`
+if test $? -ne 0; then
+	BIN_KILL='/bin/kill'
 fi
 
 

@@ -101,7 +101,7 @@ check_config ()
 
 	@BIN_RM@ -f "${NagiosCfgtestFile}";
 
-	if [ -e "${NagiosCfgtestFile}" ]; then
+	if [ -f "${NagiosCfgtestFile}" ]; then
 		echo "ERROR: Could not delete '${NagiosCfgtestFile}'"
 		exit 8
 	fi

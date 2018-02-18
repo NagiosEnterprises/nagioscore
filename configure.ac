@@ -782,6 +782,13 @@ AC_PATH_PROG(PATH_TO_TRACEROUTE,traceroute)
 AC_DEFINE_UNQUOTED(TRACEROUTE_COMMAND,"$PATH_TO_TRACEROUTE",[traceroute command to use])
 
 
+dnl Enable debugging?
+ENABLE_DEBUGGING=no
+AC_ARG_ENABLE(debugging,AC_HELP_STRING([--enable-debugging],[Enable some debugging for Nagios Core]),
+	[ENABLE_DEBUGGING=$enableval])
+if test x$ENABLE_DEBUGGING = xyes; then
+	CFLAGS="${CFLAGS} -O0 -ggdb3 -g3"
+fi
 
 dnl Package directory for Solaris pkgmk (and other OSs, eventually)
 dnl VERSION=`grep 1.0 include/common.h | cut -d ' ' -f 3 | sed 's/"//g'`

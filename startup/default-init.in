@@ -118,23 +118,25 @@ check_config ()
 
 	if ([ "${WARN}" == "0" ] && [ "${ERR}" == "0" ]); then
 		echo "OK."
-		# Write the errors to a file we can have a script watching for.
+		# Write the output to a file we can have a script watching for.
 		echo "OK - Configuration check verified" > "${NagiosCfgtestFile}"
 		@BIN_RM@ "${TMPFILE}"
 		return 0
 	elif [ "${ERR}" == "0" ]; then
-		echo "WARNING."
-		# Write the errors to a file we can have a script watching for.
+		echo "WARNING:"
+		# Write the warnings to a file we can have a script watching for.
 		echo "WARNING: Warnings in config files - see log for details: ${NagiosCfgtestFile}" > "${NagiosCfgtestFile}"
 		egrep -i "(^warning|^error)" "${TMPFILE}" >> "${NagiosCfgtestFile}"
+		cat "${TMPFILE}"
 		@BIN_RM@ "${TMPFILE}"
 		return 0
 	else
-		echo "ERROR."
+		echo "ERROR:"
 		# Write the errors to a file we can have a script watching for.
 		echo "ERROR: Errors in config files - see log for details: ${NagiosCfgtestFile}" > "${NagiosCfgtestFile}"
 		egrep -i "(^warning|^error)" "${TMPFILE}" >> "${NagiosCfgtestFile}"
 		cat "${TMPFILE}"
+		@BIN_RM@ "${TMPFILE}"
 		exit 8
 	fi
 }
@@ -305,13 +307,6 @@ case "${1}" in
 
 	checkconfig)
 		check_config
-
-		if [ "${?}" -eq "0" ]; then
-			echo "OK."
-		else
-			echo "CONFIG ERROR!  Check your Nagios configuration."
-			exit 1
-		fi
 		;;
 
 	restart)

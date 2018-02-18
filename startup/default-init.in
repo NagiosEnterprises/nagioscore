@@ -113,8 +113,8 @@ check_config ()
 
 	TMPFILE="$(mktemp /tmp/.configtest.XXXXXXXX)"
 	${NagiosBin} -vp ${NagiosCfgFile} > "${TMPFILE}"
-	WARN="$(grep ^"Total Warnings:" "${TMPFILE}" |awk -F: '{print \$2}' |sed s/' '//g)"
-	ERR="$(grep ^"Total Errors:" "${TMPFILE}" |awk -F: '{print \$2}' |sed s/' '//g)"
+	WARN="$(grep ^"Total Warnings:" "${TMPFILE}" |awk -F: '{print $2}' |sed s/' '//g)"
+	ERR="$(grep ^"Total Errors:" "${TMPFILE}" |awk -F: '{print $2}' |sed s/' '//g)"
 
 	if test "${WARN}" == "0" && test "${ERR}" == "0"; then
 		echo "OK - Configuration check verified" > "${NagiosCfgtestFile}"

@@ -99,7 +99,7 @@ check_config ()
 
 	echo -n "Running configuration check... "
 
-	@BIN_RM@ -f "${NagiosCfgtestFile}";
+	@BIN_RM@ -f "${NagiosCfgtestFile}"
 
 	if [ -f "${NagiosCfgtestFile}" ]; then
 		echo "ERROR: Could not delete '${NagiosCfgtestFile}'"
@@ -162,7 +162,11 @@ printstatus_nagios ()
 
 killproc_nagios ()
 {
-	@BIN_KILL@ -s "${1}" "${NagiosPID}"
+	if @BIN_KILL@ -s "${1}" "${NagiosPID}" > /dev/null 2>&1; then
+		return 0
+	else
+		return 1
+	fi
 }
 
 pid_nagios ()

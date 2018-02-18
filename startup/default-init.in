@@ -116,11 +116,11 @@ check_config ()
 	WARN="$(grep ^"Total Warnings:" "$TMPFILE" |awk -F: '{print \$2}' |sed s/' '//g)"
 	ERR="$(grep ^"Total Errors:" "$TMPFILE" |awk -F: '{print \$2}' |sed s/' '//g)"
 
-	if test "$WARN" = "0" && test "${ERR}" = "0"; then
+	if test "$WARN" == "0" && test "${ERR}" == "0"; then
 		echo "OK - Configuration check verified" > "$NagiosCfgtestFile"
 		@BIN_RM@ "$TMPFILE"
 		return 0
-	elif test "${ERR}" = "0"; then
+	elif test "${ERR}" == "0"; then
 		# Write the errors to a file we can have a script watching for.
 		echo "WARNING: Warnings in config files - see log for details: $NagiosCfgtestFile" > $NagiosCfgtestFile
 		egrep -i "(^warning|^error)" "$TMPFILE" >> "$NagiosCfgtestFile"

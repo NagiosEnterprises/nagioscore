@@ -77,11 +77,11 @@ if test "${USE_RAMDISK}" -ne 0 && test "${RAMDISK_SIZE}"X != "X"; then
 			mkdir -p -m 0755 "${RAMDISK_DIR}"
 
 			if [ -d "${RAMDISK_DIR}" ]; then
-				NagiosUserUID="$(id -u ${NagiosUser})"
-				NagiosGroupGID="$(id -g ${NagiosGroup})"
+				NagiosUserUID="$(id -u "${NagiosUser}")"
+				NagiosGroupGID="$(id -g "${NagiosGroup}")"
 
-				mount -t tmpfs -o uid=${NagiosUserUID},gid=${NagiosGroupGID},size=${RAMDISK_SIZE}m tmpfs ${RAMDISK_DIR}
-				su ${NagiosUser} -c "mkdir -m 0755 ${RAMDISK_DIR}/checkresults"
+				mount -t tmpfs -o uid=${NagiosUserUID},gid=${NagiosGroupGID},size=${RAMDISK_SIZE}m tmpfs "${RAMDISK_DIR}"
+				su "${NagiosUser}" -c "mkdir -m 0755 \"${RAMDISK_DIR}/checkresults\""
 			else
 				echo "ERROR: Unable to create ramdisk directory (${RAMDISK_DIR})"
 				exit 1
@@ -106,7 +106,7 @@ check_config ()
 		exit 8
 	fi
 
-	if ! su ${NagiosUser} -c "touch \"${NagiosCfgtestFile}\""; then
+	if ! su "${NagiosUser}" -c "touch \"${NagiosCfgtestFile}\""; then
 		echo "ERROR: Could not create or update '${NagiosCfgtestFile}'"
 		exit 8
 	fi
@@ -225,7 +225,7 @@ case "$1" in
 			fi
 		fi
 
-		su ${NagiosUser} -c "touch \"${NagiosVarDir}/nagios.log\" \"${NagiosRetentionFile}\""
+		su "${NagiosUser}" -c "touch \"${NagiosVarDir}/nagios.log\" \"${NagiosRetentionFile}\""
 		remove_commandfile
 		touch "${NagiosRunFile}"
 		"${NagiosBin}" -d "${NagiosCfgFile}"

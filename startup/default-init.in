@@ -70,7 +70,7 @@ fi
 USE_RAMDISK="${USE_RAMDISK:-0}"
 
 if test "${USE_RAMDISK}" -ne 0 && test "${RAMDISK_SIZE}"X != "X"; then
-	ramdisk="$(mount |grep "${RAMDISK_DIR} type tmpfs")"
+	ramdisk="$(mount | grep "${RAMDISK_DIR} type tmpfs")"
 
 	if [ "${ramdisk}"X == "X" ]; then
 		if [ ! -d "${RAMDISK_DIR}" ]; then
@@ -113,8 +113,8 @@ check_config ()
 
 	TMPFILE="$(mktemp /tmp/.configtest.XXXXXXXX)"
 	"${NagiosBin}" -vp "${NagiosCfgFile}" > "${TMPFILE}"
-	WARN="$(grep ^"Total Warnings:" "${TMPFILE}" |awk -F: '{print $2}' |sed s/' '//g)"
-	ERR="$(grep ^"Total Errors:" "${TMPFILE}" |awk -F: '{print $2}' |sed s/' '//g)"
+	WARN="$(grep ^"Total Warnings:" "${TMPFILE}" | awk -F: '{print $2}' | sed s/' '//g)"
+	ERR="$(grep ^"Total Errors:" "${TMPFILE}" | awk -F: '{print $2}' | sed s/' '//g)"
 
 	if test "${WARN}" == "0" && test "${ERR}" == "0"; then
 		echo "OK - Configuration check verified" > "${NagiosCfgtestFile}"

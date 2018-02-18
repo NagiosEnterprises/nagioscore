@@ -156,7 +156,7 @@ printstatus_nagios ()
 
 killproc_nagios ()
 {
-	@BIN_KILL@ -s "$1" "${NagiosPID}"
+	@BIN_KILL@ -s "${1}" "${NagiosPID}"
 }
 
 pid_nagios ()
@@ -204,13 +204,13 @@ fi
 
 # Get the lock_file from nagios.cfg
 NagiosRunFile="$(sed -n -e 's/^lock_file=*//p' "${NagiosCfgFile}")"
-if [ "$?" -ne "0" ]; then
+if [ "${?}" -ne "0" ]; then
 	# If there was a problem the use the value from when Core was compiled
 	NagiosRunFile="@subsyslockfile@"
 fi
 
 # See how we were called.
-case "$1" in
+case "${1}" in
 
 	start)
 		echo -n "Starting nagios: "
@@ -238,7 +238,7 @@ case "$1" in
 
 		pid_nagios
 
-		if [ "$?" -eq "1" ]; then
+		if [ "${?}" -eq "1" ]; then
 			exit 0
 		fi
 
@@ -274,7 +274,7 @@ case "$1" in
 	status)
 		pid_nagios
 
-		if [ "$?" -eq "1" ]; then
+		if [ "${?}" -eq "1" ]; then
 			exit 3
 		fi
 
@@ -284,7 +284,7 @@ case "$1" in
 	checkconfig)
 		check_config
 
-		if [ "$?" -eq "0" ]; then
+		if [ "${?}" -eq "0" ]; then
 			echo "OK."
 		else
 			echo "CONFIG ERROR!  Check your Nagios configuration."
@@ -295,15 +295,15 @@ case "$1" in
 	restart)
 		check_config
 
-		$0 stop
-		$0 start
+		${0} stop
+		${0} start
 		;;
 
 	reload|force-reload)
 		check_config
 
 		if test ! -f "${NagiosRunFile}"; then
-			$0 start
+			${0} start
 		else
 			pid_nagios
 
@@ -312,8 +312,8 @@ case "$1" in
 				killproc_nagios HUP
 				echo "done"
 			else
-				$0 stop
-				$0 start
+				${0} stop
+				${0} start
 			fi
 		fi
 		;;

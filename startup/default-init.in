@@ -62,14 +62,14 @@ elif [ -f /lib/lsb/init-functions ]; then
 fi
 
 # Load any extra environment variables for Nagios and its plugins.
-if test -f /etc/sysconfig/nagios; then
+if [ -f /etc/sysconfig/nagios ]; then
 	. /etc/sysconfig/nagios
 fi
 
 # Automate addition of RAMDISK based on environment variables
 USE_RAMDISK="${USE_RAMDISK:-0}"
 
-if test "${USE_RAMDISK}" -ne 0 && test "${RAMDISK_SIZE}"X != "X"; then
+if ([ "${USE_RAMDISK}" -ne "0" ] && [ "${RAMDISK_SIZE}"X != "X" ]); then
 	ramdisk="$(mount | grep "${RAMDISK_DIR} type tmpfs")"
 
 	if [ "${ramdisk}"X == "X" ]; then
@@ -93,7 +93,7 @@ fi
 
 check_config ()
 {
-	if test "${checkconfig}" != "true"; then
+	if [ "${checkconfig}" != "true" ]; then
 		return 0
 	fi
 
@@ -101,7 +101,7 @@ check_config ()
 
 	@BIN_RM@ -f "${NagiosCfgtestFile}";
 
-	if test -e "${NagiosCfgtestFile}"; then
+	if [ -e "${NagiosCfgtestFile}" ]; then
 		echo "ERROR: Could not delete '${NagiosCfgtestFile}'"
 		exit 8
 	fi
@@ -116,11 +116,11 @@ check_config ()
 	WARN="$(grep ^"Total Warnings:" "${TMPFILE}" | awk -F: '{print $2}' | sed s/' '//g)"
 	ERR="$(grep ^"Total Errors:" "${TMPFILE}" | awk -F: '{print $2}' | sed s/' '//g)"
 
-	if test "${WARN}" == "0" && test "${ERR}" == "0"; then
+	if ([ "${WARN}" == "0" ] && [ "${ERR}" == "0" ]); then
 		echo "OK - Configuration check verified" > "${NagiosCfgtestFile}"
 		@BIN_RM@ "${TMPFILE}"
 		return 0
-	elif test "${ERR}" == "0"; then
+	elif [ "${ERR}" == "0" ]; then
 		# Write the errors to a file we can have a script watching for.
 		echo "WARNING: Warnings in config files - see log for details: ${NagiosCfgtestFile}" > "${NagiosCfgtestFile}"
 		egrep -i "(^warning|^error)" "${TMPFILE}" >> "${NagiosCfgtestFile}"
@@ -161,7 +161,7 @@ killproc_nagios ()
 
 pid_nagios ()
 {
-	if test ! -f "${NagiosRunFile}"; then
+	if [ ! -f "${NagiosRunFile}" ]; then
 		echo "No lock file found in ${NagiosRunFile}"
 		return 1
 	fi
@@ -217,7 +217,7 @@ case "${1}" in
 
 		check_config
 
-		if test -f "${NagiosRunFile}"; then
+		if [ -f "${NagiosRunFile}" ]; then
 			NagiosPID="$(head -n 1 "${NagiosRunFile}")"
 			if status_nagios; then
 				echo "another instance of nagios is already running."
@@ -302,7 +302,7 @@ case "${1}" in
 	reload|force-reload)
 		check_config
 
-		if test ! -f "${NagiosRunFile}"; then
+		if [ ! -f "${NagiosRunFile}" ]; then
 			${0} start
 		else
 			pid_nagios

@@ -80,7 +80,7 @@ if test "${USE_RAMDISK}" -ne 0 && test "${RAMDISK_SIZE}"X != "X"; then
 				NagiosUserUID="$(id -u ${NagiosUser})"
 				NagiosGroupGID="$(id -g ${NagiosGroup})"
 
-				mount -t tmpfs -o uid=${NagiosUserUID},gid={$NagiosGroupGID},size=${RAMDISK_SIZE}m tmpfs ${RAMDISK_DIR}
+				mount -t tmpfs -o uid=${NagiosUserUID},gid=${NagiosGroupGID},size=${RAMDISK_SIZE}m tmpfs ${RAMDISK_DIR}
 				su ${NagiosUser} -c "mkdir -m 0755 ${RAMDISK_DIR}/checkresults"
 			else
 				echo "ERROR: Unable to create ramdisk directory (${RAMDISK_DIR})"

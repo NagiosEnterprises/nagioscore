@@ -118,6 +118,7 @@ check_config ()
 
 	if ([ "${WARN}" == "0" ] && [ "${ERR}" == "0" ]); then
 		echo "OK."
+		# Write the errors to a file we can have a script watching for.
 		echo "OK - Configuration check verified" > "${NagiosCfgtestFile}"
 		@BIN_RM@ "${TMPFILE}"
 		return 0

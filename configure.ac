@@ -63,6 +63,8 @@ dnl We only have these options available so we need to make them work until ther
 if test $src_init != "default-init" -a \
         $src_init != "default-service" -a \
         $src_init != "openrc-init" -a \
+        $src_init != "newbsd-init" -a \
+        $src_init != "openbsd-init" -a \
         $src_init != "upstart-init"; then
 
 	src_init="default-init"
@@ -71,14 +73,16 @@ if test $src_init != "default-init" -a \
 	initname="nagios"
 fi
 
-dnl We need to check for a lock file specified, also
+dnl We need to check for a lock file specified
+dnl And if the built in check didn't work (the N/A)
+dnl then we need to find one!
 if test $subsyslockdir = "N/A"; then
 	if test -d "/var/run"; then
 		subsyslockdir="/var/run"
-		subsyslockfile="/var/run/nagios"
+		subsyslockfile="/var/run/$INIT_PROG"
 	else
 		subsyslockdir="/usr/local/nagios/var/"
-		subsyslockfile="/usr/local/nagios/var/nagios.lock"
+		subsyslockfile="/usr/local/nagios/var/$INIT_PROG"
 	fi
 fi
 AC_ARG_WITH(lockfile,
@@ -230,6 +234,20 @@ if test x$MAIL_PROG = x; then
 fi
 AC_SUBST(MAIL_PROG)
 
+dnl Determine location of the rm binary
+BIN_RM=`which rm`
+if test $? -ne 0; then
+	BIN_RM='/bin/rm'
+fi
+AC_SUBST(BIN_RM)
+
+dnl Determine location of the kill binary
+BIN_KILL=`which kill`
+if test $? -ne 0; then
+	BIN_KILL='/bin/kill'
+fi
+AC_SUBST(BIN_KILL)
+
 dnl Check for location of Apache conf.d directory
 HTTP_CONF=no
 AC_ARG_WITH(httpd_conf,
@@ -259,6 +277,16 @@ if test x$HTTPD_CONF = xno; then
 fi 
 AC_SUBST(HTTPD_CONF)
 AC_SUBST(LN_HTTPD_SITES_ENABLED)
+
+dnl Check if RLIMIT_PROC exists
+AC_TRY_COMPILE([#ifdef __STDC__
+#include <sys/time.h>
+#include <sys/resource.h>
+#endif],
+[struct rlimit rlim;
+int ilim = getrlimit(RLIMIT_NPROC, &rlim);],
+[AC_DEFINE(DETECT_RLIMIT_PROBLEM,1,[System has RLIMIT_PROC]) AC_MSG_RESULT([checking for RLIMIT_PROC... yes])],
+[AC_MSG_RESULT([checking for RLIMIT_PROC... no])])
 
 dnl Location of check result path
 CHECKRESULTDIR=no
@@ -754,6 +782,13 @@ AC_PATH_PROG(PATH_TO_TRACEROUTE,traceroute)
 AC_DEFINE_UNQUOTED(TRACEROUTE_COMMAND,"$PATH_TO_TRACEROUTE",[traceroute command to use])
 
 
+dnl Enable debugging?
+ENABLE_DEBUGGING=no
+AC_ARG_ENABLE(debugging,AC_HELP_STRING([--enable-debugging],[Enable some debugging for Nagios Core]),
+	[ENABLE_DEBUGGING=$enableval])
+if test x$ENABLE_DEBUGGING = xyes; then
+	CFLAGS="${CFLAGS} -O0 -ggdb3 -g3"
+fi
 
 dnl Package directory for Solaris pkgmk (and other OSs, eventually)
 dnl VERSION=`grep 1.0 include/common.h | cut -d ' ' -f 3 | sed 's/"//g'`

@@ -755,11 +755,13 @@ int main(int argc, char **argv) {
 
 			timing_point("Object configuration parsed and understood\n");
 			
+#ifdef DETECT_RLIMIT_PROBLEM
 			/* lets do a quick system limit detection
 			   to determine if we're likely to run into any
 			   problems. */
 			rlimit_problem_detection(num_check_workers);
 			timing_point("Limit detection");
+#endif
 
 			/* write the objects.cache file */
 			fcache_objects(object_cache_file);

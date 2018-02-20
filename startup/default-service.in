@@ -7,9 +7,9 @@ After=network.target local-fs.target
 Type=forking
 ExecStartPre=@bindir@/nagios -v @sysconfdir@/nagios.cfg
 ExecStart=@bindir@/nagios -d @sysconfdir@/nagios.cfg
-ExecStop=@bin_kill@ -s TERM ${MAINPID}
-ExecStopPost=@bin_rm@ -f @localstatedir@/rw/nagios.cmd
-ExecReload=@bin_kill@ -s HUP ${MAINPID}
+ExecStop=@BIN_KILL@ -s TERM ${MAINPID}
+ExecStopPost=@BIN_RM@ -f @localstatedir@/rw/nagios.cmd
+ExecReload=@BIN_KILL@ -s HUP ${MAINPID}
 
 [Install]
 WantedBy=multi-user.target

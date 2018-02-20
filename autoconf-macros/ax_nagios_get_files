@@ -71,7 +71,7 @@ AS_CASE([$init_type],
 	[newbsd],
 		if test $dist_type = freebsd ; then
 			bsd_enable="_enable"
-			src_init=newbsd-init
+			src_init=default-init
 		elif test $dist_type = openbsd ; then
 			bsd_enable="_flags"
 			src_init=openbsd-init

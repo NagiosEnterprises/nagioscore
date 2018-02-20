@@ -3582,6 +3582,7 @@ int reset_variables(void) {
 /* try and detect any problems with sys limits 
    we're specifically interested in NPROC
    but could easily add NOFILE here if necessary */
+#ifdef DETECT_RLIMIT_PROBLEM
 void rlimit_problem_detection(int desired_workers) {
 
 	log_debug_info(DEBUGL_PROCESS, 2, "rlimit_problem_detection()\n");
@@ -3702,3 +3703,4 @@ void rlimit_problem_detection(int desired_workers) {
 			rlim.rlim_cur, total_num_procs);
 	}
 }
+#endif

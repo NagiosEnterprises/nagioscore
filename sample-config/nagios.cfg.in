@@ -590,6 +590,7 @@ host_check_timeout=30
 event_handler_timeout=30
 notification_timeout=30
 ocsp_timeout=5
+ochp_timeout=5
 perfdata_timeout=5
 
 

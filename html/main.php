@@ -14,7 +14,7 @@ $this_year = '2018';
 <title>Nagios Core</title>
 <link rel="stylesheet" type="text/css" href="stylesheets/common.css?<?php echo $this_version; ?>" />
 <link rel="stylesheet" type="text/css" href="stylesheets/nag_funcs.css?<?php echo $this_version; ?>" />
-<script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
+<script type="text/javascript" src="js/jquery-1.12.4.min.js"></script>
 <script type="text/javascript" src="js/nag_funcs.js"></script>
 
 <script type='text/javascript'>

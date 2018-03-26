@@ -64,8 +64,8 @@ define service{
 	host_name		linksys-srw224p	; The name of the host the service is associated with
 	service_description	PING		; The service description
 	check_command		check_ping!200.0,20%!600.0,60%	; The command used to monitor the service
-	check_interval	5		; Check the service every 5 minutes under normal conditions
-	retry_interval	1		; Re-check the service every minute until its final/hard state is determined
+	check_interval		5		; Check the service every 5 minutes under normal conditions
+	retry_interval		1		; Re-check the service every minute until its final/hard state is determined
 	}
 
 

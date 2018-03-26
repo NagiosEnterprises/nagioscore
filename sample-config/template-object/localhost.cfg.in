@@ -125,7 +125,7 @@ define service{
         use                             local-service         ; Name of service template to use
         host_name                       localhost
         service_description             Swap Usage
-	check_command			check_local_swap!20!10
+	check_command			check_local_swap!20%!10%
         }
 
 

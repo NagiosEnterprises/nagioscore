@@ -61,7 +61,7 @@
 		<script type="text/javascript"
 				src="angularjs/ui-bootstrap-tpls-0.14.3.min.js"></script>
 		<script type="text/javascript"
-				src="angularjs/ui-utils-0.2.1/ui-utils.js"></script>
+				src="angularjs/ui-utils-0.2.3/ui-utils.js"></script>
 		<script type="text/javascript" src="spin/spin.min.js"></script>
 		<script type="text/javascript" src="js/map.js"></script>
 		<script type="text/javascript" src="js/map-directive.js"></script>

@@ -14,7 +14,7 @@
 # The CGIs will not attempt to read the contents of resource files, so
 # you can set restrictive permissions (600 or 660) on them.
 #
-# Nagios supports up to 32 $USERx$ macros ($USER1$ through $USER32$)
+# Nagios supports up to 256 $USERx$ macros ($USER1$ through $USER32$)
 #
 # Resource files may also be used to store configuration directives for
 # external data sources like MySQL...

@@ -193,7 +193,7 @@ remove_commandfile ()
 	
 	if [ -p "${NagiosCommandFile}" ]; then
 		mv -f "${NagiosCommandFile}" "${NagiosCommandFile}~"
-		(dd if=${NagiosCommandFile}~ count=0 2>/dev/null & echo -n "" > "${NagiosCommandFile}~" &)
+		(read -r -N 0 ${NagiosCommandFile}~ 2>/dev/null & echo -n "" > "${NagiosCommandFile}~" &) &
 	fi
 	
 	@BIN_RM@ -f "${NagiosCommandFile}" "${NagiosCommandFile}~"

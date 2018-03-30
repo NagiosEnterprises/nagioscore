@@ -4,7 +4,7 @@
 <?php
 	include_once(dirname(__FILE__).'/includes/utils.inc.php');
 	get_update_information();
-?>   
+?>
 
 	<head>
 		<meta charset="utf-8"/>
@@ -38,10 +38,10 @@
 	) {
 		$layout = $_GET['layout'];
 	}
-	
+
 	if ($layout == 4)
 		$layout = 6;
-?>   
+?>
 		<script type="text/javascript">
 		map_layout=<?php echo $layout; ?>;
 		</script>

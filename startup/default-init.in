@@ -188,14 +188,14 @@ remove_commandfile ()
 	# In order for the dd to not deadlock when there is no writing process, it is executed in a
 	# subshell together with an empty echo to have at least one writing process.  Both are called
 	# in the background to avoid stalling the subshell from closure (see NagiosCore issue #443)
-	
+
 	# see http://unix.stackexchange.com/questions/335406/opening-named-pipe-blocks-forever-if-pipe-is-deleted-without-being-connected
-	
+
 	if [ -p "${NagiosCommandFile}" ]; then
 		mv -f "${NagiosCommandFile}" "${NagiosCommandFile}~"
-		(read -r -N 0 ${NagiosCommandFile}~ 2>/dev/null & echo -n "" > "${NagiosCommandFile}~" &) &
+		(dd if=${NagiosCommandFile}~ count=0 2>/dev/null & echo -n "" > "${NagiosCommandFile}~" &) &
 	fi
-	
+
 	@BIN_RM@ -f "${NagiosCommandFile}" "${NagiosCommandFile}~"
 }
 

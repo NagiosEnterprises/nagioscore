@@ -12,7 +12,7 @@
 
 # LOG FILE
 # This is the main log file where service and host events are logged
-# for historical purposes.  This should be the first option specified 
+# for historical purposes.  This should be the first option specified
 # in the config file!!!
 
 log_file=@localstatedir@/nagios.log
@@ -58,7 +58,7 @@ cfg_file=@sysconfdir@/objects/localhost.cfg
 
 # OBJECT CACHE FILE
 # This option determines where object definitions are cached when
-# Nagios starts/restarts.  The CGIs read object definitions from 
+# Nagios starts/restarts.  The CGIs read object definitions from
 # this cache file (rather than looking at the object config files
 # directly) in order to prevent inconsistencies that can occur
 # when the config files are modified after Nagios starts.
@@ -74,7 +74,7 @@ object_cache_file=@localstatedir@/objects.cache
 # file.  You can then start Nagios with the -u option to have it read
 # object definitions from this precached file, rather than the standard
 # object configuration files (see the cfg_file and cfg_dir options above).
-# Using a precached object file can speed up the time needed to (re)start 
+# Using a precached object file can speed up the time needed to (re)start
 # the Nagios process if you've got a large and/or complex configuration.
 # Read the documentation section on optimizing Nagios to find our more
 # about how this feature works.
@@ -108,7 +108,7 @@ status_file=@localstatedir@/status.dat
 
 # STATUS FILE UPDATE INTERVAL
 # This option determines the frequency (in seconds) that
-# Nagios will periodically dump program, host, and 
+# Nagios will periodically dump program, host, and
 # service status data.
 
 status_update_interval=10
@@ -116,7 +116,7 @@ status_update_interval=10
 
 
 # NAGIOS USER
-# This determines the effective user that Nagios should run as.  
+# This determines the effective user that Nagios should run as.
 # You can either supply a username or a UID.
 
 nagios_user=@nagios_user@
@@ -124,7 +124,7 @@ nagios_user=@nagios_user@
 
 
 # NAGIOS GROUP
-# This determines the effective group that Nagios should run as.  
+# This determines the effective group that Nagios should run as.
 # You can either supply a group name or a GID.
 
 nagios_group=@nagios_grp@
@@ -147,7 +147,7 @@ check_external_commands=1
 # This is the file that Nagios checks for external command requests.
 # It is also where the command CGI will write commands that are submitted
 # by users, so it must be writeable by the user that the web server
-# is running as (usually 'nobody').  Permissions should be set at the 
+# is running as (usually 'nobody').  Permissions should be set at the
 # directory level instead of on the file, as the file is deleted every
 # time its contents are processed.
 
@@ -214,7 +214,8 @@ event_broker_options=-1
 #
 # The correct/safe way of updating a module is by using one of these methods:
 #    1. Shutdown Nagios, replace the module file, restart Nagios
-#    2. Delete the original module file, move the new module file into place, restart Nagios
+#    2. Delete the original module file, move the new module file into place,
+#	restart Nagios
 #
 # Example:
 #
@@ -239,7 +240,7 @@ log_rotation_method=d
 
 
 # LOG ARCHIVE PATH
-# This is the directory where archived (rotated) log files should be 
+# This is the directory where archived (rotated) log files should be
 # placed (assuming you've chosen to do log rotation).
 
 log_archive_path=@localstatedir@/archives
@@ -411,7 +412,7 @@ max_host_check_spread=30
 
 
 # MAXIMUM CONCURRENT SERVICE CHECKS
-# This option allows you to specify the maximum number of 
+# This option allows you to specify the maximum number of
 # service checks that can be run in parallel at any given time.
 # Specifying a value of 1 for this variable essentially prevents
 # any service checks from being parallelized.  A value of 0
@@ -433,7 +434,7 @@ check_result_reaper_frequency=10
 
 # MAX CHECK RESULT REAPER TIME
 # This is the max amount of time (in seconds) that  a single
-# check result reaper event will be allowed to run before 
+# check result reaper event will be allowed to run before
 # returning control back to Nagios so it can perform other
 # duties.
 
@@ -447,7 +448,7 @@ max_check_result_reaper_time=30
 # service checks that have not yet been processed.
 #
 # Note: Make sure that only one instance of Nagios has access
-# to this directory!  
+# to this directory!
 
 check_result_path=@CHECKRESULTDIR@
 
@@ -456,7 +457,7 @@ check_result_path=@CHECKRESULTDIR@
 
 # MAX CHECK RESULT FILE AGE
 # This option determines the maximum age (in seconds) which check
-# result files are considered to be valid.  Files older than this 
+# result files are considered to be valid.  Files older than this
 # threshold will be mercilessly deleted without further processing.
 
 max_check_result_file_age=3600
@@ -518,14 +519,14 @@ enable_predictive_service_dependency_checks=1
 
 
 # SOFT STATE DEPENDENCIES
-# This option determines whether or not Nagios will use soft state 
-# information when checking host and service dependencies. Normally 
-# Nagios will only use the latest hard host or service state when 
+# This option determines whether or not Nagios will use soft state
+# information when checking host and service dependencies. Normally
+# Nagios will only use the latest hard host or service state when
 # checking dependencies. If you want it to use the latest state (regardless
-# of whether its a soft or hard state type), enable this option. 
+# of whether its a soft or hard state type), enable this option.
 # Values:
-#  0 = Don't use soft state dependencies (default) 
-#  1 = Use soft state dependencies 
+#  0 = Don't use soft state dependencies (default)
+#  1 = Use soft state dependencies
 
 soft_state_dependencies=0
 
@@ -543,7 +544,7 @@ soft_state_dependencies=0
 # This option determines whether or not Nagios will attempt to
 # automatically reschedule active host and service checks to
 # "smooth" them out over time.  This can help balance the load on
-# the monitoring server.  
+# the monitoring server.
 # WARNING: THIS IS AN EXPERIMENTAL FEATURE - IT CAN DEGRADE
 # PERFORMANCE, RATHER THAN INCREASE IT, IF USED IMPROPERLY
 
@@ -599,7 +600,7 @@ perfdata_timeout=5
 # This setting determines whether or not Nagios will save state
 # information for services and hosts before it shuts down.  Upon
 # startup Nagios will reload all saved service and host state
-# information before starting to monitor.  This is useful for 
+# information before starting to monitor.  This is useful for
 # maintaining long-term data on state statistics, etc, but will
 # slow Nagios down a bit when it (re)starts.  Since its only
 # a one-time penalty, I think its well worth the additional
@@ -611,7 +612,7 @@ retain_state_information=1
 
 # STATE RETENTION FILE
 # This is the file that Nagios should use to store host and
-# service state information before it shuts down.  The state 
+# service state information before it shuts down.  The state
 # information in this file is also read immediately prior to
 # starting to monitor the network when Nagios is restarted.
 # This file is used only if the retain_state_information
@@ -634,7 +635,7 @@ retention_update_interval=60
 
 
 # USE RETAINED PROGRAM STATE
-# This setting determines whether or not Nagios will set 
+# This setting determines whether or not Nagios will set
 # program status variables based on the values saved in the
 # retention file.  If you want to use retained program status
 # information, set this value to 1.  If not, set this value
@@ -661,7 +662,7 @@ use_retained_scheduling_info=1
 # program restarts.
 #
 # The values of the masks are bitwise ANDs of values specified
-# by the "MODATTR_" definitions found in include/common.h.  
+# by the "MODATTR_" definitions found in include/common.h.
 # For example, if you do not want the current enabled/disabled state
 # of flap detection and event handlers for hosts to be retained, you
 # would use a value of 24 for the host attribute mask...
@@ -705,7 +706,7 @@ interval_length=60
 # enable this option to ensure that you stay on top of the latest critical
 # patches to Nagios.  Nagios is critical to you - make sure you keep it in
 # good shape.  Nagios will check once a day for new updates. Data collected
-# by Nagios Enterprises from the update check is processed in accordance 
+# by Nagios Enterprises from the update check is processed in accordance
 # with our privacy policy - see https://api.nagios.org for details.
 
 check_for_updates=1
@@ -714,10 +715,10 @@ check_for_updates=1
 
 # BARE UPDATE CHECK
 # This option determines what data Nagios will send to api.nagios.org when
-# it checks for updates.  By default, Nagios will send information on the 
+# it checks for updates.  By default, Nagios will send information on the
 # current version of Nagios you have installed, as well as an indicator as
 # to whether this was a new installation or not.  Nagios Enterprises uses
-# this data to determine the number of users running specific version of 
+# this data to determine the number of users running specific version of
 # Nagios.  Enable this option if you do not want this information to be sent.
 
 bare_update_check=0
@@ -737,7 +738,7 @@ use_aggressive_host_checking=0
 
 # SERVICE CHECK EXECUTION OPTION
 # This determines whether or not Nagios will actively execute
-# service checks when it initially starts.  If this option is 
+# service checks when it initially starts.  If this option is
 # disabled, checks are not actively made, but Nagios can still
 # receive and process passive check results that come in.  Unless
 # you're implementing redundant hosts or have a special need for
@@ -759,7 +760,7 @@ accept_passive_service_checks=1
 
 # HOST CHECK EXECUTION OPTION
 # This determines whether or not Nagios will actively execute
-# host checks when it initially starts.  If this option is 
+# host checks when it initially starts.  If this option is
 # disabled, checks are not actively made, but Nagios can still
 # receive and process passive check results that come in.  Unless
 # you're implementing redundant hosts or have a special need for
@@ -816,7 +817,7 @@ process_performance_data=0
 # These commands are run after every host and service check is
 # performed.  These commands are executed only if the
 # enable_performance_data option (above) is set to 1.  The command
-# argument is the short name of a command definition that you 
+# argument is the short name of a command definition that you
 # define in your host configuration file.  Read the HTML docs for
 # more information on performance data.
 
@@ -908,7 +909,7 @@ obsess_over_services=0
 # OBSESSIVE COMPULSIVE SERVICE PROCESSOR COMMAND
 # This is the command that is run for every service check that is
 # processed by Nagios.  This command is executed only if the
-# obsess_over_services option (above) is set to 1.  The command 
+# obsess_over_services option (above) is set to 1.  The command
 # argument is the short name of a command definition that you
 # define in your host configuration file. Read the HTML docs for
 # more information on implementing distributed monitoring.
@@ -932,7 +933,7 @@ obsess_over_hosts=0
 # OBSESSIVE COMPULSIVE HOST PROCESSOR COMMAND
 # This is the command that is run for every host check that is
 # processed by Nagios.  This command is executed only if the
-# obsess_over_hosts option (above) is set to 1.  The command 
+# obsess_over_hosts option (above) is set to 1.  The command
 # argument is the short name of a command definition that you
 # define in your host configuration file. Read the HTML docs for
 # more information on implementing distributed monitoring.
@@ -971,9 +972,9 @@ passive_host_checks_are_soft=0
 
 
 # ORPHANED HOST/SERVICE CHECK OPTIONS
-# These options determine whether or not Nagios will periodically 
+# These options determine whether or not Nagios will periodically
 # check for orphaned host service checks.  Since service checks are
-# not rescheduled until the results of their previous execution 
+# not rescheduled until the results of their previous execution
 # instance are processed, there exists a possibility that some
 # checks may never get rescheduled.  A similar situation exists for
 # host checks, although the exact scheduling details differ a bit
@@ -1057,9 +1058,9 @@ additional_freshness_latency=15
 
 # FLAP DETECTION OPTION
 # This option determines whether or not Nagios will try
-# and detect hosts and services that are "flapping".  
+# and detect hosts and services that are "flapping".
 # Flapping occurs when a host or service changes between
-# states too frequently.  When Nagios detects that a 
+# states too frequently.  When Nagios detects that a
 # host or service is flapping, it will temporarily suppress
 # notifications for that host/service until it stops
 # flapping.  Flap detection is very experimental, so read
@@ -1103,7 +1104,7 @@ date_format=us
 # the system configured timezone.
 #
 # NOTE: In order to display the correct timezone in the CGIs, you
-# will also need to alter the Apache directives for the CGI path 
+# will also need to alter the Apache directives for the CGI path
 # to include your timezone.  Example:
 #
 #   <Directory "/usr/local/nagios/sbin/">
@@ -1158,7 +1159,7 @@ use_regexp_matching=0
 
 
 # "TRUE" REGULAR EXPRESSION MATCHING
-# This option controls whether or not "true" regular expression 
+# This option controls whether or not "true" regular expression
 # matching takes place in the object config files.  This option
 # only has an effect if regular expression matching is enabled
 # (see above).  If this option is DISABLED, regular expression
@@ -1255,7 +1256,7 @@ enable_environment_macros=0
 # This option determines how much (if any) debugging information will
 # be written to the debug file.  OR values together to log multiple
 # types of information.
-# Values: 
+# Values:
 #         -1      = Everything
 #          0      = Nothing
 #          1      = Functions

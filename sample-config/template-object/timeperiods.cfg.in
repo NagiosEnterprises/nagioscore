@@ -5,7 +5,7 @@
 # NOTES: This config file provides you with some example timeperiod definitions
 #        that you can reference in host, service, contact, and dependency
 #        definitions.
-#       
+#
 #        You don't need to keep timeperiods in a separate file from your other
 #        object definitions.  This has been done just to make things easier to
 #        understand.
@@ -22,7 +22,7 @@
 ###############################################################################
 ###############################################################################
 
-# This defines a timeperiod where all times are valid for checks, 
+# This defines a timeperiod where all times are valid for checks,
 # notifications, etc.  The classic "24x7" support nightmare. :-)
 define timeperiod{
         timeperiod_name 24x7
@@ -58,7 +58,7 @@ define timeperiod{
 
 # Some U.S. holidays
 # Note: The timeranges for each holiday are meant to *exclude* the holidays from being
-# treated as a valid time for notifications, etc.  You probably don't want your pager 
+# treated as a valid time for notifications, etc.  You probably don't want your pager
 # going off on New Year's.  Although your employer might... :-)
 define timeperiod{
 	name			us-holidays

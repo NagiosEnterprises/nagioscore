@@ -5,7 +5,7 @@
 # NOTES: This config file provides you with some example object definition
 #        templates that are refered by other host, service, contact, etc.
 #        definitions in other config files.
-#       
+#
 #        You don't need to keep these definitions in a separate file from your
 #        other object definitions.  This has been done just to make things
 #        easier to understand.

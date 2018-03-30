@@ -2,7 +2,7 @@
 # LOCALHOST.CFG - SAMPLE OBJECT CONFIG FILE FOR MONITORING THIS MACHINE
 #
 #
-# NOTE: This config file is intended to serve as an *extremely* simple 
+# NOTE: This config file is intended to serve as an *extremely* simple
 #       example of how you can create configuration entries to monitor
 #       the local (Linux) machine.
 #
@@ -107,7 +107,7 @@ define service{
 
 
 
-# Define a service to check the load on the local machine. 
+# Define a service to check the load on the local machine.
 
 define service{
         use                             local-service         ; Name of service template to use
@@ -118,7 +118,7 @@ define service{
 
 
 
-# Define a service to check the swap usage the local machine. 
+# Define a service to check the swap usage the local machine.
 # Critical if less than 10% of swap is free, warning if less than 20% is free
 
 define service{

@@ -57,9 +57,9 @@ use_pending_states=1
 
 
 # AUTHENTICATION USAGE
-# This option controls whether or not the CGIs will use any 
+# This option controls whether or not the CGIs will use any
 # authentication when displaying host and service information, as
-# well as committing commands to Nagios for processing.  
+# well as committing commands to Nagios for processing.
 #
 # Read the HTML documentation to learn how the authorization works!
 #
@@ -99,7 +99,7 @@ use_ssl_authentication=0
 # access to the CGIs has been authenticated in some manner!  If you
 # define this variable, anyone who has not authenticated to the web
 # server will inherit all rights you assign to this user!
- 
+
 #default_user_name=guest
 
 
@@ -157,9 +157,9 @@ authorized_for_all_hosts=nagiosadmin
 # GLOBAL HOST/SERVICE COMMAND ACCESS
 # These two options are comma-delimited lists of all usernames that
 # can issue host or service related commands via the command
-# CGI (cmd.cgi) for all hosts and services that are being monitored. 
-# By default, users can only issue commands for hosts or services 
-# that they are contacts for (unless you you choose to not use 
+# CGI (cmd.cgi) for all hosts and services that are being monitored.
+# By default, users can only issue commands for hosts or services
+# that they are contacts for (unless you you choose to not use
 # authorization).  You may use an asterisk (*) to authorize any
 # user who has authenticated to the web server.
 
@@ -179,7 +179,7 @@ authorized_for_all_host_commands=nagiosadmin
 
 
 # STATUSMAP BACKGROUND IMAGE
-# This option allows you to specify an image to be used as a 
+# This option allows you to specify an image to be used as a
 # background in the statusmap CGI.  It is assumed that the image
 # resides in the HTML images path (i.e. /usr/local/nagios/share/images).
 # This path is automatically determined by appending "/images"
@@ -196,7 +196,7 @@ authorized_for_all_host_commands=nagiosadmin
 # STATUSMAP TRANSPARENCY INDEX COLOR
 # These options set the r,g,b values of the background color used the statusmap CGI,
 # so normal browsers that can't show real png transparency set the desired color as
-# a background color instead (to make it look pretty).  
+# a background color instead (to make it look pretty).
 # Defaults to white: (R,G,B) = (255,255,255).
 
 #color_transparency_index_r=255
@@ -250,7 +250,7 @@ default_statuswrl_layout=4
 
 
 # STATUSWRL INCLUDE
-# This option allows you to include your own objects in the 
+# This option allows you to include your own objects in the
 # generated VRML world.  It is assumed that the file
 # resides in the HTML path (i.e. /usr/local/nagios/share).
 
@@ -276,7 +276,7 @@ ping_syntax=/bin/ping -n -U -c 5 $HOSTADDRESS$
 
 # REFRESH RATE
 # This option allows you to specify the refresh rate in seconds
-# of various CGIs (status, statusmap, extinfo, and outages).  
+# of various CGIs (status, statusmap, extinfo, and outages).
 
 refresh_rate=90
 
@@ -290,10 +290,10 @@ refresh_rate=90
 
 
 # DEFAULT PAGE LIMIT
-# This option allows you to specify the default number of results 
+# This option allows you to specify the default number of results
 # displayed on the status.cgi.  This number can be adjusted from
 # within the UI after the initial page load. Setting this to 0
-# will show all results.  
+# will show all results.
 
 result_limit=100
 
@@ -335,7 +335,7 @@ escape_html_tags=1
 
 
 # URL TARGET FRAMES
-# These options determine the target frames in which notes and 
+# These options determine the target frames in which notes and
 # action URLs will open.
 
 action_url_target=_blank
@@ -344,8 +344,8 @@ notes_url_target=_blank
 
 
 # LOCK AUTHOR NAMES OPTION
-# This option determines whether users can change the author name 
-# when submitting comments, scheduling downtime.  If disabled, the 
+# This option determines whether users can change the author name
+# when submitting comments, scheduling downtime.  If disabled, the
 # author names will be locked into their contact name, as defined in Nagios.
 # Values: 0 = allow editing author names
 #         1 = lock author names (disallow editing)
@@ -385,9 +385,9 @@ navbar_search_for_aliases=1
 
 
 # DEFAULTS FOR CHECKBOXES FOR ACKNOWLEDGEMENTS
-# Enabling ack_no_sticky will default the "Sticky Acknowledgement" to 
+# Enabling ack_no_sticky will default the "Sticky Acknowledgement" to
 # be unchecked.
-# Enabling ack_no_send will default the "Send Notification" to 
+# Enabling ack_no_send will default the "Send Notification" to
 # be unchecked.
 
 #ack_no_sticky=0

@@ -1140,18 +1140,26 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 
 	char *old_plugin_output = NULL;
 
-	host *hst = NULL;
+	host * hst = NULL;
 	int first_host_check_initiated = FALSE;
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "handle_async_service_check_result()\n");
 
 	/* make sure we have what we need */
-	if (hst == NULL) {
+	if (svc == NULL) {
 		log_debug_info(DEBUGL_CHECKS, 2, "No service specified, bailing!\n");
-		return ERROR;
+		return ERROR;		
 	}
 	if (cr == NULL) {
 		log_debug_info(DEBUGL_CHECKS, 2, "No check result specified, bailing!\n");
+		return ERROR;
+	}
+
+	/* get the host this service belongs to */
+	hst = svc->host_ptr;
+
+	if (hst == NULL) {
+		log_debug_info(DEBUGL_CHECKS, 2, "No host associated with service, bailing!\n");
 		return ERROR;
 	}
 
@@ -1174,9 +1182,6 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 	/* reschedule the next check at the regular interval - may be overridden */
 	next_check = (time_t)(svc->last_check + (svc->check_interval * interval_length));
 	record_last_service_state_ended(svc);
-
-	/* get the host that this service runs on */
-	hst = (host *)svc->host_ptr;
 
 	/* increment the current attempt number if this is a soft state (service was rechecked) */
 	if (svc->state_type == SOFT_STATE && (svc->current_attempt < svc->max_attempts)) {

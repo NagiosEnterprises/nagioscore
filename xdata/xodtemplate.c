@@ -6470,7 +6470,7 @@ int xodtemplate_recombobulate_hostgroups(void) {
 			continue;
 
 		/* preprocess the hostgroup list, to change "grp1,grp2,grp3,!grp2" into "grp1,grp3" */
-		/* 10/18/07 EG an empty return value means an error occured */
+		/* 10/18/07 EG an empty return value means an error occurred */
 		if((hostgroup_names = xodtemplate_process_hostgroup_names(temp_host->host_groups, temp_host->_config_file, temp_host->_start_line)) == NULL) {
 			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to process hostgroup names for host '%s' (config file '%s', starting at line %d)\n",
 				  temp_host->host_name, xodtemplate_config_file_name(temp_host->_config_file), temp_host->_start_line);
@@ -6651,7 +6651,7 @@ int xodtemplate_recombobulate_servicegroups(void) {
 			continue;
 
 		/* preprocess the servicegroup list, to change "grp1,grp2,grp3,!grp2" into "grp1,grp3" */
-		/* 10/19/07 EG an empty return value means an error occured */
+		/* 10/19/07 EG an empty return value means an error occurred */
 		if((servicegroup_names = xodtemplate_process_servicegroup_names(temp_service->service_groups, temp_service->_config_file, temp_service->_start_line)) == NULL) {
 			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to process servicegroup names for service '%s' on host '%s' (config file '%s', starting at line %d)\n",
 				  temp_service->service_description, temp_service->host_name, xodtemplate_config_file_name(temp_service->_config_file), temp_service->_start_line);
@@ -9120,7 +9120,7 @@ int xodtemplate_expand_contacts(objectlist **ret, bitmap *reject_map, char *cont
 
 				found_match = TRUE;
 
-				/* dont' add contacts that shouldn't be registered */
+				/* don't add contacts that shouldn't be registered */
 				if(temp_contact->register_object == FALSE)
 					continue;
 
@@ -9145,7 +9145,7 @@ int xodtemplate_expand_contacts(objectlist **ret, bitmap *reject_map, char *cont
 					if(temp_contact->contact_name == NULL)
 						continue;
 
-					/* dont' add contacts that shouldn't be registered */
+					/* don't add contacts that shouldn't be registered */
 					if(temp_contact->register_object == FALSE)
 						continue;
 
@@ -9323,7 +9323,7 @@ int xodtemplate_expand_hostgroups(objectlist **list, bitmap *reject_map, char *h
 
 				found_match = TRUE;
 
-				/* dont' add hostgroups that shouldn't be registered */
+				/* don't add hostgroups that shouldn't be registered */
 				if(temp_hostgroup->register_object == FALSE)
 					continue;
 
@@ -9344,7 +9344,7 @@ int xodtemplate_expand_hostgroups(objectlist **list, bitmap *reject_map, char *h
 
 				for(temp_hostgroup = xodtemplate_hostgroup_list; temp_hostgroup != NULL; temp_hostgroup = temp_hostgroup->next) {
 
-					/* dont' add hostgroups that shouldn't be registered */
+					/* don't add hostgroups that shouldn't be registered */
 					if(temp_hostgroup->register_object == FALSE)
 						continue;
 
@@ -9440,7 +9440,7 @@ int xodtemplate_expand_hosts(objectlist **list, bitmap *reject_map, char *hosts,
 
 				found_match = TRUE;
 
-				/* dont' add hosts that shouldn't be registered */
+				/* don't add hosts that shouldn't be registered */
 				if(temp_host->register_object == FALSE)
 					continue;
 
@@ -9465,7 +9465,7 @@ int xodtemplate_expand_hosts(objectlist **list, bitmap *reject_map, char *hosts,
 					if(temp_host->host_name == NULL)
 						continue;
 
-					/* dont' add hosts that shouldn't be registered */
+					/* don't add hosts that shouldn't be registered */
 					if(temp_host->register_object == FALSE)
 						continue;
 
@@ -9573,7 +9573,7 @@ int xodtemplate_expand_servicegroups(objectlist **list, bitmap *reject, char *se
 
 				found_match = TRUE;
 
-				/* dont' add servicegroups that shouldn't be registered */
+				/* don't add servicegroups that shouldn't be registered */
 				if(temp_servicegroup->register_object == FALSE)
 					continue;
 
@@ -9595,7 +9595,7 @@ int xodtemplate_expand_servicegroups(objectlist **list, bitmap *reject, char *se
 
 				for(temp_servicegroup = xodtemplate_servicegroup_list; temp_servicegroup != NULL; temp_servicegroup = temp_servicegroup->next) {
 
-					/* dont' add servicegroups that shouldn't be registered */
+					/* don't add servicegroups that shouldn't be registered */
 					if(temp_servicegroup->register_object == FALSE)
 						continue;
 
@@ -9776,7 +9776,7 @@ int xodtemplate_expand_services(objectlist **list, bitmap *reject_map, char *hos
 
 				found_match = TRUE;
 
-				/* dont' add services that shouldn't be registered */
+				/* don't add services that shouldn't be registered */
 				if(temp_service->register_object == FALSE)
 					continue;
 
@@ -9803,7 +9803,7 @@ int xodtemplate_expand_services(objectlist **list, bitmap *reject_map, char *hos
 				if(strcmp(temp_service->host_name, host_name))
 					continue;
 
-				/* dont' add services that shouldn't be registered */
+				/* don't add services that shouldn't be registered */
 				if(temp_service->register_object == FALSE)
 					continue;
 
@@ -9959,7 +9959,7 @@ int xodtemplate_get_hostgroup_names(xodtemplate_memberlist **list, xodtemplate_m
 
 				found_match = TRUE;
 
-				/* dont' add hostgroups that shouldn't be registered */
+				/* don't add hostgroups that shouldn't be registered */
 				if(temp_hostgroup->register_object == FALSE)
 					continue;
 
@@ -9981,7 +9981,7 @@ int xodtemplate_get_hostgroup_names(xodtemplate_memberlist **list, xodtemplate_m
 
 				for(temp_hostgroup = xodtemplate_hostgroup_list; temp_hostgroup != NULL; temp_hostgroup = temp_hostgroup->next) {
 
-					/* dont' add hostgroups that shouldn't be registered */
+					/* don't add hostgroups that shouldn't be registered */
 					if(temp_hostgroup->register_object == FALSE)
 						continue;
 
@@ -10135,7 +10135,7 @@ int xodtemplate_get_contactgroup_names(xodtemplate_memberlist **list, xodtemplat
 
 				found_match = TRUE;
 
-				/* dont' add contactgroups that shouldn't be registered */
+				/* don't add contactgroups that shouldn't be registered */
 				if(temp_contactgroup->register_object == FALSE)
 					continue;
 
@@ -10157,7 +10157,7 @@ int xodtemplate_get_contactgroup_names(xodtemplate_memberlist **list, xodtemplat
 
 				for(temp_contactgroup = xodtemplate_contactgroup_list; temp_contactgroup != NULL; temp_contactgroup = temp_contactgroup->next) {
 
-					/* dont' add contactgroups that shouldn't be registered */
+					/* don't add contactgroups that shouldn't be registered */
 					if(temp_contactgroup->register_object == FALSE)
 						continue;
 
@@ -10311,7 +10311,7 @@ int xodtemplate_get_servicegroup_names(xodtemplate_memberlist **list, xodtemplat
 
 				found_match = TRUE;
 
-				/* dont' add servicegroups that shouldn't be registered */
+				/* don't add servicegroups that shouldn't be registered */
 				if(temp_servicegroup->register_object == FALSE)
 					continue;
 
@@ -10333,7 +10333,7 @@ int xodtemplate_get_servicegroup_names(xodtemplate_memberlist **list, xodtemplat
 
 				for(temp_servicegroup = xodtemplate_servicegroup_list; temp_servicegroup != NULL; temp_servicegroup = temp_servicegroup->next) {
 
-					/* dont' add servicegroups that shouldn't be registered */
+					/* don't add servicegroups that shouldn't be registered */
 					if(temp_servicegroup->register_object == FALSE)
 						continue;
 

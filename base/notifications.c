@@ -222,7 +222,7 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 		/* set the notification number macro */
 		asprintf(&mac.x[MACRO_SERVICENOTIFICATIONNUMBER], "%d", svc->current_notification_number);
 
-		/* the $NOTIFICATIONNUMBER$ macro is maintained for backward compatability */
+		/* the $NOTIFICATIONNUMBER$ macro is maintained for backward compatibility */
 		mac.x[MACRO_NOTIFICATIONNUMBER] = strdup(mac.x[MACRO_SERVICENOTIFICATIONNUMBER]);
 
 		/* set the notification id macro */
@@ -1179,7 +1179,7 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 		/* set the notification number macro */
 		asprintf(&mac.x[MACRO_HOSTNOTIFICATIONNUMBER], "%d", hst->current_notification_number);
 
-		/* the $NOTIFICATIONNUMBER$ macro is maintained for backward compatability */
+		/* the $NOTIFICATIONNUMBER$ macro is maintained for backward compatibility */
 		mac.x[MACRO_NOTIFICATIONNUMBER] = strdup(mac.x[MACRO_HOSTNOTIFICATIONNUMBER]);
 
 		/* set the notification id macro */

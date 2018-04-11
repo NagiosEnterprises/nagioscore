@@ -8980,7 +8980,7 @@ echo "${ECHO_T}$lt_cv_dlopen_self_static" >&6
 fi
 
 
-# Report which librarie types wil actually be built
+# Report which librarie types will actually be built
 echo "$as_me:$LINENO: checking if libtool supports shared libraries" >&5
 echo $ECHO_N "checking if libtool supports shared libraries... $ECHO_C" >&6
 echo "$as_me:$LINENO: result: $can_build_shared" >&5

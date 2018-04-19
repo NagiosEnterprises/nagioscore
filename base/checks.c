@@ -205,13 +205,11 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	/* send data to event broker */
 	neb_result = broker_service_check(NEBTYPE_SERVICECHECK_ASYNC_PRECHECK, NEBFLAG_NONE, NEBATTR_NONE, svc, CHECK_TYPE_ACTIVE, start_time, end_time, svc->check_command, svc->latency, 0.0, 0, FALSE, 0, NULL, NULL, NULL);
 
-	if (neb_result == NEBERROR_CALLBACKCANCEL || neb_result == NEBERROR_CALLBACKOVERRIDE) {
-		log_debug_info(DEBUGL_CHECKS, 0, "Check of service '%s' on host '%s' (id=%u) was %s by a module\n",
-					   svc->description, svc->host_name, svc->id,
-					   neb_result == NEBERROR_CALLBACKCANCEL ? "cancelled" : "overridden");
-	}
 	/* neb module wants to cancel the service check - the check will be rescheduled for a later time by the scheduling logic */
 	if (neb_result == NEBERROR_CALLBACKCANCEL) {
+
+		log_debug_info(DEBUGL_CHECKS, 0, "Check of service '%s' on host '%s' (id=%u) was cancelled by a module\n", svc->description, svc->host_name, svc->id);
+
 		if (preferred_time) {
 			*preferred_time += (svc->check_interval * interval_length);
 		}
@@ -222,6 +220,8 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	/* NOTE: if a module does this, it has to do a lot of the stuff found below to make sure things don't get whacked out of shape! */
 	/* NOTE: if would be easier for modules to override checks when the NEBTYPE_SERVICECHECK_INITIATE event is called (later) */
 	if (neb_result == NEBERROR_CALLBACKOVERRIDE) {
+
+		log_debug_info(DEBUGL_CHECKS, 0, "Check of service '%s' on host '%s' (id=%u) was overridden by a module\n", svc->description, svc->host_name, svc->id);
 		return OK;
 	}
 #endif
@@ -2698,13 +2698,11 @@ int run_async_host_check(host *hst, int check_options, double latency, int sched
 	/* send data to event broker */
 	neb_result = broker_host_check(NEBTYPE_HOSTCHECK_ASYNC_PRECHECK, NEBFLAG_NONE, NEBATTR_NONE, hst, CHECK_TYPE_ACTIVE, hst->current_state, hst->state_type, start_time, end_time, hst->check_command, hst->latency, 0.0, host_check_timeout, FALSE, 0, NULL, NULL, NULL, NULL, NULL, NULL);
 
-	if (neb_result == NEBERROR_CALLBACKCANCEL || neb_result == NEBERROR_CALLBACKOVERRIDE) {
-		log_debug_info(DEBUGL_CHECKS, 0, "Check of host '%s' (id=%u) was %s by a module\n",
-					   hst->name, hst->id,
-					   neb_result == NEBERROR_CALLBACKCANCEL ? "cancelled" : "overridden");
-	}
 	/* neb module wants to cancel the host check - the check will be rescheduled for a later time by the scheduling logic */
 	if (neb_result == NEBERROR_CALLBACKCANCEL) {
+
+		log_debug_info(DEBUGL_CHECKS, 0, "Check of host '%s' (id=%u) was cancelled by a module\n", hst->name, hst->id);
+
 		if (preferred_time) {
 			*preferred_time += check_window(hst);
 		}
@@ -2715,6 +2713,8 @@ int run_async_host_check(host *hst, int check_options, double latency, int sched
 	/* NOTE: if a module does this, it has to do a lot of the stuff found below to make sure things don't get whacked out of shape! */
 	/* NOTE: if would be easier for modules to override checks when the NEBTYPE_SERVICECHECK_INITIATE event is called (later) */
 	if (neb_result == NEBERROR_CALLBACKOVERRIDE) {
+
+		log_debug_info(DEBUGL_CHECKS, 0, "Check of host '%s' (id=%u) was overridden by a module\n", hst->name, hst->id);
 		return OK;
 	}
 #endif

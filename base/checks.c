@@ -534,12 +534,12 @@ static inline int get_host_check_return_code(host *hst, check_result *cr)
 	}
 
 	/* if we're not doing aggressive host checking, let WARNING states indicate the host is up (fake the result to be HOST_UP) */
-	if (use_aggressive_host_checking == FALSE && rc == STATE_WARNING) {
+	else if (use_aggressive_host_checking == FALSE && rc == STATE_WARNING) {
 		rc = HOST_UP;
 	}
 
 	/* any problem state indicates the host is not UP */
-	if (rc != HOST_UP) {
+	else if (rc != HOST_UP) {
 		rc = HOST_DOWN;
 	}
 		

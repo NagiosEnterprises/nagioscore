@@ -2168,11 +2168,15 @@ void schedule_host_check(host *hst, time_t check_time, int options)
 
 	temp_event = (timed_event *)hst->next_check_event;
 
+	if (temp_event == NULL) {
+		use_original_event = FALSE;
+	}
+
 	/*
 	 * If the host already had a check scheduled we need
 	 * to decide which check event to use
 	 */
-	if (temp_event != NULL) {
+	else {
 
 		log_debug_info(DEBUGL_CHECKS, 2, "Found another host check event for this host @ %s", ctime(&temp_event->run_time));
 
@@ -2221,7 +2225,6 @@ void schedule_host_check(host *hst, time_t check_time, int options)
 			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Could not reschedule check of host '%s'!\n", hst->name);
 			return;
 		}
-
 
 		/* set the next host check event and time */
 		hst->next_check_event = temp_event;

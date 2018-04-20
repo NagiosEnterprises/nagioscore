@@ -2137,6 +2137,8 @@ int is_service_result_fresh(service *temp_service, time_t current_time, int log_
 void schedule_host_check(host *hst, time_t check_time, int options)
 {
 	timed_event *temp_event = NULL;
+
+	/* use the originally scheduled check unless we decide otherwise */
 	int use_original_event = TRUE;
 
 
@@ -2146,7 +2148,10 @@ void schedule_host_check(host *hst, time_t check_time, int options)
 		return;
 	}
 
-	log_debug_info(DEBUGL_CHECKS, 0, "Scheduling a %s, active check of host '%s' @ %s", (options & CHECK_OPTION_FORCE_EXECUTION) ? "forced" : "non-forced", hst->name, ctime(&check_time));
+	log_debug_info(DEBUGL_CHECKS, 0, "Scheduling a %s, active check of host '%s' @ %s", 
+		(options & CHECK_OPTION_FORCE_EXECUTION) ? "forced" : "non-forced", 
+		hst->name, 
+		ctime(&check_time));
 
 	/* don't schedule a check if active checks of this host are disabled */
 	if (hst->checks_enabled == FALSE && !(options & CHECK_OPTION_FORCE_EXECUTION)) {
@@ -2161,9 +2166,6 @@ void schedule_host_check(host *hst, time_t check_time, int options)
 		return;
 	}
 
-	/* default is to use the new event */
-	use_original_event = FALSE;
-
 	temp_event = (timed_event *)hst->next_check_event;
 
 	/*
@@ -2173,9 +2175,6 @@ void schedule_host_check(host *hst, time_t check_time, int options)
 	if (temp_event != NULL) {
 
 		log_debug_info(DEBUGL_CHECKS, 2, "Found another host check event for this host @ %s", ctime(&temp_event->run_time));
-
-		/* use the originally scheduled check unless we decide otherwise */
-		use_original_event = TRUE;
 
 		/* the original event is a forced check... */
 		if ((temp_event->event_options & CHECK_OPTION_FORCE_EXECUTION)) {
@@ -2192,14 +2191,14 @@ void schedule_host_check(host *hst, time_t check_time, int options)
 
 			/* the new event is a forced check, so use it instead */
 			if ((options & CHECK_OPTION_FORCE_EXECUTION)) {
-				use_original_event = FALSE;
 				log_debug_info(DEBUGL_CHECKS, 2, "New host check event is forced, so it will be used instead of the existing event.\n");
+				use_original_event = FALSE;
 			}
 
 			/* the new event is not forced either and its execution time is earlier than the original, so use it instead */
 			else if (check_time < temp_event->run_time) {
-				use_original_event = FALSE;
 				log_debug_info(DEBUGL_CHECKS, 2, "New host check event occurs before the existing (older) event, so it will be used instead.\n");
+				use_original_event = FALSE;
 			}
 
 			/* the new event is older, so override the existing one */

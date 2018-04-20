@@ -702,38 +702,35 @@ static inline void host_is_active(host *hst)
  *****************************************************************************/
 static inline void debug_async_service(service *svc, check_result *cr)
 {
-	log_debug_info(DEBUGL_CHECKS, 0, "** Handling check result for service '%s' on host '%s' from '%s'...\n", 
+	log_debug_info(DEBUGL_CHECKS, 0, "** Handling %s async check result for service '%s' on host '%s' from '%s'...\n", 
+		(cr->check_type == CHECK_TYPE_ACTIVE) ? "ACTIVE" : "PASSIVE",
 		svc->description, 
 		svc->host_name, 
 		check_result_source(cr));
 
 	log_debug_info(DEBUGL_CHECKS, 1, 
-		"HOST: %s, SERVICE: %s, CHECK TYPE: %s, OPTIONS: %d, SCHEDULED: %s, RESCHEDULE: %s, EXITED OK: %s, RETURN CODE: %d, OUTPUT: %s\n", 
-		svc->host_name, 
-		svc->description, 
-		(cr->check_type == CHECK_TYPE_ACTIVE) ? "Active" : "Passive", 
+		" * OPTIONS: %d, SCHEDULED: %s, RESCHEDULE: %s, EXITED OK: %s, RETURN CODE: %d, OUTPUT:\n%s\n", 
 		cr->check_options, 
-		(cr->scheduled_check == TRUE) ? "Yes" : "No", 
-		(cr->reschedule_check == TRUE) ? "Yes" : "No", 
-		(cr->exited_ok == TRUE) ? "Yes" : "No", 
-		cr->return_code, 
-		cr->output);
+		cr->scheduled_check,
+		cr->reschedule_check,
+		cr->exited_ok,
+		cr->return_code,
+		(cr == NULL) ? "NULL" : cr->output);
 }
 /*****************************************************************************/
 static inline void debug_async_host(host *hst, check_result *cr)
 {
-	log_debug_info(DEBUGL_CHECKS, 0, "** Handling async check result for host '%s' from '%s'...\n", 
+	log_debug_info(DEBUGL_CHECKS, 0, "** Handling %s async check result for host '%s' from '%s'...\n", 
+		(cr->check_type == CHECK_TYPE_ACTIVE) ? "ACTIVE" : "PASSIVE",
 		hst->name, 
 		check_result_source(cr));
 
-	log_debug_info(DEBUGL_CHECKS, 1,
-		"HOST: %s, CHECK TYPE: %s, OPTIONS: %d, SCHEDULED: %s, RESCHEDULE: %s, EXITED OK: %s, RETURN CODE: %d, OUTPUT: %s\n", 
-		hst->name,
-		(cr->check_type == CHECK_TYPE_ACTIVE) ? "Active" : "Passive",
+	log_debug_info(DEBUGL_CHECKS, 1, 
+		" * OPTIONS: %d, SCHEDULED: %s, RESCHEDULE: %s, EXITED OK: %s, RETURN CODE: %d, OUTPUT:\n%s\n", 
 		cr->check_options,
-		(cr->scheduled_check == TRUE) ? "Yes" : "No",
-		(cr->reschedule_check == TRUE) ? "Yes" : "No",
-		(cr->exited_ok == TRUE) ? "Yes" : "No",
+		cr->scheduled_check,
+		cr->reschedule_check,
+		cr->exited_ok,
 		cr->return_code,
 		(cr == NULL) ? "NULL" : cr->output);
 }

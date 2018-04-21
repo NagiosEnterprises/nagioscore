@@ -40,6 +40,7 @@
 #include "../include/neberrors.h"
 #endif
 
+
 /******************************************************************/
 /********************** CHECK REAPER FUNCTIONS ********************/
 /******************************************************************/
@@ -681,7 +682,6 @@ static inline void service_is_active(service *svc)
 		currently_running_service_checks--;
 	}
 
-	/* clear the execution flag if this was an active check */
 	svc->is_executing = FALSE;
 }
 /*****************************************************************************/
@@ -709,7 +709,7 @@ static inline void debug_async_service(service *svc, check_result *cr)
 		check_result_source(cr));
 
 	log_debug_info(DEBUGL_CHECKS, 1, 
-		" * OPTIONS: %d, SCHEDULED: %s, RESCHEDULE: %s, EXITED OK: %s, RETURN CODE: %d, OUTPUT:\n%s\n", 
+		" * OPTIONS: %d, SCHEDULED: %d, RESCHEDULE: %d, EXITED OK: %d, RETURN CODE: %d, OUTPUT:\n%s\n", 
 		cr->check_options, 
 		cr->scheduled_check,
 		cr->reschedule_check,
@@ -726,7 +726,7 @@ static inline void debug_async_host(host *hst, check_result *cr)
 		check_result_source(cr));
 
 	log_debug_info(DEBUGL_CHECKS, 1, 
-		" * OPTIONS: %d, SCHEDULED: %s, RESCHEDULE: %s, EXITED OK: %s, RETURN CODE: %d, OUTPUT:\n%s\n", 
+		" * OPTIONS: %d, SCHEDULED: %d, RESCHEDULE: %d, EXITED OK: %d, RETURN CODE: %d, OUTPUT:\n%s\n", 
 		cr->check_options,
 		cr->scheduled_check,
 		cr->reschedule_check,
@@ -881,13 +881,14 @@ static inline void set_service_state_type(service *svc, int hard_state_change)
 /*****************************************************************************/
 static inline void set_host_state_type(host *hst, int hard_state_change)
 {
-	if (hard_state_change == TRUE || (hst->check_type == CHECK_TYPE_PASSIVE && passive_host_checks_are_soft == FALSE)) {
+	if (hst->check_type == CHECK_TYPE_PASSIVE && passive_host_checks_are_soft == FALSE) {
+		hst->current_attempt = 1;
+		hard_state_change = TRUE;
+	}
+
+	if (hard_state_change == TRUE) {
 		hst->last_hard_state_change = hst->last_check;
 		hst->state_type = HARD_STATE;
-
-		if (hst->check_type == CHECK_TYPE_PASSIVE && passive_host_checks_are_soft == FALSE) {
-			hst->current_attempt = 1;
-		}
 	}
 	else {
 		hst->state_type = SOFT_STATE;
@@ -1564,7 +1565,7 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 
 
 /* schedules an immediate or delayed service check */
-void schedule_service_check(service *svc, time_t check_time, int options)
+inline void schedule_service_check(service *svc, time_t check_time, int options)
 {
 	timed_event *temp_event = NULL;
 	int use_original_event = TRUE;
@@ -1687,14 +1688,12 @@ void schedule_service_check(service *svc, time_t check_time, int options)
 
 	/* update the status log */
 	update_service_status(svc, FALSE);
-
-	return;
 }
 
 
 
 /* checks viability of performing a service check */
-int check_service_check_viability(service *svc, int check_options, int *time_is_valid, time_t *new_time)
+inline int check_service_check_viability(service *svc, int check_options, int *time_is_valid, time_t *new_time)
 {
 	int perform_check = TRUE;
 	time_t current_time = 0L;
@@ -2134,7 +2133,7 @@ int is_service_result_fresh(service *temp_service, time_t current_time, int log_
 /******************************************************************/
 
 /* schedules an immediate or delayed host check */
-void schedule_host_check(host *hst, time_t check_time, int options)
+inline void schedule_host_check(host *hst, time_t check_time, int options)
 {
 	timed_event *temp_event = NULL;
 
@@ -2143,6 +2142,7 @@ void schedule_host_check(host *hst, time_t check_time, int options)
 
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "schedule_host_check()\n");
+
 
 	if (hst == NULL) {
 		return;
@@ -2257,8 +2257,6 @@ void schedule_host_check(host *hst, time_t check_time, int options)
 
 	/* update the status log */
 	update_host_status(hst, FALSE);
-
-	return;
 }
 
 
@@ -2358,9 +2356,13 @@ void check_for_orphaned_hosts(void)
 		if (expected_time < current_time) {
 
 			/* log a warning */
-			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: The check of host '%s' looks like it was orphaned (results never came back).  I'm scheduling an immediate check of the host...\n", temp_host->name);
+			logit(NSLOG_RUNTIME_WARNING, TRUE, 
+				"Warning: The check of host '%s' looks like it was orphaned (results never came back).  I'm scheduling an immediate check of the host...\n", 
+				temp_host->name);
 
-			log_debug_info(DEBUGL_CHECKS, 1, "Host '%s' was orphaned, so we're scheduling an immediate check...\n", temp_host->name);
+			log_debug_info(DEBUGL_CHECKS, 1, 
+				"Host '%s' was orphaned, so we're scheduling an immediate check...\n", 
+				temp_host->name);
 
 			/* decrement the number of running host checks */
 			if (currently_running_host_checks > 0) {
@@ -2374,8 +2376,6 @@ void check_for_orphaned_hosts(void)
 			schedule_host_check(temp_host, current_time, CHECK_OPTION_ORPHAN_CHECK);
 		}
 	}
-
-	return;
 }
 
 
@@ -2436,8 +2436,6 @@ void check_host_result_freshness(void)
 			schedule_host_check(temp_host, current_time, CHECK_OPTION_FORCE_EXECUTION | CHECK_OPTION_FRESHNESS_CHECK);
 		}
 	}
-
-	return;
 }
 
 
@@ -2461,12 +2459,14 @@ int is_host_result_fresh(host *temp_host, time_t current_time, int log_this)
 
 	/* use user-supplied freshness threshold or auto-calculate a freshness threshold to use? */
 	if (temp_host->freshness_threshold == 0) {
+
 		if (temp_host->state_type == HARD_STATE || temp_host->current_state == STATE_OK) {
 			interval = temp_host->check_interval;
 		}
 		else {
 			interval = temp_host->retry_interval;
 		}
+
 		freshness_threshold = (interval * interval_length) + temp_host->latency + additional_freshness_latency;
 	}
 	else {
@@ -2498,8 +2498,8 @@ int is_host_result_fresh(host *temp_host, time_t current_time, int log_this)
 	 * Altinity
 	 */
 	else if ((temp_host->checks_enabled == TRUE) 
-		&& (event_start > temp_host->last_check) 
-		&& (temp_host->freshness_threshold == 0)) {
+		  && (event_start > temp_host->last_check) 
+		  && (temp_host->freshness_threshold == 0)) {
 
 		expiration_time = (time_t)(event_start + freshness_threshold + (max_host_check_spread * interval_length));
 	}
@@ -2524,7 +2524,14 @@ int is_host_result_fresh(host *temp_host, time_t current_time, int log_this)
 		expiration_time = event_start + freshness_threshold;
 	}
 
-	log_debug_info(DEBUGL_CHECKS, 2, "HBC: %d, PS: %lu, ES: %lu, LC: %lu, CT: %lu, ET: %lu\n", temp_host->has_been_checked, (unsigned long)program_start, (unsigned long)event_start, (unsigned long)temp_host->last_check, (unsigned long)current_time, (unsigned long)expiration_time);
+	log_debug_info(DEBUGL_CHECKS, 2, 
+		"HBC: %d, PS: %lu, ES: %lu, LC: %lu, CT: %lu, ET: %lu\n", 
+		temp_host->has_been_checked, 
+		(unsigned long)program_start, 
+		(unsigned long)event_start, 
+		(unsigned long)temp_host->last_check, 
+		(unsigned long)current_time, 
+		(unsigned long)expiration_time);
 
 	/* the results for the last check of this host are stale */
 	if (expiration_time < current_time) {
@@ -2534,10 +2541,30 @@ int is_host_result_fresh(host *temp_host, time_t current_time, int log_this)
 
 		/* log a warning */
 		if (log_this == TRUE) {
-			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: The results of host '%s' are stale by %dd %dh %dm %ds (threshold=%dd %dh %dm %ds).  I'm forcing an immediate check of the host.\n", temp_host->name, days, hours, minutes, seconds, tdays, thours, tminutes, tseconds);
+			logit(NSLOG_RUNTIME_WARNING, TRUE, 
+				"Warning: The results of host '%s' are stale by %dd %dh %dm %ds (threshold=%dd %dh %dm %ds).  I'm forcing an immediate check of the host.\n", 
+				temp_host->name, 
+				days, 
+				hours, 
+				minutes, 
+				seconds, 
+				tdays, 
+				thours, 
+				tminutes, 
+				tseconds);
 		}
 
-		log_debug_info(DEBUGL_CHECKS, 1, "Check results for host '%s' are stale by %dd %dh %dm %ds (threshold=%dd %dh %dm %ds).  Forcing an immediate check of the host...\n", temp_host->name, days, hours, minutes, seconds, tdays, thours, tminutes, tseconds);
+		log_debug_info(DEBUGL_CHECKS, 1, 
+			"Check results for host '%s' are stale by %dd %dh %dm %ds (threshold=%dd %dh %dm %ds).  Forcing an immediate check of the host...\n", 
+			temp_host->name, 
+			days,
+			hours, 
+			minutes, 
+			seconds, 
+			tdays, 
+			thours, 
+			tminutes, 
+			tseconds);
 
 		return FALSE;
 	}
@@ -2864,6 +2891,32 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 	next_check = (time_t)(hst->last_check + (hst->check_interval * interval_length));
 	record_last_host_state_ended(hst);
 
+	/* check for state change (soft or hard) */
+	if (hst->current_state != hst->last_state) {
+		log_debug_info(DEBUGL_CHECKS, 2, "Host has changed state since last check!\n");
+		state_change = TRUE;
+	}
+
+	/* check for a hard state change where max check attempts is reached */
+	if (hst->current_attempt >= hst->max_attempts && hst->current_state != hst->last_hard_state) {
+		log_debug_info(DEBUGL_CHECKS, 2, "Host had a HARD STATE CHANGE!!\n");
+		hard_state_change = TRUE;
+	}
+
+	/* state change occurred... */
+	/* reset last and next notification times and ack flag if necessary, misc other stuff */
+	if (state_change == TRUE || hard_state_change == TRUE) {
+		hst->should_be_scheduled = TRUE;
+		host_state_or_hard_state_type_change(hst, state_change, hard_state_change);
+
+		/* if host's state type is hard, we should send a notification on a state/type change */
+		if (hst->state_type = HARD_STATE) {
+			send_notification = TRUE;
+		}
+	}
+
+	set_host_state_type(hst, hard_state_change);
+
 	/* increment the current attempt number if this is a soft state (host was rechecked) */
 	if (hst->state_type == SOFT_STATE && (hst->current_attempt < hst->max_attempts)) {
 		hst->current_attempt++;
@@ -2878,34 +2931,21 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 		hst->last_state, 
 		hst->last_hard_state);
 
-	/* check for state change (soft or hard) */
-	if (hst->current_state != hst->last_state) {
-		log_debug_info(DEBUGL_CHECKS, 2, "Host has changed state since last check!\n");
-		state_change = TRUE;
-	}
-
-	/* check for a hard state change where max check attempts is reached */
-	if (hst->current_attempt >= hst->max_attempts && hst->current_state != hst->last_hard_state) {
-		log_debug_info(DEBUGL_CHECKS, 2, "Host had a HARD STATE CHANGE!!\n");
-		hard_state_change = TRUE;
-	}
-
-	set_host_state_type(hst, hard_state_change);
-
-	/* state change occurred... */
-	/* reset last and next notification times and ack flag if necessary, misc other stuff */
-	if (state_change == TRUE || hard_state_change == TRUE) {
-		hst->should_be_scheduled = TRUE;
-		host_state_or_hard_state_type_change(hst, state_change, hard_state_change);
-
-		/* if host's state type is hard, we should send a notification on a state/type change */
-		if (hst->state_type = HARD_STATE) {
-			send_notification = TRUE;
-		}
-	}
-
 	initialize_last_host_state_change_times(hst);
 
+
+
+			/* active checks and passive checks (treated as SOFT states) */
+			if (hst->check_type == CHECK_TYPE_ACTIVE || passive_host_checks_are_soft == TRUE) {
+
+				/* set the state type */
+				if (hst->current_attempt >= hst->max_attempts) {
+					hst->state_type = HARD_STATE;
+				}
+				else {
+					hst->state_type = SOFT_STATE;
+				}
+			}
 
 	/**************************************/
 	/********* HOST CHECK OK LOGIC ********/
@@ -2966,29 +3006,6 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 		else {
 
 			log_debug_info(DEBUGL_CHECKS, 1, "Host is still %s.\n", host_state_name(hst->current_state));
-
-			/* set state type to HARD for passive checks and active checks that were previously in a HARD STATE */
-			/* something similar is done in set_host_state_type, but this accounts for an additional check (outside of state_change||hard_state_change */
-			if (hst->state_type == HARD_STATE 
-				|| (hst->check_type == CHECK_TYPE_PASSIVE && passive_host_checks_are_soft == FALSE)) {
-
-				hst->state_type = HARD_STATE;
-			}
-			else {
-				hst->state_type = SOFT_STATE;
-			}
-
-			/* active checks and passive checks (treated as SOFT states) */
-			if (hst->check_type == CHECK_TYPE_ACTIVE || passive_host_checks_are_soft == TRUE) {
-
-				/* set the state type */
-				if (hst->current_attempt == hst->max_attempts) {
-					hst->state_type = HARD_STATE;
-				}
-				else {
-					hst->state_type = SOFT_STATE;
-				}
-			}
 
 			/* schedule a re-check of the host at the retry interval because we can't determine its final state yet... */
 			if (hst->state_type == SOFT_STATE) {
@@ -3066,7 +3083,6 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 			schedule_host_check(hst, hst->next_check, CHECK_OPTION_NONE);
 		}
 	}
-
 
 	/******************** POST-PROCESSING STUFF *********************/
 
@@ -3183,7 +3199,7 @@ int check_host_check_viability(host *hst, int check_options, int *time_is_valid,
 
 /* determination of the host's state based on route availability*/
 /* used only to determine difference between DOWN and UNREACHABLE states */
-int determine_host_reachability(host *hst)
+inline int determine_host_reachability(host *hst)
 {
 	host *parent_host = NULL;
 	hostsmember *temp_hostsmember = NULL;

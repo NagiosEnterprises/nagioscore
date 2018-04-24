@@ -8,13 +8,11 @@ compiler:
 addons:
   apt:
     packages:
-      - wget
       - build-essential
       - apache2
-      - php
-      - apache2-mod-php7.0
-      - php-gd
-      - libgd2-xpm-dev
+      - php5
+      - php5-gd
+      - libgd-dev
       - unzip
 
 before_install:

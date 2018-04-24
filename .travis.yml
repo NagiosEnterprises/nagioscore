@@ -1,0 +1,23 @@
+language: c
+
+sudo: true
+
+compiler:
+  - gcc
+
+addons:
+  apt:
+    packages:
+      - wget
+      - build-essential
+      - apache2
+      - php
+      - apache2-mod-php7.0
+      - php-gd
+      - libgd2-xpm-dev
+      - unzip
+
+before_install:
+  - ./configure --with-nagios-user=$USER --with-nagios-group=$USER --with-command-group=$USER
+  - make all
+  - sudo make install

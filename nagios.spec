@@ -209,7 +209,7 @@ fi
 
 %files -f cgi.files
 %defattr(-, root, root, 0755)
-%doc Changelog INSTALLING LEGAL LICENSE README THANKS UPGRADING
+%doc Changelog INSTALLING LEGAL LICENSE README.md THANKS UPGRADING
 %attr(0644,root,root) %config(noreplace) %{_sysconfdir}/httpd/conf.d/nagios.conf
 %attr(0644,root,root) %config(noreplace) %{_sysconfdir}/sysconfig/nagios
 %attr(0755,root,root) %config %{_initrddir}/nagios

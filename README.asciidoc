@@ -1,5 +1,8 @@
-Nagios 4.x README
-=================
+Nagios 4.x
+==========
+
+[![Build Status](https://travis-ci.org/NagiosEnterprises/nagioscore.svg?branch=master)](https://travis-ci.org/NagiosEnterprises/nagioscore)
+
 
 Nagios is a host/service/network monitoring program written in C and
 released under the GNU General Public License, version 2. CGI programs

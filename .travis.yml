@@ -15,7 +15,7 @@ addons:
       - libgd-dev
       - unzip
 
-before_install:
+script:
   - ./configure --with-nagios-user=$USER --with-nagios-group=$USER --with-command-group=$USER
   - make all
   - sudo make install

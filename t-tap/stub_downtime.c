@@ -41,6 +41,3 @@ int sort_downtime(void) { return OK; }
 struct scheduled_downtime *find_downtime(int id, unsigned long downtime_id) { return OK; }
 struct scheduled_downtime *find_host_downtime(unsigned long downtime_id) { return OK; }
 struct scheduled_downtime *find_service_downtime(unsigned long downtime_id) { return OK; }
-
-
-int delete_downtime_by_hostname_service_description_start_time_comment(char *c1, char *c2, time_t t, char * c3) { return OK; }

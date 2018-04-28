@@ -105,7 +105,10 @@ test_xsddefault: test_xsddefault.o $(XSD_OBJS) $(TAPOBJ)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 test: $(TESTS)
-	HARNESS_PERL=./test_each.t perl -MTest::Harness -e '$$Test::Harness::switches=""; runtests(map { "./$$_" } @ARGV)' $(TESTS)
+	HARNESS_PERL=./test_each.t perl -MTest::Harness -e '$$Test::Harness::switches=""; runtests(map { "./$$_" } @ARGV)' $(TESTS) 2>&1 | sh colorize.sh
+
+each_test: $(TESTS)
+	@for t in $(TESTS); do ./$$t 2>&1 | sh colorize.sh; done
 
 clean:
 	rm -f core core.* *.o gmon.out $(TESTS)

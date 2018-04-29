@@ -110,6 +110,9 @@ test: $(TESTS)
 each_test: $(TESTS)
 	@for t in $(TESTS); do ./$$t 2>&1 | sh colorize.sh; done
 
+valgrind_test: $(TESTS)
+	@for t in $(TESTS); do valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./$$t; done
+
 clean:
 	rm -f core core.* *.o gmon.out $(TESTS)
 	rm -f *~ *.*~

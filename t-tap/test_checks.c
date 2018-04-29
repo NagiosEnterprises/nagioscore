@@ -56,7 +56,8 @@ int found_log_rechecking_host_when_service_wobbles = 0;
 int found_log_run_async_host_check = 0;
 int c = 0;
 
-void free_hst1() {
+void free_hst1()
+{
     if (hst1 != NULL) {
         my_free(hst1->name);
         my_free(hst1->address);
@@ -68,7 +69,8 @@ void free_hst1() {
     }
 }
 
-void free_svc1() {
+void free_svc1()
+{
     if (svc1 != NULL) {
         my_free(svc1->host_name);
         my_free(svc1->description);
@@ -80,7 +82,8 @@ void free_svc1() {
     }
 }
 
-void free_chk_result() {
+void free_chk_result()
+{
     if (chk_result != NULL) {
         my_free(chk_result->host_name);
         my_free(chk_result->service_description);
@@ -89,8 +92,8 @@ void free_chk_result() {
     }
 }
 
-void free_all() {
-
+void free_all()
+{
     free_hst1();
     free_svc1();
     free_chk_result();

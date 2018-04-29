@@ -1187,7 +1187,7 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 	}
 
 	log_debug_info(DEBUGL_CHECKS, 2, 
-		"STATE: %s, CURRENT_ATTEMP: %d, MAX_ATTEMPTS: %d, CURRENT_STATE: %d, LAST_STATE: %d, LAST_HARD_STATE: %d\n",
+		"STATE: %s, CURRENT_ATTEMPT: %d, MAX_ATTEMPTS: %d, CURRENT_STATE: %d, LAST_STATE: %d, LAST_HARD_STATE: %d\n",
 		(svc->state_type == SOFT_STATE) ? "SOFT" : "HARD", 
 		svc->current_attempt, 
 		svc->max_attempts, 
@@ -1359,12 +1359,14 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 		/* else the host is either down or unreachable, so recheck it if necessary */
 		else {
 
-			if (execute_host_checks && (state_change == TRUE)) {
-				schedule_host_check(hst, current_time, CHECK_OPTION_NONE);
-			}
+			/* the original logic here was buggy, as it depended on the flag state_changes_used_cached_state to be set to
+			   false, which it never could be, since that flag wasn't changeable, and was set to true at the beginning
+			   of the function - 04/29/2018 BH */
+
+			log_debug_info(DEBUGL_CHECKS, 1, "execute_host_checks: %s, state_change: %s", (execute_host_checks ? "TRUE" : "FALSE"), (state_change ? "TRUE" : "FALSE"));
 
 			/* else fake the host check, but (possibly) resend host notifications to contacts... */
-			else {
+			if (execute_host_checks == FALSE || state_change == FALSE) {
 
 				log_debug_info(DEBUGL_CHECKS, 1, "Assuming host is in same state as before...\n");
 
@@ -1379,32 +1381,27 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 				host_notification(hst, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE);
 			}
 
-			if (hst->state_type == HARD_STATE) {
-				log_debug_info(DEBUGL_CHECKS, 2, "Host is not UP, so we mark state changes if appropriate\n");
+			log_debug_info(DEBUGL_CHECKS, 2, "Host is not UP, so we mark state changes if appropriate\n");
 
-				/* "fake" a hard state change for the service - well, its not really fake, but it didn't get caught earlier... */
-				if (svc->last_hard_state != svc->current_state) {
-					hard_state_change = TRUE;
-				}
-
-				/* update last state change times */
-				if (state_change == TRUE || hard_state_change == TRUE) {
-
-					svc->last_state_change = svc->last_check;
-
-					if (hard_state_change == TRUE) {
-						svc->last_hard_state_change = svc->last_check;
-						svc->state_type = HARD_STATE;
-						svc->last_hard_state = svc->current_state;
-					}
-				}
-
-				/* put service into a hard state without attempting check retries and don't send out notifications about it */
-				svc->host_problem_at_last_check = TRUE;
+			/* "fake" a hard state change for the service - well, its not really fake, but it didn't get caught earlier... */
+			if (svc->last_hard_state != svc->current_state) {
+				hard_state_change = TRUE;
 			}
-			else if (svc->last_state == STATE_OK) {
-				svc->state_type = SOFT_STATE;
+
+			/* update last state change times */
+			if (state_change == TRUE || hard_state_change == TRUE) {
+
+				svc->last_state_change = svc->last_check;
+
+				if (hard_state_change == TRUE) {
+					svc->last_hard_state_change = svc->last_check;
+					svc->state_type = HARD_STATE;
+					svc->last_hard_state = svc->current_state;
+				}
 			}
+
+			/* put service into a hard state without attempting check retries and don't send out notifications about it */
+			svc->host_problem_at_last_check = TRUE;
 		}
 
 		log_debug_info(DEBUGL_CHECKS, 1, "Current/Max Attempt(s): %d/%d\n", svc->current_attempt, svc->max_attempts);

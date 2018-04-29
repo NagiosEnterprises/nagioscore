@@ -122,12 +122,13 @@ void setup_check_result(int check_type)
     chk_result->host_name           = strdup("hst1");
     chk_result->service_description = strdup("Normal service");
     chk_result->check_type          = check_type;
-    chk_result->check_options       = 0;
+    chk_result->check_options       = CHECK_OPTION_NONE;
     chk_result->scheduled_check     = TRUE;
     chk_result->reschedule_check    = TRUE;
     chk_result->exited_ok           = TRUE;
-    chk_result->return_code         = 0;
-    chk_result->latency             = 0.6969;
+    chk_result->return_code         = STATE_OK | HOST_UP;
+    chk_result->early_timeout       = FALSE;
+    chk_result->latency             = 0.5;
     chk_result->start_time          = start_time;
     chk_result->finish_time         = finish_time;
 
@@ -171,6 +172,10 @@ int log_debug_info(int level, int verbosity, const char *fmt, ...)
     else if (strcmp(buffer, "run_async_host_check()\n") == 0) {
         found_log_run_async_host_check++;
     }
+
+    /*
+    printf("DEBUG: %s", buffer);
+    */
 
     free(buffer);
     va_end(ap);
@@ -227,18 +232,7 @@ void run_check_tests(int check_type, time_t when)
     setup_objects(when);
     adjust_check_result(check_type, STATE_WARNING, "Warning - check notified_on_critical reset");
 
-    chk_result->object_check_type   = SERVICE_CHECK;
-    chk_result->check_options       = 0;
-    chk_result->scheduled_check     = TRUE;
-    chk_result->reschedule_check    = TRUE;
-    chk_result->latency             = 0.666;
-    chk_result->start_time.tv_sec   = 1234567890;
-    chk_result->start_time.tv_usec  = 56565;
-    chk_result->finish_time.tv_sec  = 1234567899;
-    chk_result->finish_time.tv_usec = 45454;
-    chk_result->early_timeout       = 0;
-    chk_result->exited_ok           = TRUE;
-    chk_result->return_code         = 1;
+    chk_result->object_check_type       = SERVICE_CHECK;
 
     svc1->last_state                    = STATE_CRITICAL;
     svc1->notification_options          = OPT_CRITICAL;
@@ -266,8 +260,6 @@ void run_check_tests(int check_type, time_t when)
     */
     setup_objects((time_t) 1234567800L);
     adjust_check_result(check_type, STATE_CRITICAL, "CRITICAL failure");
-
-    hst1->current_state = HOST_DOWN;
 
     svc1->current_state = STATE_OK;
     svc1->state_type    = HARD_STATE;
@@ -527,6 +519,8 @@ int main(int argc, char **argv)
 {
     time_t now = 0L;
 
+    execute_host_checks             = TRUE;
+    execute_service_checks          = TRUE;
     accept_passive_host_checks      = TRUE;
     accept_passive_service_checks   = TRUE;
 

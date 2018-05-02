@@ -1,11 +1,14 @@
 /* Stub for base/logging.c */
 int write_to_all_logs(char *buffer, unsigned long data_type) {}
-int log_host_event(host *hst) { return OK; }
-int log_service_event(service *svc) { return OK; }
 void logit(int data_type, int display, const char *fmt, ...) {}
 int fix_log_file_owner(uid_t uid, gid_t gid) { return 0; }
 int close_log_file(void) { return 0; }
+int rotate_log_file(time_t rotation_time) { return OK; }
+
 #ifndef TEST_CHECKS_C
+
+int log_host_event(host *hst) { return OK; }
+int log_service_event(service *svc) { return OK; }
 int log_debug_info(int level, int verbosity, const char *fmt, ...) {
 	va_list ap;
 	char *buffer = NULL;
@@ -28,5 +31,5 @@ int log_debug_info(int level, int verbosity, const char *fmt, ...) {
 	free(buffer);
 	va_end(ap);
 	}
+
 #endif
-int rotate_log_file(time_t rotation_time) { return OK; }

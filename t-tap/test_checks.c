@@ -53,8 +53,14 @@ host            * hst1          = NULL;
 check_result    * chk_result    = NULL;
 
 int found_log_rechecking_host_when_service_wobbles = 0;
-int found_log_run_async_host_check = 0;
-int c = 0;
+int found_log_run_async_host_check                 = 0;
+int hst1_notifications  = 0;
+int svc1_notifications  = 0;
+int hst1_event_handlers = 0;
+int svc1_event_handlers = 0;
+int hst1_logs           = 0;
+int svc1_logs           = 0;
+int c                   = 0;
 
 void free_hst1()
 {
@@ -97,6 +103,42 @@ void free_all()
     free_hst1();
     free_svc1();
     free_chk_result();
+}
+
+int service_notification(service *svc, int type, char *not_author, char *not_data, int options)
+{
+    svc1_notifications++;
+    return OK;
+}
+
+int host_notification(host *hst, int type, char *not_author, char *not_data, int options)
+{
+    hst1_notifications++;
+    return OK;
+}
+
+int handle_host_event(host *hst) 
+{
+    hst1_event_handlers++;
+    return OK;
+}
+
+int handle_service_event(service *svc) 
+{
+    svc1_event_handlers++;
+    return OK;
+}
+
+int log_host_event(host *hst)
+{
+    hst1_logs++;
+    return OK;
+}
+
+int log_service_event(service *svc)
+{
+    svc1_logs++;
+    return OK;
 }
 
 void adjust_check_result_output(char * output)
@@ -197,6 +239,8 @@ void setup_objects(time_t time)
     hst1->address                      = strdup("127.0.0.1");
     hst1->retry_interval               = 1;
     hst1->check_interval               = 5;
+    hst1->current_attempt              = 1;
+    hst1->max_attempts                 = 4;
     hst1->check_options                = 0;
     hst1->state_type                   = SOFT_STATE;
     hst1->current_state                = HOST_DOWN;
@@ -226,6 +270,13 @@ void setup_objects(time_t time)
 
 void run_check_tests(int check_type, time_t when)
 {
+    hst1_notifications  = 0;
+    svc1_notifications  = 0;
+    hst1_event_handlers = 0;
+    svc1_event_handlers = 0;
+    hst1_logs           = 0;
+    svc1_logs           = 0;
+
     /* Test:
         to confirm that if a service is warning, the notified_on_critical is reset 
     */
@@ -251,6 +302,10 @@ void run_check_tests(int check_type, time_t when)
         "no_more_notifications reset due to state change");
     ok(svc1->current_notification_number == 999, 
         "notification number NOT reset");
+    ok(svc1_notifications == 1,
+        "contacts were notified");
+    ok(svc1_logs == 0,
+        "state change didnt show up in log");
 
 
 
@@ -290,7 +345,6 @@ void run_check_tests(int check_type, time_t when)
     adjust_check_result(check_type, STATE_WARNING, "WARNING failure");
 
     hst1->current_state     = HOST_UP;
-    hst1->max_attempts      = 4;
 
     svc1->last_state        = STATE_OK;
     svc1->last_hard_state   = STATE_OK;
@@ -334,7 +388,6 @@ void run_check_tests(int check_type, time_t when)
     adjust_check_result(check_type, STATE_OK, "Reset to OK");
 
     hst1->current_state    = HOST_UP;
-    hst1->max_attempts     = 4;
 
     svc1->last_state        = STATE_OK;
     svc1->last_hard_state   = STATE_OK;
@@ -411,13 +464,11 @@ void run_check_tests(int check_type, time_t when)
     adjust_check_result(check_type, STATE_WARNING, "WARNING failure 1");
 
     hst1->current_state     = HOST_UP;
-    hst1->max_attempts      = 4;
 
     svc1->last_state        = STATE_OK;
     svc1->last_hard_state   = STATE_OK;
     svc1->current_state     = STATE_OK;
     svc1->state_type        = SOFT_STATE;
-    svc1->current_attempt   = 1;
     svc1->max_attempts      = 2;
 
     handle_async_service_check_result(svc1, chk_result);
@@ -452,8 +503,6 @@ void run_check_tests(int check_type, time_t when)
     hst1->last_state                = HOST_UP;
     hst1->last_hard_state           = HOST_UP;
     hst1->state_type                = SOFT_STATE;
-    hst1->current_attempt           = 1;
-    hst1->max_attempts              = 4;
     hst1->acknowledgement_type      = ACKNOWLEDGEMENT_NONE;
     hst1->plugin_output             = strdup("");
     hst1->long_plugin_output        = strdup("");
@@ -524,12 +573,13 @@ int main(int argc, char **argv)
     accept_passive_host_checks      = TRUE;
     accept_passive_service_checks   = TRUE;
 
-    plan_tests(92);
+    plan_tests(96);
 
     time(&now);
 
     run_check_tests(CHECK_TYPE_ACTIVE, now);
     run_check_tests(CHECK_TYPE_PASSIVE, now);
+
 
     return exit_status();
 }

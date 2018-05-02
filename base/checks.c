@@ -334,7 +334,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	return runchk_result;
 }
 
-/* Start of inline helper functions for handle_async_host/service_check_result functions 
+/* Start of inline helper functions for handle async host/service check result functions 
    BH 03 Dec 2017
    The giant monolithic async helper functions were becoming difficult to maintain 
    So I broke them out into smaller manageable chunks where a side-by-side comparison
@@ -2893,41 +2893,10 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 	   the hst->current_state will for active checks be UP or DOWN after this */
 	host_initial_handling(hst, cr, old_plugin_output);
 
+	initialize_last_host_state_change_times(hst);
+
 	/* reschedule the next check at the regular interval - may be overridden */
 	next_check = (time_t)(hst->last_check + (hst->check_interval * interval_length));
-
-	/* check for state change and output debugging info for easy recognition */
-	log_debug_info(DEBUGL_CHECKS, 1, "Host was %s.\n", host_state_name(hst->last_state));
-	if (hst->current_state != hst->last_state) {
-		log_debug_info(DEBUGL_CHECKS, 1, " * Host is %d!\n", host_state_name(hst->current_state));
-		state_change = TRUE;
-	} else {
-		log_debug_info(DEBUGL_CHECKS, 1, " * Host is still %s.\n", host_state_name(hst->current_state));
-	}
-
-	/* check for a hard state change where max check attempts is reached */
-	if (hst->current_attempt >= hst->max_attempts && hst->current_state != hst->last_hard_state) {
-		log_debug_info(DEBUGL_CHECKS, 2, "Host had a HARD STATE CHANGE!!\n");
-		hard_state_change = TRUE;
-	}
-
-	/* state change occurred... */
-	if (state_change == TRUE || hard_state_change == TRUE) {
-		hst->should_be_scheduled = TRUE;
-
-		/* handle some acknowledgement things an update last_state_change */
-		host_state_or_hard_state_type_change(hst, state_change, hard_state_change);
-	}
-
-	/* update the state_type and last_hard_state_change if necessary */
-	set_host_state_type(hst, hard_state_change);
-
-	/* increment the current attempt number if this is a soft state (host was rechecked) */
-	if (hst->state_type == SOFT_STATE && (hst->current_attempt < hst->max_attempts)) {
-		hst->current_attempt++;
-	}
-
-	initialize_last_host_state_change_times(hst);
 
 	/**************************************/
 	/********* HOST CHECK OK LOGIC ********/
@@ -3008,6 +2977,46 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 	if (hst->current_state != HOST_UP && (hst->check_type == CHECK_TYPE_ACTIVE || translate_passive_host_checks == TRUE)) {
 		hst->current_state = determine_host_reachability(hst);
 		next_check = (unsigned long)(current_time + (hst->retry_interval * interval_length));
+	}
+
+	/* check for state change and output debugging info for easy recognition */
+	log_debug_info(DEBUGL_CHECKS, 1, "Host was %s.\n", host_state_name(hst->last_state));
+	if (hst->current_state != hst->last_state || (hst->current_state == HOST_UP && hst->state_type == SOFT_STATE)) {
+		log_debug_info(DEBUGL_CHECKS, 1, " * Host changed state. State is now %s!\n", host_state_name(hst->current_state));
+		state_change = TRUE;
+	} else {
+		log_debug_info(DEBUGL_CHECKS, 1, " * Host is still %s.\n", host_state_name(hst->current_state));
+	}
+
+	/* check for a hard state change where max check attempts is reached */
+	if (hst->current_attempt >= hst->max_attempts && hst->current_state != hst->last_hard_state) {
+		log_debug_info(DEBUGL_CHECKS, 2, "Host had a HARD STATE CHANGE!!\n");
+		hard_state_change = TRUE;
+	}
+
+	/* state change occurred... */
+	if (state_change == TRUE || hard_state_change == TRUE) {
+		hst->should_be_scheduled = TRUE;
+
+		/* handle some acknowledgement things an update last_state_change */
+		host_state_or_hard_state_type_change(hst, state_change, hard_state_change);
+	}
+
+	/* update the state_type and last_hard_state_change if necessary */
+	set_host_state_type(hst, hard_state_change);
+
+	/* adjust the current attempt */
+	if (hst->state_type == SOFT_STATE) {
+
+		/* reset it to 1 */
+		if (hst->current_state == HOST_UP) {
+			hst->current_attempt = 1;
+		}
+
+		/* or increment if we can */
+	    else if (hst->current_attempt < hst->max_attempts) {
+			hst->current_attempt++;
+		}
 	}
 
 	/* record the last states after we've determined reachability */

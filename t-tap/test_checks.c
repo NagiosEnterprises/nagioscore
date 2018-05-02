@@ -446,7 +446,7 @@ void run_check_tests(int check_type, time_t when)
         Tests that the ack is not removed on 2nd DOWN, but is on UP
     */
     setup_objects(when);
-    adjust_check_result(HOST_CHECK_PASSIVE, STATE_CRITICAL, "DOWN failure 2");
+    adjust_check_result(HOST_CHECK_PASSIVE, HOST_DOWN, "DOWN failure 2");
 
     hst1->current_state             = HOST_UP;
     hst1->last_state                = HOST_UP;

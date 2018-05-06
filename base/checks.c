@@ -1200,6 +1200,7 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 				|| hst->initial_state != HOST_UP 
 				|| hst->next_check < hst->check_interval * interval_length + current_time) {
 
+				log_debug_info(DEBUGL_CHECKS, 2, "Service ok, but host hasn't been checked recently, scheduling host check\n");
 				check_host = TRUE;
 			}
 		}
@@ -1210,8 +1211,11 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 				&& hst->has_been_checked == TRUE 
 				&& current_time - hst->last_check < cached_host_check_horizon) {
 
+				log_debug_info(DEBUGL_CHECKS, 2, "Service ok, but host isn't up (and has been checked). Using cached host data.\n");
 				update_host_stats = TRUE;
 			} else {
+
+				log_debug_info(DEBUGL_CHECKS, 2, "Service ok, but host isn't up and cached data isn't valid here, scheduling host check\n");
 				check_host = TRUE;
 			}
 			svc->host_problem_at_last_check = TRUE;
@@ -1224,8 +1228,11 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 				&& svc->last_state != svc->current_state
 				&& hst->last_check + cached_host_check_horizon < current_time) {
 
+				log_debug_info(DEBUGL_CHECKS, 2, "Service not ok, host is up but cached data isn't valid, scheduling host check\n");
 				check_host = TRUE;
 			} else {
+
+				log_debug_info(DEBUGL_CHECKS, 2, "Service ok, host is up, using cached host data\n");
 				update_host_stats = TRUE;
 			}
 
@@ -1233,6 +1240,7 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 			if (svc->host_problem_at_last_check == TRUE
 				&& svc->state_type == SOFT_STATE) {
 
+				log_debug_info(DEBUGL_CHECKS, 2, "Service had a host problem at last check and is SOFT, so we'll reset current_attempt to 1 to give it a chance\n");
 				svc->current_attempt = 1;
 			}
 
@@ -1241,8 +1249,12 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 		else {
 			if (execute_host_checks == FALSE || svc->current_state == svc->last_state) {
 
+				log_debug_info(DEBUGL_CHECKS, 2, "Host checks aren't enabled, so send a notification\n");
+
 				/* fake a host check */
 				if (hst->has_been_checked == FALSE) {
+
+					log_debug_info(DEBUGL_CHECKS, 2, "Host has never been checked, fake a host check\n");
 					hst->has_been_checked = TRUE;
 					hst->last_check = svc->last_check;
 				}
@@ -1253,19 +1265,18 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 
 			/* fake a hard state change, because it'll be missed later */
 			if (svc->last_hard_state != svc->current_state) {
+
+				log_debug_info(DEBUGL_CHECKS, 2, "Faking a hard state change\n");
 				hard_state_change = TRUE;
 				svc->state_type = HARD_STATE;
 				svc->last_hard_state = svc->current_state;
 			}
 
 			svc->host_problem_at_last_check = TRUE;
-
-
 		}
 	}
 
 	if (check_host == TRUE) {
-		log_debug_info(DEBUGL_CHECKS, 1, "Scheduling a host check\n");
 		schedule_host_check(hst, current_time, CHECK_OPTION_DEPENDENCY_CHECK);
 	}
 
@@ -1322,6 +1333,7 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 			}
 
 			else {
+
 				send_notification = TRUE;
 			}
 		}
@@ -1341,7 +1353,7 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 	if (svc->state_type == SOFT_STATE) {
 
 		/* reset to 1 */
-		if (svc->current_state == STATE_OK || state_change) {
+		if (svc->current_state == STATE_OK) {
 			svc->current_attempt = 1;
 		}
 
@@ -1357,7 +1369,10 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 	}
 
 	if (state_change == TRUE || hard_state_change == TRUE) {
+
 		svc->should_be_scheduled = TRUE;
+		log_event = TRUE;
+		handle_event = TRUE;
 
 		/* handle some acknowledgement things and update last_state_change */
 		service_state_or_hard_state_type_change(svc, state_change, hard_state_change);
@@ -1422,7 +1437,7 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 	/* if we're stalking this state type AND the plugin output changed since last check, log it now.. */
 	if (should_stalk(svc) && compare_strings(old_plugin_output, svc->plugin_output)) {
 
-		log_service_event(svc);
+		log_event = TRUE;
 	}
 
 	if (log_event == TRUE) {

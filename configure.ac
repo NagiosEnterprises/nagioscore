@@ -195,8 +195,17 @@ AC_SUBST(root_grp)
 INIT_OPTS="-o root -g $root_grp"
 AC_SUBST(INIT_OPTS)
 
+not_a_user="^^^^^"
+AC_ARG_WITH(this_user,AC_HELP_STRING([--with-this-user],[sets all user/group info for current user running ./configure]),this_user=$USER,this_user=$not_a_user)
+
 AC_ARG_WITH(nagios_user,AC_HELP_STRING([--with-nagios-user=<user>],[sets user name to run nagios]),nagios_user=$withval,nagios_user=nagios)
 AC_ARG_WITH(nagios_group,AC_HELP_STRING([--with-nagios-group=<grp>],[sets group name to run nagios]),nagios_grp=$withval,nagios_grp=nagios)
+
+if test x$this_user != x$not_a_user; then
+	nagios_user=$this_user
+	nagios_grp=$this_user
+fi
+
 AC_SUBST(nagios_user)
 AC_SUBST(nagios_grp)
 AC_DEFINE_UNQUOTED(DEFAULT_NAGIOS_USER,"$nagios_user",[user name to run nagios])
@@ -206,6 +215,12 @@ AC_SUBST(INSTALL_OPTS)
 
 AC_ARG_WITH(command_user,AC_HELP_STRING([--with-command-user=<user>],[sets user name for command access]),command_user=$withval,command_user=$nagios_user)
 AC_ARG_WITH(command_group,AC_HELP_STRING([--with-command-group=<grp>],[sets group name for command access]),command_grp=$withval,command_grp=$nagios_grp)
+
+if test x$this_user != x$not_a_user; then
+	command_user=$this_user
+	command_grp=$this_user
+fi
+
 AC_SUBST(command_user)
 AC_SUBST(command_grp)
 COMMAND_OPTS="-o $command_user -g $command_grp"

@@ -370,7 +370,7 @@ AC_ARG_WITH(iobroker,
 
 case $IOBROKER_METHOD in
 epoll*)
-	if test $GLIBC_NEWER_2_4 -eq 1 -a x$ac_cv_header_sys_epoll_h = xyes ; then
+	if test "$GLIBC_NEWER_2_4 -eq 1" -a "x$ac_cv_header_sys_epoll_h = xyes" ; then
 		AC_DEFINE([IOBROKER_USES_EPOLL])
 	else
 		echo "\"epoll\" is not available as an iobroker method."
@@ -379,7 +379,7 @@ epoll*)
 	fi
 	;;
 poll*)
-	if test x$ac_cv_header_sys_poll_h = xyes -o x$ac_cv_header_poll_h = xyes ; then
+	if test "x$ac_cv_header_sys_poll_h = xyes" -o "x$ac_cv_header_poll_h = xyes" ; then
 		AC_DEFINE([IOBROKER_USES_POLL])
 	else
 		echo "\"poll\" is not available as an iobroker method."
@@ -397,10 +397,10 @@ select*)
 	fi
 	;;
 none*)
-	if test $GLIBC_NEWER_2_4 -eq 1 -a x$ac_cv_header_sys_epoll_h = xyes ; then
+	if test "$GLIBC_NEWER_2_4 -eq 1" -a "x$ac_cv_header_sys_epoll_h = xyes" ; then
 		AC_DEFINE([IOBROKER_USES_EPOLL])
 		IOBROKER_METHOD="epoll"
-	elif test x$ac_cv_header_sys_poll_h = xyes -o x$ac_cv_header_poll_h = xyes ; then
+	elif test "x$ac_cv_header_sys_poll_h = xyes" -o "x$ac_cv_header_poll_h = xyes" ; then
 		AC_DEFINE([IOBROKER_USES_POLL])
 		IOBROKER_METHOD="poll"
 	elif test x$ac_cv_header_sys_select_h = xyes ; then

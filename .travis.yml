@@ -1,0 +1,21 @@
+language: c
+
+sudo: true
+
+compiler:
+  - gcc
+
+addons:
+  apt:
+    packages:
+      - build-essential
+      - apache2
+      - php5
+      - php5-gd
+      - libgd-dev
+      - unzip
+
+script:
+  - ./configure --with-nagios-user=$USER --with-nagios-group=$USER --with-command-group=$USER
+  - make all
+  - sudo make install

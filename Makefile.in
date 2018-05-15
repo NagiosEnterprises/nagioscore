@@ -193,6 +193,11 @@ clean:
 	cd $(SRC_WORKERS) && $(MAKE) $@
 	rm -f *.cfg core
 	rm -f *~ *.*~ */*~ */*.*~ */*/*.*~
+	rm -f nagioscore.info-file
+	rm -f *.gcno */*.gcno */*/*.gcno
+	rm -f *.gcda */*.gcda */*/*.gcda
+	rm -f *.gcov */*.gcov */*/*.gcov
+	rm -rf coverage-report
 
 distclean: clean
 	cd $(SRC_LIB) && $(MAKE) $@
@@ -231,6 +236,16 @@ tap/src/tap.o:
 
 test-perl: cgis
 	cd t && $(MAKE) test
+
+coverage: test
+	@if ! which lcov >/dev/null 2>&1; then \
+		@echo "ERROR: You must install lcov and genhtml first"; \
+	else \
+		lcov -c -d . -o nagioscore.info-file; \
+		genhtml nagioscore.info-file -o coverage-report; \
+		@echo "Your coverage report is in coverage-report/index.html"
+	fi
+
 
 install-html:
 	cd $(SRC_HTM) && $(MAKE) install

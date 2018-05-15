@@ -805,6 +805,14 @@ if test x$ENABLE_DEBUGGING = xyes; then
 	CFLAGS="${CFLAGS} -O0 -ggdb3 -g3"
 fi
 
+dnl Enable coverage?
+ENABLE_COVERAGE=no
+AC_ARG_ENABLE(coverage,AC_HELP_STRING([--enable-coverage],[Enable coverage reports (use with debugging)]),
+	[ENABLE_COVERAGE=$enableval])
+if test x$ENABLE_COVERAGE = xyes; then
+	CFLAGS="${CFLAGS} -fprofile-arcs -ftest-coverage"
+fi
+
 dnl Package directory for Solaris pkgmk (and other OSs, eventually)
 dnl VERSION=`grep 1.0 include/common.h | cut -d ' ' -f 3 | sed 's/"//g'`
 VERSION=$PKG_VERSION

@@ -866,54 +866,12 @@ static inline void host_initial_handling(host *hst, check_result *cr, char *old_
 }
 
 /******************************************************************************
- ******* Setting initial state type logic
- *****************************************************************************/
-static inline void set_service_state_type(service *svc, int hard_state_change)
-{
-	if (hard_state_change == TRUE) {
-		svc->last_hard_state_change = svc->last_check;
-		svc->state_type = HARD_STATE;
-	} 
-	else {
-		svc->state_type = SOFT_STATE;
-	}
-}
-/*****************************************************************************/
-static inline void set_host_state_type(host *hst, int hard_state_change)
-{
-	if (hst->check_type == CHECK_TYPE_PASSIVE && passive_host_checks_are_soft == FALSE) {
-		hst->current_attempt = 1;
-		hard_state_change = TRUE;
-	}
-
-	if (hard_state_change == TRUE) {
-		hst->last_hard_state_change = hst->last_check;
-		hst->state_type = HARD_STATE;
-	}
-	else {
-		hst->state_type = SOFT_STATE;
-	}
-}
-
-/******************************************************************************
  ******* Logic for when an object has a notable change
  ******* Removes acknowledgement, advances event_id, etc.
  *****************************************************************************/
-static inline void service_state_or_hard_state_type_change(service * svc, int state_change, int hard_state_change)
+static inline void service_state_or_hard_state_type_change(service * svc, int state_change, int hard_state_change, int * log_event, int * handle_event)
 {
-	/* reset notification times and suppression option */
-	svc->last_notification = (time_t)0;
-	svc->next_notification = (time_t)0;
-	svc->no_more_notifications = FALSE;
-
-	if ((svc->acknowledgement_type == ACKNOWLEDGEMENT_NORMAL && (state_change == TRUE || hard_state_change == FALSE))
-		|| (svc->acknowledgement_type == ACKNOWLEDGEMENT_STICKY && svc->current_state == STATE_OK)) {
-
-		/* remove any non-persistant comments associated with the ack */
-		svc->problem_has_been_acknowledged = FALSE;
-		svc->acknowledgement_type = ACKNOWLEDGEMENT_NONE;
-		delete_service_acknowledgement_comments(svc);
-	}
+	int state_or_type_change = FALSE;
 
 	/* update the event and problem ids */
 	if (state_change == TRUE) {
@@ -937,23 +895,52 @@ static inline void service_state_or_hard_state_type_change(service * svc, int st
 			svc->last_problem_id = svc->current_problem_id;
 			svc->current_problem_id = 0L;
 		}
+
+		svc->state_type = SOFT_STATE;
+
+		state_or_type_change = TRUE;
+	}
+
+	if (hard_state_change == TRUE) {
+
+		svc->last_hard_state_change = svc->last_check;
+		svc->last_hard_state = svc->current_state;
+		svc->state_type = HARD_STATE;
+
+		state_or_type_change = TRUE;
+	}
+
+	if (state_or_type_change) {
+
+		/* reset notification times and suppression option */
+		svc->last_notification = (time_t)0;
+		svc->next_notification = (time_t)0;
+		svc->no_more_notifications = FALSE;
+
+		if ((svc->acknowledgement_type == ACKNOWLEDGEMENT_NORMAL && (state_change == TRUE || hard_state_change == FALSE))
+			|| (svc->acknowledgement_type == ACKNOWLEDGEMENT_STICKY && svc->current_state == STATE_OK)) {
+
+			/* remove any non-persistant comments associated with the ack */
+			svc->problem_has_been_acknowledged = FALSE;
+			svc->acknowledgement_type = ACKNOWLEDGEMENT_NONE;
+			delete_service_acknowledgement_comments(svc);
+		}
+
+		svc->should_be_scheduled = TRUE;
+
+		*log_event = TRUE;
+		*handle_event = TRUE;
 	}
 }
 /*****************************************************************************/
-static inline void host_state_or_hard_state_type_change(host * hst, int state_change, int hard_state_change)
+static inline void host_state_or_hard_state_type_change(host * hst, int state_change, int hard_state_change, int * log_event, int * handle_event)
 {
-	/* reset notification times and suppression option */
-	hst->last_notification = (time_t)0;
-	hst->next_notification = (time_t)0;
-	hst->no_more_notifications = FALSE;
+	int state_or_type_change = FALSE;
 
-	if ((hst->acknowledgement_type == ACKNOWLEDGEMENT_NORMAL && (state_change == TRUE || hard_state_change == FALSE))
-		|| (hst->acknowledgement_type == ACKNOWLEDGEMENT_STICKY && hst->current_state == STATE_OK)) {
-
-		/* remove any non-persistant comments associated with the ack */
-		hst->problem_has_been_acknowledged = FALSE;
-		hst->acknowledgement_type = ACKNOWLEDGEMENT_NONE;
-		delete_host_acknowledgement_comments(hst);
+	/* check if we simulate a hard state change */
+	if (hst->check_type == CHECK_TYPE_PASSIVE && passive_host_checks_are_soft == FALSE) {
+		hst->current_attempt = 1;
+		hard_state_change = TRUE;
 	}
 
 	/* update event and problem ids */
@@ -978,6 +965,41 @@ static inline void host_state_or_hard_state_type_change(host * hst, int state_ch
 			hst->last_problem_id = hst->current_problem_id;
 			hst->current_problem_id = 0L;
 		}
+
+		hst->state_type = SOFT_STATE;
+
+		state_or_type_change = TRUE;
+	}
+	
+	if (hard_state_change == TRUE) {
+
+		hst->last_hard_state_change = hst->last_check;
+		hst->last_hard_state = hst->current_state;
+		hst->state_type = HARD_STATE;
+
+		state_or_type_change = TRUE;
+	}
+
+	if (state_or_type_change) {
+
+		/* reset notification times and suppression option */
+		hst->last_notification = (time_t)0;
+		hst->next_notification = (time_t)0;
+		hst->no_more_notifications = FALSE;
+
+		if ((hst->acknowledgement_type == ACKNOWLEDGEMENT_NORMAL && (state_change == TRUE || hard_state_change == FALSE))
+			|| (hst->acknowledgement_type == ACKNOWLEDGEMENT_STICKY && hst->current_state == STATE_OK)) {
+
+			/* remove any non-persistant comments associated with the ack */
+			hst->problem_has_been_acknowledged = FALSE;
+			hst->acknowledgement_type = ACKNOWLEDGEMENT_NONE;
+			delete_host_acknowledgement_comments(hst);
+		}
+
+		hst->should_be_scheduled = TRUE;
+
+		*log_event = TRUE;
+		*handle_event = TRUE;
 	}
 }
 
@@ -1232,7 +1254,7 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 				check_host = TRUE;
 			} else {
 
-				log_debug_info(DEBUGL_CHECKS, 2, "Service ok, host is up, using cached host data\n");
+				log_debug_info(DEBUGL_CHECKS, 2, "Service not ok, host is up, using cached host data\n");
 				update_host_stats = TRUE;
 			}
 
@@ -1353,7 +1375,7 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 	if (svc->state_type == SOFT_STATE) {
 
 		/* reset to 1 */
-		if (svc->current_state == STATE_OK) {
+		if (state_change == TRUE || svc->current_state == STATE_OK) {
 			svc->current_attempt = 1;
 		}
 
@@ -1366,19 +1388,14 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 	if (svc->current_attempt >= svc->max_attempts && svc->current_state != svc->last_hard_state) {
 		log_debug_info(DEBUGL_CHECKS, 2, "Service had a HARD STATE CHANGE!!\n");
 		hard_state_change = TRUE;
+
+		/* this is missed earlier */
+		send_notification = TRUE;
 	}
 
-	if (state_change == TRUE || hard_state_change == TRUE) {
+	/* handle some acknowledgement things and update last_state_change */
+	service_state_or_hard_state_type_change(svc, state_change, hard_state_change, &log_event, &handle_event);
 
-		svc->should_be_scheduled = TRUE;
-		log_event = TRUE;
-		handle_event = TRUE;
-
-		/* handle some acknowledgement things and update last_state_change */
-		service_state_or_hard_state_type_change(svc, state_change, hard_state_change);
-	}
-
-	set_service_state_type(svc, hard_state_change);
 	record_last_service_state_ended(svc);
 
 	check_for_service_flapping(svc, TRUE, TRUE);
@@ -2183,14 +2200,9 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 		hard_state_change = TRUE;
 	}
 
-	if (state_change == TRUE || hard_state_change == TRUE) {
-		hst->should_be_scheduled = TRUE;
+	/* handle some acknowledgement things and update last_state_change */
+	host_state_or_hard_state_type_change(hst, state_change, hard_state_change, &log_event, &handle_event);
 
-		/* handle some acknowledgement things and update last_state_change */
-		host_state_or_hard_state_type_change(hst, state_change, hard_state_change);
-	}
-
-	set_host_state_type(hst, hard_state_change);
 	record_last_host_state_ended(hst);
 
 	check_for_host_flapping(hst, TRUE, TRUE, TRUE);

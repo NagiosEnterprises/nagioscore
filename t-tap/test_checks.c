@@ -54,12 +54,13 @@
 #define ORIG_START_TIME  1234567890L
 #define ORIG_FINISH_TIME 1234567891L
 
+#define EXPECT_NOTHING  0
 #define EVENT_HANDLED   1
 #define NOTIFIED        2
 #define LOGGED          4
 
 int date_format;
-int test_check_debugging = TRUE;
+int test_check_debugging = FALSE;
 
 service         * svc1          = NULL;
 host            * hst1          = NULL;
@@ -610,6 +611,35 @@ void run_check_tests(int check_type, time_t when)
         "Last problem ID set properly");
     ok(svc1->current_problem_id == 0,
         "Current problem ID reset");
+    test_svc_handler_notification_logging(12, EVENT_HANDLED | NOTIFIED | LOGGED);
+
+    /* 2nd ok */
+    create_check_result(check_type, STATE_OK, "service ok");
+    chk_result->start_time.tv_sec = ORIG_START_TIME + 90L;
+    chk_result->finish_time.tv_usec = ORIG_FINISH_TIME + 90L;
+    handle_svc1();
+
+    ok(svc1->last_hard_state_change == (time_t) (ORIG_START_TIME + 80L),
+        "Got proper last hard state change (this last one) =%lu", svc1->last_hard_state_change);
+    ok(svc1->state_type == HARD_STATE,
+        "Should still be a hard state");
+    ok(svc1->current_state == STATE_OK,
+        "Service is ok");
+    test_svc_handler_notification_logging(13, EXPECT_NOTHING );
+
+    /* 3rd ok, new output (stalking still enabled for ok) */
+    create_check_result(check_type, STATE_OK, "service ok NEW");
+    chk_result->start_time.tv_sec = ORIG_START_TIME + 90L;
+    chk_result->finish_time.tv_usec = ORIG_FINISH_TIME + 90L;
+    handle_svc1();
+
+    ok(svc1->last_hard_state_change == (time_t) (ORIG_START_TIME + 80L),
+        "Got proper last hard state change =%lu", svc1->last_hard_state_change);
+    ok(svc1->state_type == HARD_STATE,
+        "Should still be a hard state");
+    ok(svc1->current_state == STATE_OK,
+        "Service is ok");
+    test_svc_handler_notification_logging(14, LOGGED );
 
 /*
         svc->last_event_id = svc->current_event_id;

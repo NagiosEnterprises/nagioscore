@@ -738,7 +738,6 @@ infodir
 docdir
 oldincludedir
 includedir
-runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -779,6 +778,7 @@ with_piddir
 with_pipedir
 with_lockfile
 with_root_group
+with_this_user
 with_nagios_user
 with_nagios_group
 with_command_user
@@ -799,7 +799,9 @@ with_htmurl
 enable_nanosleep
 enable_event_broker
 enable_cygwin
+enable_testing
 enable_debugging
+enable_coverage
 enable_libtap
 '
       ac_precious_vars='build_alias
@@ -849,7 +851,6 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
-runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE}'
@@ -1102,15 +1103,6 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
-  -runstatedir | --runstatedir | --runstatedi | --runstated \
-  | --runstate | --runstat | --runsta | --runst | --runs \
-  | --run | --ru | --r)
-    ac_prev=runstatedir ;;
-  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
-  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
-  | --run=* | --ru=* | --r=*)
-    runstatedir=$ac_optarg ;;
-
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1248,7 +1240,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir runstatedir
+		libdir localedir mandir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1401,7 +1393,6 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
-  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -1453,7 +1444,11 @@ Optional Features:
                           timing
   --enable-event-broker   enables integration of event broker routines
   --enable-cygwin         enables building under the CYGWIN environment
-  --enable-debugging      Enable some debugging for Nagios Core
+  --enable-testing        DEBUGGING ONLY - Enable testing options
+  --enable-debugging      DEBUGGING ONLY - Enable some debugging for Nagios
+                          Core
+  --enable-coverage       DEBUGGING ONLY - Enable coverage reports (use with
+                          debugging)
   --enable-libtap         Enable built-in libtap for unit-testing (default:
                           no).
 
@@ -1482,6 +1477,8 @@ Optional Packages:
   --with-pipedir=DIR      where socket and pipe files should be placed
   --with-lockfile=<path>  sets path for lockfile
   --with-root-group=<grp> sets group name for installing init
+  --with-this-user        sets all user/group info for current user running
+                          ./configure
   --with-nagios-user=<user>
                           sets user name to run nagios
   --with-nagios-group=<grp>
@@ -6134,6 +6131,19 @@ fi
 INIT_OPTS="-o root -g $root_grp"
 
 
+not_a_user="^^^^^"
+
+# Check whether --with-this_user was given.
+if test "${with_this_user+set}" = set; then :
+  withval=$with_this_user; this_user=$USER
+else
+  this_user=$not_a_user
+fi
+
+if test x$ENABLE_TESTING = xyes; then
+	this_user=$USER
+fi
+
 
 # Check whether --with-nagios_user was given.
 if test "${with_nagios_user+set}" = set; then :
@@ -6148,6 +6158,12 @@ if test "${with_nagios_group+set}" = set; then :
   withval=$with_nagios_group; nagios_grp=$withval
 else
   nagios_grp=nagios
+fi
+
+
+if test x$this_user != x$not_a_user; then
+	nagios_user=$this_user
+	nagios_grp=$this_user
 fi
 
 
@@ -6179,6 +6195,12 @@ if test "${with_command_group+set}" = set; then :
   withval=$with_command_group; command_grp=$withval
 else
   command_grp=$nagios_grp
+fi
+
+
+if test x$this_user != x$not_a_user; then
+	command_user=$this_user
+	command_grp=$this_user
 fi
 
 
@@ -6408,7 +6430,7 @@ fi
 
 case $IOBROKER_METHOD in
 epoll*)
-	if test $GLIBC_NEWER_2_4 -eq 1 -a x$ac_cv_header_sys_epoll_h = xyes ; then
+	if test "$GLIBC_NEWER_2_4 -eq 1" -a "x$ac_cv_header_sys_epoll_h = xyes" ; then
 		$as_echo "#define IOBROKER_USES_EPOLL 1" >>confdefs.h
 
 	else
@@ -6418,7 +6440,7 @@ epoll*)
 	fi
 	;;
 poll*)
-	if test x$ac_cv_header_sys_poll_h = xyes -o x$ac_cv_header_poll_h = xyes ; then
+	if test "x$ac_cv_header_sys_poll_h = xyes" -o "x$ac_cv_header_poll_h = xyes" ; then
 		$as_echo "#define IOBROKER_USES_POLL 1" >>confdefs.h
 
 	else
@@ -6438,11 +6460,11 @@ select*)
 	fi
 	;;
 none*)
-	if test $GLIBC_NEWER_2_4 -eq 1 -a x$ac_cv_header_sys_epoll_h = xyes ; then
+	if test "$GLIBC_NEWER_2_4 -eq 1" -a "x$ac_cv_header_sys_epoll_h = xyes" ; then
 		$as_echo "#define IOBROKER_USES_EPOLL 1" >>confdefs.h
 
 		IOBROKER_METHOD="epoll"
-	elif test x$ac_cv_header_sys_poll_h = xyes -o x$ac_cv_header_poll_h = xyes ; then
+	elif test "x$ac_cv_header_sys_poll_h = xyes" -o "x$ac_cv_header_poll_h = xyes" ; then
 		$as_echo "#define IOBROKER_USES_POLL 1" >>confdefs.h
 
 		IOBROKER_METHOD="poll"
@@ -7228,6 +7250,12 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 
+ENABLE_TESTING=no
+# Check whether --enable-testing was given.
+if test "${enable_testing+set}" = set; then :
+  enableval=$enable_testing; ENABLE_TESTING=$enableval
+fi
+
 
 ENABLE_DEBUGGING=no
 # Check whether --enable-debugging was given.
@@ -7235,8 +7263,18 @@ if test "${enable_debugging+set}" = set; then :
   enableval=$enable_debugging; ENABLE_DEBUGGING=$enableval
 fi
 
-if test x$ENABLE_DEBUGGING = xyes; then
+if test x$ENABLE_DEBUGGING = xyes -o x$ENABLE_TESTING = xyes; then
 	CFLAGS="${CFLAGS} -O0 -ggdb3 -g3"
+fi
+
+ENABLE_COVERAGE=no
+# Check whether --enable-coverage was given.
+if test "${enable_coverage+set}" = set; then :
+  enableval=$enable_coverage; ENABLE_COVERAGE=$enableval
+fi
+
+if test x$ENABLE_COVERAGE = xyes -o x$ENABLE_TESTING = xyes; then
+	CFLAGS="${CFLAGS} -fprofile-arcs -ftest-coverage"
 fi
 
 VERSION=$PKG_VERSION
@@ -7296,7 +7334,7 @@ fi
 #fi
 
 # Finally, define tests if we use libtap
-if test "$enable_libtap" = "yes" ; then
+if test "$enable_libtap" = "yes" -o "$ENABLE_TESTING" = "yes"; then
 
 
 subdirs="$subdirs tap"

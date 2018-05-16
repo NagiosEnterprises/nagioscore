@@ -197,6 +197,9 @@ AC_SUBST(INIT_OPTS)
 
 not_a_user="^^^^^"
 AC_ARG_WITH(this_user,AC_HELP_STRING([--with-this-user],[sets all user/group info for current user running ./configure]),this_user=$USER,this_user=$not_a_user)
+if test x$ENABLE_TESTING = xyes; then
+	this_user=$USER
+fi
 
 AC_ARG_WITH(nagios_user,AC_HELP_STRING([--with-nagios-user=<user>],[sets user name to run nagios]),nagios_user=$withval,nagios_user=nagios)
 AC_ARG_WITH(nagios_group,AC_HELP_STRING([--with-nagios-group=<grp>],[sets group name to run nagios]),nagios_grp=$withval,nagios_grp=nagios)
@@ -796,20 +799,25 @@ dnl Find traceroute
 AC_PATH_PROG(PATH_TO_TRACEROUTE,traceroute)
 AC_DEFINE_UNQUOTED(TRACEROUTE_COMMAND,"$PATH_TO_TRACEROUTE",[traceroute command to use])
 
+dnl Just enable all of the testing things
+dnl --enable-debugging --enable-coverage --with-this-user
+ENABLE_TESTING=no
+AC_ARG_ENABLE(testing,AC_HELP_STRING([--enable-testing],[DEBUGGING ONLY - Enable testing options]),
+	[ENABLE_TESTING=$enableval])
 
 dnl Enable debugging?
 ENABLE_DEBUGGING=no
-AC_ARG_ENABLE(debugging,AC_HELP_STRING([--enable-debugging],[Enable some debugging for Nagios Core]),
+AC_ARG_ENABLE(debugging,AC_HELP_STRING([--enable-debugging],[DEBUGGING ONLY - Enable some debugging for Nagios Core]),
 	[ENABLE_DEBUGGING=$enableval])
-if test x$ENABLE_DEBUGGING = xyes; then
+if test x$ENABLE_DEBUGGING = xyes -o x$ENABLE_TESTING = xyes; then
 	CFLAGS="${CFLAGS} -O0 -ggdb3 -g3"
 fi
 
 dnl Enable coverage?
 ENABLE_COVERAGE=no
-AC_ARG_ENABLE(coverage,AC_HELP_STRING([--enable-coverage],[Enable coverage reports (use with debugging)]),
+AC_ARG_ENABLE(coverage,AC_HELP_STRING([--enable-coverage],[DEBUGGING ONLY - Enable coverage reports (use with debugging)]),
 	[ENABLE_COVERAGE=$enableval])
-if test x$ENABLE_COVERAGE = xyes; then
+if test x$ENABLE_COVERAGE = xyes -o x$ENABLE_TESTING = xyes; then
 	CFLAGS="${CFLAGS} -fprofile-arcs -ftest-coverage"
 fi
 
@@ -855,7 +863,7 @@ AC_ARG_ENABLE(libtap,
 #fi
 
 # Finally, define tests if we use libtap
-if test "$enable_libtap" = "yes" ; then
+if test "$enable_libtap" = "yes" -o "$ENABLE_TESTING" = "yes"; then
 	AC_CONFIG_SUBDIRS([tap])
 	USE_LIBTAP=yes
 else

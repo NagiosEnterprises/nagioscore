@@ -406,7 +406,7 @@ void run_check_tests(int check_type, time_t when)
     handle_svc1();
 
     ok(svc1->last_hard_state_change == (time_t) ORIG_START_TIME, 
-        "Got last_hard_state_change time=%lu", svc1->last_hard_state_change);
+        "Expected last_hard_state_change time %lu, got %lu", (time_t) ORIG_START_TIME, svc1->last_hard_state_change);
     ok(svc1->last_state_change == svc1->last_hard_state_change, 
         "Got same last_state_change");
     ok(svc1->last_hard_state == STATE_WARNING, 
@@ -434,7 +434,7 @@ void run_check_tests(int check_type, time_t when)
     handle_svc1();
 
     ok(svc1->last_hard_state_change == (time_t) ORIG_START_TIME, 
-        "Got last_hard_state_change time=%lu", svc1->last_hard_state_change);
+        "Expected last_hard_state_change time %lu, got %lu", (time_t) ORIG_START_TIME, svc1->last_hard_state_change);
     ok(svc1->last_state_change == svc1->last_hard_state_change, 
         "Got same last_state_change");
     ok(svc1->last_hard_state == STATE_CRITICAL, 
@@ -444,8 +444,7 @@ void run_check_tests(int check_type, time_t when)
     ok(svc1->host_problem_at_last_check == TRUE, 
         "Got host_problem_at_last_check set to TRUE due to host failure");
     ok(svc1->current_attempt == 1, 
-        "Previous status was OK, so this failure should show current_attempt=1") 
-        || diag("Current attempt=%d", svc1->current_attempt);
+        "Expecting current attempt %d, got %d", 1, svc1->current_attempt);
     test_svc_handler_notification_logging(2, EVENT_HANDLED | LOGGED);
 
 
@@ -454,15 +453,14 @@ void run_check_tests(int check_type, time_t when)
         Host up/hard, Service ok/soft -> warn
     */
     create_objects(HOST_UP, HARD_STATE, "host up", STATE_OK, SOFT_STATE, "service ok");
-    create_check_result(check_type, STATE_WARNING, "service_warning");
+    create_check_result(check_type, STATE_WARNING, "service warning");
 
     handle_svc1();
 
     ok(svc1->state_type == SOFT_STATE,
         "Got soft state since non-ok state");
     ok(svc1->current_attempt == 1, 
-        "Previous status was OK, so this failure should show current_attempt=1") 
-        || diag("Current attempt=%d", svc1->current_attempt);
+        "Expecting current attempt %d, got %d", 1, svc1->current_attempt);
     test_svc_handler_notification_logging(3, EVENT_HANDLED | LOGGED);
 
     /* 2nd warning */
@@ -475,8 +473,7 @@ void run_check_tests(int check_type, time_t when)
     ok(svc1->acknowledgement_type == ACKNOWLEDGEMENT_NORMAL, 
         "Ack left");
     ok(svc1->current_attempt == 2, 
-        "Previous status was warning, so this failure should show current_attempt=2") 
-        || diag("Current attempt=%d", svc1->current_attempt);
+        "Expecting current attempt %d, got %d", 2, svc1->current_attempt);
     ok(svc1->last_notification == (time_t) 11111L,
         "Last notification not reset");
     ok(svc1->next_notification == (time_t) 22222L,
@@ -490,8 +487,7 @@ void run_check_tests(int check_type, time_t when)
     ok(svc1->acknowledgement_type == ACKNOWLEDGEMENT_NORMAL, 
         "Ack left");
     ok(svc1->current_attempt == 3, 
-        "Previous status was warning, so this failure should show current_attempt=3") 
-        || diag("Current attempt=%d", svc1->current_attempt);
+        "Expecting current attempt %d, got %d", 3, svc1->current_attempt);
     test_svc_handler_notification_logging(5, EVENT_HANDLED);
 
     /* 4th warning (HARD change) */
@@ -500,11 +496,11 @@ void run_check_tests(int check_type, time_t when)
     svc1->next_notification = (time_t) 22222L;
     svc1->no_more_notifications = TRUE;
     chk_result->start_time.tv_sec = ORIG_START_TIME + 40L;
-    chk_result->finish_time.tv_usec = ORIG_FINISH_TIME + 40L;
+    chk_result->finish_time.tv_sec = ORIG_FINISH_TIME + 40L;
     handle_svc1();
 
     ok(svc1->last_hard_state_change == (time_t) (ORIG_START_TIME + 40L), 
-        "Got last_hard_state_change time=%lu", svc1->last_hard_state_change);
+        "Expected last_hard_state_change time %lu, got %lu", (time_t) (ORIG_START_TIME + 40L), svc1->last_hard_state_change);
     ok(svc1->last_state_change == (time_t) ORIG_START_TIME, 
         "Got appropriate last_state_change");
     ok(svc1->last_notification == (time_t) 0L,
@@ -520,8 +516,7 @@ void run_check_tests(int check_type, time_t when)
     ok(svc1->acknowledgement_type == ACKNOWLEDGEMENT_NORMAL, 
         "Ack left");
     ok(svc1->current_attempt == 4, 
-        "Previous status was warning, so this failure should show current_attempt=4") 
-        || diag("Current attempt=%d", svc1->current_attempt);
+        "Expecting current attempt %d, got %d", 4, svc1->current_attempt);
     test_svc_handler_notification_logging(6, EVENT_HANDLED | NOTIFIED | LOGGED);
 
     /* 5th warning */
@@ -529,30 +524,30 @@ void run_check_tests(int check_type, time_t when)
     handle_svc1();
 
     ok(svc1->last_hard_state_change == (time_t) (ORIG_START_TIME + 40L),
-        "Got proper last hard state change (the last one) =%lu", svc1->last_hard_state_change);
+        "Expected last_hard_state_change time %lu, got %lu", (time_t) (ORIG_START_TIME + 40L), svc1->last_hard_state_change);
     ok(svc1->state_type == HARD_STATE,
         "Should still be a hard state");
     ok(svc1->acknowledgement_type == ACKNOWLEDGEMENT_NORMAL, 
         "Ack left");
     ok(svc1->current_attempt == 4,
-        "Current attempt shouldn't change as this is still a hard state");
+        "Expecting current attempt %d, got %d", 4, svc1->current_attempt);
     test_svc_handler_notification_logging(7, NOTIFIED);
 
     /* 6th non-ok (critical) */
     create_check_result(check_type, STATE_CRITICAL, "service critical");
     svc1->acknowledgement_type = ACKNOWLEDGEMENT_NORMAL;
     chk_result->start_time.tv_sec = ORIG_START_TIME + 60L;
-    chk_result->finish_time.tv_usec = ORIG_FINISH_TIME + 60L;
+    chk_result->finish_time.tv_sec = ORIG_FINISH_TIME + 60L;
     handle_svc1();
 
     ok(svc1->last_hard_state_change == (time_t) (ORIG_START_TIME + 60L),
-        "Got proper last hard state change (this one) =%lu", svc1->last_hard_state_change);
+        "Expected last_hard_state_change time %lu, got %lu", (time_t) (ORIG_START_TIME + 60L), svc1->last_hard_state_change);
     ok(svc1->state_type == HARD_STATE,
         "Should still be a hard state");
     ok(svc1->acknowledgement_type == ACKNOWLEDGEMENT_NONE, 
         "Ack reset");
     ok(svc1->current_attempt == 4,
-        "Current attempt shouldn't change as this is still a hard state");
+        "Expecting current attempt %d, got %d", 4, svc1->current_attempt);
     test_svc_handler_notification_logging(8, EVENT_HANDLED | NOTIFIED | LOGGED);
 
     /* 7th, critical */
@@ -561,13 +556,13 @@ void run_check_tests(int check_type, time_t when)
     handle_svc1();
 
     ok(svc1->last_hard_state_change == (time_t) (ORIG_START_TIME + 60L),
-        "Got proper last hard state change (the last one) =%lu", svc1->last_hard_state_change);
+        "Expected last_hard_state_change time %lu, got %lu", (time_t) (ORIG_START_TIME + 60L), svc1->last_hard_state_change);
     ok(svc1->state_type == HARD_STATE,
         "Should still be a hard state");
     ok(svc1->acknowledgement_type == ACKNOWLEDGEMENT_NORMAL, 
         "Ack left");
     ok(svc1->current_attempt == 4,
-        "Current attempt shouldn't change as this is still a hard state");
+        "Expecting current attempt %d, got %d", 4, svc1->current_attempt);
     test_svc_handler_notification_logging(9, NOTIFIED);
 
     /* 8th, critical, new output, and enabling stalking for critical */
@@ -590,11 +585,11 @@ void run_check_tests(int check_type, time_t when)
     svc1->next_notification = (time_t) 22222L;
     svc1->no_more_notifications = TRUE;
     chk_result->start_time.tv_sec = ORIG_START_TIME + 80L;
-    chk_result->finish_time.tv_usec = ORIG_FINISH_TIME + 80L;    
+    chk_result->finish_time.tv_sec = ORIG_FINISH_TIME + 80L;    
     handle_svc1();
 
     ok(svc1->last_hard_state_change == (time_t) (ORIG_START_TIME + 80L),
-        "Got proper last hard state change (this one) =%lu", svc1->last_hard_state_change);
+        "Expected last_hard_state_change time %lu, got %lu", (time_t) (ORIG_START_TIME + 80L), svc1->last_hard_state_change);
     ok(svc1->state_type == HARD_STATE,
         "Should still be a hard state because hard recovery");
     ok(svc1->current_state == STATE_OK,
@@ -616,11 +611,11 @@ void run_check_tests(int check_type, time_t when)
     /* 2nd ok */
     create_check_result(check_type, STATE_OK, "service ok");
     chk_result->start_time.tv_sec = ORIG_START_TIME + 90L;
-    chk_result->finish_time.tv_usec = ORIG_FINISH_TIME + 90L;
+    chk_result->finish_time.tv_sec = ORIG_FINISH_TIME + 90L;
     handle_svc1();
 
     ok(svc1->last_hard_state_change == (time_t) (ORIG_START_TIME + 80L),
-        "Got proper last hard state change (this last one) =%lu", svc1->last_hard_state_change);
+        "Expected last_hard_state_change time %lu, got %lu", (time_t) (ORIG_START_TIME + 80L), svc1->last_hard_state_change);
     ok(svc1->state_type == HARD_STATE,
         "Should still be a hard state");
     ok(svc1->current_state == STATE_OK,
@@ -630,16 +625,41 @@ void run_check_tests(int check_type, time_t when)
     /* 3rd ok, new output (stalking still enabled for ok) */
     create_check_result(check_type, STATE_OK, "service ok NEW");
     chk_result->start_time.tv_sec = ORIG_START_TIME + 90L;
-    chk_result->finish_time.tv_usec = ORIG_FINISH_TIME + 90L;
+    chk_result->finish_time.tv_sec = ORIG_FINISH_TIME + 90L;
     handle_svc1();
 
     ok(svc1->last_hard_state_change == (time_t) (ORIG_START_TIME + 80L),
-        "Got proper last hard state change =%lu", svc1->last_hard_state_change);
+        "Expected last_hard_state_change time %lu, got %lu", (time_t) (ORIG_START_TIME + 80L), svc1->last_hard_state_change);
     ok(svc1->state_type == HARD_STATE,
         "Should still be a hard state");
     ok(svc1->current_state == STATE_OK,
         "Service is ok");
     test_svc_handler_notification_logging(14, LOGGED );
+
+
+
+    /*
+        Host up/hard, Service warn/soft -> critical
+    */
+    create_objects(HOST_UP, HARD_STATE, "host up", STATE_WARNING, SOFT_STATE, "service warning");
+    create_check_result(check_type, STATE_CRITICAL, "service critical");
+    svc1->last_state_change = ORIG_START_TIME + 20L;
+    chk_result->start_time.tv_sec = ORIG_START_TIME + 40L;
+    chk_result->finish_time.tv_sec = ORIG_FINISH_TIME + 40L;
+    handle_svc1();
+
+    ok(svc1->current_state == STATE_CRITICAL,
+        "Service is critical");
+    ok(svc1->last_state_change == (time_t) ORIG_START_TIME + 40L,
+        "Expected last_hard_state_change time %lu, got %lu", (time_t) (ORIG_START_TIME + 40L), svc1->last_hard_state_change);
+    ok(svc1->state_type == SOFT_STATE,
+        "Service is still soft state");
+    ok(svc1->current_attempt == 2,
+        "Expecting current attempt %d, got %d", 2, svc1->current_attempt);
+    test_svc_handler_notification_logging(15, EVENT_HANDLED | LOGGED );
+
+
+
 
 /*
         svc->last_event_id = svc->current_event_id;

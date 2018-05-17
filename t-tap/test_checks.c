@@ -393,6 +393,7 @@ void test_svc_handler_notification_logging(int id, int bitmask)
 
 void run_check_tests(int check_type, time_t when)
 {
+    int tmp = 0;
     /*
         Host down/hard, Service crit/soft -> warn
     */
@@ -644,21 +645,112 @@ void run_check_tests(int check_type, time_t when)
     create_objects(HOST_UP, HARD_STATE, "host up", STATE_WARNING, SOFT_STATE, "service warning");
     create_check_result(check_type, STATE_CRITICAL, "service critical");
     svc1->last_state_change = ORIG_START_TIME + 20L;
+    svc1->acknowledgement_type = ACKNOWLEDGEMENT_NORMAL;
     chk_result->start_time.tv_sec = ORIG_START_TIME + 40L;
     chk_result->finish_time.tv_sec = ORIG_FINISH_TIME + 40L;
+    tmp = svc1->current_event_id;
     handle_svc1();
 
+    ok(svc1->current_event_id > tmp,
+        "Event id incremented appropriately current: %d, old: %d", svc1->current_event_id, tmp);
     ok(svc1->current_state == STATE_CRITICAL,
         "Service is critical");
+    ok(svc1->acknowledgement_type == ACKNOWLEDGEMENT_NONE, 
+        "Ack reset");
     ok(svc1->last_state_change == (time_t) ORIG_START_TIME + 40L,
-        "Expected last_hard_state_change time %lu, got %lu", (time_t) (ORIG_START_TIME + 40L), svc1->last_hard_state_change);
+        "Expected last_state_change time %lu, got %lu", (time_t) (ORIG_START_TIME + 40L), svc1->last_state_change);
     ok(svc1->state_type == SOFT_STATE,
         "Service is still soft state");
     ok(svc1->current_attempt == 2,
         "Expecting current attempt %d, got %d", 2, svc1->current_attempt);
     test_svc_handler_notification_logging(15, EVENT_HANDLED | LOGGED );
 
+    /* 3rd non-ok, critical. changing max_attempts to 3 because i'm impatient */
+    create_check_result(check_type, STATE_CRITICAL, "service critical");
+    svc1->max_attempts = 3;
+    chk_result->start_time.tv_sec = ORIG_START_TIME + 60L;
+    chk_result->finish_time.tv_sec = ORIG_FINISH_TIME + 60L;
+    handle_svc1();
 
+    ok(svc1->current_state == STATE_CRITICAL,
+        "Service is critical");
+    ok(svc1->last_state_change == (time_t) ORIG_START_TIME + 40L,
+        "Expected last_state_change time %lu, got %lu", (time_t) (ORIG_START_TIME + 40L), svc1->last_state_change);
+    ok(svc1->last_hard_state_change == (time_t) (ORIG_START_TIME + 60L),
+        "Expected last_hard_state_change time %lu, got %lu", (time_t) (ORIG_START_TIME + 60L), svc1->last_hard_state_change);
+    ok(svc1->last_hard_state == STATE_CRITICAL,
+        "Service last hard state was critical");
+    ok(svc1->last_state == STATE_CRITICAL,
+        "Service last state was critical");
+    ok(svc1->state_type == HARD_STATE,
+        "Service is hard state");
+    ok(svc1->current_attempt == 3,
+        "Expecting current attempt %d, got %d", 3, svc1->current_attempt);
+    test_svc_handler_notification_logging(16, EVENT_HANDLED | NOTIFIED | LOGGED );
+
+    /* 4th crit */
+    create_check_result(check_type, STATE_CRITICAL, "service critical");
+    handle_svc1();
+
+    test_svc_handler_notification_logging(17, NOTIFIED );
+
+    /* 5th crit */
+    create_check_result(check_type, STATE_CRITICAL, "service critical");
+    handle_svc1();
+
+    test_svc_handler_notification_logging(18, NOTIFIED );
+
+    /* turn on volatility, 6th crit */
+    create_check_result(check_type, STATE_CRITICAL, "service critical");
+    svc1->is_volatile = TRUE;
+    handle_svc1();
+
+    test_svc_handler_notification_logging(19, EVENT_HANDLED | NOTIFIED | LOGGED );
+
+    /* one more before we go to a hard recovery */
+    create_check_result(check_type, STATE_CRITICAL, "service critical");
+    tmp = svc1->current_problem_id;
+    handle_svc1();
+
+    ok(svc1->current_problem_id == tmp,
+        "Problem ID not reset current: %d, old: %d", svc1->current_problem_id, tmp);
+    test_svc_handler_notification_logging(20, EVENT_HANDLED | NOTIFIED | LOGGED );
+
+    /* hard recovery */
+    create_check_result(check_type, STATE_OK, "service ok");
+    chk_result->start_time.tv_sec = ORIG_START_TIME + 120L;
+    chk_result->finish_time.tv_sec = ORIG_FINISH_TIME + 120L;
+    tmp = svc1->current_event_id;
+    svc1->last_notification = (time_t) ORIG_START_TIME + 90L;
+    svc1->no_more_notifications = TRUE;
+    svc1->acknowledgement_type = ACKNOWLEDGEMENT_STICKY;
+    handle_svc1();
+
+    ok(svc1->current_problem_id == 0,
+        "Reset problem id %d", svc1->current_problem_id);
+    ok(svc1->current_event_id > tmp,
+        "Got new event id new: %d, old: %d", svc1->current_event_id, tmp);
+    ok(svc1->no_more_notifications == FALSE,
+        "Reset no more notifications");
+    ok(svc1->acknowledgement_type == ACKNOWLEDGEMENT_NONE,
+        "Reset ack");
+    ok(svc1->last_notification == (time_t) 0L,
+        "Reset last notification");
+    ok(svc1->current_state == STATE_OK,
+        "Service is ok");
+    ok(svc1->last_state_change == (time_t) ORIG_START_TIME + 120L,
+        "Expected last_state_change time %lu, got %lu", (time_t) (ORIG_START_TIME + 120L), svc1->last_state_change);
+    ok(svc1->last_hard_state_change == (time_t) (ORIG_START_TIME + 120L),
+        "Expected last_hard_state_change time %lu, got %lu", (time_t) (ORIG_START_TIME + 120L), svc1->last_hard_state_change);
+    ok(svc1->last_hard_state == STATE_OK,
+        "Service last hard state was ok");
+    ok(svc1->last_state == STATE_CRITICAL,
+        "Service last state was critical");
+    ok(svc1->state_type == HARD_STATE,
+        "Service is hard state");
+    ok(svc1->current_attempt == 1,
+        "Expecting current attempt %d, got %d",1, svc1->current_attempt);
+    test_svc_handler_notification_logging(21, EVENT_HANDLED | NOTIFIED | LOGGED );
 
 
 /*

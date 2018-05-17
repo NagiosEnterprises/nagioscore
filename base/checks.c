@@ -55,7 +55,7 @@ int reap_check_results(void)
 	/* process files in the check result queue */
 	reaped_checks = process_check_result_queue(check_result_path);
 
-	log_debug_info(DEBUGL_FUNCTIONS, 0, "reap_check_results() end\n");
+	log_debug_info(DEBUGL_FUNCTIONS, 0, "reap_check_results() reaped %d checks end\n", reaped_checks);
 
 	return OK;
 }
@@ -779,13 +779,13 @@ static inline void host_fresh_check(host *hst, check_result *cr, time_t current_
 /******************************************************************************
  ******* Logic chunks for setting some of the initial flags, etc.
  *****************************************************************************/
-static inline void service_initial_handling(service *svc, check_result *cr, char *old_plugin_output)
+static inline void service_initial_handling(service *svc, check_result *cr, char **old_plugin_output)
 {
 	char * temp_ptr = NULL;
 
 	/* save old plugin output */
 	if (svc->plugin_output) {
-		old_plugin_output = (char *)strdup(svc->plugin_output);
+		* old_plugin_output = (char *)strdup(svc->plugin_output);
 	}
 
 	my_free(svc->plugin_output);
@@ -822,13 +822,13 @@ static inline void service_initial_handling(service *svc, check_result *cr, char
 	svc->current_state = get_service_check_return_code(svc, cr);
 }
 /*****************************************************************************/
-static inline void host_initial_handling(host *hst, check_result *cr, char *old_plugin_output)
+static inline void host_initial_handling(host *hst, check_result *cr, char **old_plugin_output)
 {
 	char * temp_ptr = NULL;
 
 	/* save old plugin output */
 	if (hst->plugin_output) {
-		old_plugin_output = (char *)strdup(hst->plugin_output);
+		* old_plugin_output = (char *)strdup(hst->plugin_output);
 	}
 
 	my_free(hst->plugin_output);
@@ -970,7 +970,7 @@ static inline void host_state_or_hard_state_type_change(host * hst, int state_ch
 
 		state_or_type_change = TRUE;
 	}
-	
+
 	if (hard_state_change == TRUE) {
 
 		hst->last_hard_state_change = hst->last_check;
@@ -1207,7 +1207,7 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 
 	debug_async_service(svc, cr);
 	service_fresh_check(svc, cr, current_time);
-	service_initial_handling(svc, cr, old_plugin_output);
+	service_initial_handling(svc, cr, &old_plugin_output);
 
 	/* reschedule the next check at the regular interval - may be overridden */
 	next_check = (time_t)(svc->last_check + (svc->check_interval * interval_length));
@@ -1319,7 +1319,7 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 			svc->current_attempt = 1;
 		}
 
-		/***** HOST IS NOW IN PROBLEM STATE *****/
+		/***** SERVICE IS NOW IN PROBLEM STATE *****/
 		else {
 
 			handle_event = TRUE;
@@ -1343,10 +1343,9 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 			else {
 				log_debug_info(DEBUGL_CHECKS, 1, "Service experienced a SOFT recovery.\n");				
 			}
-
 		}
 
-		/***** HOST IS STILL IN PROBLEM STATE *****/
+		/***** SERVICE IS STILL IN PROBLEM STATE *****/
 		else {
 
 			if (svc->state_type == SOFT_STATE) {
@@ -1374,15 +1373,22 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 	/* adjust the current attempt */
 	if (svc->state_type == SOFT_STATE) {
 
-		/* reset to 1 */
-		if (state_change == TRUE || svc->current_state == STATE_OK) {
+		/* this has to be first so we don't reset every time a new non-ok state comes
+		   in (and triggers the state_change == TRUE) */
+		if (svc->last_state != STATE_OK && svc->current_state != STATE_OK) {
+			svc->current_attempt++;
+		}
+
+		/* historically, a soft recovery would actually get up to 2 attempts
+		   and then immediately reset once the next check result came in */
+		else if (state_change == TRUE || svc->current_state == STATE_OK) {
 			svc->current_attempt = 1;
 		}
 
-		/* or increment if we can */
-		else if (svc->current_attempt < svc->max_attempts) {
-			svc->current_attempt++;
-		}
+		/* otherwise, just increase the attempt */
+	 	else if (svc->current_attempt < svc->max_attempts) {
+	 		svc->current_attempt++;
+	 	}
 	}
 
 	if (svc->current_attempt >= svc->max_attempts && svc->current_state != svc->last_hard_state) {
@@ -1454,6 +1460,7 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 	/* if we're stalking this state type AND the plugin output changed since last check, log it now.. */
 	if (should_stalk(svc) && compare_strings(old_plugin_output, svc->plugin_output)) {
 
+		log_debug_info(DEBUGL_CHECKS, 2, "Logging due to state stalking, old: [%s], new: [%s]\n", old_plugin_output, svc->plugin_output);
 		log_event = TRUE;
 	}
 
@@ -2087,7 +2094,7 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 
 	debug_async_host(hst, cr);
 	host_fresh_check(hst, cr, current_time);
-	host_initial_handling(hst, cr, old_plugin_output);
+	host_initial_handling(hst, cr, &old_plugin_output);
 
 	/* reschedule the next check at the regular interval - may be overridden */
 	next_check = (time_t)(hst->last_check + (hst->check_interval * interval_length));

@@ -40,7 +40,6 @@
 #include "../include/neberrors.h"
 #endif
 
-
 /******************************************************************/
 /********************** CHECK REAPER FUNCTIONS ********************/
 /******************************************************************/
@@ -1217,44 +1216,64 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 	/***********************************************/
 	if (svc->current_state == STATE_OK) {
 
+		log_debug_info(DEBUGL_CHECKS, 1, "Service is OK\n");
+
 		if (hst->has_been_checked == FALSE) {
+
+			log_debug_info(DEBUGL_CHECKS, 1, "Host has not been checked yet\n");
+
 			if (hst->next_check == 0L 
 				|| hst->initial_state != HOST_UP 
 				|| hst->next_check < hst->check_interval * interval_length + current_time) {
 
 				log_debug_info(DEBUGL_CHECKS, 2, "Service ok, but host hasn't been checked recently, scheduling host check\n");
+
 				check_host = TRUE;
 			}
 		}
 
 		else if (hst->current_state != HOST_UP) {
+
+			log_debug_info(DEBUGL_CHECKS, 1, "Host is NOT UP, so we'll check it to see if it recovered...\n");
 				
 			if (svc->last_state == STATE_OK 
 				&& hst->has_been_checked == TRUE 
 				&& current_time - hst->last_check < cached_host_check_horizon) {
 
 				log_debug_info(DEBUGL_CHECKS, 2, "Service ok, but host isn't up (and has been checked). Using cached host data.\n");
+
 				update_host_stats = TRUE;
+
 			} else {
 
 				log_debug_info(DEBUGL_CHECKS, 2, "Service ok, but host isn't up and cached data isn't valid here, scheduling host check\n");
+
 				check_host = TRUE;
 			}
+
 			svc->host_problem_at_last_check = TRUE;
 		}
 	}
 	else {
 
+		log_debug_info(DEBUGL_CHECKS, 1, "Service is in a non-OK state!\n");
+
 		if (hst->current_state == HOST_UP) {
+
+			log_debug_info(DEBUGL_CHECKS, 1, "Host is currently UP, so we'll recheck its state to make sure...\n");
+
 			if (execute_host_checks == TRUE
 				&& svc->last_state != svc->current_state
 				&& hst->last_check + cached_host_check_horizon < current_time) {
 
 				log_debug_info(DEBUGL_CHECKS, 2, "Service not ok, host is up but cached data isn't valid, scheduling host check\n");
+
 				check_host = TRUE;
+
 			} else {
 
 				log_debug_info(DEBUGL_CHECKS, 2, "Service not ok, host is up, using cached host data\n");
+
 				update_host_stats = TRUE;
 			}
 
@@ -1263,12 +1282,16 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 				&& svc->state_type == SOFT_STATE) {
 
 				log_debug_info(DEBUGL_CHECKS, 2, "Service had a host problem at last check and is SOFT, so we'll reset current_attempt to 1 to give it a chance\n");
+
 				svc->current_attempt = 1;
 			}
 
 			svc->host_problem_at_last_check = FALSE;
 		}
 		else {
+
+			log_debug_info(DEBUGL_CHECKS, 1, "Host is currently not UP...\n");
+
 			if (execute_host_checks == FALSE || svc->current_state == svc->last_state) {
 
 				log_debug_info(DEBUGL_CHECKS, 2, "Host checks aren't enabled, so send a notification\n");
@@ -1277,6 +1300,7 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 				if (hst->has_been_checked == FALSE) {
 
 					log_debug_info(DEBUGL_CHECKS, 2, "Host has never been checked, fake a host check\n");
+
 					hst->has_been_checked = TRUE;
 					hst->last_check = svc->last_check;
 				}
@@ -1289,6 +1313,7 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 			if (svc->last_hard_state != svc->current_state) {
 
 				log_debug_info(DEBUGL_CHECKS, 2, "Faking a hard state change\n");
+
 				hard_state_change = TRUE;
 				svc->state_type = HARD_STATE;
 				svc->last_hard_state = svc->current_state;
@@ -1312,8 +1337,12 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 	/**************************************/
 	if (svc->last_state == STATE_OK) {
 
+		log_debug_info(DEBUGL_CHECKS, 1, "Service was OK at last check.\n");
+
 		/***** SERVICE IS STILL OK *****/
 		if (svc->current_state == STATE_OK) {
+
+			log_debug_info(DEBUGL_CHECKS, 1, "Service is still OK.\n");
 
 			svc->state_type = HARD_STATE;
 			svc->current_attempt = 1;
@@ -1321,6 +1350,8 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 
 		/***** SERVICE IS NOW IN PROBLEM STATE *****/
 		else {
+
+			log_debug_info(DEBUGL_CHECKS, 1, "Service is a non-OK state (%s)!", service_state_name(svc->current_state));
 
 			handle_event = TRUE;
 		}
@@ -1331,16 +1362,21 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 	/*******************************************/
 	else {
 
+		log_debug_info(DEBUGL_CHECKS, 1, "Service was NOT OK at last check (%s).\n", service_state_name(svc->last_state));
+
 		/***** SERVICE IS NOW OK *****/
 		if (svc->current_state == STATE_OK) {
 
 			handle_event = TRUE;
 
 			if (svc->state_type == HARD_STATE) {
+
 				log_debug_info(DEBUGL_CHECKS, 1, "Service experienced a HARD recovery.\n");
+
 				send_notification = TRUE;
 			}
 			else {
+
 				log_debug_info(DEBUGL_CHECKS, 1, "Service experienced a SOFT recovery.\n");				
 			}
 		}
@@ -1348,12 +1384,19 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 		/***** SERVICE IS STILL IN PROBLEM STATE *****/
 		else {
 
+			log_debug_info(DEBUGL_CHECKS, 1, "Service is still in a non-OK state (%s)!", service_state_name(svc->current_state));
+
 			if (svc->state_type == SOFT_STATE) {
+
+				log_debug_info(DEBUGL_CHECKS, 2, "Service state type is soft, using retry_interval\n");
+
 				handle_event = TRUE;
 				next_check = (unsigned long) (current_time + svc->retry_interval * interval_length);
 			}
 
 			else {
+
+				log_debug_info(DEBUGL_CHECKS, 2, "Service state type is hard, sending a notification\n");
 
 				send_notification = TRUE;
 			}
@@ -1361,13 +1404,11 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 	}
 
 	/* check for a state change */
-	log_debug_info(DEBUGL_CHECKS, 1, "Service was %s.\n", service_state_name(svc->last_state));
 	if (svc->current_state != svc->last_state || (svc->current_state == STATE_OK && svc->state_type == SOFT_STATE)) {
 
-		log_debug_info(DEBUGL_CHECKS, 1, " * Service changed state. State is now %s!\n", service_state_name(svc->current_state));
+		log_debug_info(DEBUGL_CHECKS, 2, "Service experienced a state change\n");
+
 		state_change = TRUE;
-	} else {
-		log_debug_info(DEBUGL_CHECKS, 1, " * Service is still %s.\n", service_state_name(svc->current_state));		
 	}
 
 	/* adjust the current attempt */
@@ -1376,23 +1417,28 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 		/* this has to be first so we don't reset every time a new non-ok state comes
 		   in (and triggers the state_change == TRUE) */
 		if (svc->last_state != STATE_OK && svc->current_state != STATE_OK) {
+
 			svc->current_attempt++;
 		}
 
 		/* historically, a soft recovery would actually get up to 2 attempts
 		   and then immediately reset once the next check result came in */
 		else if (state_change == TRUE || svc->current_state == STATE_OK) {
+
 			svc->current_attempt = 1;
 		}
 
 		/* otherwise, just increase the attempt */
 	 	else if (svc->current_attempt < svc->max_attempts) {
+
 	 		svc->current_attempt++;
 	 	}
 	}
 
 	if (svc->current_attempt >= svc->max_attempts && svc->current_state != svc->last_hard_state) {
+
 		log_debug_info(DEBUGL_CHECKS, 2, "Service had a HARD STATE CHANGE!!\n");
+
 		hard_state_change = TRUE;
 
 		/* this is missed earlier */
@@ -1445,7 +1491,24 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 		schedule_service_check(svc, svc->next_check, CHECK_OPTION_NONE);
 	}
 
+	if (svc->current_state == STATE_OK) {
+		svc->current_attempt = 1;
+	}
+
+	/* volatile service gets everything in non-ok hard state */
+	if ((svc->current_state != STATE_OK) 
+		&& (svc->state_type == HARD_STATE) 
+		&& (svc->is_volatile == TRUE)) {
+
+		log_debug_info(DEBUGL_CHECKS, 2, "Service is volatile, and we're in a non-ok hard state..\n");
+
+		send_notification = TRUE;
+		log_event = TRUE;
+		handle_event = TRUE;
+	}
+
 	if (send_notification == TRUE) {
+
 		service_notification(svc, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE);
 		
 		if (should_stalk_notifications(svc)) {

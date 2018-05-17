@@ -195,6 +195,13 @@ AC_SUBST(root_grp)
 INIT_OPTS="-o root -g $root_grp"
 AC_SUBST(INIT_OPTS)
 
+dnl Just enable all of the testing things
+dnl --enable-debugging --enable-coverage --with-this-user
+dnl This is here because if not, the user override doesnt happen
+ENABLE_TESTING=no
+AC_ARG_ENABLE(testing,AC_HELP_STRING([--enable-testing],[DEBUGGING ONLY - Enable testing options]),
+	[ENABLE_TESTING=$enableval])
+
 not_a_user="^^^^^"
 AC_ARG_WITH(this_user,AC_HELP_STRING([--with-this-user],[sets all user/group info for current user running ./configure]),this_user=$USER,this_user=$not_a_user)
 if test x$ENABLE_TESTING = xyes; then
@@ -798,12 +805,6 @@ dnl	])
 dnl Find traceroute
 AC_PATH_PROG(PATH_TO_TRACEROUTE,traceroute)
 AC_DEFINE_UNQUOTED(TRACEROUTE_COMMAND,"$PATH_TO_TRACEROUTE",[traceroute command to use])
-
-dnl Just enable all of the testing things
-dnl --enable-debugging --enable-coverage --with-this-user
-ENABLE_TESTING=no
-AC_ARG_ENABLE(testing,AC_HELP_STRING([--enable-testing],[DEBUGGING ONLY - Enable testing options]),
-	[ENABLE_TESTING=$enableval])
 
 dnl Enable debugging?
 ENABLE_DEBUGGING=no

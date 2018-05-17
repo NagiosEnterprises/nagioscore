@@ -738,6 +738,7 @@ infodir
 docdir
 oldincludedir
 includedir
+runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -778,6 +779,7 @@ with_piddir
 with_pipedir
 with_lockfile
 with_root_group
+enable_testing
 with_this_user
 with_nagios_user
 with_nagios_group
@@ -799,7 +801,6 @@ with_htmurl
 enable_nanosleep
 enable_event_broker
 enable_cygwin
-enable_testing
 enable_debugging
 enable_coverage
 enable_libtap
@@ -851,6 +852,7 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
+runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE}'
@@ -1103,6 +1105,15 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
+  -runstatedir | --runstatedir | --runstatedi | --runstated \
+  | --runstate | --runstat | --runsta | --runst | --runs \
+  | --run | --ru | --r)
+    ac_prev=runstatedir ;;
+  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
+  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
+  | --run=* | --ru=* | --r=*)
+    runstatedir=$ac_optarg ;;
+
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1240,7 +1251,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir
+		libdir localedir mandir runstatedir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1393,6 +1404,7 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
+  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -1436,6 +1448,7 @@ Optional Features:
                           '--enable-install-method', so you can see the
                           destinations before a full './configure', 'make',
                           'make install' process.
+  --enable-testing        DEBUGGING ONLY - Enable testing options
   --enable-nerd           enables Nagios Event Radio Dispatch (NERD)
   --enable-corewindow     enables the 'corewindow' URL argument
   --disable-statusmap     disables compilation of statusmap CGI
@@ -1444,7 +1457,6 @@ Optional Features:
                           timing
   --enable-event-broker   enables integration of event broker routines
   --enable-cygwin         enables building under the CYGWIN environment
-  --enable-testing        DEBUGGING ONLY - Enable testing options
   --enable-debugging      DEBUGGING ONLY - Enable some debugging for Nagios
                           Core
   --enable-coverage       DEBUGGING ONLY - Enable coverage reports (use with
@@ -6131,6 +6143,13 @@ fi
 INIT_OPTS="-o root -g $root_grp"
 
 
+ENABLE_TESTING=no
+# Check whether --enable-testing was given.
+if test "${enable_testing+set}" = set; then :
+  enableval=$enable_testing; ENABLE_TESTING=$enableval
+fi
+
+
 not_a_user="^^^^^"
 
 # Check whether --with-this_user was given.
@@ -7248,13 +7267,6 @@ fi
 cat >>confdefs.h <<_ACEOF
 #define TRACEROUTE_COMMAND "$PATH_TO_TRACEROUTE"
 _ACEOF
-
-
-ENABLE_TESTING=no
-# Check whether --enable-testing was given.
-if test "${enable_testing+set}" = set; then :
-  enableval=$enable_testing; ENABLE_TESTING=$enableval
-fi
 
 
 ENABLE_DEBUGGING=no

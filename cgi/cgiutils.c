@@ -122,9 +122,12 @@ char *encoded_html_string = NULL;
 void logit(int data_type, int display, const char *fmt, ...) {
 	return;
 	}
+
+#ifndef DISABLE_DEBUGGING
 int log_debug_info(int leve, int verbosity, const char *fmt, ...) {
 	return 0;
 	}
+#endif
 
 /*** helpers ****/
 /*

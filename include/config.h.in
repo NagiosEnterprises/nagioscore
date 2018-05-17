@@ -54,6 +54,13 @@
 /* SQL queries (defunct) */
 #undef DEBUG5
 
+/* Disable log_debug_info() for speed improvements
+   NOTE: only for large systems */
+#undef DISABLE_DEBUGGING
+#ifdef DISABLE_DEBUGGING
+#define log_debug_info(level, verbose, fmt, ...) /* old debugging code */
+#endif
+
 /* I/O implementations */
 #undef USE_XSDDEFAULT
 #undef USE_XCDDEFAULT

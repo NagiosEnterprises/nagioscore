@@ -517,6 +517,7 @@ int close_debug_log(void) {
 
 
 /* write to the debug log */
+#ifndef DISABLE_DEBUGGING
 int log_debug_info(int level, int verbosity, const char *fmt, ...) {
 	va_list ap;
 	char *tmppath = NULL;
@@ -569,3 +570,4 @@ int log_debug_info(int level, int verbosity, const char *fmt, ...) {
 
 	return OK;
 	}
+#endif

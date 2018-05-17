@@ -316,6 +316,7 @@ int update_program_status(int aggregated_dump)
     return OK;
 }
 
+#ifndef DISABLE_DEBUGGING
 int log_debug_info(int level, int verbosity, const char *fmt, ...)
 {
     va_list ap;
@@ -335,6 +336,7 @@ int log_debug_info(int level, int verbosity, const char *fmt, ...)
 
     return OK;
 }
+#endif
 
 void test_hst_handler_notification_logging(int id, int bitmask)
 {

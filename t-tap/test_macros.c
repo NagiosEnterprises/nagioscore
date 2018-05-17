@@ -45,9 +45,11 @@ int my_sendall(int s, char *buf, int *len, int timeout) {
 	return 0;
 }
 
+#ifndef DISABLE_DEBUGGING
 int log_debug_info(int level, int verbosity, const char *fmt, ...) {
 	return 0;
 }
+#endif
 
 int neb_free_callback_list(void) {
 	return 0;

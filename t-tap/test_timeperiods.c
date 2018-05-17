@@ -49,7 +49,10 @@ void logit(int data_type, int display, const char *fmt, ...) {}
 int my_sendall(int s, char *buf, int *len, int timeout) { return 0; }
 void free_comment_data(void) {}
 int write_to_log(char *buffer, unsigned long data_type, time_t *timestamp) { return 0; }
+
+#ifndef DISABLE_DEBUGGING
 int log_debug_info(int level, int verbosity, const char *fmt, ...) { return 0; }
+#endif
 
 int neb_free_callback_list(void) { return 0; }
 void broker_program_status(int type, int flags, int attr, struct timeval *timestamp) {}

@@ -195,6 +195,19 @@ AC_SUBST(root_grp)
 INIT_OPTS="-o root -g $root_grp"
 AC_SUBST(INIT_OPTS)
 
+dnl Speed up the system? Why waste all that precious overhead for debugging!
+dnl I'm kidding. But you SHOULD only enable this option if you understand the consequences
+dnl (No debugging output - it's compiled out)
+DISABLE_DEBUGGING=no
+AC_ARG_ENABLE(debugging,
+	AC_HELP_STRING([--disable-debugging],
+		[Remove all debug function calls. Suggested for LARGE systems only.]),
+	DISABLE_DEBUGGING=yes)
+if test x$DISABLE_DEBUGGING = xyes; then
+	AC_DEFINE([DISABLE_DEBUGGING])
+fi
+
+
 dnl Just enable all of the testing things
 dnl --enable-debugging --enable-coverage --with-this-user
 dnl This is here because if not, the user override doesnt happen

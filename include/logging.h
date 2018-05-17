@@ -68,8 +68,11 @@ NAGIOS_BEGIN_DECL
 /**** Logging Functions ****/
 void logit(int, int, const char *, ...)
 __attribute__((__format__(__printf__, 3, 4)));
+
+#ifndef DISABLE_DEBUGGING
 int log_debug_info(int, int, const char *, ...)
 __attribute__((__format__(__printf__, 3, 4)));
+#endif
 
 #ifndef NSCGI
 int write_to_all_logs(char *, unsigned long);           /* writes a string to main log file and syslog facility */

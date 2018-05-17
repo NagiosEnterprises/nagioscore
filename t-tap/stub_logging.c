@@ -9,6 +9,8 @@ int rotate_log_file(time_t rotation_time) { return OK; }
 
 int log_host_event(host *hst) { return OK; }
 int log_service_event(service *svc) { return OK; }
+
+#ifndef DISABLE_DEBUGGING
 int log_debug_info(int level, int verbosity, const char *fmt, ...) {
 	va_list ap;
 	char *buffer = NULL;
@@ -31,5 +33,6 @@ int log_debug_info(int level, int verbosity, const char *fmt, ...) {
 	free(buffer);
 	va_end(ap);
 	}
+#endif
 
 #endif

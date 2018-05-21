@@ -1061,8 +1061,8 @@ static inline void host_propagate_checks_to_immediate_children(host * hst, int c
 	log_debug_info(DEBUGL_CHECKS, 1, "Propagating checks to child host(s)...\n");
 	for(temp_hostsmember = hst->child_hosts; temp_hostsmember != NULL; temp_hostsmember = temp_hostsmember->next) {
 		child_host = temp_hostsmember->host_ptr;
-		if ((children_none_up          == TRUE && child_host->current_state != HOST_UP)
-			|| ((children_none_unreachable == TRUE && child_host->current_state != HOST_UNREACHABLE))) {
+		if (            (children_none_up == TRUE && child_host->current_state != HOST_UP)
+			|| (children_none_unreachable == TRUE && child_host->current_state != HOST_UNREACHABLE)) {
 
 			log_debug_info(DEBUGL_CHECKS, 1, "Check of child host '%s' queued.\n", child_host->name);
 			schedule_host_check(child_host, current_time, CHECK_OPTION_DEPENDENCY_CHECK);
@@ -1090,7 +1090,9 @@ static inline void service_propagate_dependency_checks(service * svc, time_t cur
 		for(list = svc->exec_deps; list; list = list->next) {
 			temp_dependency = (servicedependency *)list->object_ptr;
 			if (temp_dependency->dependent_service_ptr == svc && temp_dependency->master_service_ptr != NULL) {
+
 				master_service = (service *)temp_dependency->master_service_ptr;
+
 				log_debug_info(DEBUGL_CHECKS, 2, "Predictive check of service '%s' on host '%s' queued.\n", master_service->description, master_service->host_name);
 				schedule_service_check(master_service, current_time, CHECK_OPTION_DEPENDENCY_CHECK);
 			}
@@ -1099,7 +1101,9 @@ static inline void service_propagate_dependency_checks(service * svc, time_t cur
 		for(list = svc->notify_deps; list; list = list->next) {
 			temp_dependency = (servicedependency *)list->object_ptr;
 			if (temp_dependency->dependent_service_ptr == svc && temp_dependency->master_service_ptr != NULL) {
+
 				master_service = (service *)temp_dependency->master_service_ptr;
+
 				log_debug_info(DEBUGL_CHECKS, 2, "Predictive check of service '%s' on host '%s' queued.\n", master_service->description, master_service->host_name);
 				schedule_service_check(master_service, current_time, CHECK_OPTION_DEPENDENCY_CHECK);
 			}
@@ -1123,7 +1127,9 @@ static inline void host_propagate_dependency_checks(host * hst, time_t current_t
 		for(list = hst->notify_deps; list; list = list->next) {
 			dep = (hostdependency *)list->object_ptr;
 			if (dep->dependent_host_ptr == hst && dep->master_host_ptr != NULL) {
+
 				master_host = (host *)dep->master_host_ptr;
+
 				log_debug_info(DEBUGL_CHECKS, 1, "Check of host '%s' queued.\n", master_host->name);
 				schedule_host_check(master_host, current_time, CHECK_OPTION_NONE);
 			}
@@ -1132,7 +1138,9 @@ static inline void host_propagate_dependency_checks(host * hst, time_t current_t
 		for(list = hst->exec_deps; list; list = list->next) {
 			dep = (hostdependency *)list->object_ptr;
 			if (dep->dependent_host_ptr == hst && dep->master_host_ptr != NULL) {
+
 				master_host = (host *)dep->master_host_ptr;
+
 				log_debug_info(DEBUGL_CHECKS, 1, "Check of host '%s' queued.\n", master_host->name);
 				schedule_host_check(master_host, current_time, CHECK_OPTION_NONE);
 			}
@@ -2151,7 +2159,6 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 	else  {
 		host_is_active(hst);
 	}
-
 	time(&current_time);
 	initialize_last_host_state_change_times(hst);
 
@@ -2167,8 +2174,12 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 	/**************************************/
 	if (hst->last_state == HOST_UP) {
 
+		log_debug_info(DEBUGL_CHECKS, 1, "Host was UP.\n");
+
 		/***** HOST IS STILL UP *****/
 		if (hst->current_state == HOST_UP) {
+
+			log_debug_info(DEBUGL_CHECKS, 1, "Host is still UP.\n");
 
 			hst->state_type = HARD_STATE;
 			hst->current_attempt = 1;
@@ -2176,6 +2187,8 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 
 		/***** HOST IS NOW DOWN/UNREACHABLE *****/
 		else {
+
+			log_debug_info(DEBUGL_CHECKS, 1, "Host is no longer UP (%s)!\n", host_state_name(hst->current_state));
 
 			/* propagate checks to immediate parents if they are UP */
 			host_propagate_checks_to_immediate_parents(hst, FALSE, current_time);
@@ -2196,8 +2209,12 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 	/**************************************/
 	else {
 
+		log_debug_info(DEBUGL_CHECKS, 1, "Host was not UP last time.\n");
+
 		/***** HOST IS NOW UP *****/
 		if (hst->current_state == HOST_UP) {
+
+			log_debug_info(DEBUGL_CHECKS, 1, "Host is UP now.\n");
 
 			/* propagate checks to immediate parents if they are not UP */
 			host_propagate_checks_to_immediate_parents(hst, TRUE, current_time);
@@ -2210,12 +2227,15 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 
 			/* but a soft recovery is not something we notify for */
 			if (hst->state_type == HARD_STATE) {
+
 				log_debug_info(DEBUGL_CHECKS, 1, "Host experienced a HARD recovery.\n");
+
 				send_notification = TRUE;
 				
 				hst->current_attempt = 1;
 			}
 			else {
+
 				log_debug_info(DEBUGL_CHECKS, 1, "Host experienced a SOFT recovery.\n");
 			}
 		}
@@ -2223,13 +2243,21 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 		/***** HOST IS STILL DOWN/UNREACHABLE *****/
 		else {
 
+			log_debug_info(DEBUGL_CHECKS, 1, "Host is still not UP (%s)!\n", host_state_name(hst->current_state));
+
 			if (hst->state_type == SOFT_STATE) {
+
+				log_debug_info(DEBUGL_CHECKS, 2, "Host state type is soft, using retry_interval\n");
+
 				handle_event = TRUE;
 				next_check = (unsigned long) (current_time + hst->retry_interval * interval_length);
 			}
 
 			/* if the state_type is hard, then send a notification */
 			else {
+
+				log_debug_info(DEBUGL_CHECKS, 2, "Host state type is hard, sending a notification\n");
+
 				send_notification = TRUE;
 			}
 		}
@@ -2237,25 +2265,28 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 
 	/* translate host state between DOWN/UNREACHABLE (only for passive checks if enabled) */
 	if (hst->current_state != HOST_UP && (hst->check_type == CHECK_TYPE_ACTIVE || translate_passive_host_checks == TRUE)) {
+
 		hst->current_state = determine_host_reachability(hst);
 		next_check = (unsigned long)(current_time + (hst->retry_interval * interval_length));
 	}
 
 	/* check for state change */
-	log_debug_info(DEBUGL_CHECKS, 1, "Host was %s.\n", host_state_name(hst->last_state));
 	if (hst->current_state != hst->last_state || (hst->current_state == HOST_UP && hst->state_type == SOFT_STATE)) {
 
-		log_debug_info(DEBUGL_CHECKS, 1, " * Host changed state. State is now %s!\n", host_state_name(hst->current_state));
+		log_debug_info(DEBUGL_CHECKS, 2, "Host experienced a state change\n");
+
 		state_change = TRUE;
-	} else {
-		log_debug_info(DEBUGL_CHECKS, 1, " * Host is still %s.\n", host_state_name(hst->current_state));
 	}
 
 	/* adjust the current attempt */
 	if (hst->state_type == SOFT_STATE) {
 
+		if (hst->last_state != HOST_UP && hst->current_state != HOST_UP && (hst->current_attempt < hst->max_attempts)) {
+			hst->current_attempt++;
+		}
+
 		/* reset it to 1 */
-		if (hst->current_state == HOST_UP) {
+		else if (hst->current_state == HOST_UP) {
 			hst->current_attempt = 1;
 		}
 
@@ -2266,8 +2297,12 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 	}
 
 	if (hst->current_attempt >= hst->max_attempts && hst->current_state != hst->last_hard_state) {
+
 		log_debug_info(DEBUGL_CHECKS, 2, "Host had a HARD STATE CHANGE!!\n");
+
 		hard_state_change = TRUE;
+
+		send_notification = TRUE;
 	}
 
 	/* handle some acknowledgement things and update last_state_change */
@@ -2315,7 +2350,12 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 		schedule_host_check(hst, hst->next_check, CHECK_OPTION_NONE);
 	}
 
+	if (hst->current_attempt == HOST_UP) {
+		hst->current_attempt = 1;
+	}
+
 	if (send_notification == TRUE) {
+
 		host_notification(hst, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE);
 
 		if (should_stalk_notifications(hst)) {

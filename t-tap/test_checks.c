@@ -59,11 +59,15 @@
 #define NOTIFIED        2
 #define LOGGED          4
 
+#define NO_SERVICE      0,0,NULL
+
 int date_format;
 int test_check_debugging = FALSE;
 
 service         * svc1          = NULL;
 host            * hst1          = NULL;
+host            * parent1       = NULL;
+host            * parent2       = NULL;
 check_result    * chk_result    = NULL;
 
 int hst1_notifications  = 0;
@@ -74,17 +78,39 @@ int hst1_logs           = 0;
 int svc1_logs           = 0;
 int c                   = 0;
 
+void free_host(host ** hst)
+{
+    if ((*hst) != NULL) {
+
+        my_free((*hst)->name);
+        my_free((*hst)->address);
+        my_free((*hst)->plugin_output);
+        my_free((*hst)->long_plugin_output);
+        my_free((*hst)->perf_data);
+        my_free((*hst)->check_command);
+
+        if ((*hst)->parent_hosts != NULL) {
+            my_free((*hst)->parent_hosts->next);
+            my_free((*hst)->parent_hosts);
+        }
+
+        my_free((*hst));
+    }    
+}
+
+void free_parent1()
+{
+    free_host(&parent1);
+}
+
+void free_parent2()
+{
+    free_host(&parent2);
+}
+
 void free_hst1()
 {
-    if (hst1 != NULL) {
-        my_free(hst1->name);
-        my_free(hst1->address);
-        my_free(hst1->plugin_output);
-        my_free(hst1->long_plugin_output);
-        my_free(hst1->perf_data);
-        my_free(hst1->check_command);
-        my_free(hst1);
-    }
+    free_host(&hst1);
 }
 
 void free_svc1()
@@ -112,6 +138,8 @@ void free_chk_result()
 
 void free_all()
 {
+    free_parent1();
+    free_parent2();
     free_hst1();
     free_svc1();
     free_chk_result();
@@ -302,6 +330,38 @@ void create_objects(int host_state, int host_state_type, char * host_output, int
     }
 }
 
+void setup_parent(host ** parent, const char * host_name)
+{
+    (*parent) = (host *) calloc(1, sizeof(host));
+
+    (*parent)->name             = strdup(host_name);
+    (*parent)->address          = strdup(HOST_ADDRESS);
+    (*parent)->check_command    = strdup(HOST_COMMAND);
+    (*parent)->retry_interval   = 1;
+    (*parent)->check_interval   = 5;
+    (*parent)->current_attempt  = 1;
+    (*parent)->max_attempts     = 4;
+    (*parent)->check_options    = CHECK_OPTION_NONE;
+    (*parent)->has_been_checked = TRUE;
+    (*parent)->current_state    = HOST_DOWN;
+
+}
+
+void setup_parents()
+{
+    hostsmember * tmp_hsts = NULL;
+    tmp_hsts = (hostsmember *) calloc(1, sizeof(hostsmember));
+
+    setup_parent(&parent1, "Parent 1");
+    setup_parent(&parent2, "Parent 2");
+
+    tmp_hsts->host_ptr = parent1;
+    tmp_hsts->next = (hostsmember *) calloc(1, sizeof(hostsmember));
+    tmp_hsts->next->host_ptr = parent2;
+
+    hst1->parent_hosts = tmp_hsts;
+}
+
 int update_program_status(int aggregated_dump)
 {
     c++;
@@ -347,7 +407,6 @@ void test_hst_handler_notification_logging(int id, int bitmask)
     }
 
     if (bitmask & NOTIFIED) {
-
         ok(hst1_notifications == 1,
             "[%d] Host contacts WERE notified", id);
     } else {
@@ -391,9 +450,13 @@ void test_svc_handler_notification_logging(int id, int bitmask)
     }
 }
 
-void run_check_tests(int check_type, time_t when)
+void run_service_tests(int check_type)
 {
     int tmp = 0;
+
+    /******************************************
+    SERVICE CHECK TESTING
+    ******************************************/
     /*
         Host down/hard, Service crit/soft -> warn
     */
@@ -464,6 +527,8 @@ void run_check_tests(int check_type, time_t when)
         "Expecting current attempt %d, got %d", 1, svc1->current_attempt);
     test_svc_handler_notification_logging(3, EVENT_HANDLED | LOGGED);
 
+
+
     /* 2nd warning */
     svc1->acknowledgement_type = ACKNOWLEDGEMENT_NORMAL;
     svc1->last_notification = (time_t) 11111L;
@@ -481,6 +546,8 @@ void run_check_tests(int check_type, time_t when)
         "Next notification not reset");
     test_svc_handler_notification_logging(4, EVENT_HANDLED);
 
+
+
     /* 3rd warning */
     create_check_result(check_type, STATE_WARNING, "service warning");
     handle_svc1();
@@ -490,6 +557,8 @@ void run_check_tests(int check_type, time_t when)
     ok(svc1->current_attempt == 3, 
         "Expecting current attempt %d, got %d", 3, svc1->current_attempt);
     test_svc_handler_notification_logging(5, EVENT_HANDLED);
+
+
 
     /* 4th warning (HARD change) */
     create_check_result(check_type, STATE_WARNING, "service warning");
@@ -520,6 +589,8 @@ void run_check_tests(int check_type, time_t when)
         "Expecting current attempt %d, got %d", 4, svc1->current_attempt);
     test_svc_handler_notification_logging(6, EVENT_HANDLED | NOTIFIED | LOGGED);
 
+
+
     /* 5th warning */
     create_check_result(check_type, STATE_WARNING, "service warning");
     handle_svc1();
@@ -533,6 +604,8 @@ void run_check_tests(int check_type, time_t when)
     ok(svc1->current_attempt == 4,
         "Expecting current attempt %d, got %d", 4, svc1->current_attempt);
     test_svc_handler_notification_logging(7, NOTIFIED);
+
+
 
     /* 6th non-ok (critical) */
     create_check_result(check_type, STATE_CRITICAL, "service critical");
@@ -551,6 +624,8 @@ void run_check_tests(int check_type, time_t when)
         "Expecting current attempt %d, got %d", 4, svc1->current_attempt);
     test_svc_handler_notification_logging(8, EVENT_HANDLED | NOTIFIED | LOGGED);
 
+
+
     /* 7th, critical */
     create_check_result(check_type, STATE_CRITICAL, "service critical");
     svc1->acknowledgement_type = ACKNOWLEDGEMENT_NORMAL;
@@ -566,6 +641,8 @@ void run_check_tests(int check_type, time_t when)
         "Expecting current attempt %d, got %d", 4, svc1->current_attempt);
     test_svc_handler_notification_logging(9, NOTIFIED);
 
+
+
     /* 8th, critical, new output, and enabling stalking for critical */
     create_check_result(check_type, STATE_CRITICAL, "service critical NEW");
     svc1->stalking_options = OPT_CRITICAL;
@@ -573,12 +650,16 @@ void run_check_tests(int check_type, time_t when)
 
     test_svc_handler_notification_logging(10, NOTIFIED | LOGGED);
 
+
+
     /* 9th, critical, new output, and enabling stalking only for OK */
     create_check_result(check_type, STATE_CRITICAL, "service critical NEWER");
     svc1->stalking_options = OPT_OK;
     handle_svc1();
 
     test_svc_handler_notification_logging(11, NOTIFIED);
+
+
 
     /* change state back to ok */
     create_check_result(check_type, STATE_OK, "service ok");
@@ -609,6 +690,8 @@ void run_check_tests(int check_type, time_t when)
         "Current problem ID reset");
     test_svc_handler_notification_logging(12, EVENT_HANDLED | NOTIFIED | LOGGED);
 
+
+
     /* 2nd ok */
     create_check_result(check_type, STATE_OK, "service ok");
     chk_result->start_time.tv_sec = ORIG_START_TIME + 90L;
@@ -622,6 +705,8 @@ void run_check_tests(int check_type, time_t when)
     ok(svc1->current_state == STATE_OK,
         "Service is ok");
     test_svc_handler_notification_logging(13, EXPECT_NOTHING );
+
+
 
     /* 3rd ok, new output (stalking still enabled for ok) */
     create_check_result(check_type, STATE_OK, "service ok NEW");
@@ -665,6 +750,8 @@ void run_check_tests(int check_type, time_t when)
         "Expecting current attempt %d, got %d", 2, svc1->current_attempt);
     test_svc_handler_notification_logging(15, EVENT_HANDLED | LOGGED );
 
+
+
     /* 3rd non-ok, critical. changing max_attempts to 3 because i'm impatient */
     create_check_result(check_type, STATE_CRITICAL, "service critical");
     svc1->max_attempts = 3;
@@ -688,11 +775,15 @@ void run_check_tests(int check_type, time_t when)
         "Expecting current attempt %d, got %d", 3, svc1->current_attempt);
     test_svc_handler_notification_logging(16, EVENT_HANDLED | NOTIFIED | LOGGED );
 
+
+
     /* 4th crit */
     create_check_result(check_type, STATE_CRITICAL, "service critical");
     handle_svc1();
 
     test_svc_handler_notification_logging(17, NOTIFIED );
+
+
 
     /* 5th crit */
     create_check_result(check_type, STATE_CRITICAL, "service critical");
@@ -700,12 +791,16 @@ void run_check_tests(int check_type, time_t when)
 
     test_svc_handler_notification_logging(18, NOTIFIED );
 
+
+
     /* turn on volatility, 6th crit */
     create_check_result(check_type, STATE_CRITICAL, "service critical");
     svc1->is_volatile = TRUE;
     handle_svc1();
 
     test_svc_handler_notification_logging(19, EVENT_HANDLED | NOTIFIED | LOGGED );
+
+
 
     /* one more before we go to a hard recovery */
     create_check_result(check_type, STATE_CRITICAL, "service critical");
@@ -715,6 +810,8 @@ void run_check_tests(int check_type, time_t when)
     ok(svc1->current_problem_id == tmp,
         "Problem ID not reset current: %d, old: %d", svc1->current_problem_id, tmp);
     test_svc_handler_notification_logging(20, EVENT_HANDLED | NOTIFIED | LOGGED );
+
+
 
     /* hard recovery */
     create_check_result(check_type, STATE_OK, "service ok");
@@ -752,208 +849,154 @@ void run_check_tests(int check_type, time_t when)
         "Expecting current attempt %d, got %d",1, svc1->current_attempt);
     test_svc_handler_notification_logging(21, EVENT_HANDLED | NOTIFIED | LOGGED );
 
-
-/*
-        svc->last_event_id = svc->current_event_id;
-        svc->current_event_id = next_event_id;
-        next_event_id++;
-        svc->last_notification = (time_t)0;
-        svc->next_notification = (time_t)0;
-        svc->no_more_notifications = FALSE;
+    free_all();
+}
 
 
-    // ok(svc1->acknowledgement_type == ACKNOWLEDGEMENT_NORMAL, 
-    //     "Ack left");
+void run_active_host_tests()
+{
+    int tmp = 0;
+    int check_type = CHECK_TYPE_ACTIVE;
 
-    // adjust_check_result(check_type, STATE_OK, "Back to OK");
-    // handle_async_service_check_result(svc1, chk_result);
-
-    // ok(svc1->acknowledgement_type == ACKNOWLEDGEMENT_NONE, 
-    //     "Ack reset to none");
-
-
-
-    /* Test:
-        OK -> WARNING 1/4 -> ack -> WARNING 2/4 -> WARNING 3/4 -> WARNING 4/4 -> WARNING 4/4 -> OK transition
-        Tests that the ack is not removed on hard state change
+    /******************************************
+     ACTIVE HOST CHECK TESTING
+    ******************************************/
+    /*
+        Test up -> up to make sure no weird log/notify/event
     */
-    // setup_objects(when);
-    // adjust_check_result(check_type, STATE_OK, "Reset to OK");
+    create_objects(HOST_UP, HARD_STATE, "host up", NO_SERVICE);
+    create_check_result(check_type, STATE_OK, "host up");
 
-    // hst1->current_state    = HOST_UP;
+    handle_hst1();
 
-    // svc1->last_state        = STATE_OK;
-    // svc1->last_hard_state   = STATE_OK;
-    // svc1->current_state     = STATE_OK;
-    // svc1->state_type        = SOFT_STATE;
-    // svc1->current_attempt   = 1;
-
-    // handle_async_service_check_result(svc1, chk_result);
-
-    // ok(svc1->current_attempt == 1, 
-    //     "Current attempt is 1")
-    //     || diag("Current attempt now: %d", svc1->current_attempt);
-
-    // adjust_check_result(check_type, STATE_WARNING, "WARNING failure");
-    // handle_async_service_check_result(svc1, chk_result);
-
-    // ok(svc1->state_type == SOFT_STATE, 
-    //     "Soft state");
-    // ok(svc1->acknowledgement_type == ACKNOWLEDGEMENT_NONE, 
-    //     "No acks - testing transition to hard warning state");
-
-    // svc1->acknowledgement_type = ACKNOWLEDGEMENT_NORMAL;
-
-    // ok(svc1->current_attempt == 1, 
-    //     "Current attempt is 1") 
-    //     || diag("Current attempt now: %d", svc1->current_attempt);
-
-    // adjust_check_result(check_type, STATE_WARNING, "WARNING failure 2");
-    // handle_async_service_check_result(svc1, chk_result);
-
-    // ok(svc1->state_type == SOFT_STATE, 
-    //     "Soft state");
-    // ok(svc1->acknowledgement_type == ACKNOWLEDGEMENT_NORMAL, 
-    //     "Ack left");
-    // ok(svc1->current_attempt == 2, 
-    //     "Current attempt is 2") 
-    //     || diag("Current attempt now: %d", svc1->current_attempt);
-
-    // adjust_check_result(check_type, STATE_WARNING, "WARNING failure 3");
-    // handle_async_service_check_result(svc1, chk_result);
-
-    // ok(svc1->state_type == SOFT_STATE, 
-    //     "Soft state");
-    // ok(svc1->acknowledgement_type == ACKNOWLEDGEMENT_NORMAL, 
-    //     "Ack left");
-    // ok(svc1->current_attempt == 3, 
-    //     "Current attempt is 3") 
-    //     || diag("Current attempt now: %d", svc1->current_attempt);
-
-    // adjust_check_result(check_type, STATE_WARNING, "WARNING failure 4");
-    // handle_async_service_check_result(svc1, chk_result);
-
-    // ok(svc1->state_type == HARD_STATE, 
-    //     "Hard state");
-    // ok(svc1->acknowledgement_type == ACKNOWLEDGEMENT_NORMAL, 
-    //     "Ack left on hard failure");
-    // ok(svc1->current_attempt == 4, 
-    //     "Current attempt is 4") 
-    //     || diag("Current attempt now: %d", svc1->current_attempt);
-
-    // adjust_check_result(check_type, STATE_OK, "Back to OK");
-    // handle_async_service_check_result(svc1, chk_result);
-
-    // ok(svc1->acknowledgement_type == ACKNOWLEDGEMENT_NONE, 
-    //     "Ack removed");
+    test_hst_handler_notification_logging(22, EXPECT_NOTHING );
 
 
 
-    /* Test:
-        OK -> WARNING 1/1 -> ack -> WARNING -> OK transition
-        Tests that the ack is not removed on 2nd warning, but is on OK
+    /* turn stalking on, don't change output */
+    create_check_result(check_type, STATE_OK, "host up");
+    hst1->stalking_options = OPT_UP;
+
+    handle_hst1();
+
+    test_hst_handler_notification_logging(23, EXPECT_NOTHING );
+
+
+
+    /* stalking still enabled, change output */
+    create_check_result(check_type, STATE_OK, "host UP");
+
+    handle_hst1();
+
+    test_hst_handler_notification_logging(24, LOGGED );
+
+
+
+    /*
+        Test that warning state checks keep the host up unless aggressive checking
     */
-    // setup_objects(when);
-    // adjust_check_result(check_type, STATE_WARNING, "WARNING failure 1");
+    create_objects(HOST_UP, HARD_STATE, "host up", NO_SERVICE);
+    create_check_result(check_type, STATE_WARNING, "host warning");
+    use_aggressive_host_checking = FALSE;
+    hst1->max_attempts = 3;
 
-    // hst1->current_state     = HOST_UP;
+    handle_hst1();
 
-    // svc1->last_state        = STATE_OK;
-    // svc1->last_hard_state   = STATE_OK;
-    // svc1->current_state     = STATE_OK;
-    // svc1->state_type        = SOFT_STATE;
-    // svc1->max_attempts      = 2;
-
-    // handle_async_service_check_result(svc1, chk_result);
-
-    // ok(svc1->acknowledgement_type == ACKNOWLEDGEMENT_NONE, 
-    //     "No acks - testing transition to immediate hard then OK");
-
-    // svc1->acknowledgement_type = ACKNOWLEDGEMENT_NORMAL;
-
-    // adjust_check_result(check_type, STATE_WARNING, "WARNING failure 2");
-    // handle_async_service_check_result(svc1, chk_result);
-
-    // ok(svc1->acknowledgement_type == ACKNOWLEDGEMENT_NORMAL, 
-    //     "Ack left");
-
-    // adjust_check_result(check_type, STATE_OK, "Back to OK");
-    // handle_async_service_check_result(svc1, chk_result);
-
-    // ok(svc1->acknowledgement_type == ACKNOWLEDGEMENT_NONE, 
-    //     "Ack removed");
+    ok(hst1->current_state == HOST_UP,
+        "Warning state is UP with no use_aggressive_host_checking");
+    test_hst_handler_notification_logging(25, EXPECT_NOTHING );
 
 
 
-    /* Test:
-        UP -> DOWN 1/4 -> ack -> DOWN 2/4 -> DOWN 3/4 -> DOWN 4/4 -> UP transition
-        Tests that the ack is not removed on 2nd DOWN, but is on UP
-    */
-    // setup_objects(when);
-    // adjust_check_result(HOST_CHECK_PASSIVE, HOST_DOWN, "DOWN failure 2");
+    /* now with aggressive enabled */
+    create_check_result(check_type, STATE_WARNING, "host warning");
+    use_aggressive_host_checking = TRUE;
 
-    // hst1->current_state             = HOST_UP;
-    // hst1->last_state                = HOST_UP;
-    // hst1->last_hard_state           = HOST_UP;
-    // hst1->state_type                = SOFT_STATE;
-    // hst1->acknowledgement_type      = ACKNOWLEDGEMENT_NONE;
-    // hst1->plugin_output             = strdup("");
-    // hst1->long_plugin_output        = strdup("");
-    // hst1->perf_data                 = strdup("");
-    // hst1->check_command             = strdup("Dummy command required");
-    // hst1->accept_passive_checks     = TRUE;
+    handle_hst1();
 
-    // passive_host_checks_are_soft    = TRUE;
+    use_aggressive_host_checking = FALSE;
+    ok(hst1->current_state == HOST_DOWN,
+        "Warning state is DOWN with aggressive host checking");
+    ok(hst1->current_attempt == 1,
+        "Expecting current attempt %d, got %d", 1, hst1->current_attempt);
+    test_hst_handler_notification_logging(26, EVENT_HANDLED | LOGGED );
 
-    // handle_async_host_check_result(hst1, chk_result);
 
-    // ok(hst1->acknowledgement_type == ACKNOWLEDGEMENT_NONE, 
-    //     "No ack set");
-    // ok(hst1->current_attempt == 2, 
-    //     "Attempts right (not sure why this goes into 2 and not 1)") 
-    //     || diag("current_attempt=%d", hst1->current_attempt);
-    // ok(strcmp(hst1->plugin_output, "DOWN failure 2") == 0, 
-    //     "output set") 
-    //     || diag("plugin_output=%s", hst1->plugin_output);
 
-    // hst1->acknowledgement_type = ACKNOWLEDGEMENT_NORMAL;
+    /* host down */
+    create_check_result(check_type, STATE_CRITICAL, "host down");
 
-    // adjust_check_result(HOST_CHECK_PASSIVE, HOST_DOWN, "DOWN failure 3");
-    // handle_async_host_check_result(hst1, chk_result);
+    handle_hst1();
 
-    // ok(hst1->acknowledgement_type == ACKNOWLEDGEMENT_NORMAL, 
-    //     "Ack should be retained as in soft state");
-    // ok(hst1->current_attempt == 3, 
-    //     "Attempts incremented") 
-    //     || diag("current_attempt=%d", hst1->current_attempt);
-    // ok(strcmp(hst1->plugin_output, "DOWN failure 3") == 0, 
-    //     "output set") 
-    //     || diag("plugin_output=%s", hst1->plugin_output);
+    ok(hst1->current_state == HOST_DOWN,
+        "Host state is DOWN");
+    ok(hst1->state_type == SOFT_STATE,
+        "Host state type is soft");
+    ok(hst1->current_attempt == 2,
+        "Expecting current attempt %d, got %d", 2, hst1->current_attempt);
+    test_hst_handler_notification_logging(27, EVENT_HANDLED );
 
-    // adjust_check_result(HOST_CHECK_PASSIVE, HOST_DOWN, "DOWN failure 4");
-    // handle_async_host_check_result(hst1, chk_result);
 
-    // ok(hst1->acknowledgement_type == ACKNOWLEDGEMENT_NORMAL, 
-    //     "Ack should be retained as in soft state");
-    // ok(hst1->current_attempt == 4, 
-    //     "Attempts incremented") 
-    //     || diag("current_attempt=%d", hst1->current_attempt);
-    // ok(strcmp(hst1->plugin_output, "DOWN failure 4") == 0, 
-    //     "output set") 
-    //     || diag("plugin_output=%s", hst1->plugin_output);
 
-    // adjust_check_result(HOST_CHECK_PASSIVE, HOST_UP, "UP again");
-    // handle_async_host_check_result(hst1, chk_result);
+    /* host down (should be hard) */
+    create_check_result(check_type, STATE_CRITICAL, "host down");
+    chk_result->start_time.tv_sec = ORIG_START_TIME + 40L;
+    chk_result->finish_time.tv_sec = ORIG_FINISH_TIME + 40L;
 
-    // ok(hst1->acknowledgement_type == ACKNOWLEDGEMENT_NONE, 
-    //     "Ack reset due to state change");
-    // ok(hst1->current_attempt == 1, 
-    //     "Attempts reset") 
-    //     || diag("current_attempt=%d", hst1->current_attempt);
-    // ok(strcmp(hst1->plugin_output, "UP again") == 0, 
-    //     "output set") 
-    //     || diag("plugin_output=%s", hst1->plugin_output);
+    handle_hst1();
 
+    ok(hst1->current_state == HOST_DOWN,
+        "Host state is DOWN");
+    ok(hst1->state_type == HARD_STATE,
+        "Host state type is hard");
+    ok(hst1->current_attempt == 3,
+        "Expecting current attempt %d, got %d", 3, hst1->current_attempt);
+    ok(hst1->last_hard_state_change == (time_t) (ORIG_START_TIME + 40L),
+        "Expected last_hard_state_change time %lu, got %lu", (time_t) (ORIG_START_TIME + 40L), hst1->last_hard_state_change);
+    test_hst_handler_notification_logging(28, EVENT_HANDLED | NOTIFIED | LOGGED );
+
+
+
+    /* host down (should STILL be hard) */
+    create_check_result(check_type, STATE_CRITICAL, "host down");
+    chk_result->start_time.tv_sec = ORIG_START_TIME + 60L;
+    chk_result->finish_time.tv_sec = ORIG_FINISH_TIME + 60L;
+
+    handle_hst1();
+
+    ok(hst1->current_state == HOST_DOWN,
+        "Host state is DOWN");
+    ok(hst1->state_type == HARD_STATE,
+        "Host state type is hard");
+    ok(hst1->current_attempt == 3,
+        "Expecting current attempt %d, got %d", 3, hst1->current_attempt);
+    ok(hst1->last_hard_state_change == (time_t) (ORIG_START_TIME + 40L),
+        "Expected last_hard_state_change time %lu, got %lu", (time_t) (ORIG_START_TIME + 40L), hst1->last_hard_state_change);
+    test_hst_handler_notification_logging(29, NOTIFIED );
+
+
+
+    /* lets test unreachability */
+    setup_parents();
+    create_check_result(check_type, STATE_CRITICAL, "host down");
+
+    handle_hst1();
+
+    ok(hst1->current_state == HOST_UNREACHABLE,
+        "Host state is UNREACHABLE");
+    ok(hst1->state_type == HARD_STATE,
+        "Host state type is hard");
+    ok(hst1->current_attempt == 3,
+        "Expecting current attempt %d, got %d", 3, hst1->current_attempt);
+    ok(hst1->last_hard_state_change == (time_t) (ORIG_START_TIME + 40L),
+        "Expected last_hard_state_change time %lu, got %lu", (time_t) (ORIG_START_TIME + 40L), hst1->last_hard_state_change);
+    test_hst_handler_notification_logging(30, EVENT_HANDLED | NOTIFIED | LOGGED );
+
+    free_all();
+}
+
+void run_passive_host_tests()
+{
     free_all();
 }
 
@@ -970,9 +1013,13 @@ int main(int argc, char **argv)
 
     time(&now);
 
-    run_check_tests(CHECK_TYPE_ACTIVE, now);
-    run_check_tests(CHECK_TYPE_PASSIVE, now);
+    run_service_tests(CHECK_TYPE_ACTIVE);
+    run_service_tests(CHECK_TYPE_PASSIVE);
 
+    /* the way host checks are handled is
+       very different based on active/passive */
+    run_active_host_tests();
+    run_passive_host_tests();
 
     return exit_status();
 }

@@ -17,11 +17,11 @@ COMMAND_OPTS=@COMMAND_OPTS@
 CP=@CP@
 
 all html:
-	(cd angularjs && unzip -u angular-1.3.9.zip)
-	(cd angularjs && unzip -u ui-utils-0.2.1.zip)
-	if [ ! -d bootstrap-3.3.0 ] ; then mkdir -p bootstrap-3.3.0 && ( cd bootstrap-3.3.0 && unzip -u ../bootstrap-3.3.0-dist.zip && mv dist/* . && rmdir dist ) ; fi
+	(cd angularjs && unzip -q -u angular-1.3.9.zip)
+	(cd angularjs && unzip -q -u ui-utils-0.2.1.zip)
+	if [ ! -d bootstrap-3.3.0 ] ; then mkdir -p bootstrap-3.3.0 && ( cd bootstrap-3.3.0 && unzip -q -u ../bootstrap-3.3.0-dist.zip && mv dist/* . && rmdir dist ) ; fi
 	mkdir -p d3
-	(cd d3 && unzip -u ../d3-3.5.3.zip)
+	(cd d3 && unzip -q -u ../d3-3.5.3.zip)
 
 clean:
 	rm -f *.cfg *.sub core

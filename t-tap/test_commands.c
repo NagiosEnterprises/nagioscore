@@ -20,20 +20,25 @@
 #include "config.h"
 #include "common.h"
 #include "nagios.h"
-#include "../base/commands.c"
-#include "stub_broker.c"
+#include "commands.h"
+#include "perfdata.h"
+
+#include "stub_sehandlers.c"
 #include "stub_comments.c"
-#include "stub_objects.c"
-#include "stub_statusdata.c"
-#include "stub_notifications.c"
-#include "stub_events.c"
+#include "stub_perfdata.c"
 #include "stub_downtime.c"
-#include "stub_flapping.c"
+#include "stub_notifications.c"
 #include "stub_logging.c"
-#include "stub_utils.c"
-#include "stub_sretention.c"
-#include "stub_checks.c"
+#include "stub_broker.c"
 #include "stub_macros.c"
+#include "stub_workers.c"
+#include "stub_events.c"
+#include "stub_statusdata.c"
+#include "stub_flapping.c"
+#include "stub_nebmods.c"
+#include "stub_netutils.c"
+#include "stub_commands.c"
+#include "stub_xodtemplate.c"
 #include "tap.h"
 
 char *temp_path;
@@ -197,7 +202,6 @@ main() {
 	ok(strcmp(test_hostname, "host1") == 0, "hostname right");
 	ok(test_servicename == NULL, "servicename right") || diag("servicename=%s", test_servicename);
 	ok(strcmp(test_comment, "comment") == 0, "comment right") || diag("comment=%s", test_comment);
-
 
 
 	return exit_status();

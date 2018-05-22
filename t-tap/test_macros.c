@@ -28,81 +28,36 @@
  *
  *****************************************************************************/
 
+#define TEST_MACROS_C
 #include <string.h>
 #include <time.h>
-#include "../include/objects.h"
-#include "../include/nagios.h"
+
+#include "config.h"
+#include "common.h"
+#include "nagios.h"
+#include "downtime.h"
+#include "perfdata.h"
+#include "comments.h"
+#include "statusdata.h"
+#include "macros.h"
+#include "broker.h"
+#include "../lib/lnag-utils.h"
 #include "tap.h"
-#include "stub_downtime.c"
+
+#include "stub_sehandlers.c"
 #include "stub_comments.c"
-
-/*****************************************************************************/
-/*                             Dummy functions                               */
-/*****************************************************************************/
-void logit(int data_type, int display, const char *fmt, ...) {
-}
-int my_sendall(int s, char *buf, int *len, int timeout) {
-	return 0;
-}
-
-int log_debug_info(int level, int verbosity, const char *fmt, ...) {
-	return 0;
-}
-
-int neb_free_callback_list(void) {
-	return 0;
-}
-
-int neb_deinit_modules(void) {
-	return 0;
-}
-void broker_program_state(int type, int flags, int attr,
-		struct timeval *timestamp) {
-}
-int neb_unload_all_modules(int flags, int reason) {
-	return 0;
-}
-int neb_add_module(char *filename, char *args, int should_be_loaded) {
-	return 0;
-}
-void broker_system_command(int type, int flags, int attr,
-		struct timeval start_time, struct timeval end_time, double exectime,
-		int timeout, int early_timeout, int retcode, char *cmd, char *output,
-		struct timeval *timestamp) {
-}
-
-timed_event *schedule_new_event(int event_type, int high_priority,
-		time_t run_time, int recurring, unsigned long event_interval,
-		void *timing_func, int compensate_for_time_change, void *event_data,
-		void *event_args, int event_options) {
-	return NULL ;
-}
-int my_tcp_connect(char *host_name, int port, int *sd, int timeout) {
-	return 0;
-}
-int my_recvall(int s, char *buf, int *len, int timeout) {
-	return 0;
-}
-int neb_free_module_list(void) {
-	return 0;
-}
-int close_command_file(void) {
-	return 0;
-}
-int close_log_file(void) {
-	return 0;
-}
-int fix_log_file_owner(uid_t uid, gid_t gid) {
-	return 0;
-}
-int handle_async_service_check_result(service *temp_service,
-		check_result *queued_check_result) {
-	return 0;
-}
-int handle_async_host_check_result(host *temp_host,
-		check_result *queued_check_result) {
-	return 0;
-}
+#include "stub_perfdata.c"
+#include "stub_downtime.c"
+#include "stub_notifications.c"
+#include "stub_logging.c"
+#include "stub_broker.c"
+#include "stub_workers.c"
+#include "stub_events.c"
+#include "stub_statusdata.c"
+#include "stub_flapping.c"
+#include "stub_nebmods.c"
+#include "stub_netutils.c"
+#include "stub_commands.c"
 
 /*****************************************************************************/
 /*                             Local test environment                        */

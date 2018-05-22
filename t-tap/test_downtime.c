@@ -21,16 +21,27 @@
 #include "common.h"
 #include "nagios.h"
 #include "downtime.h"
-#include "stub_broker.c"
+#include "perfdata.h"
+#include "comments.h"
+#include "statusdata.h"
+#include "macros.h"
+#include "broker.h"
+#include "../lib/lnag-utils.h"
+
+#include "stub_sehandlers.c"
 #include "stub_comments.c"
-#include "stub_statusdata.c"
+#include "stub_perfdata.c"
 #include "stub_notifications.c"
-#include "stub_events.c"
 #include "stub_logging.c"
+#include "stub_broker.c"
+#include "stub_workers.c"
+#include "stub_events.c"
+#include "stub_statusdata.c"
+#include "stub_flapping.c"
 #include "stub_nebmods.c"
 #include "stub_netutils.c"
 #include "stub_commands.c"
-#include "stub_checks.c"
+
 #include "tap.h"
 
 timed_event *event_list_high = NULL;
@@ -107,7 +118,7 @@ main(int argc, char **argv) {
 	ok(i == 1, "Deleted 1 by unique comment: %d", i);
 
 	for(temp_downtime = scheduled_downtime_list, i = 0; temp_downtime != NULL; temp_downtime = temp_downtime->next, i++) {
-		printf("# downtime id: %d\n", temp_downtime->downtime_id);
+		printf("# downtime id: %lu\n", temp_downtime->downtime_id);
 		}
 	ok(i == 3, "Got 3 downtimes left: %d", i);
 
@@ -166,7 +177,7 @@ main(int argc, char **argv) {
 	ok(i == 0, "Deleted 0") || diag("Actually deleted: %d", i);
 
 	for(temp_downtime = scheduled_downtime_list, i = 0; temp_downtime != NULL; temp_downtime = temp_downtime->next, i++) {
-		printf("# downtime id: %d\n", temp_downtime->downtime_id);
+		printf("# downtime id: %lu\n", temp_downtime->downtime_id);
 		}
 	ok(i == 4, "Got 4 downtimes left: %d", i);
 

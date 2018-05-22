@@ -18,6 +18,7 @@
 
 #define TEST_CHECKS_C
 #define NSCORE 1
+
 #include "config.h"
 #include "comments.h"
 #include "common.h"
@@ -28,7 +29,9 @@
 #include "broker.h"
 #include "perfdata.h"
 #include "../lib/lnag-utils.h"
+
 #include "tap.h"
+
 #include "stub_sehandlers.c"
 #include "stub_comments.c"
 #include "stub_perfdata.c"

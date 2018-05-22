@@ -21,6 +21,7 @@ TESTS += test_downtime
 TESTS += test_nagios_config
 TESTS += test_timeperiods
 TESTS += test_macros
+TESTS = test_checks test_logging test_events test_downtime test_macros
 
 XSD_OBJS = $(SRC_CGI)/statusdata-cgi.o $(SRC_CGI)/xstatusdata-cgi.o
 XSD_OBJS += $(SRC_CGI)/objects-cgi.o $(SRC_CGI)/xobjects-cgi.o
@@ -86,7 +87,7 @@ test_checks: test_checks.o $(SRC_BASE)/checks.o $(TAPOBJ) $(SRC_BASE)/utils.o $(
 test_commands: test_commands.o $(SRC_COMMON)/shared.o $(TAPOBJ)
 	$(CC) $(CFLAGS) -o $@ $^ $(LIBS)
 
-test_downtime: test_downtime.o $(SRC_BASE)/downtime-base.o $(SRC_BASE)/utils.o $(SRC_COMMON)/shared.o $(SRC_BASE)/config.o $(SRC_BASE)/objects-base.o $(SRC_BASE)/macros-base.o $(SRC_XDATA)/xodtemplate.o $(TAPOBJ)
+test_downtime: test_downtime.o $(SRC_BASE)/downtime-base.o $(SRC_BASE)/utils.o $(SRC_COMMON)/shared.o $(SRC_BASE)/checks.o $(SRC_BASE)/config.o $(SRC_BASE)/objects-base.o $(SRC_BASE)/macros-base.o $(SRC_XDATA)/xodtemplate.o $(TAPOBJ)
 	$(CC) $(CFLAGS) -o $@ $^ $(LIBS) $(MATHLIBS)
 
 test_freshness: test_freshness.o $(SRC_BASE)/freshness.o $(TAPOBJ)
@@ -99,7 +100,7 @@ test_timeperiods: test_timeperiods.o $(TP_OBJS) $(TAPOBJ)
 	$(CC) $(CFLAGS) -o $@ $^ $(BROKER_LDFLAGS) $(LDFLAGS) $(MATHLIBS) $(SOCKETLIBS) $(BROKERLIBS) $(LIBS)
 
 test_macros: test_macros.o $(TP_OBJS) $(TAPOBJ)
-	$(CC) $(CFLAGS) -o $@ $^ $(BROKER_LDFLAGS) $(LDFLAGS) $(MATHLIBS) $(SOCKETLIBS) $(LIBS)
+	$(CC) $(CFLAGS) -o $@ $^ $(SRC_BASE)/checks.o $(BROKER_LDFLAGS) $(LDFLAGS) $(MATHLIBS) $(SOCKETLIBS) $(LIBS)
 
 test_xsddefault: test_xsddefault.o $(XSD_OBJS) $(TAPOBJ)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)

@@ -3342,20 +3342,29 @@ int parse_check_output(char *buf, char **short_output, char **long_output, char 
 		if (current_line == 1) {
 
 			/* Get the short plugin output. If buf[0] is '|', strtok() will
-			 * return buf+1 or NULL if buf[1] is '\0'. We use my_strtok()
+			 * return buf+1 or NULL if buf[1] is '\0'. We use my_strtok_with_free()
 			 * instead which returns a pointer to '\0' in this case. */
-			if ((ptr = my_strtok(buf, "|"))) {
+			ptr =  my_strtok_with_free(buf, "|", FALSE);
+			if (ptr != NULL) {
+
 				if (short_output) {
-					strip(ptr); /* Remove leading and trailing whitespace. */
+
+					/* Remove leading and trailing whitespace. */
+					strip(ptr);
 					*short_output = strdup(ptr);
 				}
 
 				/* Get the optional perf data. */
-				if ((ptr = my_strtok(NULL, "\n"))) {
+				ptr = my_strtok_with_free(NULL, "\n", FALSE);
+				if (ptr != NULL) {
 					dbuf_strcat(&perf_text, ptr);
 				}
+
+				/* free anything we've allocated */
+				my_strtok_with_free(NULL, NULL, TRUE);
 			}
 		}
+
 		/* Additional lines contain long plugin output and optional perf data.
 		 * Once we've hit perf data, the rest of the output is perf data. */
 		else if (in_perf_data) {
@@ -3364,11 +3373,13 @@ int parse_check_output(char *buf, char **short_output, char **long_output, char 
 			}
 			dbuf_strcat(&perf_text, buf);
 		}
+
 		/* Look for the perf data separator. */
 		else if (strchr(buf, '|')) {
 			in_perf_data = TRUE;
 
-			if ((ptr = my_strtok(buf, "|"))) {
+			ptr = my_strtok_with_free(buf, "|", FALSE);
+			if (ptr != NULL) {
 
 				/* Get the remaining long plugin output. */
 				if (current_line > 2) {
@@ -3377,14 +3388,19 @@ int parse_check_output(char *buf, char **short_output, char **long_output, char 
 				dbuf_strcat(&long_text, ptr);
 
 				/* Get the perf data. */
-				if ((ptr = my_strtok(NULL, "\n"))) {
+				ptr = my_strtok_with_free(NULL, "\n", FALSE);
+				if (ptr != NULL) {
 					if (perf_text.buf && *perf_text.buf) {
 						dbuf_strcat(&perf_text, " ");
 					}
 					dbuf_strcat(&perf_text, ptr);
 				}
+
+				/* free anything we've allocated */
+				my_strtok_with_free(NULL, NULL, TRUE);
 			}
 		}
+
 		/* Otherwise it's still just long output. */
 		else {
 			if (current_line > 2) {
@@ -3397,11 +3413,14 @@ int parse_check_output(char *buf, char **short_output, char **long_output, char 
 		 * memory reference on our next iteration or we are at the end of input
 		 * (eof == TRUE) and *(buf+x+1) will never be referenced. */
 		buf += x + 1;
-		x = -1; /* x will be incremented to 0 by the loop update. */
+
+		/* x will be incremented to 0 by the loop update. */
+		x = -1;
 	}
 
 	/* Save long output. */
 	if (long_output && long_text.buf && *long_text.buf) {
+
 		/* Escape newlines (and backslashes) in long output if requested. */
 		if (escape_newlines_please) {
 			*long_output = escape_newlines(long_text.buf);
@@ -3413,7 +3432,9 @@ int parse_check_output(char *buf, char **short_output, char **long_output, char 
 
 	/* Save perf data. */
 	if (perf_data && perf_text.buf && *perf_text.buf) {
-		strip(perf_text.buf); /* Remove leading and trailing whitespace. */
+
+		/* Remove leading and trailing whitespace. */
+		strip(perf_text.buf); 
 		*perf_data = strdup(perf_text.buf);
 	}
 

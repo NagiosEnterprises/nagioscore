@@ -932,7 +932,7 @@ static inline void service_state_or_hard_state_type_change(service * svc, int st
 	}
 }
 /*****************************************************************************/
-static inline void host_state_or_hard_state_type_change(host * hst, int state_change, int hard_state_change, int * log_event, int * handle_event)
+static inline void host_state_or_hard_state_type_change(host * hst, int state_change, int hard_state_change, int * log_event, int * handle_event, int * send_notification)
 {
 	int state_or_type_change = FALSE;
 
@@ -980,6 +980,11 @@ static inline void host_state_or_hard_state_type_change(host * hst, int state_ch
 		hst->state_type = HARD_STATE;
 
 		state_or_type_change = TRUE;
+
+		/* this is in the host func, but not the service
+		   because it can easily be missed if a passive check
+		   comes in and passive_host_checks_are_soft == FALSE */
+		*send_notification = TRUE;
 	}
 
 	if (state_or_type_change) {
@@ -2305,12 +2310,11 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 		log_debug_info(DEBUGL_CHECKS, 2, "Host had a HARD STATE CHANGE!!\n");
 
 		hard_state_change = TRUE;
-
 		send_notification = TRUE;
 	}
 
 	/* handle some acknowledgement things and update last_state_change */
-	host_state_or_hard_state_type_change(hst, state_change, hard_state_change, &log_event, &handle_event);
+	host_state_or_hard_state_type_change(hst, state_change, hard_state_change, &log_event, &handle_event, &send_notification);
 
 	record_last_host_state_ended(hst);
 

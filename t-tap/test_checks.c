@@ -904,6 +904,8 @@ void run_active_host_tests()
 
     ok(hst1->current_state == HOST_UP,
         "Warning state is UP with no use_aggressive_host_checking");
+    ok(hst1->state_type == HARD_STATE,
+        "Still hard up");
     test_hst_handler_notification_logging(25, EXPECT_NOTHING );
 
 
@@ -911,6 +913,7 @@ void run_active_host_tests()
     /* now with aggressive enabled */
     create_check_result(check_type, STATE_WARNING, "host warning");
     use_aggressive_host_checking = TRUE;
+    tmp = hst1->current_event_id;
 
     handle_hst1();
 
@@ -919,6 +922,8 @@ void run_active_host_tests()
         "Warning state is DOWN with aggressive host checking");
     ok(hst1->current_attempt == 1,
         "Expecting current attempt %d, got %d", 1, hst1->current_attempt);
+    ok(hst1->current_event_id > tmp,
+        "Got new event id new: %d, old: %d", hst1->current_event_id, tmp);
     test_hst_handler_notification_logging(26, EVENT_HANDLED | LOGGED );
 
 
@@ -959,6 +964,7 @@ void run_active_host_tests()
 
     /* host down (should STILL be hard) */
     create_check_result(check_type, STATE_CRITICAL, "host down");
+    hst1->acknowledgement_type = ACKNOWLEDGEMENT_NORMAL;
     chk_result->start_time.tv_sec = ORIG_START_TIME + 60L;
     chk_result->finish_time.tv_sec = ORIG_FINISH_TIME + 60L;
 
@@ -968,6 +974,8 @@ void run_active_host_tests()
         "Host state is DOWN");
     ok(hst1->state_type == HARD_STATE,
         "Host state type is hard");
+    ok(hst1->acknowledgement_type == ACKNOWLEDGEMENT_NORMAL, 
+        "Ack left");
     ok(hst1->current_attempt == 3,
         "Expecting current attempt %d, got %d", 3, hst1->current_attempt);
     ok(hst1->last_hard_state_change == (time_t) (ORIG_START_TIME + 40L),
@@ -979,6 +987,8 @@ void run_active_host_tests()
     /* lets test unreachability */
     setup_parents();
     create_check_result(check_type, STATE_CRITICAL, "host down");
+    chk_result->start_time.tv_sec = ORIG_START_TIME + 80L;
+    chk_result->finish_time.tv_sec = ORIG_FINISH_TIME + 80L;
 
     handle_hst1();
 
@@ -988,15 +998,177 @@ void run_active_host_tests()
         "Host state type is hard");
     ok(hst1->current_attempt == 3,
         "Expecting current attempt %d, got %d", 3, hst1->current_attempt);
-    ok(hst1->last_hard_state_change == (time_t) (ORIG_START_TIME + 40L),
-        "Expected last_hard_state_change time %lu, got %lu", (time_t) (ORIG_START_TIME + 40L), hst1->last_hard_state_change);
+    ok(hst1->last_hard_state_change == (time_t) (ORIG_START_TIME + 80L),
+        "Expected last_hard_state_change time %lu, got %lu", (time_t) (ORIG_START_TIME + 80L), hst1->last_hard_state_change);
     test_hst_handler_notification_logging(30, EVENT_HANDLED | NOTIFIED | LOGGED );
+
+
+
+    /* hard recovery */
+    create_check_result(check_type, STATE_OK, "host up");
+    tmp = hst1->current_event_id;
+    chk_result->start_time.tv_sec = ORIG_START_TIME + 90L;
+    chk_result->finish_time.tv_sec = ORIG_FINISH_TIME + 90L;
+    hst1->acknowledgement_type = ACKNOWLEDGEMENT_STICKY;
+    hst1->last_notification = (time_t) ORIG_START_TIME + 80L;
+    hst1->no_more_notifications = TRUE;
+    hst1->acknowledgement_type = ACKNOWLEDGEMENT_STICKY;
+
+    handle_hst1();
+
+    ok(hst1->current_problem_id == 0,
+        "Reset problem id %d", hst1->current_problem_id);
+    ok(hst1->current_event_id > tmp,
+        "Got new event id new: %d, old: %d", hst1->current_event_id, tmp);
+    ok(hst1->no_more_notifications == FALSE,
+        "Reset no more notifications");
+    ok(hst1->acknowledgement_type == ACKNOWLEDGEMENT_NONE,
+        "Reset ack");
+    ok(hst1->last_notification == (time_t) 0L,
+        "Reset last notification");
+    ok(hst1->current_state == HOST_UP,
+        "Host is up");
+    ok(hst1->last_state_change == (time_t) ORIG_START_TIME + 90L,
+        "Expected last_state_change time %lu, got %lu", (time_t) (ORIG_START_TIME + 90L), hst1->last_state_change);
+    ok(hst1->last_hard_state_change == (time_t) (ORIG_START_TIME + 90L),
+        "Expected last_hard_state_change time %lu, got %lu", (time_t) (ORIG_START_TIME + 90L), hst1->last_hard_state_change);
+    ok(hst1->last_hard_state == HOST_UP,
+        "Host last hard state was ok");
+    ok(hst1->last_state == STATE_CRITICAL,
+        "Host last state was down (critical)");
+    ok(hst1->state_type == HARD_STATE,
+        "Host is hard state");
+    ok(hst1->current_attempt == 1,
+        "Expecting current attempt %d, got %d",1, hst1->current_attempt);
+    test_hst_handler_notification_logging(31, EVENT_HANDLED | NOTIFIED | LOGGED );
+
 
     free_all();
 }
 
 void run_passive_host_tests()
 {
+    int tmp1 = 0;
+    int tmp2 = 0;
+    int check_type = CHECK_TYPE_PASSIVE;
+
+    /******************************************
+     PASSIVE HOST CHECK TESTING
+    ******************************************/
+    /*
+        Host up -> up
+    */
+    create_objects(HOST_UP, HARD_STATE, "host up", NO_SERVICE);
+    create_check_result(check_type, HOST_UP, "host up");
+    hst1->last_state_change = (time_t) ORIG_START_TIME - 10L;
+
+    /* this makes passive checks act just like regular checks */
+    passive_host_checks_are_soft = TRUE;
+
+test_check_debugging=TRUE;
+    handle_hst1();
+    
+    ok(hst1->current_state == HOST_UP,
+        "Host is up");
+    ok(hst1->state_type == HARD_STATE,
+        "Host is hard state");
+    ok(hst1->current_attempt == 1,
+        "Expecting current attempt %d, got %d",1, hst1->current_attempt);
+    ok(hst1->last_state_change == (time_t) ORIG_START_TIME,
+        "Expected last_state_change time %lu, got %lu", (time_t) ORIG_START_TIME, hst1->last_state_change);
+    ok(hst1->last_hard_state_change == (time_t) ORIG_START_TIME,
+        "Expected last_hard_state_change time %lu, got %lu", (time_t) ORIG_START_TIME, hst1->last_hard_state_change);
+    test_hst_handler_notification_logging(32, EVENT_HANDLED | NOTIFIED | LOGGED );
+
+    /* send in a weird return code */
+    create_check_result(check_type, 42, "host is right about everything");
+    chk_result->start_time.tv_sec = (time_t) ORIG_START_TIME + 10L;
+    chk_result->finish_time.tv_sec = (time_t) ORIG_FINISH_TIME + 10L;
+    hst1->max_attempts = 3;
+    
+    handle_hst1();
+test_check_debugging=FALSE;
+
+    ok(hst1->current_state == 42,
+        "Host is weird (42) (%d)", hst1->current_state);
+    ok(hst1->state_type == HARD_STATE,
+        "Host is hard state");
+    ok(hst1->current_attempt == 1,
+        "Expecting current attempt %d, got %d",1, hst1->current_attempt);
+    ok(hst1->last_state_change == (time_t) (ORIG_START_TIME + 10L),
+        "Expected last_state_change time %lu, got %lu", (time_t) (ORIG_START_TIME + 10L), hst1->last_state_change);
+    ok(hst1->last_hard_state_change == (time_t) (ORIG_START_TIME + 10L),
+        "Expected last_hard_state_change time %lu, got %lu", (time_t) (ORIG_START_TIME + 10L), hst1->last_hard_state_change);
+    test_hst_handler_notification_logging(33, EVENT_HANDLED | NOTIFIED | LOGGED );
+    
+
+    /* send in weird return code again */
+
+    // should be that
+    // should be soft
+    // cur attempt = 2
+    // event handled
+
+    /* send in weird return code again */
+
+    // should be that
+    // should be hard
+    // cur attempt = 3
+    // last hard state = this one
+    // event handled | notified | logged
+
+    /* send in weird return code again */
+
+    // should be that
+    // should be hard
+    // cur attempt = 3
+    // last hard state = last one
+    // notified
+
+    /* hard recovery */
+
+    // should be up
+    // should be hard
+    // cur attempt = 1
+    // last hard state = this one
+    // notified | handled | logged
+
+    /* back to the default */
+    passive_host_checks_are_soft = FALSE;
+
+    /* down */
+
+    // should be down
+    // should be hard
+    // cur attempt = 1
+    // last hard state = this one
+    // notified | handled | logged
+
+    /* down again */
+
+    // should be down
+    // should be hard
+    // cur attempt = 1
+    // ack reset
+    // no more notifications reset
+    // new problem id
+    // new event id
+    // last hard state = this one
+    // notified | handled | logged
+
+    /* lets make it unreachable */
+
+    // should be unreachable
+    // should be hard
+    // cur attempt = 1
+    // ack reset
+    // no more notifications reset
+    // new problem id
+    // new event id
+    // last hard state = this one
+    // notified | handled | logged
+
+
     free_all();
 }
 

@@ -938,6 +938,9 @@ static inline void host_state_or_hard_state_type_change(host * hst, int state_ch
 
 	/* check if we simulate a hard state change */
 	if (hst->check_type == CHECK_TYPE_PASSIVE && passive_host_checks_are_soft == FALSE) {
+
+		log_debug_info(DEBUGL_CHECKS, 2, "Check type passive and passive host checks aren't false\n");
+		
 		hst->current_attempt = 1;
 		hard_state_change = TRUE;
 	}
@@ -2231,6 +2234,7 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 				log_debug_info(DEBUGL_CHECKS, 1, "Host experienced a HARD recovery.\n");
 
 				send_notification = TRUE;
+				hard_state_change = TRUE;
 				
 				hst->current_attempt = 1;
 			}

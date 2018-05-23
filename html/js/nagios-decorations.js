@@ -22,7 +22,7 @@ angular.module("nagiosDecorations", [])
 				updateIntervalValue: "@updateInterval",
 				lastUpdate: "=lastUpdate",
 				initialState: "@initialState",
-				collapsable: "@collapsable",
+				collapsible: "@collapsible",
 				includePartial: "@includePartial"
 			},
 			controller: function($scope, $element, $attrs, $http) {
@@ -30,7 +30,7 @@ angular.module("nagiosDecorations", [])
 				$scope.updateInterval = parseInt($scope.updateIntervalValue);
 				$scope.isPermanentlyCollapsed = $scope.isCollapsed =
 						$scope.initialState == "collapsed";
-				$scope.isCollapsable = $scope.collapsable == "true";
+				$scope.isCollapsable = $scope.collapsible == "true";
 
 				$scope.haveProgramStatus = false;
 

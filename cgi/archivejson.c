@@ -3291,7 +3291,7 @@ int get_initial_downtime_state(au_linked_list *log_entries, time_t start_time,
 				return initial_state;
 				}
 			else {
-				/* If we dont' have a downtime state yet, the first downtime
+				/* If we don't have a downtime state yet, the first downtime
 					state we encounter will be opposite the initial downtime
 					state */
 				if(AU_LOGTYPE_NOTIFICATION == current_log_entry->entry_type) {

@@ -45,7 +45,7 @@ extern const char *nsock_strerror(int code);
  *
  * @param path The path to connect to or create
  * @param flags Various options controlling the mode of the socket
- * @return An NSOCK_E macro on errors, the created socket on succes
+ * @return An NSOCK_E macro on errors, the created socket on success
  */
 extern int nsock_unix(const char *path, unsigned int flags);
 

@@ -1,6 +1,6 @@
 /************************************************************************
  *
- * CONVERTCFG.C - Config File Convertor
+ * CONVERTCFG.C - Config File Converter
  *
  * Copyright (c) 2001-2005 Ethan Galstad (egalstad@nagios.org)
  * Last Modified: 08-12-2005
@@ -310,7 +310,7 @@ int main(int argc, char **argv) {
 				printf("\tretain_status_information\t1\t; Retain status information across program restarts\n");
 				printf("\tretain_nonstatus_information\t1\t; Retain non-status information across program restarts\n");
 				printf("\n");
-				printf("\tregister\t\t\t0\t; DONT REGISTER THIS DEFINITION - ITS NOT A REAL HOST, JUST A TEMPLATE!\n");
+				printf("\tregister\t\t\t0\t; DON'T REGISTER THIS DEFINITION - ITS NOT A REAL HOST, JUST A TEMPLATE!\n");
 				printf("\t}\n\n");
 
 				have_template = 1;
@@ -430,7 +430,7 @@ int main(int argc, char **argv) {
 				printf("\tretain_status_information\t1\t; Retain status information across program restarts\n");
 				printf("\tretain_nonstatus_information\t1\t; Retain non-status information across program restarts\n");
 				printf("\n");
-				printf("\tregister\t\t\t0\t; DONT REGISTER THIS DEFINITION - ITS NOT A REAL SERVICE, JUST A TEMPLATE!\n");
+				printf("\tregister\t\t\t0\t; DON'T REGISTER THIS DEFINITION - ITS NOT A REAL SERVICE, JUST A TEMPLATE!\n");
 				printf("\t}\n\n");
 
 				have_template = 1;

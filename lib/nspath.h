@@ -55,7 +55,7 @@ extern char *nspath_absolute(const char *rel_path, const char *base);
  * errno gets properly set in case of errors.
  * @param rel_path The path to transform
  * @param base The base we should operate relative to
- * @return Newly allocated canonical path on succes, NULL on errors
+ * @return Newly allocated canonical path on success, NULL on errors
  */
 extern char *nspath_real(const char *rel_path, const char *base);
 

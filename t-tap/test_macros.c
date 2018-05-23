@@ -96,6 +96,7 @@ nagios_macros *setup_macro_object(void) {
 		} else { \
 			fail( "process_macros_r returns ERROR for " _STR ); \
 		} \
+		my_free(output); \
 	} while(0)
 
 /*****************************************************************************/
@@ -167,7 +168,8 @@ int main(void) {
 
 	test_escaping(mac);
 
-	cleanup();
+	free_memory(mac);
 	free(mac);
+
 	return exit_status();
 }

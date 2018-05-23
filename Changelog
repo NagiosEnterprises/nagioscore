@@ -32,6 +32,7 @@ FIXES
 * Fixed additive inheritance not testing for duplicates in hosts/services/(+escalations) (#392) (Bryan Heden)
 * Fixed very very (around 600k chars or greater) large plugin output crashing Nagios (#432) (Bryan Heden)
 * Fixed first_notification_delay not beeing calculated from last_hard_state_change (#425) (Christian Zettel)
+* Fixed duplicate downtime ID occuring from downtimes in retention file (#506) (Franz [feisenko])
 
 
 4.3.4 - 2017-08-24

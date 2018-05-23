@@ -150,7 +150,7 @@ static int downtime_add(scheduled_downtime *dt)
 	prev_downtime_id = next_downtime_id;
 	if (!dt->downtime_id) {
 		dt->downtime_id = next_downtime_id++;
-	} else if (dt->downtime_id > next_downtime_id) {
+	} else if (dt->downtime_id >= next_downtime_id) {
 		next_downtime_id = dt->downtime_id + 1;
 	}
 
@@ -1007,7 +1007,7 @@ static unsigned long get_next_downtime_id(void) {
 	unsigned long new_dt_id;
 	for (;;) {
 		new_dt_id = next_downtime_id++;
-		if (!find_downtime(ANY_DOWNTIME, next_downtime_id)) {
+		if (!find_downtime(ANY_DOWNTIME, new_dt_id)) {
 			return new_dt_id;
 			}
 		}

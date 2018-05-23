@@ -96,7 +96,7 @@
 					update-interval="10"
 					last-update="lastUpdate"
 					initial-state="collapsed"
-					collapsable="true"
+					collapsible="true"
 					include-partial="map-links.html">
 			</div>
 		</div>

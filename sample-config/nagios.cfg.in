@@ -881,7 +881,7 @@ process_performance_data=0
 
 
 # HOST AND SERVICE PERFORMANCE DATA PROCESS EMPTY RESULTS
-# These options determine wether the core will process empty perfdata
+# These options determine whether the core will process empty perfdata
 # results or not. This is needed for distributed monitoring, and intentionally
 # turned on by default.
 # If you don't require empty perfdata - saving some cpu cycles

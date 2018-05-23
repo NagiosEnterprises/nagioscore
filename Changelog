@@ -48,7 +48,7 @@ FIXES
 ------------------
 * xodtemplate.c wrong option-deprecation code warning (alex2grad / John Frickson)
 * On-demand host check always use cached host state (John Frickson)
-* 'á' causes Serivce Status Information to not be displayed (John Frickson)
+* 'á' causes Service Status Information to not be displayed (John Frickson)
 * New Macro(s) to generate URL for host / service object (John Frickson)
 * Fix minor map issues (Troy Lea)
 * Fix lockfile issues (Bryan Heden)

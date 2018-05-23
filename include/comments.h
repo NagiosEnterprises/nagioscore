@@ -113,6 +113,6 @@ int add_comment_to_hashlist(struct nagios_comment *);
 
 void free_comment_data(void);                                             /* frees memory allocated to the comment list */
 
-NAGIOS_BEGIN_DECL
+NAGIOS_END_DECL
 
 #endif

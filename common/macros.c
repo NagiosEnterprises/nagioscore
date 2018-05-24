@@ -139,7 +139,8 @@ int process_macros_r(nagios_macros *mac, char *input_buffer, char **output_buffe
 		temp_buffer = buf_ptr;
 
 		/* find the next delimiter - terminate preceding string and advance buffer pointer for next run */
-		if(delim_ptr = strchr(buf_ptr, '$')) {
+		delim_ptr = strchr(buf_ptr, '$');
+		if(delim_ptr != NULL) {
 			delim_ptr[0] = '\x0';
 			buf_ptr = (char *)delim_ptr + 1;
 		}

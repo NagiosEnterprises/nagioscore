@@ -1432,7 +1432,7 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 
 		/* this has to be first so we don't reset every time a new non-ok state comes
 		   in (and triggers the state_change == TRUE) */
-		if (svc->last_state != STATE_OK && svc->current_state != STATE_OK) {
+		if (svc->last_state != STATE_OK && svc->current_state != STATE_OK && svc->current_attempt < svc->max_attempts) {
 
 			svc->current_attempt++;
 		}
@@ -2290,12 +2290,13 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 	/* adjust the current attempt */
 	if (hst->state_type == SOFT_STATE) {
 
-		if (hst->last_state != HOST_UP && hst->current_state != HOST_UP && (hst->current_attempt < hst->max_attempts)) {
+		/* this is an edge case for non-up states, it needs to be checked first */
+		if (hst->last_state != HOST_UP && hst->current_state != HOST_UP && hst->current_attempt < hst->max_attempts) {
 			hst->current_attempt++;
 		}
 
 		/* reset it to 1 */
-		else if (hst->current_state == HOST_UP) {
+		else if (state_change == TRUE || hst->current_state == HOST_UP) {
 			hst->current_attempt = 1;
 		}
 

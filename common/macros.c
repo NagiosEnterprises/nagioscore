@@ -2228,6 +2228,7 @@ int grab_standard_service_macro_r(nagios_macros *mac, int macro_type, service *t
 	switch(macro_type) {
 		case MACRO_SERVICEACTIONURL:
 		case MACRO_SERVICENOTESURL:
+			*free_macro = TRUE;
 			process_macros_r(mac, *output, &temp_buffer, URL_ENCODE_MACRO_CHARS);
 			*output = temp_buffer;
 			break;

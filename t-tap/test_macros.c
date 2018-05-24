@@ -217,6 +217,16 @@ void setup_environment()
         my_free(output);                                                                            \
     } while(0)
 
+#define ALLOC_MACROS(_STR)                                                                          \
+    do {                                                                                            \
+        if (process_macros_r(mac, (_STR), &output, NO_OPTIONS) == OK) {                             \
+            ok(0 == 0, "Called macros (%s) that require allocation (%s)", (_STR), output);          \
+        } else {                                                                                    \
+            fail("process_macros_r returns ERROR for " _STR);                                       \
+        }                                                                                           \
+        my_free(output);                                                                            \
+    } while (0)
+
 void test_escaping(nagios_macros *mac)
 {
     char * output = NULL;
@@ -315,6 +325,30 @@ void test_escaping(nagios_macros *mac)
         "$HOSTGROUPNOTES$ $SERVICEGROUPNOTES$",
         "&&&notes! svcgrp1&notes?!",
         NO_OPTIONS);
+
+    RUN_MACRO_TEST(
+        "$HOSTACTIONURL$ $SERVICEACTIONURL$",
+        "action_url'&% action_url'&%",
+        NO_OPTIONS);
+
+    RUN_MACRO_TEST(
+        "$HOSTGROUPMEMBERS$ $HOSTGROUPMEMBERADDRESSES$",
+        "name'&% address'&%",
+        NO_OPTIONS);
+
+    RUN_MACRO_TEST(
+        "$SERVICEGROUPMEMBERS$",
+        "name'&%,service'&&%",
+        NO_OPTIONS);
+
+    ALLOC_MACROS("$LONGDATETIME$ - $SHORTDATETIME$");
+    ALLOC_MACROS("$DATE$ - $TIME$ - $TIMET$");
+    ALLOC_MACROS("$TOTALHOSTSUP$ - $TOTALHOSTSDOWN$ - $TOTALHOSTSUNREACHABLE$");
+    ALLOC_MACROS("$TOTALHOSTSDOWNUNHANDLED$ - $TOTALHOSTSUNREACHABLEUNHANDLED$ - $TOTALHOSTPROBLEMS$");
+    ALLOC_MACROS("$TOTALHOSTPROBLEMSUNHANDLED$ - $TOTALSERVICESOK$ - $TOTALSERVICESWARNING$");
+    ALLOC_MACROS("$TOTALSERVICESCRITICAL$ - $TOTALSERVICESUNKNOWN$ - $TOTALSERVICESWARNINGUNHANDLED$");
+    ALLOC_MACROS("$TOTALHOSTSDOWNUNHANDLED$ - $TOTALSERVICESUNKNOWNUNHANDLED$ - $TOTALSERVICEPROBLEMS$");
+    ALLOC_MACROS("$TOTALSERVICESCRITICALUNHANDLED$");
 }
 
 /*****************************************************************************/

@@ -41,7 +41,10 @@
 #include "../include/broker.h"
 #include "../include/nebmods.h"
 #include "../include/nebmodules.h"
+
 #include "tap.h"
+#include "stub_perfdata.c"
+#include "stub_workers.c"
 #include "stub_events.c"
 #include "stub_logging.c"
 #include "stub_commands.c"

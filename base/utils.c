@@ -1706,11 +1706,14 @@ void sighandler(int sig) {
 		sigrestart = TRUE;
 
 	else if(sig == SIGCHLD) {
+
 		pid_t child_pid;
 		int status = 0;
-		logit(NSLOG_PROCESS_INFO, FALSE, "Caught SIGCHLD, calling waitpid() with WNOHANG|WUNTRACED\n");
+
+		log_debug_info(DEBUGL_PROCESS, 0, "Caught SIGCHLD, calling waitpid() with WNOHANG|WUNTRACED\n");
+		
 		while ((child_pid = waitpid(-1, &status, WNOHANG|WUNTRACED)) > 0) {
-			logit(NSLOG_PROCESS_INFO, FALSE, " * waitpid() on child_pid = (%d)\n", (int)child_pid);
+			log_debug_info(DEBUGL_PROCESS, 0, " * waitpid() on child_pid = (%d)\n", (int)child_pid);
 		}
 	}
 

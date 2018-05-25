@@ -56,6 +56,7 @@
 #include "stub_flapping.c"
 #include "stub_notifications.c"
 
+int xrddefault_read_state_information(void);
 
 int main(int argc, char **argv) {
 	int result;

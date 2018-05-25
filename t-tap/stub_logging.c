@@ -23,7 +23,7 @@ int log_service_event(service *svc)
 { return OK; }
 
 #ifndef TEST_EVENTS_C
-
+int vasprintf(char **ptr, const char *format, va_list ap);
 int log_debug_info(int level, int verbosity, const char *fmt, ...) 
 {
     va_list ap;

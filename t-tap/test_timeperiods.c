@@ -43,6 +43,8 @@
 #include "../include/nebmodules.h"
 #include "tap.h"
 #include "stub_downtime.c"
+#include "stub_perfdata.c"
+#include "stub_workers.c"
 
 /* Dummy functions */
 void logit(int data_type, int display, const char *fmt, ...) {}

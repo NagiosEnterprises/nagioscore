@@ -21,7 +21,7 @@ TESTS += test_downtime
 TESTS += test_nagios_config
 TESTS += test_timeperiods
 TESTS += test_macros
-TESTS = test_checks test_logging test_events test_downtime test_macros test_nagios_config
+TESTS = test_checks test_logging test_events test_downtime test_macros test_nagios_config test_timeperiods
 
 XSD_OBJS = $(SRC_CGI)/statusdata-cgi.o $(SRC_CGI)/xstatusdata-cgi.o
 XSD_OBJS += $(SRC_CGI)/objects-cgi.o $(SRC_CGI)/xobjects-cgi.o

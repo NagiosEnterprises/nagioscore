@@ -17,7 +17,7 @@ my %cgis = map { ( $_ => 1 ) } grep /\.cgi$/, readdir DIR;
 closedir DIR;
 
 # Remove these two because the output is different
-my @todos = qw(statuswml.cgi statuswrl.cgi);
+my @todos = qw(statuswml.cgi statuswrl.cgi archivejson.cgi statusjson.cgi objectjson.cgi);
 
 TODO: {
 	local $TODO = "Output is different for these CGIs";

@@ -45,7 +45,7 @@
 #include "stub_nsock.c"
 #include "stub_iobroker.c"
 
-int test_event_debugging = TRUE;
+int test_event_debugging = FALSE;
 
 int log_debug_info(int level, int verbosity, const char *fmt, ...)
 {
@@ -58,6 +58,7 @@ int log_debug_info(int level, int verbosity, const char *fmt, ...)
         /* vprintf( fmt, ap ); */
         vasprintf(&buffer, fmt, ap);
 
+        /* if we don't check for the poller debugging it will spam */
         if (strstr(buffer, "## ") != buffer) {
             printf("DEBUG: %s", buffer);            
         }
@@ -84,10 +85,10 @@ int c = 0;
 int update_program_status(int aggregated_dump)
 {
     c++;
-    printf("> In the update_program_status hook: %d\n", c);
+    /* printf("> In the update_program_status hook: %d\n", c); */
 
     /* Set this to break out of event_execution_loop */
-    if(c > 5) {
+    if(c > 10) {
         sigshutdown = TRUE;
         c = 0;
     }
@@ -254,6 +255,8 @@ int main(int argc, char **argv)
     int result = 0;
     time_t now = 0L;
     char * main_config_file = "../t/etc/nagios-test-events.cfg";
+    time_t tmp1 = 0L;
+    time_t tmp2 = 0L;
 
     /* Initialize configuration variables */
     init_main_cfg_vars(1);
@@ -266,7 +269,7 @@ int main(int argc, char **argv)
 
     plan_tests(11);
 
-    interval_length = 2;
+    interval_length = 60;
 
     nagios_squeue = squeue_create(4096);
     ok(nagios_squeue != NULL, "Created nagios squeue");
@@ -278,15 +281,17 @@ int main(int argc, char **argv)
     time(&now);
     setup_events(now);
     setup_svc1_result_events(now);
-    adjust_service_check(svc1, now + 2L);
-    adjust_service_check(svc2, now + 2L);
-    printf("# Running execution loop - may take some time (%ld) (next_check=%ld)...\n", now, svc1->next_check);
+    tmp1 = svc2->next_check;
+
+    printf("# [%ld] Running execution loop - may take some time...\n", now);
     event_execution_loop();
 
     ok(svc1->last_check == now, 
         "svc1 has had its last_check changed (last_check = %ld, now = %ld)", svc1->last_check, now);
     ok((svc2->next_check > (now + NUDGE_MIN)) && (svc2->next_check < (now + NUDGE_MAX)),
-        "svc2 has been nudged (next_check = %ld)", svc2->next_check);
+        "svc2 has been nudged (next_check = %ld, original = %ld)", svc2->next_check, tmp1);
+
+
 
     sigshutdown                      = FALSE;
     currently_running_service_checks = 0;
@@ -294,7 +299,7 @@ int main(int argc, char **argv)
 
     time(&now);
     setup_events(now);
-    printf("# Running execution loop - may take some time...\n");
+    printf("# [%ld] Running execution loop - may take some time...\n", now);
     event_execution_loop();
 
     ok(svc1->next_check == now, 
@@ -312,17 +317,16 @@ int main(int argc, char **argv)
     sigshutdown                      = FALSE;
     currently_running_service_checks = 0;
     max_parallel_service_checks      = 2;
-    svc2->current_state              = STATE_CRITICAL;
 
     time(&now);
     setup_events(now);
-    printf("# Running execution loop - may take some time...\n");
+    svc2->current_state = STATE_CRITICAL;
     event_execution_loop();
 
-    ok(svc1->next_check == now + 300, 
-        "svc1 rescheduled ahead - normal interval (next_check = %ld)", svc1->next_check);
-    ok(svc2->next_check == now + 60, 
-        "svc2 rescheduled ahead - retry interval (next_check = %ld)", svc2->next_check);
+    ok(svc1->next_check == (now + 300), 
+        "svc1 rescheduled ahead - normal interval (next_check = %ld, now/diff = %ld)", svc1->next_check, (now - svc1->next_check));
+    ok(svc2->next_check == (now + 60), 
+        "svc2 rescheduled ahead - retry interval (next_check = %ld, now/diff = %ld)", svc2->next_check, (now - svc2->next_check));
 
 
 
@@ -341,17 +345,17 @@ int main(int argc, char **argv)
 
     time(&now);
     setup_events_with_host(now);
-    printf("# Running execution loop - may take some time...\n");
+    printf("# [%ld] Running execution loop - may take some time...\n", now);
     event_execution_loop();
 
-    ok(host1->last_check - now <= 2,
+    ok((host1->last_check - now) <= 2,
         "host1 was checked (within 2 seconds tolerance) (%ld)", (host1->last_check - now));
     ok(svc3->last_check == 0, 
         "svc3 was skipped (next_check = %ld)", svc3->last_check);
     ok(host1->next_check == now, 
-        "host1 rescheduled ahead - normal interval (next_check = %ld)", (host1->next_check - now));
-    ok(svc3->next_check == now + 300, 
-        "svc3 rescheduled ahead - normal interval (next_check = %ld)", svc3->next_check);
+        "host1 rescheduled ahead - normal interval (next_check = %ld)", host1->next_check);
+    ok(svc3->next_check == (now + 300), 
+        "svc3 rescheduled ahead - normal interval (next_check = %ld, now/diff = %ld)", svc3->next_check, (now - svc3->next_check));
 
     return exit_status();
 }

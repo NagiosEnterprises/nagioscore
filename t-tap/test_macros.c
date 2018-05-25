@@ -357,7 +357,7 @@ void test_escaping(nagios_macros *mac)
 
 int main(void) {
 
-    //plan_tests(9);
+    plan_tests(23);
 
     reset_variables();
     setup_environment();

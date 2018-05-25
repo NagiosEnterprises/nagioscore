@@ -16,6 +16,5 @@ addons:
       - unzip
 
 script:
-  - ./configure --with-nagios-user=$USER --with-nagios-group=$USER --with-command-group=$USER
-  - make all
-  - sudo make install
+  - ./configure --enable-testing
+  - make test

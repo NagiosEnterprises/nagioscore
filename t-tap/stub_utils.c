@@ -9,3 +9,6 @@ int check_time_against_period(time_t test_time, timeperiod *tperiod)
 
 void free_memory(nagios_macros *mac) 
 { }
+
+char * unescape_check_result_output(const char *rawbuf)
+{ return strdup(rawbuf); }

@@ -39,3 +39,6 @@ void broker_comment_data(int type, int flags, int attr, int comment_type, int en
 
 void broker_timed_event(int type, int flags, int attr, timed_event *event, struct timeval *timestamp) 
 { }
+
+void broker_flapping_data(int type, int flags, int attr, int flapping_type, void *data, double percent_change, double high_threshold, double low_threshold, struct timeval *timestamp)
+{ }

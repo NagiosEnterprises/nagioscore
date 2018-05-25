@@ -16,7 +16,9 @@ addons:
       - unzip
       - lcov
       - gperf
+      - gcovr
 
 script:
   - ./configure --enable-testing
   - make test
+  - gcovr -r .

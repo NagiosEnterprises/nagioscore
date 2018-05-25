@@ -22,6 +22,8 @@ int log_host_event(host *hst)
 int log_service_event(service *svc) 
 { return OK; }
 
+#ifndef TEST_EVENTS_C
+
 int log_debug_info(int level, int verbosity, const char *fmt, ...) 
 {
     va_list ap;
@@ -55,5 +57,7 @@ int log_debug_info(int level, int verbosity, const char *fmt, ...)
     free(buffer);
     va_end(ap);
 }
+
+#endif
 
 #endif

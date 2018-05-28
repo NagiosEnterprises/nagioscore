@@ -132,8 +132,8 @@ check_config ()
 
 status_nagios ()
 {
-	if test -x $NagiosCGI/daemonchk.cgi; then
-		if $NagiosCGI/daemonchk.cgi -l $NagiosRunFile > /dev/null 2>&1; then return 0; fi
+	if test -x $NagiosCGIDir/daemonchk.cgi; then
+		if $NagiosCGIDir/daemonchk.cgi -l $NagiosRunFile > /dev/null 2>&1; then return 0; fi
 	else
 		if ps -p $NagiosPID > /dev/null 2>&1; then return 0; fi
 	fi

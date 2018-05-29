@@ -285,11 +285,11 @@ void create_objects(int host_state, int host_state_type, char * host_output, int
     hst1->last_check                 = (time_t) 0L;
     hst1->next_check                 = (time_t) 0L;
     hst1->should_be_scheduled        = TRUE;
-    hst1->last_hard_state            = HOST_UP;
+    hst1->last_hard_state            = STATE_UP;
     hst1->notifications_enabled      = TRUE;
     hst1->event_handler_enabled      = TRUE;
     hst1->accept_passive_checks      = TRUE;
-    hst1->initial_state              = HOST_UP;
+    hst1->initial_state              = STATE_UP;
     hst1->accept_passive_checks      = TRUE;
 
     if (service_output != NULL) {
@@ -346,7 +346,7 @@ void setup_parent(host ** parent, const char * host_name)
     (*parent)->max_attempts     = 4;
     (*parent)->check_options    = CHECK_OPTION_NONE;
     (*parent)->has_been_checked = TRUE;
-    (*parent)->current_state    = HOST_DOWN;
+    (*parent)->current_state    = STATE_DOWN;
 
 }
 
@@ -463,7 +463,7 @@ void run_service_tests(int check_type)
     /*
         Host down/hard, Service crit/soft -> warn
     */
-    create_objects(HOST_DOWN, HARD_STATE, "host down", STATE_CRITICAL, SOFT_STATE, "service critical");
+    create_objects(STATE_DOWN, HARD_STATE, "host down", STATE_CRITICAL, SOFT_STATE, "service critical");
     create_check_result(check_type, STATE_WARNING, "service warning");
 
     svc1->last_notification             = (time_t) 11111L;
@@ -495,7 +495,7 @@ void run_service_tests(int check_type)
     /*
         Host down/hard, Service ok/hard -> crit
     */
-    create_objects(HOST_DOWN, HARD_STATE, "host down", STATE_OK, HARD_STATE, "service ok");
+    create_objects(STATE_DOWN, HARD_STATE, "host down", STATE_OK, HARD_STATE, "service ok");
     create_check_result(check_type, STATE_CRITICAL, "service critical");
 
     handle_svc1();
@@ -519,7 +519,7 @@ void run_service_tests(int check_type)
     /*
         Host up/hard, Service ok/soft -> warn
     */
-    create_objects(HOST_UP, HARD_STATE, "host up", STATE_OK, SOFT_STATE, "service ok");
+    create_objects(STATE_UP, HARD_STATE, "host up", STATE_OK, SOFT_STATE, "service ok");
     create_check_result(check_type, STATE_WARNING, "service warning");
 
     handle_svc1();
@@ -730,7 +730,7 @@ void run_service_tests(int check_type)
     /*
         Host up/hard, Service warn/soft -> critical
     */
-    create_objects(HOST_UP, HARD_STATE, "host up", STATE_WARNING, SOFT_STATE, "service warning");
+    create_objects(STATE_UP, HARD_STATE, "host up", STATE_WARNING, SOFT_STATE, "service warning");
     create_check_result(check_type, STATE_CRITICAL, "service critical");
     svc1->last_state_change = ORIG_START_TIME + 20L;
     svc1->acknowledgement_type = ACKNOWLEDGEMENT_NORMAL;
@@ -867,7 +867,7 @@ void run_active_host_tests()
     /*
         Test up -> up to make sure no weird log/notify/event
     */
-    create_objects(HOST_UP, HARD_STATE, "host up", NO_SERVICE);
+    create_objects(STATE_UP, HARD_STATE, "host up", NO_SERVICE);
     create_check_result(check_type, STATE_OK, "host up");
 
     handle_hst1();
@@ -898,14 +898,14 @@ void run_active_host_tests()
     /*
         Test that warning state checks keep the host up unless aggressive checking
     */
-    create_objects(HOST_UP, HARD_STATE, "host up", NO_SERVICE);
+    create_objects(STATE_UP, HARD_STATE, "host up", NO_SERVICE);
     create_check_result(check_type, STATE_WARNING, "host warning");
     use_aggressive_host_checking = FALSE;
     hst1->max_attempts = 3;
 
     handle_hst1();
 
-    ok(hst1->current_state == HOST_UP,
+    ok(hst1->current_state == STATE_UP,
         "Warning state is UP with no use_aggressive_host_checking");
     ok(hst1->state_type == HARD_STATE,
         "Still hard up");
@@ -921,7 +921,7 @@ void run_active_host_tests()
     handle_hst1();
 
     use_aggressive_host_checking = FALSE;
-    ok(hst1->current_state == HOST_DOWN,
+    ok(hst1->current_state == STATE_DOWN,
         "Warning state is DOWN with aggressive host checking");
     ok(hst1->current_attempt == 1,
         "Expecting current attempt %d, got %d", 1, hst1->current_attempt);
@@ -936,7 +936,7 @@ void run_active_host_tests()
 
     handle_hst1();
 
-    ok(hst1->current_state == HOST_DOWN,
+    ok(hst1->current_state == STATE_DOWN,
         "Host state is DOWN");
     ok(hst1->state_type == SOFT_STATE,
         "Host state type is soft");
@@ -953,7 +953,7 @@ void run_active_host_tests()
 
     handle_hst1();
 
-    ok(hst1->current_state == HOST_DOWN,
+    ok(hst1->current_state == STATE_DOWN,
         "Host state is DOWN");
     ok(hst1->state_type == HARD_STATE,
         "Host state type is hard");
@@ -973,7 +973,7 @@ void run_active_host_tests()
 
     handle_hst1();
 
-    ok(hst1->current_state == HOST_DOWN,
+    ok(hst1->current_state == STATE_DOWN,
         "Host state is DOWN");
     ok(hst1->state_type == HARD_STATE,
         "Host state type is hard");
@@ -995,7 +995,7 @@ void run_active_host_tests()
 
     handle_hst1();
 
-    ok(hst1->current_state == HOST_UNREACHABLE,
+    ok(hst1->current_state == STATE_UNREACHABLE,
         "Host state is UNREACHABLE");
     ok(hst1->state_type == HARD_STATE,
         "Host state type is hard");
@@ -1028,13 +1028,13 @@ void run_active_host_tests()
         "Reset ack");
     ok(hst1->last_notification == (time_t) 0L,
         "Reset last notification");
-    ok(hst1->current_state == HOST_UP,
+    ok(hst1->current_state == STATE_UP,
         "Host is up");
     ok(hst1->last_state_change == (time_t) ORIG_START_TIME + 90L,
         "Expected last_state_change time %lu, got %lu", (time_t) (ORIG_START_TIME + 90L), hst1->last_state_change);
     ok(hst1->last_hard_state_change == (time_t) (ORIG_START_TIME + 90L),
         "Expected last_hard_state_change time %lu, got %lu", (time_t) (ORIG_START_TIME + 90L), hst1->last_hard_state_change);
-    ok(hst1->last_hard_state == HOST_UP,
+    ok(hst1->last_hard_state == STATE_UP,
         "Host last hard state was ok");
     ok(hst1->last_state == STATE_CRITICAL,
         "Host last state was down (critical)");
@@ -1060,8 +1060,8 @@ void run_passive_host_tests()
     /*
         Host up -> up
     */
-    create_objects(HOST_UP, HARD_STATE, "host up", NO_SERVICE);
-    create_check_result(check_type, HOST_UP, "host up");
+    create_objects(STATE_UP, HARD_STATE, "host up", NO_SERVICE);
+    create_check_result(check_type, STATE_UP, "host up");
     hst1->max_attempts = 3;
 
     /* this makes passive checks act just like regular checks */
@@ -1069,7 +1069,7 @@ void run_passive_host_tests()
 
     handle_hst1();
     
-    ok(hst1->current_state == HOST_UP,
+    ok(hst1->current_state == STATE_UP,
         "Host is up");
     ok(hst1->state_type == HARD_STATE,
         "Host is hard state");
@@ -1162,13 +1162,13 @@ void run_passive_host_tests()
         "Reset ack");
     ok(hst1->last_notification == (time_t) 0L,
         "Reset last notification");
-    ok(hst1->current_state == HOST_UP,
+    ok(hst1->current_state == STATE_UP,
         "Host is up");
     ok(hst1->last_state_change == (time_t) ORIG_START_TIME + 40L,
         "Expected last_state_change time %lu, got %lu", (time_t) (ORIG_START_TIME + 40L), hst1->last_state_change);
     ok(hst1->last_hard_state_change == (time_t) (ORIG_START_TIME + 40L),
         "Expected last_hard_state_change time %lu, got %lu", (time_t) (ORIG_START_TIME + 40L), hst1->last_hard_state_change);
-    ok(hst1->last_hard_state == HOST_UP,
+    ok(hst1->last_hard_state == STATE_UP,
         "Host last hard state was up");
     ok(hst1->last_state == 42,
         "Host last state was 42");
@@ -1186,7 +1186,7 @@ void run_passive_host_tests()
 
 
     /* down (not critical like before, since now no translation happens) */
-    create_check_result(check_type, HOST_DOWN, "host down");
+    create_check_result(check_type, STATE_DOWN, "host down");
     chk_result->start_time.tv_sec = ORIG_START_TIME + 50L;
     chk_result->finish_time.tv_sec = ORIG_FINISH_TIME + 50L;
     tmp1 = hst1->current_event_id;
@@ -1197,9 +1197,9 @@ void run_passive_host_tests()
         "Non-zero problem id %d", hst1->current_problem_id);
     ok(hst1->current_event_id > tmp1,
         "Got new event id new: %d, old: %d", hst1->current_event_id, tmp1);
-    ok(hst1->current_state == HOST_DOWN,
+    ok(hst1->current_state == STATE_DOWN,
         "Host is down");
-    ok(hst1->last_hard_state == HOST_DOWN,
+    ok(hst1->last_hard_state == STATE_DOWN,
         "Host last hard state was down");
     ok(hst1->last_state_change == (time_t) ORIG_START_TIME + 50L,
         "Expected last_state_change time %lu, got %lu", (time_t) (ORIG_START_TIME + 50L), hst1->last_state_change);
@@ -1212,7 +1212,7 @@ void run_passive_host_tests()
 
 
     /* down again */
-    create_check_result(check_type, HOST_DOWN, "host down");
+    create_check_result(check_type, STATE_DOWN, "host down");
     hst1->acknowledgement_type = ACKNOWLEDGEMENT_NORMAL;
     hst1->no_more_notifications = TRUE;
     hst1->last_notification = (time_t) 11111L;
@@ -1227,9 +1227,9 @@ void run_passive_host_tests()
         "Got same problem id new: %d, old: %d", hst1->current_problem_id, tmp2);
     ok(hst1->current_event_id == tmp1,
         "Got same event id new: %d, old: %d", hst1->current_event_id, tmp1);
-    ok(hst1->current_state == HOST_DOWN,
+    ok(hst1->current_state == STATE_DOWN,
         "Host is down");
-    ok(hst1->last_hard_state == HOST_DOWN,
+    ok(hst1->last_hard_state == STATE_DOWN,
         "Host last hard state was down");
     ok(hst1->no_more_notifications == FALSE,
         "Reset no more notifications");
@@ -1246,7 +1246,220 @@ void run_passive_host_tests()
     test_hst_handler_notification_logging(39, EVENT_HANDLED | NOTIFIED | LOGGED );
 
 
+
+    /* soft recovery */
+    create_check_result(check_type, STATE_UP, "host up");
+    passive_host_checks_are_soft = TRUE;
+    hst1->checks_enabled = TRUE;
+    hst1->current_attempt = 1;
+    hst1->current_state = STATE_DOWN;
+    hst1->state_type = SOFT_STATE;
+
+    handle_hst1();
+
+    test_hst_handler_notification_logging(40, EVENT_HANDLED | LOGGED );
+
     free_all();
+}
+
+void run_misc_host_check_tests()
+{
+    time_t now = 0L;
+    int result = 0;
+    int tmp1 = 0;
+    int check_type = CHECK_TYPE_ACTIVE;
+
+    time(&now);
+
+    ok(handle_async_host_check_result(NULL, NULL) == ERROR,
+        "handle check result is ERROR when objects are null");
+    ok(run_async_host_check(NULL, 0, 0, 0, 0, &tmp1, &now) == ERROR,
+        "run host check is ERROR when object is null");
+
+    ok(get_host_check_return_code(NULL, NULL) == STATE_UNREACHABLE,
+        "host check return code is STATE_UNREACHABLE when objects are null");
+    ok(get_service_check_return_code(NULL, NULL) == STATE_UNKNOWN,
+        "service check return code is STATE_UNKNOWN when objects are null");
+
+
+    /*
+        most of the rest of these checks
+        just test for a bunch of specific scenarios
+        this is the beauty of coverage reporting!
+    */
+    create_objects(STATE_UP, HARD_STATE, "host up", STATE_OK, HARD_STATE, "service up");
+    create_check_result(check_type, STATE_DOWN, "host down");
+    chk_result->early_timeout = TRUE;
+    chk_result->latency             = 42;
+    chk_result->start_time.tv_sec          = now;
+    chk_result->finish_time.tv_sec         = now + 42L;
+
+    handle_hst1();
+
+    ok(strstr(hst1->plugin_output, "after 42.00 seconds") != NULL,
+        "found appropriate early timeout message, [%s]", hst1->plugin_output);
+
+    create_check_result(check_type, STATE_DOWN, "host down");
+    chk_result->exited_ok = FALSE;
+
+    handle_hst1();
+
+    ok(strstr(hst1->plugin_output, "did not exit properly") != NULL,
+        "found appropriate exited ok message, [%s]", hst1->plugin_output);
+
+    create_check_result(check_type, 126, "host down");
+
+    handle_hst1();
+
+    ok(strstr(hst1->plugin_output, "126 is out of bounds") != NULL,
+        "found appropriate non executable message, [%s]", hst1->plugin_output);
+
+    create_check_result(check_type, 127, "host down");
+
+    handle_hst1();
+
+    ok(strstr(hst1->plugin_output, "127 is out of bounds") != NULL,
+        "found appropriate non existent message, [%s]", hst1->plugin_output);
+
+    create_check_result(check_type, -1, "host down");
+    
+    handle_hst1();
+
+    ok(strstr(hst1->plugin_output, "code of -1") != NULL,
+        "found appropriate lower bound message, [%s]", hst1->plugin_output);
+    ok(hst1->current_state == STATE_DOWN,
+        "-1 is STATE_DOWN, %d", result);
+
+    create_check_result(check_type, 4, "host down");
+    
+    handle_hst1();
+
+    ok(strstr(hst1->plugin_output, "code of 4") != NULL,
+        "found appropriate lower bound message, [%s]", hst1->plugin_output);
+    ok(hst1->current_state == STATE_DOWN,
+        "4 is STATE_DOWN, %d", result);
+
+    create_check_result(check_type, STATE_DOWN, "host down");
+    my_free(hst1->check_command);
+    hst1->check_command = NULL;
+
+    handle_hst1();
+
+    ok(hst1->current_state == STATE_UP,
+        "null check command is always alright");
+
+    /* we set this to true simply for the coverage report */
+    log_passive_checks = TRUE;
+
+    /* we tested both objects null, but now let's test with one or the other */
+    result = handle_async_host_check_result(hst1, NULL);
+    ok(result == ERROR,
+        "handle_async_host_check_result is ERROR when hst1 is valid, but check result is null");
+
+    accept_passive_host_checks = FALSE;
+    create_check_result(CHECK_TYPE_PASSIVE, HOST_UP, "host up");
+    result = handle_async_host_check_result(hst1, chk_result);
+    ok(result == ERROR,
+        "when accept_passive_host_checks is false, can't handle passive check result");
+
+    accept_passive_host_checks = TRUE;
+    create_check_result(CHECK_TYPE_PASSIVE, HOST_UP, "host up");
+    hst1->accept_passive_checks = FALSE;
+    result = handle_async_host_check_result(hst1, chk_result);
+    ok(result == ERROR,
+        "when hst->accept_passive_checks is false, can't handle passive check result");
+
+    create_check_result(check_type, HOST_UP, "host up");
+    hst1->is_being_freshened = TRUE;
+    chk_result->check_options |= CHECK_OPTION_FRESHNESS_CHECK;
+
+    handle_hst1();
+
+    ok(hst1->is_being_freshened == FALSE,
+        "freshening flag was reset");
+
+    hst1->accept_passive_checks = TRUE;
+    hst1->check_command = strdup("SOME COMMAND");
+    create_check_result(check_type, HOST_UP, "host up");
+    my_free(chk_result->output);
+    my_free(hst1->plugin_output);
+
+    handle_hst1();
+
+    ok(strstr(hst1->plugin_output, "No output returned") != NULL,
+        "If there was no plugin output, tell us [%s]", hst1->plugin_output);
+
+    /* check if the execution times are weird */
+    create_check_result(check_type, HOST_UP, "host up");
+    chk_result->finish_time.tv_sec = ORIG_FINISH_TIME - 100L;
+
+    handle_hst1();
+
+    ok(hst1->execution_time == 0.0,
+        "execution time gets fixed when finish time is before start time");
+
+    create_check_result(check_type, HOST_UP, "host up");
+
+
+}
+
+/* todo: run_parent_host_check_tests() */
+
+void run_misc_service_check_tests()
+{
+    time_t now = 0L;
+    int result = 0;
+    int tmp1 = 0;
+    int check_type = CHECK_TYPE_ACTIVE;
+
+    time(&now);
+
+    ok(handle_async_service_check_result(NULL, NULL) == ERROR,
+        "handle check result is ERROR when objects are null");
+    ok(run_async_service_check(NULL, 0, 0, 0, 0, &tmp1, &now) == ERROR,
+        "run service check is ERROR when object is null");
+}
+
+void run_reaper_tests()
+{
+    /* test null dir */
+    my_free(check_result_path);
+    check_result_path = NULL;
+    ok(process_check_result_queue(check_result_path) == ERROR,
+        "null check result path is an error");
+
+    /* bad dir */
+    check_result_path = strdup("/i/hope/you/dont/have/this/directory/on/your/testing/system/");
+    ok(process_check_result_queue(check_result_path) == ERROR,
+        "cant open check result path is an error");
+    my_free(check_result_path);
+
+    /* existing dir, with nothing in it */
+    check_result_path = nspath_absolute("./../t-tap/var/reaper/no_files", NULL);
+    ok(process_check_result_queue(check_result_path) == 0,
+        "0 files (as there shouldn't be)");
+    my_free(check_result_path);
+
+    /* do sig_{shutdown,restart} work as intended */
+    sigshutdown = TRUE;
+    check_result_path = nspath_absolute("./../t-tap/var/reaper/some_files", NULL);
+    ok(process_check_result_queue(check_result_path) == 0,
+        "0 files (as there shouldn't be)");
+    sigshutdown = FALSE;
+    sigrestart = TRUE;
+    ok(process_check_result_queue(check_result_path) == 0,
+        "0 files (as there shouldn't be)");
+
+    /* force too long of a check */
+    max_check_reaper_time = -5;
+    sigrestart = FALSE;
+    ok(process_check_result_queue(check_result_path) == 0,
+        "cant process if taking too long");
+    my_free(check_result_path);
+
+    /* we already tested all of this, but just to make coverage happy */
+    reap_check_results();
+
 }
 
 int main(int argc, char **argv)
@@ -1269,6 +1482,9 @@ int main(int argc, char **argv)
        very different based on active/passive */
     run_active_host_tests();
     run_passive_host_tests();
+
+    run_misc_host_check_tests(now);
+    run_reaper_tests();
 
     return exit_status();
 }

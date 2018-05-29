@@ -346,7 +346,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
    Try to keep them concise */
 
 /* Bit of logic for determining an adequate return code */
-static inline int get_service_check_return_code(service *svc, check_result *cr)
+int get_service_check_return_code(service *svc, check_result *cr)
 {
 	int rc;
 
@@ -437,7 +437,7 @@ static inline int get_service_check_return_code(service *svc, check_result *cr)
 }
 
 /* Bit of logic for determining an adequate return code */
-static inline int get_host_check_return_code(host *hst, check_result *cr)
+int get_host_check_return_code(host *hst, check_result *cr)
 {
 	int rc;
 

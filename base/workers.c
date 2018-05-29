@@ -218,12 +218,28 @@ static struct wproc_worker *get_worker(const char *cmd)
 {
 	struct wproc_list *wp_list;
 
-	if (!cmd)
+	log_debug_info(DEBUGL_WORKERS, 0, "get_worker()\n");
+
+	if (!cmd) {
+		log_debug_info(DEBUGL_WORKERS, 1, " * cmd is null, bailing\n");
 		return NULL;
+	}
 
 	wp_list = get_wproc_list(cmd);
-	if (!wp_list || !wp_list->wps || !wp_list->len)
+	if (!wp_list) {
+		log_debug_info(DEBUGL_WORKERS, 1, " * wp_list is null, bailing\n");
 		return NULL;
+	}
+
+	if (!wp_list->wps) {
+		log_debug_info(DEBUGL_WORKERS, 1, " * wp_list->wps is null, bailing\n");
+		return NULL;
+	}
+
+	if (!wp_list->len) {
+		log_debug_info(DEBUGL_WORKERS, 2, " * wp_list->len is <= 0, bailing\n");
+		return NULL;
+	}
 
 	return wp_list->wps[wp_list->idx++ % wp_list->len];
 }
@@ -233,22 +249,30 @@ static struct wproc_job *create_job(int type, void *arg, time_t timeout, const c
 	struct wproc_job *job;
 	struct wproc_worker *wp;
 
+	log_debug_info(DEBUGL_WORKERS, 0, "create_job()\n");	
+
 	wp = get_worker(cmd);
-	if (!wp)
+	if (wp == NULL) {
 		return NULL;
+	}
 
 	job = calloc(1, sizeof(*job));
-	if (!job) {
+	if (job == NULL) {
+
 		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Failed to allocate memory for worker job: %s\n", strerror(errno));
 		return NULL;
 	}
 
-	job->wp = wp;
-	job->id = get_job_id(wp);
-	job->type = type;
-	job->arg = arg;
+	job->wp      = wp;
+	job->id      = get_job_id(wp);
+	job->type    = type;
+	job->arg     = arg;
 	job->timeout = timeout;
-	if (fanout_add(wp->jobs, job->id, job) < 0 || !(job->command = strdup(cmd))) {
+	job->command = strdup(cmd);
+
+	if ((fanout_add(wp->jobs, job->id, job) < 0) || (job->command == NULL)) {
+
+		log_debug_info(DEBUGL_WORKERS, 1, " * Can't add job to wp->jobs\n");
 		free(job);
 		return NULL;
 	}

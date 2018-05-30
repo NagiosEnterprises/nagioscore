@@ -193,6 +193,11 @@ clean:
 	cd $(SRC_WORKERS) && $(MAKE) $@
 	rm -f *.cfg core
 	rm -f *~ *.*~ */*~ */*.*~ */*/*.*~
+	rm -f nagioscore.info-file
+	rm -f *.gcno */*.gcno */*/*.gcno
+	rm -f *.gcda */*.gcda */*/*.gcda
+	rm -f *.gcov */*.gcov */*/*.gcov
+	rm -rf coverage-report
 
 distclean: clean
 	cd $(SRC_LIB) && $(MAKE) $@
@@ -231,6 +236,16 @@ tap/src/tap.o:
 
 test-perl: cgis
 	cd t && $(MAKE) test
+
+coverage: test
+	@if ! which lcov >/dev/null 2>&1; then \
+		echo "ERROR: You must install lcov and genhtml first"; \
+	else \
+		lcov -c -d . -o nagioscore.info-file; \
+		genhtml nagioscore.info-file -o coverage-report; \
+		echo "Your coverage report is in coverage-report/index.html"; \
+	fi
+
 
 install-html:
 	cd $(SRC_HTM) && $(MAKE) install
@@ -354,25 +369,22 @@ install-init: install-daemoninit
 
 install-daemoninit:
 	$(INSTALL) -m 755 $(INIT_OPTS) startup/$(SRC_INIT) $(INIT_DIR)/$(INIT_FILE)
-	if [ x$(INIT_TYPE) = xsysv ]; then \
+	@if [ x$(INIT_TYPE) = xsysv ]; then \
 		if which chkconfig >/dev/null 2>&1; then \
 			chkconfig --add nagios; \
 		elif which update-rc.d >/dev/null 2>&1; then \
 			update-rc.d nagios defaults; \
 		fi \
-	fi
-	if [ x$(INIT_TYPE) = xsystemd ]; then \
+	elif [ x$(INIT_TYPE) = xsystemd ]; then \
 		if which systemctl >/dev/null 2>&1; then \
 			systemctl daemon-reload; \
 			systemctl enable nagios.service; \
 		fi \
-	fi
-	if [ x$(INIT_TYPE) = xupstart ]; then \
+	elif [ x$(INIT_TYPE) = xupstart ]; then \
 		if which initctl >/dev/null 2>&1; then \
 			initctl reload-configuration; \
 		fi \
-	fi
-	if [ x$(INIT_TYPE) = xopenrc ]; then \
+	elif [ x$(INIT_TYPE) = xopenrc ]; then \
 		if which rc-update >/dev/null 2>&1; then \
 			rc-update add nagios default; \
 		fi \

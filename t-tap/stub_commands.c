@@ -1,3 +1,6 @@
-/* Stub file for routines from commands.c */
+#ifndef TEST_COMMANDS
 
-int close_command_file(void) { return OK; }
+int close_command_file(void) 
+{ return OK; }
+
+#endif

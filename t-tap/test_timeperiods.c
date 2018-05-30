@@ -43,6 +43,8 @@
 #include "../include/nebmodules.h"
 #include "tap.h"
 #include "stub_downtime.c"
+#include "stub_perfdata.c"
+#include "stub_workers.c"
 
 /* Dummy functions */
 void logit(int data_type, int display, const char *fmt, ...) {}
@@ -69,6 +71,8 @@ int close_log_file(void) { return 0; }
 int fix_log_file_owner(uid_t uid, gid_t gid) { return 0; }
 int handle_async_service_check_result(service *temp_service, check_result *queued_check_result) { return 0; }
 int handle_async_host_check_result(host *temp_host, check_result *queued_check_result) { return 0; }
+
+void _get_next_valid_time(time_t pref_time, time_t *valid_time, timeperiod *tperiod);
 
 int main(int argc, char **argv) {
 	int result;

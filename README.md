@@ -1,5 +1,10 @@
-Nagios 4.x README
-=================
+Nagios 4.x
+==========
+
+![Nagios!](https://www.nagios.com/wp-content/uploads/2015/05/Nagios-Black-500x124.png)
+
+[![Build Status](https://travis-ci.org/NagiosEnterprises/nagioscore.svg?branch=master)](https://travis-ci.org/NagiosEnterprises/nagioscore)
+
 
 Nagios is a host/service/network monitoring program written in C and
 released under the GNU General Public License, version 2. CGI programs
@@ -10,7 +15,7 @@ Visit the Nagios homepage at https://www.nagios.org for documentation,
 new releases, bug reports, information on discussion forums, and more.
 
 
-https://www.nagios.org/about/features/[Features]
+[Features](https://www.nagios.org/about/features/)
 -----------------------------------------------
 * Monitoring of network services (via SMTP, POP3, HTTP, PING, etc).
 * Monitoring of host resources (processor load, disk usage, etc.).
@@ -30,9 +35,9 @@ https://www.nagios.org/about/features/[Features]
 Changes
 -------
 See the
-https://raw.githubusercontent.com/NagiosEnterprises/nagioscore/master/Changelog[Changelog]
+[Changelog](https://raw.githubusercontent.com/NagiosEnterprises/nagioscore/master/Changelog)
 for a summary of important changes and fixes, or the
-https://github.com/NagiosEnterprises/nagioscore/commits/master[commit history]
+[commit history](https://github.com/NagiosEnterprises/nagioscore/commits/master)
 for more detail.
 
 
@@ -43,16 +48,16 @@ Latest releases can be downloaded from https://www.nagios.org/download/
 
 Installation
 ------------
-http://nagios.sourceforge.net/docs/nagioscore/4/en/quickstart.html[Quickstart installation guides]
+[Quickstart installation guides](http://nagios.sourceforge.net/docs/nagioscore/4/en/quickstart.html)
 are available to help you get Nagios up and monitoring.
 
 
 Documentation & Support
 -----------------------
-* http://nagios.sourceforge.net/docs/nagioscore/4/en/[User Guide]
-* https://library.nagios.com/library/products/nagioscore/[Nagios Core Documentation Library]
-* https://support.nagios.com/forum/viewforum.php?f=7[Support Forums]
-* https://www.nagios.org/support/[Additional Support Resources]
+* [User Guide](http://nagios.sourceforge.net/docs/nagioscore/4/en/)
+* [Nagios Core Documentation Library](https://library.nagios.com/library/products/nagioscore/)
+* [Support Forums](https://support.nagios.com/forum/viewforum.php?f=7)
+* [Additional Support Resources](https://www.nagios.org/support/)
 
 
 Contributing
@@ -60,13 +65,11 @@ Contributing
 The Nagios source code is hosted on GitHub:
 https://github.com/NagiosEnterprises/nagioscore
 
-Do you have an idea or feature request to make Nagios better? Join or
-start a discussion on the
-https://support.nagios.com/forum/viewforum.php?f=34[Nagios Core Development forum].
-Bugs can be reported by
-https://github.com/NagiosEnterprises/nagioscore/issues/new[opening an
-issue on GitHub]. If you have identified a security related issue in
-Nagios, please contact security@nagios.com.
+Do you have an idea or feature request to make Nagios better? Join or start a
+discussion on the [Nagios Core Development forum](https://support.nagios.com/forum/viewforum.php?f=34).
+Bugs can be reported by [opening an issue on GitHub](https://github.com/NagiosEnterprises/nagioscore/issues/new).
+If you have identified a security related issue in Nagios, please contact
+security@nagios.com.
 
 Patches and GitHub pull requests are welcome. Pull requests on GitHub
 link commits in version control to review and discussion of the
@@ -76,5 +79,5 @@ who was involved.
 Created by Ethan Galstad, the success of Nagios has been due to the
 fantastic community members that support it and provide bug reports,
 patches, and great ideas. See the
-https://raw.githubusercontent.com/NagiosEnterprises/nagioscore/master/THANKS[THANKS file]
+[THANKS file](https://raw.githubusercontent.com/NagiosEnterprises/nagioscore/master/THANKS)
 for some of the many who have contributed since 1999.

@@ -25,13 +25,17 @@
 #include "../include/objects.h"
 #include "../include/statusdata.h"
 #include "../include/comments.h"
+#include "../include/downtime.h"
 #include "../include/macros.h"
 #include "../include/nagios.h"
 #include "../include/netutils.h"
+#include "../include/perfdata.h"
 #include "../include/broker.h"
 #include "../include/nebmods.h"
 #include "../include/nebmodules.h"
 #include "../include/workers.h"
+
+#include "../xdata/xodtemplate.h"
 
 #include <sys/time.h>
 #include <sys/resource.h>
@@ -1702,11 +1706,14 @@ void sighandler(int sig) {
 		sigrestart = TRUE;
 
 	else if(sig == SIGCHLD) {
+
 		pid_t child_pid;
 		int status = 0;
-		logit(NSLOG_PROCESS_INFO, FALSE, "Caught SIGCHLD, calling waitpid() with WNOHANG|WUNTRACED\n");
+
+		log_debug_info(DEBUGL_PROCESS, 0, "Caught SIGCHLD, calling waitpid() with WNOHANG|WUNTRACED\n");
+		
 		while ((child_pid = waitpid(-1, &status, WNOHANG|WUNTRACED)) > 0) {
-			logit(NSLOG_PROCESS_INFO, FALSE, " * waitpid() on child_pid = (%d)\n", (int)child_pid);
+			log_debug_info(DEBUGL_PROCESS, 0, " * waitpid() on child_pid = (%d)\n", (int)child_pid);
 		}
 	}
 
@@ -2342,7 +2349,7 @@ int process_check_result_file(char *fname) {
 				&& (current_time - (strtoul(val, NULL, 0)) > max_check_result_file_age)) {
 
 				log_debug_info(DEBUGL_CHECKS, 1, 
-					"Skipping check_result because file_time is %s and max cr file age is %d", 
+					"Skipping check_result because file_time is %s and max cr file age is %lu", 
 					val, max_check_result_file_age);
 				break;
 				}
@@ -3695,12 +3702,12 @@ void rlimit_problem_detection(int desired_workers) {
 	if (rlim.rlim_cur > total_num_procs) {
 
 		log_debug_info(DEBUGL_PROCESS, 0, " * RLIMIT_NPROC is %d, total max estimated processes is %d, everything looks okay!\n",
-			rlim.rlim_cur, total_num_procs);
+			(int) rlim.rlim_cur, total_num_procs);
 	} else {
 
 		/* just warn the user - no need to bail out */
 		logit(NSLOG_RUNTIME_WARNING, TRUE, "WARNING: RLIMIT_NPROC is %d, total max estimated processes is %d! You should increase your limits (ulimit -u, or limits.conf)\n",
-			rlim.rlim_cur, total_num_procs);
+			(int) rlim.rlim_cur, total_num_procs);
 	}
 }
 #endif

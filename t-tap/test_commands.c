@@ -17,23 +17,46 @@
 *****************************************************************************/
 
 #define NSCORE 1
+#define TEST_COMMANDS 1
+
 #include "config.h"
 #include "common.h"
 #include "nagios.h"
-#include "../base/commands.c"
+#include "objects.h"
+#include "perfdata.h"
+#include "config.h"
+#include "comments.h"
+#include "common.h"
+#include "statusdata.h"
+#include "downtime.h"
+#include "macros.h"
+#include "nagios.h"
+#include "broker.h"
+#include "perfdata.h"
+#include "../lib/lnag-utils.h"
+
 #include "stub_broker.c"
+#include "stub_checks.c"
 #include "stub_comments.c"
-#include "stub_objects.c"
-#include "stub_statusdata.c"
-#include "stub_notifications.c"
-#include "stub_events.c"
 #include "stub_downtime.c"
+#include "stub_events.c"
 #include "stub_flapping.c"
 #include "stub_logging.c"
-#include "stub_utils.c"
-#include "stub_sretention.c"
-#include "stub_checks.c"
 #include "stub_macros.c"
+#include "stub_nebmods.c"
+#include "stub_netutils.c"
+#include "stub_notifications.c"
+#include "stub_nsock.c"
+#include "stub_objects.c"
+#include "stub_perfdata.c"
+#include "stub_sehandlers.c"
+#include "stub_sretention.c"
+#include "stub_statusdata.c"
+#include "stub_utils.c"
+#include "stub_workers.c"
+#include "stub_xdddefault.c"
+#include "stub_xodtemplate.c"
+
 #include "tap.h"
 
 char *temp_path;
@@ -65,6 +88,13 @@ iobroker_set *nagios_iobs = NULL;
 int sigrestart = FALSE;
 int debug_level = 0;
 int debug_verbosity = 0;
+int log_passive_checks = TRUE;
+int log_external_commands = TRUE;
+
+double low_host_flap_threshold = 0;
+double high_host_flap_threshold = 10;
+double low_service_flap_threshold = 0;
+double high_service_flap_threshold = 10;
 
 /* Catch lower calls through these stubs */
 time_t test_start_time = 0L;
@@ -197,7 +227,6 @@ main() {
 	ok(strcmp(test_hostname, "host1") == 0, "hostname right");
 	ok(test_servicename == NULL, "servicename right") || diag("servicename=%s", test_servicename);
 	ok(strcmp(test_comment, "comment") == 0, "comment right") || diag("comment=%s", test_comment);
-
 
 
 	return exit_status();

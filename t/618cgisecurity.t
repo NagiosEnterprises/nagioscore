@@ -18,7 +18,7 @@ my $output = `NAGIOS_CGI_CONFIG=etc/cgi.cfg REQUEST_METHOD=GET QUERY_STRING="lay
 unlike( $output, qr/' style=xss:expression\(alert\('XSS'\)\) '/, "XSS injection not passed straight through" );
 
 # Is this correct? Nothing weird happens anyway, so let's assume so
-like( $output, qr/&#39 style&#61xss:expression&#40alert&#40&#39XSS&#39&#41&#41 &#39/, "Expected escaping of quotes" ) || diag $output;
+like( $output, qr/&#39; style&#61;xss:expression&#40;alert&#40;&#39;XSS&#39;&#41;&#41; &#39;/, "Expected escaping of quotes" ) || diag $output;
 
 
 $output = `REMOTE_USER=nagiosadmin NAGIOS_CGI_CONFIG=etc/cgi.cfg REQUEST_METHOD=GET QUERY_STRING="type=command&expand=<body onload=alert(666)>" $cgi_dir/config.cgi`;

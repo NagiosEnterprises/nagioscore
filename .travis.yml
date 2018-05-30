@@ -1,0 +1,24 @@
+language: c
+
+sudo: true
+
+compiler:
+  - gcc
+
+addons:
+  apt:
+    packages:
+      - build-essential
+      - apache2
+      - php5
+      - php5-gd
+      - libgd-dev
+      - unzip
+      - lcov
+      - gperf
+      - gcovr
+
+script:
+  - ./configure --enable-testing
+  - make test
+  - gcovr -r .

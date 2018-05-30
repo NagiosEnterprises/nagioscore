@@ -41,7 +41,10 @@
 #include "../include/broker.h"
 #include "../include/nebmods.h"
 #include "../include/nebmodules.h"
+
 #include "tap.h"
+#include "stub_perfdata.c"
+#include "stub_workers.c"
 #include "stub_events.c"
 #include "stub_logging.c"
 #include "stub_commands.c"
@@ -53,6 +56,7 @@
 #include "stub_flapping.c"
 #include "stub_notifications.c"
 
+int xrddefault_read_state_information(void);
 
 int main(int argc, char **argv) {
 	int result;

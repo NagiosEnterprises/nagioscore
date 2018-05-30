@@ -618,6 +618,54 @@ eval sysconfdir=$sysconfdir
 eval pkgsysconfdir=$pkgsysconfdir
 eval piddir=$piddir
 
+
+# We test systemd first because in case
+# someone tries to install Nagios on a 
+# system with a newer version, that doesn't
+# have the defined versions ..we can just
+# (hopefully) fall back to SysV
+# And if that doesn't work, well...
+AS_CASE([$init_type],
+
+	[systemd],
+		if test -d "/lib/systemd/system"; then
+			initdir=${initdir="/lib/systemd/system"}
+		elif test -d "/usr/lib/systemd/system"; then
+			initdir=${initdir="/usr/lib/systemd/system"}
+		elif test -d "/usr/local/lib/systemd/system"; then
+			initdir=${initdir="/usr/local/lib/systemd/system"}
+		elif test -d "/run/systemd/system"; then
+			initdir=${initdir="/run/systemd/system"}
+		elif test -d "/etc/systemd/system"; then
+			initdir=${initdir="/etc/systemd/system"}
+		elif test -d "/etc/systemd/user"; then
+			initdir=${initdir="/etc/systemd/user"}
+		elif test -d "/run/systemd/user"; then
+			initdir=${initdir="/run/systemd/user"}
+		elif test -d "/usr/lib/systemd/user"; then
+			initdir=${initdir="/usr/lib/systemd/user"}
+		elif test -d "/usr/local/lib/systemd/user"; then
+			initdir=${initdir="/usr/local/lib/systemd/user"}
+		elif test -d "/usr/share/systemd/user"; then
+			initdir=${initdir="/usr/share/systemd/user"}
+		elif test -d "/usr/local/share/systemd/user"; then
+			initdir=${initdir="/usr/local/share/systemd/user"}
+		elif test -d "$HOME/.config/systemd/user"; then
+			initdir=${initdir="$HOME/.config/systemd/user"}
+		elif test -d "$HOME/.local/share/systemd/user"; then
+			initdir=${initdir="$HOME/.local/share/systemd/user"}
+		elif test -d "$XDG_CONFIG_HOME/systemd/user/"; then
+			initdir=${initdir="$XDG_CONFIG_HOME/systemd/user/"}
+		elif test -d "$XDG_RUNTIME_DIR/systemd/user/"; then
+			initdir=${initdir="$XDG_RUNTIME_DIR/systemd/user/"}
+		elif test -d "$XDG_DATA_HOME/systemd/user/"; then
+			initdir=${initdir="$XDG_DATA_HOME/systemd/user/"}
+		else
+			init_type="sysv"
+		fi
+		initname=${initname="$INIT_PROG.service"},
+)
+
 #
 # Init scripts/files
 #
@@ -633,13 +681,6 @@ AS_CASE([$init_type],
 		initconfdir=${initconfdir="/etc/conf.d"}
 		initconf=${initconf="$initconfdir/$INIT_PROG"},
 
-	[systemd],
-		if test $dist_type = "debian"; then
-			initdir=${initdir="/lib/systemd/system"}
-		else
-			initdir=${initdir="/usr/lib/systemd/system"}
-		fi
-		initname=${initname="$INIT_PROG.service"},
 
 	[bsd],
 		if test $dist_type = "aix"; then
@@ -688,6 +729,8 @@ AS_CASE([$init_type],
 #		initconfdir=${initconfdir="/private/etc"}
 #		initconf=${initconf="$initconfdir/$INIT_PROG"},
 
+	[systemd],
+		init_type=systemd,
 
 	[*],
 		initdir=unknown

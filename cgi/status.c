@@ -192,6 +192,7 @@ int display_header = TRUE;
 
 
 int main(void) {
+
 	char *sound = NULL;
 	host *temp_host = NULL;
 	hostgroup *temp_hostgroup = NULL;
@@ -237,7 +238,7 @@ int main(void) {
 			host_filter[regex_i++] = '$';
 			host_filter[regex_i] = '\0';
 			}
-		else {
+		else if (host_name != NULL) {
 			if((temp_host = find_host(host_name)) == NULL) {
 				for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
 					if(is_authorized_for_host(temp_host, &current_authdata) == FALSE)
@@ -286,7 +287,6 @@ int main(void) {
 		}
 
 	if(display_header == TRUE) {
-
 		/* begin top table */
 		printf("<table class='headertable'>\n");
 		printf("<tr>\n");

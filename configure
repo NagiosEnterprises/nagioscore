@@ -779,6 +779,8 @@ with_piddir
 with_pipedir
 with_lockfile
 with_root_group
+enable_testing
+with_this_user
 with_nagios_user
 with_nagios_group
 with_command_user
@@ -800,6 +802,7 @@ enable_nanosleep
 enable_event_broker
 enable_cygwin
 enable_debugging
+enable_coverage
 enable_libtap
 '
       ac_precious_vars='build_alias
@@ -1445,6 +1448,7 @@ Optional Features:
                           '--enable-install-method', so you can see the
                           destinations before a full './configure', 'make',
                           'make install' process.
+  --enable-testing        DEBUGGING ONLY - Enable testing options
   --enable-nerd           enables Nagios Event Radio Dispatch (NERD)
   --enable-corewindow     enables the 'corewindow' URL argument
   --disable-statusmap     disables compilation of statusmap CGI
@@ -1453,7 +1457,10 @@ Optional Features:
                           timing
   --enable-event-broker   enables integration of event broker routines
   --enable-cygwin         enables building under the CYGWIN environment
-  --enable-debugging      Enable some debugging for Nagios Core
+  --enable-debugging      DEBUGGING ONLY - Enable some debugging for Nagios
+                          Core
+  --enable-coverage       DEBUGGING ONLY - Enable coverage reports (use with
+                          debugging)
   --enable-libtap         Enable built-in libtap for unit-testing (default:
                           no).
 
@@ -1482,6 +1489,8 @@ Optional Packages:
   --with-pipedir=DIR      where socket and pipe files should be placed
   --with-lockfile=<path>  sets path for lockfile
   --with-root-group=<grp> sets group name for installing init
+  --with-this-user        sets all user/group info for current user running
+                          ./configure
   --with-nagios-user=<user>
                           sets user name to run nagios
   --with-nagios-group=<grp>
@@ -5501,6 +5510,55 @@ eval sysconfdir=$sysconfdir
 eval pkgsysconfdir=$pkgsysconfdir
 eval piddir=$piddir
 
+
+# We test systemd first because in case
+# someone tries to install Nagios on a
+# system with a newer version, that doesn't
+# have the defined versions ..we can just
+# (hopefully) fall back to SysV
+# And if that doesn't work, well...
+case $init_type in #(
+  systemd) :
+    if test -d "/lib/systemd/system"; then
+			initdir=${initdir="/lib/systemd/system"}
+		elif test -d "/usr/lib/systemd/system"; then
+			initdir=${initdir="/usr/lib/systemd/system"}
+		elif test -d "/usr/local/lib/systemd/system"; then
+			initdir=${initdir="/usr/local/lib/systemd/system"}
+		elif test -d "/run/systemd/system"; then
+			initdir=${initdir="/run/systemd/system"}
+		elif test -d "/etc/systemd/system"; then
+			initdir=${initdir="/etc/systemd/system"}
+		elif test -d "/etc/systemd/user"; then
+			initdir=${initdir="/etc/systemd/user"}
+		elif test -d "/run/systemd/user"; then
+			initdir=${initdir="/run/systemd/user"}
+		elif test -d "/usr/lib/systemd/user"; then
+			initdir=${initdir="/usr/lib/systemd/user"}
+		elif test -d "/usr/local/lib/systemd/user"; then
+			initdir=${initdir="/usr/local/lib/systemd/user"}
+		elif test -d "/usr/share/systemd/user"; then
+			initdir=${initdir="/usr/share/systemd/user"}
+		elif test -d "/usr/local/share/systemd/user"; then
+			initdir=${initdir="/usr/local/share/systemd/user"}
+		elif test -d "$HOME/.config/systemd/user"; then
+			initdir=${initdir="$HOME/.config/systemd/user"}
+		elif test -d "$HOME/.local/share/systemd/user"; then
+			initdir=${initdir="$HOME/.local/share/systemd/user"}
+		elif test -d "$XDG_CONFIG_HOME/systemd/user/"; then
+			initdir=${initdir="$XDG_CONFIG_HOME/systemd/user/"}
+		elif test -d "$XDG_RUNTIME_DIR/systemd/user/"; then
+			initdir=${initdir="$XDG_RUNTIME_DIR/systemd/user/"}
+		elif test -d "$XDG_DATA_HOME/systemd/user/"; then
+			initdir=${initdir="$XDG_DATA_HOME/systemd/user/"}
+		else
+			init_type="sysv"
+		fi
+		initname=${initname="$INIT_PROG.service"} ;; #(
+  *) :
+     ;;
+esac
+
 #
 # Init scripts/files
 #
@@ -5514,13 +5572,6 @@ case $init_type in #(
 		initname=${initname="$INIT_PROG"}
 		initconfdir=${initconfdir="/etc/conf.d"}
 		initconf=${initconf="$initconfdir/$INIT_PROG"} ;; #(
-  systemd) :
-    if test $dist_type = "debian"; then
-			initdir=${initdir="/lib/systemd/system"}
-		else
-			initdir=${initdir="/usr/lib/systemd/system"}
-		fi
-		initname=${initname="$INIT_PROG.service"} ;; #(
   bsd) :
     if test $dist_type = "aix"; then
 			initdir=${initdir="/sbin/rc.d/init.d"}
@@ -5562,8 +5613,9 @@ case $init_type in #(
   #		initconfdir=${initconfdir="/private/etc"}
 #		initconf=${initconf="$initconfdir/$INIT_PROG"},
 
-
-	*) :
+	systemd) :
+    init_type=systemd ;; #(
+  *) :
     initdir=unknown
 		initname=unknown ;; #(
   *) :
@@ -6134,6 +6186,26 @@ fi
 INIT_OPTS="-o root -g $root_grp"
 
 
+ENABLE_TESTING=no
+# Check whether --enable-testing was given.
+if test "${enable_testing+set}" = set; then :
+  enableval=$enable_testing; ENABLE_TESTING=$enableval
+fi
+
+
+not_a_user="^^^^^"
+
+# Check whether --with-this_user was given.
+if test "${with_this_user+set}" = set; then :
+  withval=$with_this_user; this_user=$USER
+else
+  this_user=$not_a_user
+fi
+
+if test x$ENABLE_TESTING = xyes; then
+	this_user=$USER
+fi
+
 
 # Check whether --with-nagios_user was given.
 if test "${with_nagios_user+set}" = set; then :
@@ -6148,6 +6220,12 @@ if test "${with_nagios_group+set}" = set; then :
   withval=$with_nagios_group; nagios_grp=$withval
 else
   nagios_grp=nagios
+fi
+
+
+if test x$this_user != x$not_a_user; then
+	nagios_user=$this_user
+	nagios_grp=$this_user
 fi
 
 
@@ -6179,6 +6257,12 @@ if test "${with_command_group+set}" = set; then :
   withval=$with_command_group; command_grp=$withval
 else
   command_grp=$nagios_grp
+fi
+
+
+if test x$this_user != x$not_a_user; then
+	command_user=$this_user
+	command_grp=$this_user
 fi
 
 
@@ -6408,7 +6492,7 @@ fi
 
 case $IOBROKER_METHOD in
 epoll*)
-	if test $GLIBC_NEWER_2_4 -eq 1 -a x$ac_cv_header_sys_epoll_h = xyes ; then
+	if test "$GLIBC_NEWER_2_4 -eq 1" -a "x$ac_cv_header_sys_epoll_h = xyes" ; then
 		$as_echo "#define IOBROKER_USES_EPOLL 1" >>confdefs.h
 
 	else
@@ -6418,7 +6502,7 @@ epoll*)
 	fi
 	;;
 poll*)
-	if test x$ac_cv_header_sys_poll_h = xyes -o x$ac_cv_header_poll_h = xyes ; then
+	if test "x$ac_cv_header_sys_poll_h = xyes" -o "x$ac_cv_header_poll_h = xyes" ; then
 		$as_echo "#define IOBROKER_USES_POLL 1" >>confdefs.h
 
 	else
@@ -6438,11 +6522,11 @@ select*)
 	fi
 	;;
 none*)
-	if test $GLIBC_NEWER_2_4 -eq 1 -a x$ac_cv_header_sys_epoll_h = xyes ; then
+	if test "$GLIBC_NEWER_2_4 -eq 1" -a "x$ac_cv_header_sys_epoll_h = xyes" ; then
 		$as_echo "#define IOBROKER_USES_EPOLL 1" >>confdefs.h
 
 		IOBROKER_METHOD="epoll"
-	elif test x$ac_cv_header_sys_poll_h = xyes -o x$ac_cv_header_poll_h = xyes ; then
+	elif test "x$ac_cv_header_sys_poll_h = xyes" -o "x$ac_cv_header_poll_h = xyes" ; then
 		$as_echo "#define IOBROKER_USES_POLL 1" >>confdefs.h
 
 		IOBROKER_METHOD="poll"
@@ -7228,15 +7312,24 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 
-
 ENABLE_DEBUGGING=no
 # Check whether --enable-debugging was given.
 if test "${enable_debugging+set}" = set; then :
   enableval=$enable_debugging; ENABLE_DEBUGGING=$enableval
 fi
 
-if test x$ENABLE_DEBUGGING = xyes; then
+if test x$ENABLE_DEBUGGING = xyes -o x$ENABLE_TESTING = xyes; then
 	CFLAGS="${CFLAGS} -O0 -ggdb3 -g3"
+fi
+
+ENABLE_COVERAGE=no
+# Check whether --enable-coverage was given.
+if test "${enable_coverage+set}" = set; then :
+  enableval=$enable_coverage; ENABLE_COVERAGE=$enableval
+fi
+
+if test x$ENABLE_COVERAGE = xyes -o x$ENABLE_TESTING = xyes; then
+	CFLAGS="${CFLAGS} -fprofile-arcs -ftest-coverage"
 fi
 
 VERSION=$PKG_VERSION
@@ -7296,7 +7389,7 @@ fi
 #fi
 
 # Finally, define tests if we use libtap
-if test "$enable_libtap" = "yes" ; then
+if test "$enable_libtap" = "yes" -o "$ENABLE_TESTING" = "yes"; then
 
 
 subdirs="$subdirs tap"

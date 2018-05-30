@@ -738,6 +738,7 @@ infodir
 docdir
 oldincludedir
 includedir
+runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -851,6 +852,7 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
+runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE}'
@@ -1103,6 +1105,15 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
+  -runstatedir | --runstatedir | --runstatedi | --runstated \
+  | --runstate | --runstat | --runsta | --runst | --runs \
+  | --run | --ru | --r)
+    ac_prev=runstatedir ;;
+  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
+  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
+  | --run=* | --ru=* | --r=*)
+    runstatedir=$ac_optarg ;;
+
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1240,7 +1251,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir
+		libdir localedir mandir runstatedir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1393,6 +1404,7 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
+  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -5498,6 +5510,55 @@ eval sysconfdir=$sysconfdir
 eval pkgsysconfdir=$pkgsysconfdir
 eval piddir=$piddir
 
+
+# We test systemd first because in case
+# someone tries to install Nagios on a
+# system with a newer version, that doesn't
+# have the defined versions ..we can just
+# (hopefully) fall back to SysV
+# And if that doesn't work, well...
+case $init_type in #(
+  systemd) :
+    if test -d "/lib/systemd/system"; then
+			initdir=${initdir="/lib/systemd/system"}
+		elif test -d "/usr/lib/systemd/system"; then
+			initdir=${initdir="/usr/lib/systemd/system"}
+		elif test -d "/usr/local/lib/systemd/system"; then
+			initdir=${initdir="/usr/local/lib/systemd/system"}
+		elif test -d "/run/systemd/system"; then
+			initdir=${initdir="/run/systemd/system"}
+		elif test -d "/etc/systemd/system"; then
+			initdir=${initdir="/etc/systemd/system"}
+		elif test -d "/etc/systemd/user"; then
+			initdir=${initdir="/etc/systemd/user"}
+		elif test -d "/run/systemd/user"; then
+			initdir=${initdir="/run/systemd/user"}
+		elif test -d "/usr/lib/systemd/user"; then
+			initdir=${initdir="/usr/lib/systemd/user"}
+		elif test -d "/usr/local/lib/systemd/user"; then
+			initdir=${initdir="/usr/local/lib/systemd/user"}
+		elif test -d "/usr/share/systemd/user"; then
+			initdir=${initdir="/usr/share/systemd/user"}
+		elif test -d "/usr/local/share/systemd/user"; then
+			initdir=${initdir="/usr/local/share/systemd/user"}
+		elif test -d "$HOME/.config/systemd/user"; then
+			initdir=${initdir="$HOME/.config/systemd/user"}
+		elif test -d "$HOME/.local/share/systemd/user"; then
+			initdir=${initdir="$HOME/.local/share/systemd/user"}
+		elif test -d "$XDG_CONFIG_HOME/systemd/user/"; then
+			initdir=${initdir="$XDG_CONFIG_HOME/systemd/user/"}
+		elif test -d "$XDG_RUNTIME_DIR/systemd/user/"; then
+			initdir=${initdir="$XDG_RUNTIME_DIR/systemd/user/"}
+		elif test -d "$XDG_DATA_HOME/systemd/user/"; then
+			initdir=${initdir="$XDG_DATA_HOME/systemd/user/"}
+		else
+			init_type="sysv"
+		fi
+		initname=${initname="$INIT_PROG.service"} ;; #(
+  *) :
+     ;;
+esac
+
 #
 # Init scripts/files
 #
@@ -5511,13 +5572,6 @@ case $init_type in #(
 		initname=${initname="$INIT_PROG"}
 		initconfdir=${initconfdir="/etc/conf.d"}
 		initconf=${initconf="$initconfdir/$INIT_PROG"} ;; #(
-  systemd) :
-    if test $dist_type = "debian"; then
-			initdir=${initdir="/lib/systemd/system"}
-		else
-			initdir=${initdir="/usr/lib/systemd/system"}
-		fi
-		initname=${initname="$INIT_PROG.service"} ;; #(
   bsd) :
     if test $dist_type = "aix"; then
 			initdir=${initdir="/sbin/rc.d/init.d"}
@@ -5559,8 +5613,9 @@ case $init_type in #(
   #		initconfdir=${initconfdir="/private/etc"}
 #		initconf=${initconf="$initconfdir/$INIT_PROG"},
 
-
-	*) :
+	systemd) :
+    init_type=systemd ;; #(
+  *) :
     initdir=unknown
 		initname=unknown ;; #(
   *) :

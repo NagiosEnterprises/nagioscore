@@ -28,7 +28,7 @@
 # error "iobroker can't use both epoll() and poll()"
 #elif defined(IOBROKER_USES_EPOLL) && defined(IOBROKER_USES_SELECT)
 # error "iobroker can't use both epoll() and select()"
-#elif defined(IOBROKER_USEES_POLL) && defined(IOBROKER_USES_SELECT)
+#elif defined(IOBROKER_USES_POLL) && defined(IOBROKER_USES_SELECT)
 # error "iobroker can't use both poll() and select()"
 #endif
 

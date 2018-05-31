@@ -738,7 +738,6 @@ infodir
 docdir
 oldincludedir
 includedir
-runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -852,7 +851,6 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
-runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE}'
@@ -1105,15 +1103,6 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
-  -runstatedir | --runstatedir | --runstatedi | --runstated \
-  | --runstate | --runstat | --runsta | --runst | --runs \
-  | --run | --ru | --r)
-    ac_prev=runstatedir ;;
-  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
-  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
-  | --run=* | --ru=* | --r=*)
-    runstatedir=$ac_optarg ;;
-
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1251,7 +1240,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir runstatedir
+		libdir localedir mandir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1404,7 +1393,6 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
-  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -5747,12 +5735,12 @@ $as_echo "$src_inetd" >&6; }
 
 
 
-if test $src_init != "default-init" -a \
-        $src_init != "default-service" -a \
-        $src_init != "openrc-init" -a \
-        $src_init != "newbsd-init" -a \
-        $src_init != "openbsd-init" -a \
-        $src_init != "upstart-init"; then
+if test "x$src_init" != "xdefault-init" -a \
+        "x$src_init" != "xdefault-service" -a \
+        "x$src_init" != "xopenrc-init" -a \
+        "x$src_init" != "xnewbsd-init" -a \
+        "x$src_init" != "xopenbsd-init" -a \
+        "x$src_init" != "xupstart-init"; then
 
 	src_init="default-init"
 	init_type="sysv"
@@ -5760,7 +5748,7 @@ if test $src_init != "default-init" -a \
 	initname="nagios"
 fi
 
-if test $subsyslockdir = "N/A"; then
+if test "x$subsyslockdir" = "xN/A"; then
 	if test -d "/var/run"; then
 		subsyslockdir="/var/run"
 		subsyslockfile="/var/run/$INIT_PROG"
@@ -5808,7 +5796,7 @@ rm -f core conftest.err conftest.$ac_objext \
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_HAVE_VA_COPY" >&5
 $as_echo "$ac_cv_HAVE_VA_COPY" >&6; }
-if test x"$ac_cv_HAVE_VA_COPY" = x"yes"; then
+if test "x$ac_cv_HAVE_VA_COPY" = "xyes"; then
 
 $as_echo "#define HAVE_VA_COPY 1" >>confdefs.h
 
@@ -5841,7 +5829,7 @@ rm -f core conftest.err conftest.$ac_objext \
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_HAVE___VA_COPY" >&5
 $as_echo "$ac_cv_HAVE___VA_COPY" >&6; }
-    if test x"$ac_cv_HAVE___VA_COPY" = x"yes"; then
+    if test "x$ac_cv_HAVE___VA_COPY" = "xyes"; then
 
 $as_echo "#define HAVE___VA_COPY 1" >>confdefs.h
 
@@ -5936,7 +5924,7 @@ fi
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_HAVE_C99_VSNPRINTF" >&5
 $as_echo "$ac_cv_HAVE_C99_VSNPRINTF" >&6; }
-if test x"$ac_cv_HAVE_C99_VSNPRINTF" = x"yes"; then
+if test "x$ac_cv_HAVE_C99_VSNPRINTF" = "xyes"; then
 
 $as_echo "#define HAVE_C99_VSNPRINTF 1" >>confdefs.h
 
@@ -5998,7 +5986,7 @@ $as_echo "$ac_cv_search_getservbyname" >&6; }
 ac_res=$ac_cv_search_getservbyname
 if test "$ac_res" != no; then :
   test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
-  if test "$ac_cv_search_getservbyname" != "none required"; then
+  if test "x$ac_cv_search_getservbyname" != "xnone required"; then
 		SOCKETLIBS="$SOCKETLIBS -lnsl"
 	fi
 fi
@@ -6056,7 +6044,7 @@ $as_echo "$ac_cv_search_connect" >&6; }
 ac_res=$ac_cv_search_connect
 if test "$ac_res" != no; then :
   test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
-  if test "$ac_cv_search_connect" != "none required"; then
+  if test "x$ac_cv_search_connect" != "xnone required"; then
 		SOCKETLIBS="$SOCKETLIBS -lsocket"
 	fi
 fi
@@ -6202,7 +6190,7 @@ else
   this_user=$not_a_user
 fi
 
-if test x$ENABLE_TESTING = xyes; then
+if test "x$ENABLE_TESTING" = "xyes"; then
 	this_user=$USER
 fi
 
@@ -6223,7 +6211,7 @@ else
 fi
 
 
-if test x$this_user != x$not_a_user; then
+if test "x$this_user" != "x$not_a_user"; then
 	nagios_user=$this_user
 	nagios_grp=$this_user
 fi
@@ -6260,7 +6248,7 @@ else
 fi
 
 
-if test x$this_user != x$not_a_user; then
+if test "x$this_user" != "x$not_a_user"; then
 	command_user=$this_user
 	command_grp=$this_user
 fi
@@ -6280,7 +6268,7 @@ else
 
 fi
 
-if test x$MAIL_PROG = xno; then
+if test "x$MAIL_PROG" = "xno"; then
 	# Extract the first word of "mail", so it can be a program name with args.
 set dummy mail; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
@@ -6322,7 +6310,7 @@ fi
 
 
 fi
-if test x$MAIL_PROG = x; then
+if test "x$MAIL_PROG" = "x"; then
 	if which mail >/dev/null; then
 		MAIL_PROG=`which mail`
 	elif which sendmail >/dev/null; then
@@ -6356,19 +6344,19 @@ else
 fi
 
 LN_HTTPD_SITES_ENABLED=0
-if test x$HTTPD_CONF = xno; then
-	if test -d /etc/httpd/conf.d; then
+if test "x$HTTPD_CONF" = "xno"; then
+	if test -d "/etc/httpd/conf.d"; then
 		HTTPD_CONF="/etc/httpd/conf.d"
-	elif test -d /etc/apache2/conf.d; then
+	elif test -d "/etc/apache2/conf.d"; then
 		HTTPD_CONF="/etc/apache2/conf.d"
-	elif test -d /etc/apache2/sites-available; then
+	elif test -d "/etc/apache2/sites-available"; then
 		HTTPD_CONF="/etc/apache2/sites-available"
-		if test -d /etc/apache2/sites-enabled; then
+		if test -d "/etc/apache2/sites-enabled"; then
 			LN_HTTPD_SITES_ENABLED=1
 		fi
-	elif test -d /etc/apache2/sites-enabled; then
+	elif test -d "/etc/apache2/sites-enabled"; then
 		HTTPD_CONF="/etc/apache2/sites-enabled"
-	elif test -d /etc/apache/conf.d; then
+	elif test -d "/etc/apache/conf.d"; then
 		HTTPD_CONF="/etc/apache/conf.d"
 	else
 		HTTPD_CONF="/etc/httpd/conf.d"
@@ -6413,7 +6401,7 @@ else
 
 fi
 
-if test x$CHECKRESULTDIR = xno; then
+if test "x$CHECKRESULTDIR" = "xno"; then
 	CHECKRESULTDIR="$localstatedir/spool/checkresults"
 fi
 
@@ -6428,13 +6416,15 @@ else
 
 fi
 
-if test x$TMPDIR = xno; then
+if test "x$TMPDIR" = "xno"; then
 	TMPDIR="/tmp"
 fi
 
 
 
 
+
+GLIBC_NEWER_2_4=0
 
 case $host_os in
 linux*)
@@ -6463,7 +6453,7 @@ $as_echo "no" >&6; }
 
 fi
 rm -f conftest.err conftest.i conftest.$ac_ext
-	if test $GLIBC_NEWER_2_4 -eq 1; then
+	if test "$GLIBC_NEWER_2_4" -eq 1; then
 		ac_fn_c_check_header_mongrel "$LINENO" "sys/epoll.h" "ac_cv_header_sys_epoll_h" "$ac_includes_default"
 if test "x$ac_cv_header_sys_epoll_h" = xyes; then :
 
@@ -6492,7 +6482,7 @@ fi
 
 case $IOBROKER_METHOD in
 epoll*)
-	if test "$GLIBC_NEWER_2_4 -eq 1" -a "x$ac_cv_header_sys_epoll_h = xyes" ; then
+	if test "$GLIBC_NEWER_2_4" -eq 1 -a "x$ac_cv_header_sys_epoll_h" = "xyes"; then
 		$as_echo "#define IOBROKER_USES_EPOLL 1" >>confdefs.h
 
 	else
@@ -6502,7 +6492,7 @@ epoll*)
 	fi
 	;;
 poll*)
-	if test "x$ac_cv_header_sys_poll_h = xyes" -o "x$ac_cv_header_poll_h = xyes" ; then
+	if test "x$ac_cv_header_sys_poll_h" = "xyes" -o "x$ac_cv_header_poll_h" = "xyes"; then
 		$as_echo "#define IOBROKER_USES_POLL 1" >>confdefs.h
 
 	else
@@ -6512,7 +6502,7 @@ poll*)
 	fi
 	;;
 select*)
-	if test x$ac_cv_header_sys_select_h = xyes ; then
+	if test "x$ac_cv_header_sys_select_h" = "xyes"; then
 		$as_echo "#define IOBROKER_USES_SELECT 1" >>confdefs.h
 
 	else
@@ -6522,15 +6512,15 @@ select*)
 	fi
 	;;
 none*)
-	if test "$GLIBC_NEWER_2_4 -eq 1" -a "x$ac_cv_header_sys_epoll_h = xyes" ; then
+	if test "$GLIBC_NEWER_2_4" -eq 1 -a "x$ac_cv_header_sys_epoll_h" = "xyes"; then
 		$as_echo "#define IOBROKER_USES_EPOLL 1" >>confdefs.h
 
 		IOBROKER_METHOD="epoll"
-	elif test "x$ac_cv_header_sys_poll_h = xyes" -o "x$ac_cv_header_poll_h = xyes" ; then
+	elif test "x$ac_cv_header_sys_poll_h" = "xyes" -o "x$ac_cv_header_poll_h" = "xyes"; then
 		$as_echo "#define IOBROKER_USES_POLL 1" >>confdefs.h
 
 		IOBROKER_METHOD="poll"
-	elif test x$ac_cv_header_sys_select_h = xyes ; then
+	elif test "x$ac_cv_header_sys_select_h" = "xyes"; then
 		$as_echo "#define IOBROKER_USES_SELECT 1" >>confdefs.h
 
 		IOBROKER_METHOD="select"
@@ -6540,8 +6530,8 @@ none*)
 	fi
 	;;
 *)
-		echo "\"$IOBROKER_METHOD\" is not a valid method for --with-iobroker"
-		exit 1
+	echo "\"$IOBROKER_METHOD\" is not a valid method for --with-iobroker"
+	exit 1
 	;;
 esac
 
@@ -6564,7 +6554,7 @@ fi
 
 
 
-TRYGD=yep
+TRYGD=yes
 
 NERD=no
 NERD_O=""
@@ -6574,7 +6564,7 @@ if test "${enable_nerd+set}" = set; then :
 
 fi
 
-if test x$NERD = xyes; then
+if test "x$NERD" = "xyes"; then
 
 cat >>confdefs.h <<_ACEOF
 #define ENABLE_NERD /**/
@@ -6593,7 +6583,7 @@ fi
 
 
 
-TRYSTATUSMAP=yep
+TRYSTATUSMAP=yes
 # Check whether --enable-statusmap was given.
 if test "${enable_statusmap+set}" = set; then :
   enableval=$enable_statusmap; TRYSTATUSMAP=nope
@@ -6602,7 +6592,7 @@ fi
 
 
 
-TRYSTATUSWRL=yep
+TRYSTATUSWRL=yes
 # Check whether --enable-statuswrl was given.
 if test "${enable_statuswrl+set}" = set; then :
   enableval=$enable_statuswrl; TRYSTATUSWRL=nope
@@ -6610,7 +6600,7 @@ if test "${enable_statuswrl+set}" = set; then :
 fi
 
 
-if test x$TRYSTATUSWRL = xyep; then
+if test "x$TRYSTATUSWRL" = "xyes"; then
 
 cat >>confdefs.h <<_ACEOF
 #define USE_STATUSWRL /**/
@@ -6624,7 +6614,7 @@ fi
 
 
 
-if test x$TRYGD = xyep; then
+if test "x$TRYGD" = "xyes"; then
 
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for main in -liconv" >&5
 $as_echo_n "checking for main in -liconv... " >&6; }
@@ -6699,7 +6689,7 @@ fi
 	  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
 
-			GDLIBFOUND=yep
+			GDLIBFOUND=yes
 			GDLIBS="-lgd -lttf -lpng -ljpeg -lz -lm"
 
 	else
@@ -6709,7 +6699,7 @@ $as_echo "no" >&6; }
 		fi
 
 
-		if test x$GDLIBFOUND = x; then
+		if test "x$GDLIBFOUND" = "x"; then
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for gdImagePng in -lgd (order 2)" >&5
 $as_echo_n "checking for gdImagePng in -lgd (order 2)... " >&6; }
 					ac_lib_var=`echo gd'_'gdImagePng'_'2 | sed 'y%./+-%__p_%'`
@@ -6747,7 +6737,7 @@ fi
 	  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
 
-			GDLIBFOUND=yep
+			GDLIBFOUND=yes
 			GDLIBS="-lgd $ICONV -lpng -ljpeg -lz -lm"
 
 	else
@@ -6758,7 +6748,7 @@ $as_echo "no" >&6; }
 
 	fi
 
-		if test x$GDLIBFOUND = x; then
+		if test "x$GDLIBFOUND" = "x"; then
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for gdImagePng in -lgd (order 3)" >&5
 $as_echo_n "checking for gdImagePng in -lgd (order 3)... " >&6; }
 					ac_lib_var=`echo gd'_'gdImagePng'_'3 | sed 'y%./+-%__p_%'`
@@ -6796,7 +6786,7 @@ fi
 	  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
 
-			GDLIBFOUND=yep
+			GDLIBFOUND=yes
 			GDLIBS="-lgd $ICONV -lz -lm -lpng"
 
 	else
@@ -6807,7 +6797,7 @@ $as_echo "no" >&6; }
 
 	fi
 
-		if test x$GDLIBFOUND = x; then
+		if test "x$GDLIBFOUND" = "x"; then
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for gdImagePng in -lgd (order 4)" >&5
 $as_echo_n "checking for gdImagePng in -lgd (order 4)... " >&6; }
 					ac_lib_var=`echo gd'_'gdImagePng'_'4 | sed 'y%./+-%__p_%'`
@@ -6845,7 +6835,7 @@ fi
 	  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
 
-			GDLIBFOUND=yep
+			GDLIBFOUND=yes
 			GDLIBS="-lgd $ICONV -lpng -lz -lm"
 
 	else
@@ -6856,7 +6846,7 @@ $as_echo "no" >&6; }
 
 	fi
 
-		if test x$GDLIBFOUND = x; then
+		if test "x$GDLIBFOUND" = "x"; then
 		echo ""
 		echo ""
 		echo "*** GD, PNG, and/or JPEG libraries could not be located... *********"
@@ -6891,8 +6881,11 @@ $as_echo "no" >&6; }
 		echo ""
 
 		else
-		echo "GD library was found!"
-		if test x$TRYSTATUSMAP = xyep; then
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GD library" >&5
+$as_echo_n "checking for GD library... " >&6; }
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+		if test "x$TRYSTATUSMAP" = "xyes"; then
 
 cat >>confdefs.h <<_ACEOF
 #define USE_STATUSMAP /**/
@@ -6989,7 +6982,7 @@ else
 
 fi
 
-if test x$USE_NANOSLEEP = xyes; then
+if test "x$USE_NANOSLEEP" = "xyes"; then
 
 cat >>confdefs.h <<_ACEOF
 #define USE_NANOSLEEP /**/
@@ -7008,9 +7001,9 @@ fi
 
 
 BROKER_LDFLAGS=""
-BROKERLIBS="";
-some_dl_found="no";
-if test x$USE_EVENTBROKER = xyes; then
+BROKERLIBS=""
+some_dl_found=no
+if test "x$USE_EVENTBROKER" = "xyes"; then
 
 			ac_fn_c_check_header_mongrel "$LINENO" "ltdl.h" "ac_cv_header_ltdl_h" "$ac_includes_default"
 if test "x$ac_cv_header_ltdl_h" = xyes; then :
@@ -7056,7 +7049,7 @@ if test "x$ac_cv_lib_ltdl_lt_dlinit" = xyes; then :
 
 $as_echo "#define HAVE_LTDL_H /**/" >>confdefs.h
 
-			some_dl_found="yes"
+			some_dl_found=yes
 			BROKERLIBS="$BROKERLIBS -lltdl"
 
 fi
@@ -7065,7 +7058,7 @@ fi
 fi
 
 
-	if test "x$some_dl_found" != xyes; then
+	if test "x$some_dl_found" != "xyes"; then
 	ac_fn_c_check_header_mongrel "$LINENO" "dlfcn.h" "ac_cv_header_dlfcn_h" "$ac_includes_default"
 if test "x$ac_cv_header_dlfcn_h" = xyes; then :
 
@@ -7110,7 +7103,7 @@ if test "x$ac_cv_lib_dl_dlopen" = xyes; then :
 
 $as_echo "#define HAVE_DLFCN_H /**/" >>confdefs.h
 
-			some_dl_found="yes"
+			some_dl_found=yes
 			BROKERLIBS="$BROKERLIBS -ldl"
 
 fi
@@ -7186,7 +7179,7 @@ rm -f core conftest.err conftest.$ac_objext \
 	esac
 
 
-	test "x$BROKER_LDFLAGS" != x && { $as_echo "$as_me:${as_lineno-$LINENO}: result: $BROKER_LDFLAGS" >&5
+	test "x$BROKER_LDFLAGS" != "x" && { $as_echo "$as_me:${as_lineno-$LINENO}: result: $BROKER_LDFLAGS" >&5
 $as_echo "$BROKER_LDFLAGS" >&6; }
 
 
@@ -7256,7 +7249,7 @@ if test "${enable_cygwin+set}" = set; then :
 
 fi
 
-if test x$cygwin = xyes; then
+if test "x$cygwin" = "xyes"; then
 	CFLAGS="${CFLAGS} -DCYGWIN"
 	nagios_name=nagios.exe;
 	nagiostats_name=nagiostats.exe;
@@ -7318,7 +7311,7 @@ if test "${enable_debugging+set}" = set; then :
   enableval=$enable_debugging; ENABLE_DEBUGGING=$enableval
 fi
 
-if test x$ENABLE_DEBUGGING = xyes -o x$ENABLE_TESTING = xyes; then
+if test "x$ENABLE_DEBUGGING" = "xyes" -o "x$ENABLE_TESTING" = "xyes"; then
 	CFLAGS="${CFLAGS} -O0 -ggdb3 -g3"
 fi
 
@@ -7328,7 +7321,7 @@ if test "${enable_coverage+set}" = set; then :
   enableval=$enable_coverage; ENABLE_COVERAGE=$enableval
 fi
 
-if test x$ENABLE_COVERAGE = xyes -o x$ENABLE_TESTING = xyes; then
+if test "x$ENABLE_COVERAGE" = "xyes" -o "x$ENABLE_TESTING" = "xyes"; then
 	CFLAGS="${CFLAGS} -fprofile-arcs -ftest-coverage"
 fi
 
@@ -7381,7 +7374,7 @@ fi
 
 # Disabled for moment
 # If not local, check if we can use the system one
-#if test "$enable_libtap" != "yes" ; then
+#if test "$enable_libtap" != "yes"; then
 #        dnl Check for libtap, to run perl-like tests
 #        AC_CHECK_LIB(tap, plan_tests,
 #                enable_libtap="yes"
@@ -7389,7 +7382,7 @@ fi
 #fi
 
 # Finally, define tests if we use libtap
-if test "$enable_libtap" = "yes" -o "$ENABLE_TESTING" = "yes"; then
+if test "x$enable_libtap" = "xyes" -o "x$ENABLE_TESTING" = "xyes"; then
 
 
 subdirs="$subdirs tap"
@@ -8881,6 +8874,16 @@ perl subst sample-config/template-object/printer.cfg
 perl subst sample-config/template-object/switch.cfg
 
 
+incdir=`eval echo $includedir`
+if test "x$incdir" = "x$prefix/include"; then
+	includedir=$prefix/include/nagios
+fi
+
+if test "x$USE_EVENTBROKER" != "xyes"; then
+	USE_EVENTBROKER=no
+fi
+
+
 echo ""
 echo ""
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: *** Configuration summary for $PKG_NAME $PKG_VERSION $PKG_REL_DATE ***:" >&5
@@ -8896,19 +8899,10 @@ $as_echo "        Nagios executable:  $nagios_name" >&6; }
 $as_echo "        Nagios user/group:  $nagios_user,$nagios_grp" >&6; }
 { $as_echo "$as_me:${as_lineno-$LINENO}: result:        Command user/group:  $command_user,$command_grp" >&5
 $as_echo "       Command user/group:  $command_user,$command_grp" >&6; }
-if test x$USE_EVENTBROKER = xyes; then
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result:              Event Broker:  yes" >&5
-$as_echo "             Event Broker:  yes" >&6; }
-else
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result:              Event Broker:  no" >&5
-$as_echo "             Event Broker:  no" >&6; }
-fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result:              Event Broker:  $USE_EVENTBROKER" >&5
+$as_echo "             Event Broker:  $USE_EVENTBROKER" >&6; }
 { $as_echo "$as_me:${as_lineno-$LINENO}: result:         Install \${prefix}:  $prefix" >&5
 $as_echo "        Install \${prefix}:  $prefix" >&6; }
-incdir=`eval echo $includedir`
-if test x$incdir = x$prefix/include; then
-	includedir=$prefix/include/nagios
-fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result:     Install \${includedir}:  $includedir" >&5
 $as_echo "    Install \${includedir}:  $includedir" >&6; }
 { $as_echo "$as_me:${as_lineno-$LINENO}: result:                 Lock file:  $subsyslockfile" >&5

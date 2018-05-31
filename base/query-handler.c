@@ -24,12 +24,20 @@ static dkhash_table *qh_table;
 /* the echo service. stupid, but useful for testing */
 static int qh_echo(int sd, char *buf, unsigned int len)
 {
+	int result = 0;
+
 	if (!strcmp(buf, "help")) {
+
 		nsock_printf_nul(sd,
 			"Query handler that simply echoes back what you send it.");
 		return 0;
 	}
-	(void)write(sd, buf, len);
+
+	result = write(sd, buf, len);
+	if (result == -1) {
+
+		logit(NSLOG_RUNTIME_ERROR, TRUE, "qh: qh_echo() error on write(sd,buf=[%s],len=%lu): %s\n", buf, len, strerror(errno));
+	}
 	return 0;
 }
 
@@ -41,22 +49,28 @@ static struct query_handler *qh_find_handler(const char *name)
 /* subset of http error codes */
 const char *qh_strerror(int code)
 {
-	if (code < 0)
+	if (code < 0) {
 		return "Low-level system error";
+	}
 
-	if (code == 100)
+	if (code == 100) {
 		return "Continue";
-	if (code == 101)
+	}
+	if (code == 101) {
 		return "Switching protocols";
+	}
 
-	if (code < 300)
+	if (code < 300) {
 		return "OK";
+	}
 
-	if (code < 400)
+	if (code < 400) {
 		return "Redirected (possibly deprecated address)";
+	}
 
 	switch (code) {
-		/* client errors */
+
+	/* client errors */
 	case 400: return "Bad request";
 	case 401: return "Unauthorized";
 	case 403: return "Forbidden (disabled by config)";
@@ -72,14 +86,16 @@ const char *qh_strerror(int code)
 	case 413: return "Request too large";
 	case 414: return "Request-URI too long";
 
-		/* server errors */
+	/* server errors */
 	case 500: return "Internal server error";
 	case 501: return "Not implemented";
 	case 502: return "Bad gateway";
 	case 503: return "Service unavailable";
 	case 504: return "Gateway timeout";
 	case 505: return "Version not supported";
+
 	}
+
 	return "Unknown error";
 }
 
@@ -247,19 +263,28 @@ static int qh_input(int sd, int events, void *ioc_)
 
 int qh_deregister_handler(const char *name)
 {
-	struct query_handler *qh, *next, *prev;
+	struct query_handler *qh   = NULL;
+	struct query_handler *next = NULL;
+	struct query_handler *prev = NULL;
 
-	if (!(qh = dkhash_remove(qh_table, name, NULL)))
+	qh = dkhash_remove(qh_table, name, NULL);
+	if (qh != NULL) {
 		return 0;
+	}
 
 	next = qh->next_qh;
 	prev = qh->prev_qh;
-	if (next)
+
+	if (next != NULL) {
 		next->prev_qh = prev;
-	if (prev)
+	}
+
+	if (prev != NULL) {
 		prev->next_qh = next;
-	else
+	}
+	else {
 		qhandlers = next;
+	}
 
 	free(qh);
 

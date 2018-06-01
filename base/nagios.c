@@ -894,20 +894,19 @@ int main(int argc, char **argv) {
 				logit(NSLOG_PROCESS_INFO, TRUE, "Successfully shutdown... (PID=%d)\n", (int)getpid());
 				}
 
-			/* try and wait on any child processes that we didn't
-			   catch with the SIGCHLD handler */
+			/* try and collect any zombie processes */
 			if (sigrestart == TRUE) {
 
 				int status = 0;
 				pid_t child_pid;
-				log_debug_info(DEBUGL_PROCESS, 0, "Calling waitpid(,,WNOHANG|WUNTRACED) on all children...\n");
+				log_debug_info(DEBUGL_PROCESS, 1, "Calling waitpid() on all children...\n");
 
-				while ((child_pid = waitpid(-1, &status, WNOHANG | WUNTRACED)) > 0) {
+				while ((child_pid = waitpid(-1, &status, WNOHANG)) > 0) {
 
-					log_debug_info(DEBUGL_PROCESS, 0, " * child PID: (%d), status: (%d)\n", child_pid, status);
+					log_debug_info(DEBUGL_PROCESS, 2, " * child PID: (%d), status: (%d)\n", child_pid, status);
 					}
 
-				log_debug_info(DEBUGL_PROCESS, 0, "All children have been wait()ed on\n");
+				log_debug_info(DEBUGL_PROCESS, 1, "All children have been wait()ed on\n");
 				}
 
 			/* close debug log */

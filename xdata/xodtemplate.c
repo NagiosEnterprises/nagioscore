@@ -6384,7 +6384,10 @@ int xodtemplate_recombobulate_hostgroups(void) {
 	xodtemplate_host *temp_host = NULL;
 	xodtemplate_hostgroup *temp_hostgroup = NULL;
 	char *hostgroup_names = NULL;
-	char *ptr, *next_ptr, *temp_ptr = NULL;
+	char *ptr = NULL;
+	char *next_ptr = NULL;
+	char *temp_ptr = NULL;
+	int result = 0;
 
 	/* expand members of all hostgroups - this could be done in xodtemplate_register_hostgroup(), but we can save the CGIs some work if we do it here */
 	for(temp_hostgroup = xodtemplate_hostgroup_list; temp_hostgroup; temp_hostgroup = temp_hostgroup->next) {
@@ -6434,12 +6437,8 @@ int xodtemplate_recombobulate_hostgroups(void) {
 			}
 
 		/* get list of hosts in the hostgroup */
-		if (xodtemplate_expand_hosts(&accept, temp_hostgroup->reject_map, temp_hostgroup->members, temp_hostgroup->_config_file, temp_hostgroup->_start_line) == ERROR) {
-			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not expand members specified in hostgroup (config file '%s', starting on line %d)\n", xodtemplate_config_file_name(temp_hostgroup->_config_file), temp_hostgroup->_start_line);
-			return ERROR;
-		}
-
-		if (!accept && !bitmap_count_set_bits(temp_hostgroup->reject_map)) {
+		result = xodtemplate_expand_hosts(&accept, temp_hostgroup->reject_map, temp_hostgroup->members, temp_hostgroup->_config_file, temp_hostgroup->_start_line);
+		if(result == ERROR || (accept == NULL && bitmap_count_set_bits(temp_hostgroup->reject_map) == 0)) {
 			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not expand members specified in hostgroup (config file '%s', starting on line %d)\n", xodtemplate_config_file_name(temp_hostgroup->_config_file), temp_hostgroup->_start_line);
 			return ERROR;
 			}
@@ -6568,7 +6567,8 @@ int xodtemplate_recombobulate_servicegroups(void) {
 	xodtemplate_service *temp_service = NULL;
 	xodtemplate_servicegroup *temp_servicegroup = NULL;
 	char *servicegroup_names = NULL;
-	char *temp_ptr;
+	char *temp_ptr = NULL;
+	int result = 0;
 
 	/*
 	 * expand servicegroup members. We need this to get the rejected ones
@@ -6618,8 +6618,8 @@ int xodtemplate_recombobulate_servicegroups(void) {
 			}
 
 		/* get list of service members in the servicegroup */
-		xodtemplate_expand_services(&accept, temp_servicegroup->reject_map, NULL, temp_servicegroup->members, temp_servicegroup->_config_file, temp_servicegroup->_start_line);
-		if(!accept && !bitmap_count_set_bits(temp_servicegroup->reject_map)) {
+		result = xodtemplate_expand_services(&accept, temp_servicegroup->reject_map, NULL, temp_servicegroup->members, temp_servicegroup->_config_file, temp_servicegroup->_start_line);
+		if(result == ERROR || (accept == NULL && bitmap_count_set_bits(temp_servicegroup->reject_map) == 0)) {
 			logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not expand members specified in servicegroup '%s' (config file '%s', starting at line %d)\n", temp_servicegroup->servicegroup_name, xodtemplate_config_file_name(temp_servicegroup->_config_file), temp_servicegroup->_start_line);
 			return ERROR;
 			}

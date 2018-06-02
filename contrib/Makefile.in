@@ -88,7 +88,7 @@ $(CGI_O): $(CGI_C)
 ##############################################################################
 # rpm making automation for CentOS/RHEL.
 
-ARCH ?= $(shell arch)
+ARCH ?= $(shell uname -m)
 ifeq ($(ARCH),x86_64)
 RPM_ARCH := x86_64
 else

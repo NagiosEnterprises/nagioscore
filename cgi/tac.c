@@ -88,7 +88,7 @@ int process_cgivars(void);
 authdata current_authdata;
 
 int embedded = FALSE;
-int display_header = FALSE;
+int display_header = TRUE;
 
 hostoutage *hostoutage_list = NULL;
 
@@ -878,8 +878,6 @@ void display_tac_overview(void) {
 
 	/* left column */
 	printf("<td align=left valign=top width=50%%>\n");
-
-	display_info_table("Tactical Monitoring Overview", TRUE, &current_authdata);
 
 	printf("</td>\n");
 

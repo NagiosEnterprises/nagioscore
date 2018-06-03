@@ -20,4 +20,4 @@ addons:
 
 script:
   - ./configure --enable-testing
-  - cd t-tap && make test_checks && ./test_checks
+  - cd make all && t-tap && make test_checks && ./test_checks

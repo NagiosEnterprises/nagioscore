@@ -181,7 +181,7 @@ int worker_send_kvvec(int sd, struct kvvec *kvv)
 
 	/* bufsize, not buflen, as it gets us the delimiter */
 	/* ret = write(sd, kvvb->buf, kvvb->bufsize); */
-    ret = nwrite(sd, kvvb->buf, kvvb->bufsize,NULL);
+	ret = nwrite(sd, kvvb->buf, kvvb->bufsize, NULL);
 	free(kvvb->buf);
 	free(kvvb);
 

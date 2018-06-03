@@ -20,4 +20,4 @@ addons:
 
 script:
   - ./configure --enable-testing
-  - make test && gcovr -r .
+  - make test

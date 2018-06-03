@@ -19,6 +19,8 @@
 #define TEST_CHECKS_C
 #define NSCORE 1
 
+#include <unistd.h>
+
 #include "config.h"
 #include "comments.h"
 #include "common.h"
@@ -1514,6 +1516,13 @@ void run_reaper_tests()
 
 int main(int argc, char **argv)
 {
+    char cwd[1024];
+    if (getcwd(cwd, sizeof(cwd)) != NULL) {
+        printf("\n\n********** cwd: %s\n\n", cwd);
+    } else {
+        printf("\n\n********** cwd error!\n\n");
+    }
+    
     time_t now = 0L;
 
     execute_host_checks             = TRUE;

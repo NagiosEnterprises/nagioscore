@@ -81,6 +81,9 @@ int hst1_logs           = 0;
 int svc1_logs           = 0;
 int c                   = 0;
 
+int get_host_check_return_code(host *hst, check_result *cr);
+int get_service_check_return_code(service *svc, check_result *cr);
+
 void free_host(host ** hst)
 {
     if ((*hst) != NULL) {
@@ -331,6 +334,44 @@ void create_objects(int host_state, int host_state_type, char * host_output, int
         svc1->state_type    = service_state_type;
         adjust_service_output(service_output);
     }
+}
+
+void create_check_result_file(int number, char * host_name, char * service_description, char * output)
+{
+    FILE * cr;
+    char * filename = NULL;
+    char * ok_filename = NULL;
+
+    asprintf(&filename, "var/reaper/some_files/c%06d", number);
+    asprintf(&ok_filename, "%s.ok", filename);
+
+    cr = fopen(filename, "w");
+    if (cr == NULL) {
+        printf("Unable to open %s for writing.\n", filename);
+        exit(1);
+    }
+
+    if (host_name != NULL) {
+        fprintf(cr, "host_name=%s\n", host_name);
+    }
+
+    if (service_description != NULL) {
+        fprintf(cr, "service_description=%s\n", service_description);
+    }
+
+    if (output != NULL) {
+        fprintf(cr, "output=%s\n", output);
+    }
+
+    fclose(cr);
+
+    cr = fopen(ok_filename, "w");
+    if (cr == NULL) {
+        printf("Unable to open %s for writing.\n", ok_filename);
+        exit(1);
+    }
+
+    fclose(cr);
 }
 
 void setup_parent(host ** parent, const char * host_name)
@@ -1440,6 +1481,15 @@ void run_reaper_tests()
         "0 files (as there shouldn't be)");
     my_free(check_result_path);
 
+    /* existing dir, with 2 check files in it */
+    create_check_result_file(1, "hst1", "svc1", "output");
+    create_check_result_file(2, "hst1", NULL, "output");
+    check_result_path = nspath_absolute("./../t-tap/var/reaper/some_files", NULL);
+    ok(process_check_result_queue(check_result_path) == 2,
+        "2 files (as there should be)");
+    my_free(check_result_path);
+    test_check_debugging=FALSE;
+
     /* do sig_{shutdown,restart} work as intended */
     sigshutdown = TRUE;
     check_result_path = nspath_absolute("./../t-tap/var/reaper/some_files", NULL);
@@ -1471,7 +1521,7 @@ int main(int argc, char **argv)
     accept_passive_host_checks      = TRUE;
     accept_passive_service_checks   = TRUE;
 
-    plan_tests(424);
+    plan_tests(453);
 
     time(&now);
 

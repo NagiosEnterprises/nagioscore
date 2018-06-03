@@ -32,7 +32,7 @@ static inline ssize_t nwrite(int fd, const void *buf, size_t count, ssize_t *wri
 		return 0;
 
 	while (tot < count) {
-		out = write(fd, buf + tot, count - tot);
+		out = write(fd, (const char *) buf + tot, count - tot);
 		if (out > 0)
 			tot += out;
 		else if(errno == EAGAIN || errno == EINTR)

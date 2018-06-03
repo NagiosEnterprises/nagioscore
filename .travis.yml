@@ -20,5 +20,10 @@ addons:
 
 script:
   - ./configure --enable-testing
-  - make test
-  - gcovr -r .
+  - |
+    if 1 -eq 1; then
+      make test
+      exitcode=$?
+      gcovr -r .
+      exit $exitcode
+    fi

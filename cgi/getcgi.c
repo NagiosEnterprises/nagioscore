@@ -547,5 +547,6 @@ void free_cgivars(char **cgivars) {
 	for(x = 0; cgivars[x] != '\x0'; x++)
 		free(cgivars[x]);
 
+	free(cgivars);
 	return;
 	}

@@ -23,6 +23,8 @@ matrix:
       dist: trusty
       addons:
         apt:
+          sources:
+            - ubuntu-toolchain-r-test
           packages:
             - build-essential
             - apache2

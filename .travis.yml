@@ -18,6 +18,8 @@ matrix:
             - lcov
             - gperf
             - gcovr
+      env:
+        - MATRIX_EVAL="CC=gcc"
 
     - os: linux
       dist: trusty
@@ -38,6 +40,9 @@ matrix:
             - g++-5
       env:
         - MATRIX_EVAL="CC=gcc-5"
+
+before_install:
+  - eval "${MATRIX_EVAL}"
 
 script:
   - ./configure --enable-testing

@@ -13,10 +13,9 @@ SRC_LIB=../lib
 CC=@CC@
 CFLAGS=@CFLAGS@ @DEFS@ -DNSCORE -I../include -I../tap/src -I..
 
-TESTS = ""
 #TESTS = test_logging
 #TESTS += test_events
-TESTS += test_checks
+TESTS = test_checks
 TESTS += test_commands
 TESTS += test_downtime
 TESTS += test_nagios_config

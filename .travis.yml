@@ -20,14 +20,6 @@ addons:
 
 script:
   - ./configure --enable-testing
-  - |
-    if [[ "true" == "true" ]]; then
-      somerealtime=$(date +%s)
-      realtimeresult=$?
-      somebadtime=$(date s)
-      badtimeresult=$?
-      echo "real: $realtimeresult, bad: $badtimeresult"
-    fi
-  - make all && cd t-tap && make test_checks && ./test_checks
+  - make test
 
 

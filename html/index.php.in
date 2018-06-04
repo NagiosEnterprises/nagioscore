@@ -33,16 +33,16 @@ $this_year = '2018';
 <html>
 <head>
 	<meta name="ROBOTS" content="NOINDEX, NOFOLLOW">
-<script LANGUAGE="javascript">
-	var n = Math.round(Math.random() * 10000000000);
-	document.write("<title>Nagios Core on " + window.location.hostname + "</title>");
-	document.cookie = "NagFormId=" + n.toString(16);
-</script>
+	<title>Nagios: <?php echo $_SERVER['SERVER_NAME']; ?></title>
 	<link rel="shortcut icon" href="images/favicon.ico" type="image/ico">
+
+	<script LANGUAGE="javascript">
+		var n = Math.round(Math.random() * 10000000000);
+		document.cookie = "NagFormId=" + n.toString(16);
+	</script>
 </head>
 
-<frameset cols="180,*" style="border: 0px; framespacing: 0px"
-    onLoad='parent.document.title = "Nagios: " + window.location.hostname;'>
+<frameset cols="180,*" style="border: 0px; framespacing: 0px">
 	<frame src="side.php" name="side" frameborder="0" style="">
 	<frame src="<?php echo $url; ?>" name="main" frameborder="0" style="">
 

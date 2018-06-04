@@ -2,25 +2,42 @@ language: c
 
 sudo: true
 
-compiler:
-  - gcc
+matrix:
+  include:
+    - os: linux
+      dist: trusty
+      addons:
+        apt:
+          packages:
+            - build-essential
+            - apache2
+            - php5
+            - php5-gd
+            - libgd-dev
+            - unzip
+            - lcov
+            - gperf
+            - gcovr
 
-addons:
-  apt:
-    packages:
-      - build-essential
-      - apache2
-      - php5
-      - php5-gd
-      - libgd-dev
-      - unzip
-      - lcov
-      - gperf
-      - gcovr
+    - os: linux
+      dist: trusty
+      addons:
+        apt:
+          packages:
+            - build-essential
+            - apache2
+            - php5
+            - php5-gd
+            - libgd-dev
+            - unzip
+            - lcov
+            - gperf
+            - gcovr
+            - g++-5
+      env:
+        - MATRIX_EVAL="CC=gcc-5"
 
 script:
   - ./configure --enable-testing
   - make test
   - gcovr -r .
-
-

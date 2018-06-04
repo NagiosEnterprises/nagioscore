@@ -1505,7 +1505,7 @@ void run_reaper_tests()
     /* force too long of a check */
     max_check_reaper_time = -5;
     sigrestart = FALSE;
-    ok(process_check_result_queue(check_result_path) == 0,
+    ok(process_check_result_queue(check_result_path) == 1,
         "cant process if taking too long");
     my_free(check_result_path);
 

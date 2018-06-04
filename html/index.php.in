@@ -41,7 +41,8 @@ $this_year = '2018';
 	<link rel="shortcut icon" href="images/favicon.ico" type="image/ico">
 </head>
 
-<frameset cols="180,*" style="border: 0px;">
+<frameset cols="180,*" style="border: 0px; framespacing: 0px"
+    onLoad='parent.document.title = "Nagios: " + window.location.hostname;'>
 	<frame src="side.php" name="side" frameborder="0" style="">
 	<frame src="<?php echo $url; ?>" name="main" frameborder="0" style="">
 

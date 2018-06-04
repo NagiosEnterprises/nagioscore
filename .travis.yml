@@ -19,9 +19,8 @@ addons:
       - gcovr
 
 script:
-  - touch t-tap/var/reaper/some_files/c111222
-  - pwd
   - ./configure --enable-testing
-  - make test && gcovr -r .
+  - make test
+  - gcovr -r .
 
 

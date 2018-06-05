@@ -275,7 +275,7 @@ char **getcgivars(void) {
 	}
 
 	/* terminate the list */
-	pairlist[paircount] = '\x0';
+	pairlist[paircount] = NULL;
 
 	/* extract the names and values from the pairlist */
 	cgivars = (char **)malloc((paircount * 2 + 1) * sizeof(char *));
@@ -318,7 +318,7 @@ char **getcgivars(void) {
 
 	/* free allocated memory */
 	free(cgiinput);
-	for(i = 0; pairlist[i] != NULL; i++)
+	for(i = 0; pairlist[i]; i++)
 		free(pairlist[i]);
 	free(pairlist);
 

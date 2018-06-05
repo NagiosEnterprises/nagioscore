@@ -42,8 +42,6 @@ void sanitize_cgi_input(char **cgivars) {
 
 		strptr[y] = '\x0';
 		}
-
-	return;
 	}
 
 
@@ -101,8 +99,6 @@ void unescape_cgi_input(char *input) {
 			input[y] = input[x];
 		}
 	input[y] = '\x0';
-
-	return;
 	}
 
 
@@ -536,8 +532,6 @@ void free_accept_languages( accept_languages * langs) {
 		free( langs->languages);
 	}
 	free( langs);
-
-	return;
 }
 
 /* free() memory allocated to storing the CGI variables */
@@ -548,5 +542,4 @@ void free_cgivars(char **cgivars) {
 		free(cgivars[x]);
 
 	free(cgivars);
-	return;
 	}

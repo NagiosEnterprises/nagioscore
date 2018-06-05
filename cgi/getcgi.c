@@ -314,7 +314,7 @@ char **getcgivars(void) {
 		}
 
 	/* terminate the name-value list */
-	cgivars[paircount * 2] = '\x0';
+	cgivars[paircount * 2] = NULL;
 
 	/* free allocated memory */
 	free(cgiinput);
@@ -544,7 +544,7 @@ void free_accept_languages( accept_languages * langs) {
 void free_cgivars(char **cgivars) {
 	register int x;
 
-	for(x = 0; cgivars[x] != '\x0'; x++)
+	for(x = 0; cgivars[x]; x++)
 		free(cgivars[x]);
 
 	free(cgivars);

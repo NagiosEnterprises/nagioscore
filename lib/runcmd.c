@@ -329,6 +329,8 @@ static int runcmd_setenv(const char *name, const char *value);
 int update_environment(char *name, char *value, int set);
 
 /* Start running a command */
+/* The definition declares nonnull arguments, so checking for these
+   arguments as null results in a compiler warning. */
 int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
 		void (*iobreg)(int, int, void *), void *iobregarg)
 {
@@ -340,28 +342,32 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
 
 	int i = 0;
 
-	if(!pids)
+	if (!pids) {
 		runcmd_init();
+	}
 
 	/* We can't do anything without a command, or FD arrays. */
-	if (!cmd || !*cmd || !pfd || !pfderr)
+	if (cmd == NULL || *cmd == NULL || pfd == NULL || pfderr == NULL) {
 		return RUNCMD_EINVAL;
+	}
 
 	cmdlen = strlen(cmd);
 	argv = calloc((cmdlen / 2) + 5, sizeof(char *));
-	if (!argv)
+	if (!argv) {
 		return RUNCMD_EALLOC;
+	}
 
 	cmd2strv_errors = runcmd_cmd2strv(cmd, &argc, argv);
 
+	/* We couldn't allocate the parsed argument array. */
 	if (cmd2strv_errors == RUNCMD_EALLOC) {
-		/* We couldn't allocate the parsed argument array. */
 		free(argv);
 		return RUNCMD_EALLOC;
 	}
 
+	/* Run complex commands via the shell. */
 	if (cmd2strv_errors) {
-		/* Run complex commands via the shell. */
+
 		free(argv[0]);
 		argv[0] = "/bin/sh";
 		argv[1] = "-c";
@@ -378,6 +384,7 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
 		free(argv);
 		return RUNCMD_EFD;
 	}
+
 	if (pipe(pfderr) < 0) {
 		free(!cmd2strv_errors ? argv[0] : argv[2]);
 		free(argv);
@@ -386,7 +393,9 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
 		return RUNCMD_EFD;
 	}
 
-	if (iobreg) iobreg(pfd[0], pfderr[0], iobregarg);
+	if (iobreg) {
+		iobreg(pfd[0], pfderr[0], iobregarg);
+	}
 
 	pid = fork();
 	if (pid < 0) {
@@ -433,8 +442,9 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
 
 		/* Close all descriptors in pids[], the child shouldn't see these. */
 		for (i = 0; i < maxfd; i++) {
-			if (pids[i] > 0)
+			if (pids[i] > 0) {
 				close(i);
+			}
 		}
 
 		/* Export the environment. */
@@ -443,8 +453,7 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
 				if (runcmd_setenv(env[0], env[1]) == -1) {
 					exit_status = errno;
 					fprintf(stderr, "runcmd_setenv(%s, ...) errno %d: %s\n",
-						env[0], errno, strerror(errno)
-					);
+						env[0], errno, strerror(errno));
 					goto child_error_exit;
 				}
 			}
@@ -459,8 +468,7 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
 				if (runcmd_setenv(argv[i], ev) == -1) {
 					exit_status = errno;
 					fprintf(stderr, "runcmd_setenv(%s, ev) errno %d: %s\n",
-						argv[i], errno, strerror(errno)
-					);
+						argv[i], errno, strerror(errno));
 					goto child_error_exit;
 				}
 			}

@@ -3673,6 +3673,36 @@ int cmd_change_object_custom_var(int cmd, char *args) {
 			}
 		}
 
+	/* find the object */
+	switch(cmd) {
+		case CMD_CHANGE_CUSTOM_HOST_VAR:
+			if((temp_host = find_host(name1)) == NULL) {
+				my_free(name1);
+				my_free(name2);
+				return ERROR;
+				}
+			temp_customvariablesmember = temp_host->custom_variables;
+			break;
+		case CMD_CHANGE_CUSTOM_SVC_VAR:
+			if((temp_service = find_service(name1, name2)) == NULL) {
+				my_free(name1);
+				my_free(name2);
+				return ERROR;
+				}
+			temp_customvariablesmember = temp_service->custom_variables;
+			break;
+		case CMD_CHANGE_CUSTOM_CONTACT_VAR:
+			if((temp_contact = find_contact(name1)) == NULL) {
+				my_free(name1);
+				my_free(name2);
+				return ERROR;
+				}
+			temp_customvariablesmember = temp_contact->custom_variables;
+			break;
+		default:
+			break;
+		}
+
 	/* get the custom variable name */
 	if((temp_ptr = my_strtok(NULL, ";")) == NULL) {
 		my_free(name1);
@@ -3697,27 +3727,6 @@ int cmd_change_object_custom_var(int cmd, char *args) {
 		my_free(name2);
 		my_free(varname);
 		return ERROR;
-		}
-
-	/* find the object */
-	switch(cmd) {
-		case CMD_CHANGE_CUSTOM_HOST_VAR:
-			if((temp_host = find_host(name1)) == NULL)
-				return ERROR;
-			temp_customvariablesmember = temp_host->custom_variables;
-			break;
-		case CMD_CHANGE_CUSTOM_SVC_VAR:
-			if((temp_service = find_service(name1, name2)) == NULL)
-				return ERROR;
-			temp_customvariablesmember = temp_service->custom_variables;
-			break;
-		case CMD_CHANGE_CUSTOM_CONTACT_VAR:
-			if((temp_contact = find_contact(name1)) == NULL)
-				return ERROR;
-			temp_customvariablesmember = temp_contact->custom_variables;
-			break;
-		default:
-			break;
 		}
 
 	/* capitalize the custom variable name */

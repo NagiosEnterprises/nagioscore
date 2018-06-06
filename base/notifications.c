@@ -54,7 +54,7 @@ const char *notification_reason_name(unsigned int reason_type)
 		"CUSTOM"
 	};
 
-	if (reason_type < sizeof(names))
+	if (reason_type < ARRAY_SIZE(names))
 		return names[reason_type];
 
 	return "(unknown)";

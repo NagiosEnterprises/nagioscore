@@ -1506,12 +1506,12 @@ void commit_command_data(int cmd) {
 
 	if (ecmd->cmt_opt == 2 && *comment_data == '\0') {
 		if(!error_string)
-			error_string = strdup("Comment was not entered");
+			error_string = "Comment was not entered";
 	}
 	clean_comment_data(comment_data);
 	if (*comment_data != '\0' && *comment_author == '\0') {
 		if(!error_string)
-			error_string = strdup("Author was not entered");
+			error_string = "Author was not entered";
 	}
 	clean_comment_data(comment_author);
 
@@ -1540,7 +1540,7 @@ void commit_command_data(int cmd) {
 			/* check the sanity of the comment id */
 			if(comment_id == 0) {
 				if(!error_string)
-					error_string = strdup("Comment id cannot be 0");
+					error_string = "Comment id cannot be 0";
 				}
 
 			/* find the comment */
@@ -1572,7 +1572,7 @@ void commit_command_data(int cmd) {
 			/* check the sanity of the downtime id */
 			if(downtime_id == 0) {
 				if(!error_string)
-					error_string = strdup("Downtime id cannot be 0");
+					error_string = "Downtime id cannot be 0";
 				}
 
 			/* find the downtime entry */
@@ -1626,25 +1626,25 @@ void commit_command_data(int cmd) {
 			/* make sure we have passive check info (if necessary) */
 			if(cmd == CMD_PROCESS_SERVICE_CHECK_RESULT && !strcmp(plugin_output, "")) {
 				if(!error_string)
-					error_string = strdup("Plugin output cannot be blank");
+					error_string = "Plugin output cannot be blank";
 				}
 
 			/* make sure we have a notification delay (if necessary) */
 			if(cmd == CMD_DELAY_SVC_NOTIFICATION && notification_delay <= 0) {
 				if(!error_string)
-					error_string = strdup("Notification delay must be greater than 0");
+					error_string = "Notification delay must be greater than 0";
 				}
 
 			/* make sure we have check time (if necessary) */
 			if(cmd == CMD_SCHEDULE_SVC_CHECK && start_time == (time_t)0) {
 				if(!error_string)
-					error_string = strdup("Start time must be non-zero or bad format has been submitted.");
+					error_string = "Start time must be non-zero or bad format has been submitted.";
 				}
 
 			/* make sure we have start/end times for downtime (if necessary) */
 			if(cmd == CMD_SCHEDULE_SVC_DOWNTIME && (start_time == (time_t)0 || end_time == (time_t)0 || end_time < start_time)) {
 				if(!error_string)
-					error_string = strdup("Start or end time not valid");
+					error_string = "Start or end time not valid";
 				}
 
 			break;
@@ -1713,25 +1713,25 @@ void commit_command_data(int cmd) {
 			/* make sure we have a notification delay (if necessary) */
 			if(cmd == CMD_DELAY_HOST_NOTIFICATION && notification_delay <= 0) {
 				if(!error_string)
-					error_string = strdup("Notification delay must be greater than 0");
+					error_string = "Notification delay must be greater than 0";
 				}
 
 			/* make sure we have start/end times for downtime (if necessary) */
 			if((cmd == CMD_SCHEDULE_HOST_DOWNTIME || cmd == CMD_SCHEDULE_HOST_SVC_DOWNTIME) && (start_time == (time_t)0 || end_time == (time_t)0 || start_time > end_time)) {
 				if(!error_string)
-					error_string = strdup("Start or end time not valid");
+					error_string = "Start or end time not valid";
 				}
 
 			/* make sure we have check time (if necessary) */
 			if((cmd == CMD_SCHEDULE_HOST_CHECK || cmd == CMD_SCHEDULE_HOST_SVC_CHECKS) && start_time == (time_t)0) {
 				if(!error_string)
-					error_string = strdup("Start time must be non-zero or bad format has been submitted.");
+					error_string = "Start time must be non-zero or bad format has been submitted.";
 				}
 
 			/* make sure we have passive check info (if necessary) */
 			if(cmd == CMD_PROCESS_HOST_CHECK_RESULT && !strcmp(plugin_output, "")) {
 				if(!error_string)
-					error_string = strdup("Plugin output cannot be blank");
+					error_string = "Plugin output cannot be blank";
 				}
 
 			break;
@@ -1748,7 +1748,7 @@ void commit_command_data(int cmd) {
 			/* make sure we have start/end times for downtime */
 			if((cmd == CMD_SCHEDULE_HOSTGROUP_HOST_DOWNTIME || cmd == CMD_SCHEDULE_HOSTGROUP_SVC_DOWNTIME) && (start_time == (time_t)0 || end_time == (time_t)0 || start_time > end_time)) {
 				if(!error_string)
-					error_string = strdup("Start or end time not valid");
+					error_string = "Start or end time not valid";
 				}
 
 			/* see if the user is authorized to issue a command... */
@@ -1770,7 +1770,7 @@ void commit_command_data(int cmd) {
 			/* make sure we have start/end times for downtime */
 			if((cmd == CMD_SCHEDULE_SERVICEGROUP_HOST_DOWNTIME || cmd == CMD_SCHEDULE_SERVICEGROUP_SVC_DOWNTIME) && (start_time == (time_t)0 || end_time == (time_t)0 || start_time > end_time)) {
 				if(!error_string)
-					error_string = strdup("Start or end time not valid");
+					error_string = "Start or end time not valid";
 				}
 
 			/* see if the user is authorized to issue a command... */
@@ -1798,7 +1798,8 @@ void commit_command_data(int cmd) {
 			break;
 
 		default:
-			if(!error_string) error_string = strdup("An error occurred while processing your command!");
+			if(!error_string)
+				error_string = "An error occurred while processing your command!";
 		}
 
 
@@ -1836,7 +1837,6 @@ void commit_command_data(int cmd) {
 			printf("<p>%s</p>\n", error_string);
 		else {
 			printf("<P><DIV CLASS='errorMessage'>%s</DIV></P>\n", error_string);
-			free(error_string);
 			printf("<P><DIV CLASS='errorDescription'>Go <A HREF='javascript:window.history.go(-1)'>back</A> and verify that you entered all required information correctly.<BR>\n");
 			printf("<A HREF='javascript:window.history.go(-2)'>Return from whence you came</A></DIV></P>\n");
 			}
@@ -1877,8 +1877,6 @@ void commit_command_data(int cmd) {
 				}
 			}
 		}
-
-	return;
 	}
 
 __attribute__((format(printf, 2, 3)))

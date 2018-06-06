@@ -79,7 +79,7 @@ typedef struct pqueue_t
  * @param getpos the callback function to get the current element's position
  * @param setpos the callback function to set the current element's position
  *
- * @return the handle or NULL for insufficent memory
+ * @return the handle or NULL for insufficient memory
  */
 pqueue_t *
 pqueue_init(unsigned int n,

@@ -1721,7 +1721,7 @@ void my_system_sighandler(int sig) {
 
 
 /* Handle the SIGXFSZ signal. A SIGXFSZ signal is received when a file exceeds
-	the maximum allowable size either as dictated by the fzise parameter in
+	the maximum allowable size either as dictated by the fsize parameter in
 	/etc/security/limits.conf (ulimit -f) or by the maximum size allowed by
 	the filesystem */
 void handle_sigxfsz(int sig) {

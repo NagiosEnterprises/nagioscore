@@ -76,8 +76,10 @@ char *nspath_normalize(const char *orig_path)
 	rpath = strdup(orig_path);
 	comps = path_components(rpath);
 	pcomp = calloc(comps, sizeof(struct pcomp));
-	if (pcomp == NULL)
+	if (pcomp == NULL) {
+		free(rpath);
 		return NULL;
+	}
 
 	p = pcomp[0].str = rpath;
 	for (; p; p = slash, i++) {

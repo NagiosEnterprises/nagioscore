@@ -1300,7 +1300,7 @@ int process_cgivars(json_object *json_root, object_json_cgi_data *cgi_data,
 
 	variables = getcgivars();
 
-	for(x = 0; variables[x] != NULL; x++) {
+	for(x = 0; variables[x]; x++) {
 		/* We set these each iteration because they could change with each
 			iteration */
 

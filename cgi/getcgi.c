@@ -42,8 +42,6 @@ void sanitize_cgi_input(char **cgivars) {
 
 		strptr[y] = '\x0';
 		}
-
-	return;
 	}
 
 
@@ -101,8 +99,6 @@ void unescape_cgi_input(char *input) {
 			input[y] = input[x];
 		}
 	input[y] = '\x0';
-
-	return;
 	}
 
 
@@ -275,7 +271,7 @@ char **getcgivars(void) {
 	}
 
 	/* terminate the list */
-	pairlist[paircount] = '\x0';
+	pairlist[paircount] = NULL;
 
 	/* extract the names and values from the pairlist */
 	cgivars = (char **)malloc((paircount * 2 + 1) * sizeof(char *));
@@ -314,11 +310,11 @@ char **getcgivars(void) {
 		}
 
 	/* terminate the name-value list */
-	cgivars[paircount * 2] = '\x0';
+	cgivars[paircount * 2] = NULL;
 
 	/* free allocated memory */
 	free(cgiinput);
-	for(i = 0; pairlist[i] != NULL; i++)
+	for(i = 0; pairlist[i]; i++)
 		free(pairlist[i]);
 	free(pairlist);
 
@@ -536,17 +532,14 @@ void free_accept_languages( accept_languages * langs) {
 		free( langs->languages);
 	}
 	free( langs);
-
-	return;
 }
 
 /* free() memory allocated to storing the CGI variables */
 void free_cgivars(char **cgivars) {
 	register int x;
 
-	for(x = 0; cgivars[x] != '\x0'; x++)
+	for(x = 0; cgivars[x]; x++)
 		free(cgivars[x]);
 
 	free(cgivars);
-	return;
 	}

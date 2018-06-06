@@ -3582,7 +3582,8 @@ void display_specific_servicegroup_availability(servicegroup *sg) {
 	int odd = 1;
 	host *temp_host;
 	service *temp_service;
-	char last_host[MAX_INPUT_BUFFER];
+	/* Initialize to empty string for initial strcmp() below */
+	char last_host[MAX_INPUT_BUFFER] = { 0 };
 
 	if(sg == NULL)
 		return;

@@ -907,14 +907,17 @@ void draw_host(host *temp_host) {
 	if(temp_host == NULL)
 		return;
 
+	/* see if user is authorized to view this host  */
+	if(is_authorized_for_host(temp_host, &current_authdata) == FALSE)
+		return;
+
 	/* make sure we have the coordinates */
 	if(temp_host->have_3d_coords == FALSE)
 		return;
-	else {
-		x = temp_host->x_3d;
-		y = temp_host->y_3d;
-		z = temp_host->z_3d;
-		}
+
+	x = temp_host->x_3d;
+	y = temp_host->y_3d;
+	z = temp_host->z_3d;
 
 	/* make the host name safe for embedding in VRML */
 	vrml_safe_hostname = (char *)strdup(temp_host->name);
@@ -925,10 +928,6 @@ void draw_host(host *temp_host) {
 		if((ch < 'a' || ch > 'z') && (ch < 'A' || ch > 'Z') && (ch < '0' || ch > '9'))
 			vrml_safe_hostname[a] = '_';
 		}
-
-	/* see if user is authorized to view this host  */
-	if(is_authorized_for_host(temp_host, &current_authdata) == FALSE)
-		return;
 
 	/* get the status of the host */
 	temp_hoststatus = find_hoststatus(temp_host->name);

@@ -379,8 +379,8 @@ install-daemoninit:
 		if which systemctl >/dev/null 2>&1; then \
 			systemctl daemon-reload; \
 			systemctl enable nagios.service; \
-		fi \
-		chmod 0644 $(INIT_DIR)/$(INIT_FILE) \
+		fi; \
+		chmod 0644 $(INIT_DIR)/$(INIT_FILE); \
 	elif [ x$(INIT_TYPE) = xupstart ]; then \
 		if which initctl >/dev/null 2>&1; then \
 			initctl reload-configuration; \

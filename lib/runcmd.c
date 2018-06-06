@@ -493,7 +493,7 @@ child_error_exit:
 
 	/* parent picks up execution here */
 	/*
-	 * close childs file descriptors in our address space and
+	 * close child's file descriptors in our address space and
 	 * release the memory we used that won't get passed to the
 	 * caller.
 	 */

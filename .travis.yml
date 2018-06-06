@@ -101,7 +101,7 @@ matrix:
       env:
         - MATRIX_EVAL="CC=gcc-8 && CXX=g++-8"
 
-   - os: linux
+    - os: linux
       dist: trusty
       addons:
         apt:

@@ -347,7 +347,7 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
 	}
 
 	/* We can't do anything without a command, or FD arrays. */
-	if (cmd == NULL || *cmd == NULL || pfd == NULL || pfderr == NULL) {
+	if (cmd == NULL || pfd == NULL || pfderr == NULL) {
 		return RUNCMD_EINVAL;
 	}
 

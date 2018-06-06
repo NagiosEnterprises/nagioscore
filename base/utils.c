@@ -1844,36 +1844,48 @@ static long long check_file_size(char *path, unsigned long fudge,
 /************************ DAEMON FUNCTIONS ************************/
 /******************************************************************/
 
-int daemon_init(void) {
-	pid_t pid = -1;
-	int pidno = 0;
-	int lockfile = 0;
-	int val = 0;
+int daemon_init(void)
+{
+	pid_t pid     = -1;
+	int pidno     = 0;
+	int lockfile  = 0;
+	int val       = 0;
 	char buf[256] = { 0 };
-	struct flock lock;
 	char *homedir = NULL;
-	char *cp;
+	char *cp      = NULL;
+	struct flock lock;
 
 #ifdef RLIMIT_CORE
 	struct rlimit limit;
 #endif
 
 	/* change working directory. scuttle home if we're dumping core */
-	if(daemon_dumps_core == TRUE) {
+	if (daemon_dumps_core == TRUE) {
+
 		homedir = getenv("HOME");
-		if (homedir && *homedir)
+
+		if (homedir && *homedir) {
 			chdir(homedir);
+		}
 		else if (log_file && *log_file) {
+
 			homedir = strdup(log_file);
+
 			cp = strrchr(homedir, '/');
-			if (cp)
+
+			if (cp) {
 				*cp = '\0';
-			else
+			}
+			else {
 				strcpy(homedir, "/");
+			}
+
 			chdir(homedir);
 			free(homedir);
-		} else
+
+		} else {
 			chdir("/");
+		}
 	}
 
 	umask(S_IWGRP | S_IWOTH);
@@ -1891,49 +1903,73 @@ int daemon_init(void) {
 
 	lockfile = open(lock_file, O_RDWR | O_CREAT, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
 
-	if(lockfile < 0) {
-		logit(NSLOG_RUNTIME_ERROR, TRUE, "Failed to obtain lock on file %s: %s\n", lock_file, strerror(errno));
-		logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR, TRUE, "Bailing out due to errors encountered while attempting to daemonize... (PID=%d)", (int)getpid());
+	if (lockfile < 0) {
+
+		logit(NSLOG_RUNTIME_ERROR, TRUE, 
+			"Failed to obtain lock on file %s: %s\n", lock_file, strerror(errno));
+		logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR, TRUE, 
+			"Bailing out due to errors encountered while attempting to daemonize... (PID=%d)", (int)getpid());
 
 		cleanup();
 		exit(ERROR);
-		}
+	}
 
 	/* see if we can read the contents of the lockfile */
-	if((val = read(lockfile, buf, (size_t)10)) < 0) {
+	val = read(lockfile, buf, (size_t)10);
+	if (val < 0) {
+
 		logit(NSLOG_RUNTIME_ERROR, TRUE, "Lockfile exists but cannot be read");
 		cleanup();
 		exit(ERROR);
-		}
+	}
 
 	/* we read something - check the PID */
-	if(val > 0) {
-		if((val = sscanf(buf, "%d", &pidno)) < 1) {
+	if (val > 0) {
+
+		val = sscanf(buf, "%d", &pidno);
+		if (val < 1) {
 			logit(NSLOG_RUNTIME_ERROR, TRUE, "Lockfile '%s' does not contain a valid PID (%s)", lock_file, buf);
 			cleanup();
 			exit(ERROR);
-			}
+		}
+	}
+
+	pid = (pid_t)pidno;
+	if (val == 1) {
+
+		/* check for SIGHUP */
+		if (pid == getpid()) {
+			close(lockfile);
+			return OK;
 		}
 
-	/* check for SIGHUP */
-	if(val == 1 && (pid = (pid_t)pidno) == getpid()) {
-		close(lockfile);
-		return OK;
+		/* send a signal to see if pid alive */
+		val = kill(pid, 0);
+
+		/* is this process alive? */
+		if (val == 0) {
+			logit(NSLOG_RUNTIME_ERROR, TRUE, 
+				"Lockfile '%s' contains PID of running process (%d)", lock_file, pidno);
+			cleanup();
+			exit(ERROR);
 		}
+	}
 
 	/* exit on errors... */
-	if((pid = fork()) < 0)
+	pid = fork();
+	if (pid < 0) {
 		return(ERROR);
+	}
 
 	/* parent process goes away.. */
-	else if((int)pid != 0) {
+	else if (pid != 0) {
 
 		iobroker_destroy(nagios_iobs, IOBROKER_CLOSE_SOCKETS);
 		cleanup();
 		cleanup_performance_data();
 		cleanup_downtime_data();
 		exit(OK);
-		}
+	}
 
 	/* child continues... */
 
@@ -1941,21 +1977,29 @@ int daemon_init(void) {
 	setsid();
 
 	/* place a file lock on the lock file */
-	lock.l_type = F_WRLCK;
-	lock.l_start = 0;
+	lock.l_type   = F_WRLCK;
+	lock.l_start  = 0;
 	lock.l_whence = SEEK_SET;
-	lock.l_len = 0;
-	if(fcntl(lockfile, F_SETLK, &lock) < 0) {
-		if(errno == EACCES || errno == EAGAIN) {
+	lock.l_len    = 0;
+
+	val = fcntl(lockfile, F_SETLK, &lock);
+
+	if (val < 0) {
+		if (errno == EACCES || errno == EAGAIN) {
 			fcntl(lockfile, F_GETLK, &lock);
-			logit(NSLOG_RUNTIME_ERROR, TRUE, "Lockfile '%s' looks like its already held by another instance of Nagios (PID %d).  Bailing out...", lock_file, (int)lock.l_pid);
-			}
-		else
-			logit(NSLOG_RUNTIME_ERROR, TRUE, "Cannot lock lockfile '%s': %s. Bailing out...", lock_file, strerror(errno));
+			logit(NSLOG_RUNTIME_ERROR, TRUE, 
+				"Lockfile '%s' looks like its already held by another instance of Nagios (PID %d).  Bailing out...", 
+				lock_file, (int)lock.l_pid);
+		}
+		else {
+			logit(NSLOG_RUNTIME_ERROR, TRUE, 
+				"Cannot lock lockfile '%s': %s. Bailing out...", 
+				lock_file, strerror(errno));
+		}
 
 		cleanup();
 		exit(ERROR);
-		}
+	}
 
 	/* prevent daemon from dumping a core file... */
 #ifdef RLIMIT_CORE
@@ -1963,7 +2007,7 @@ int daemon_init(void) {
 		getrlimit(RLIMIT_CORE, &limit);
 		limit.rlim_cur = 0;
 		setrlimit(RLIMIT_CORE, &limit);
-		}
+	}
 #endif
 
 	/* write PID to lockfile... */
@@ -1983,7 +2027,7 @@ int daemon_init(void) {
 #endif
 
 	return OK;
-	}
+}
 
 
 

@@ -55,58 +55,63 @@ static struct {
 
 
 /* creates external command file as a named pipe (FIFO) and opens it for reading (non-blocked mode) */
-int open_command_file(void) {
+int open_command_file(void)
+{
 	struct stat st;
 	int result = 0;
 
-	/* if we're not checking external commands, don't do anything */
-	if(check_external_commands == FALSE)
+	/* if the command file was created or 
+	   we're not checking external commands, don't do anything */
+	if (command_file_created == TRUE || check_external_commands == FALSE) {
 		return OK;
-
-	/* the command file was already created */
-	if(command_file_created == TRUE)
-		return OK;
+	}
 
 	/* reset umask (group needs write permissions) */
 	umask(S_IWOTH);
 
 	/* use existing FIFO if possible */
-	if(!(stat(command_file, &st) != -1 && (st.st_mode & S_IFIFO))) {
+	result = stat(command_file, &st);
+	if(!(result != -1 && (st.st_mode & S_IFIFO))) {
 
 		/* create the external command file as a named pipe (FIFO) */
-		if((result = mkfifo(command_file, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP)) != 0) {
+		result = mkfifo(command_file, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
+		if (result != 0) {
 
-			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Could not create external command file '%s' as named pipe: (%d) -> %s.  If this file already exists and you are sure that another copy of Nagios is not running, you should delete this file.\n", command_file, errno, strerror(errno));
+			logit(NSLOG_RUNTIME_ERROR, TRUE, 
+				"Error: Could not create external command file '%s' as named pipe: (%d) -> %s.  "
+				"If this file already exists and you are sure that another copy of Nagios is not running, you should delete this file.\n", 
+				command_file, errno, strerror(errno));
+
 			return ERROR;
-			}
 		}
+	}
 
 	/* open the command file for reading (non-blocked) - O_TRUNC flag cannot be used due to errors on some systems */
 	/* NOTE: file must be opened read-write for poll() to work */
-	if((command_file_fd = open(command_file, O_RDWR | O_NONBLOCK)) < 0) {
+	command_file_fd = open(command_file, O_RDWR | O_NONBLOCK);
+	if (command_file_fd < 0) {
 
-		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Could not open external command file for reading via open(): (%d) -> %s\n", errno, strerror(errno));
+		logit(NSLOG_RUNTIME_ERROR, TRUE, 
+			"Error: Could not open external command file for reading via open(): (%d) -> %s\n", errno, strerror(errno));
 
 		return ERROR;
-		}
+	}
 
 	/* set a flag to remember we already created the file */
 	command_file_created = TRUE;
 
 	return OK;
-	}
+}
 
 
 /* closes the external command file FIFO and deletes it */
-int close_command_file(void) {
-
-	/* if we're not checking external commands, don't do anything */
-	if(check_external_commands == FALSE)
+int close_command_file(void)
+{
+	/* if the command file wasn't created or was already cleaned up
+	   or we're not checking external commands, don't do anything */
+	if (command_file_created == FALSE || check_external_commands == FALSE) {
 		return OK;
-
-	/* the command file wasn't created or was already cleaned up */
-	if(command_file_created == FALSE)
-		return OK;
+	}
 
 	/* reset our flag */
 	command_file_created = FALSE;
@@ -114,8 +119,11 @@ int close_command_file(void) {
 	/* close the command file */
 	fclose(command_file_fp);
 
+	/* unlink the pipe */
+	unlink(command_file);
+
 	return OK;
-	}
+}
 
 
 /* shutdown command file worker thread */

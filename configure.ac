@@ -79,10 +79,10 @@ dnl then we need to find one!
 if test "x$subsyslockdir" = "xN/A"; then
 	if test -d "/var/run"; then
 		subsyslockdir="/var/run"
-		subsyslockfile="/var/run/$INIT_PROG"
+		subsyslockfile="/var/run/$INIT_PROG.lock"
 	else
 		subsyslockdir="/usr/local/nagios/var/"
-		subsyslockfile="/usr/local/nagios/var/$INIT_PROG"
+		subsyslockfile="/usr/local/nagios/var/$INIT_PROG.lock"
 	fi
 fi
 AC_ARG_WITH(lockfile,

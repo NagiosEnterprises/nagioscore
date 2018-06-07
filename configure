@@ -5187,7 +5187,7 @@ if test ! -d "$subsyslockdir"; then
 	subsyslockdir="N/A"
 	subsyslockfile="N/A"
 else
-	subsyslockfile="$subsyslockdir/$INIT_PROG"
+	subsyslockfile="$subsyslockdir/$INIT_PROG.lock"
 fi
 if test "$need_loc" = no; then
 	localedir="N/A"

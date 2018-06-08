@@ -133,9 +133,9 @@ nagios_group=@nagios_grp@
 
 # EXTERNAL COMMAND OPTION
 # This option allows you to specify whether or not Nagios should check
-# for external commands (in the command file defined below).  By default
-# Nagios will *not* check for external commands, just to be on the
-# cautious side.  If you want to be able to use the CGI command interface
+# for external commands (in the command file defined below). 
+# By default Nagios will check for external commands.
+# If you want to be able to use the CGI command interface
 # you will have to enable this.
 # Values: 0 = disable commands, 1 = enable commands
 

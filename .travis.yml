@@ -121,6 +121,28 @@ matrix:
       env:
         - MATRIX_EVAL="CC=clang-5.0 && CXX=clang++-5.0"
 
+    - os: linux
+      dist: trusty
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-trusty-6.0
+            - ubuntu-toolchain-r-test
+          packages:
+            - apache2
+            - build-essential
+            - clang-6.0
+            - gcovr
+            - gperf
+            - g++-4.9
+            - lcov
+            - libgd-dev
+            - php5
+            - php5-gd
+            - unzip
+      env:
+        - MATRIX_EVAL="CC=clang-6.0 && CXX=clang++-6.0"
+
 before_install:
   - eval "${MATRIX_EVAL}"
 

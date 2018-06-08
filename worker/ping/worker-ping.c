@@ -47,7 +47,7 @@ void		parse_worker_command_line( int, char **, char **, int *, char **,
 static int	worker( const char *);
 
 /* Everything starts here */
-main( int argc, char **argv, char **env) {
+int main( int argc, char **argv, char **env) {
 	int daemon_mode = FALSE;
 	char *worker_socket;
 	char *worker_user = ( char *)0;

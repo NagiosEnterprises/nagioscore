@@ -62,9 +62,10 @@ CP=@CP@
 none:
 		@echo "Please supply a command line argument (i.e. 'make all').  Other targets are:"
 		@echo "   nagios cgis contrib modules workers"
-		@echo "   clean"
+		@echo "   test"
 		@echo "   install install-base install-cgis install-html install-exfoliation install-config install-init install-commandmode fullinstall"
 #		@echo "   uninstall"
+		@echo "   clean"
 
 # FreeBSD make does not support -C option, so we'll use the Apache style... (patch by Stanley Hopcroft 12/27/1999)
 
@@ -89,8 +90,11 @@ all:
 	@echo "*** Compile finished ***"
 	@echo ""
 	@echo "If the main program and CGIs compiled without any errors, you"
-	@echo "can continue with installing Nagios as follows (type 'make'"
-	@echo "without any arguments for a list of all possible options):"
+	@echo "can continue with testing or installing Nagios as follows (type"
+	@echo "'make' without any arguments for a list of all possible options):"
+	@echo ""
+	@echo "  make test"
+	@echo "     - This runs the test suite"
 	@echo ""
 	@echo "  make install"
 	@echo "     - This installs the main program, CGIs, and HTML files"

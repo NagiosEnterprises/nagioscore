@@ -738,7 +738,6 @@ infodir
 docdir
 oldincludedir
 includedir
-runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -852,7 +851,6 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
-runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE}'
@@ -1105,15 +1103,6 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
-  -runstatedir | --runstatedir | --runstatedi | --runstated \
-  | --runstate | --runstat | --runsta | --runst | --runs \
-  | --run | --ru | --r)
-    ac_prev=runstatedir ;;
-  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
-  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
-  | --run=* | --ru=* | --r=*)
-    runstatedir=$ac_optarg ;;
-
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1251,7 +1240,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir runstatedir
+		libdir localedir mandir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1404,7 +1393,6 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
-  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -4918,14 +4906,12 @@ $as_echo "$inetd_type" >&6; }
 
 
 
-
 if test x$DBG_PATHS != x; then
 	echo
 	echo Incoming paths:
 	echo "    prefix        $prefix"
 	echo "    exec_prefix   $exec_prefix"
 	echo "    bindir        $bindir"
-	echo "    sbindir       $sbindir"
 	echo "    libexecdir    $libexecdir"
 	echo "    sysconfdir    $sysconfdir"
 	echo "    localstatedir $localstatedir"
@@ -5155,9 +5141,6 @@ else
 			fi
 		fi
 		if test $dist_type = "osx"; then
-			if test x"$sbindir" = x'${exec_prefix}/sbin'; then
-				sbindir="$libexecdir"
-			fi
 			if test x"$libexecdir" = x'${exec_prefix}/libexec'; then
 				libexecdir="/usr/local/libexec/nagios"
 			fi
@@ -5197,7 +5180,6 @@ if test $install_method = "default" ; then
 	#
 	# Do the default setup
 	#
-	sbindir=${bindir}
 	datadir=${datadir="$datarootdir"}
 	if test $need_web = yes; then
 		webdir=${webdir="$datadir"}
@@ -5312,7 +5294,6 @@ elif test $opsys = "unix"; then
 	install_method="$install_method : Unix Standard"
 	if test $dist_type = osx; then
 		install_method="$install_method : OS X Standard"
-		sbindir=${sbindir="/usr/local/libexec"}
 	fi
 	datadir=${datadir="$datarootdir/nagios"}
 	if test $need_web = yes; then
@@ -5495,7 +5476,6 @@ fi
 eval prefix=$prefix
 eval exec_prefix=$exec_prefix
 eval bindir=$bindir
-eval sbindir=$sbindir
 eval datarootdir=$datarootdir
 eval datadir=$datadir
 eval libexecdir=$libexecdir

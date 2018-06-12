@@ -49,7 +49,6 @@ AC_DEFUN([AX_NAGIOS_GET_PATHS],
 
 AC_SUBST(pkgsysconfdir)
 AC_SUBST(objsysconfdir)
-AC_SUBST(sbindir)
 AC_SUBST(initname)
 AC_SUBST(inetdname)
 AC_SUBST(pluginsdir)
@@ -74,7 +73,6 @@ if test x$DBG_PATHS != x; then
 	echo "    prefix        $prefix"
 	echo "    exec_prefix   $exec_prefix"
 	echo "    bindir        $bindir"
-	echo "    sbindir       $sbindir"
 	echo "    libexecdir    $libexecdir"
 	echo "    sysconfdir    $sysconfdir"
 	echo "    localstatedir $localstatedir"
@@ -265,9 +263,6 @@ else
 			fi
 		fi
 		if test $dist_type = "osx"; then
-			if test x"$sbindir" = x'${exec_prefix}/sbin'; then
-				sbindir="$libexecdir"
-			fi
 			if test x"$libexecdir" = x'${exec_prefix}/libexec'; then
 				libexecdir="/usr/local/libexec/nagios"
 			fi
@@ -307,7 +302,6 @@ if test $install_method = "default" ; then
 	#
 	# Do the default setup
 	#
-	sbindir=${bindir}
 	datadir=${datadir="$datarootdir"}
 	if test $need_web = yes; then
 		webdir=${webdir="$datadir"}
@@ -422,7 +416,6 @@ elif test $opsys = "unix"; then
 	install_method="$install_method : Unix Standard"
 	if test $dist_type = osx; then
 		install_method="$install_method : OS X Standard"
-		sbindir=${sbindir="/usr/local/libexec"}
 	fi
 	datadir=${datadir="$datarootdir/nagios"}
 	if test $need_web = yes; then
@@ -603,7 +596,6 @@ fi
 eval prefix=$prefix
 eval exec_prefix=$exec_prefix
 eval bindir=$bindir
-eval sbindir=$sbindir
 eval datarootdir=$datarootdir
 eval datadir=$datadir
 eval libexecdir=$libexecdir

@@ -7479,6 +7479,8 @@ if test -z "$UNZIP"; then
 	as_fn_error $? "Cannot continue without unzip!" "$LINENO" 5
 fi
 
+eval sbindir=$sbindir
+
 ac_config_files="$ac_config_files Makefile lib/Makefile base/Makefile common/Makefile contrib/Makefile cgi/Makefile html/Makefile module/Makefile worker/Makefile worker/ping/Makefile xdata/Makefile subst pkginfo startup/openrc-init startup/default-init startup/default-service startup/upstart-init t/Makefile t-tap/Makefile"
 
 

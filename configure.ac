@@ -893,6 +893,9 @@ if test -z "$UNZIP"; then
 	AC_MSG_ERROR([Cannot continue without unzip!])
 fi
 
+dnl Need this here because of removing it from autoconf-macros
+eval sbindir=$sbindir
+
 AC_OUTPUT([
 	Makefile
 	lib/Makefile

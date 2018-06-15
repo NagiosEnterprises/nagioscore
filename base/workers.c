@@ -73,17 +73,38 @@ extern struct kvvec * macros_to_kvv(nagios_macros *);
 static const char *wpjob_type_name(unsigned int type)
 {
 	switch (type) {
-	case WPJOB_CHECK: return "CHECK";
-	case WPJOB_NOTIFY: return "NOTIFY";
-	case WPJOB_OCSP: return "OCSP";
-	case WPJOB_OCHP: return "OCHP";
-	case WPJOB_GLOBAL_SVC_EVTHANDLER: return "GLOBAL SERVICE EVENTHANDLER";
-	case WPJOB_SVC_EVTHANDLER: return "SERVICE EVENTHANDLER";
-	case WPJOB_GLOBAL_HOST_EVTHANDLER: return "GLOBAL HOST EVENTHANDLER";
-	case WPJOB_HOST_EVTHANDLER: return "HOST EVENTHANDLER";
-	case WPJOB_CALLBACK: return "CALLBACK";
-	case WPJOB_HOST_PERFDATA: return "HOST PERFDATA";
-	case WPJOB_SVC_PERFDATA: return "SERVICE PERFDATA";
+	case WPJOB_CHECK:
+		return "CHECK";
+
+	case WPJOB_NOTIFY:
+		return "NOTIFY";
+
+	case WPJOB_OCSP:
+		return "OCSP";
+
+	case WPJOB_OCHP:
+		return "OCHP";
+
+	case WPJOB_GLOBAL_SVC_EVTHANDLER:
+		return "GLOBAL SERVICE EVENTHANDLER";
+
+	case WPJOB_SVC_EVTHANDLER:
+		return "SERVICE EVENTHANDLER";
+
+	case WPJOB_GLOBAL_HOST_EVTHANDLER:
+		return "GLOBAL HOST EVENTHANDLER";
+
+	case WPJOB_HOST_EVTHANDLER:
+		return "HOST EVENTHANDLER";
+
+	case WPJOB_CALLBACK:
+		return "CALLBACK";
+
+	case WPJOB_HOST_PERFDATA:
+		return "HOST PERFDATA";
+
+	case WPJOB_SVC_PERFDATA:
+		return "SERVICE PERFDATA";
 	}
 	return "UNKNOWN";
 }
@@ -93,16 +114,21 @@ static void wproc_logdump_buffer(int level, int show, const char *prefix, char *
 	char *ptr, *eol;
 	unsigned int line = 1;
 
-	if (!buf || !*buf)
+	if (!buf || !*buf) {
 		return;
+	}
+
 	for (ptr = buf; ptr && *ptr; ptr = eol ? eol + 1 : NULL) {
-		if ((eol = strchr(ptr, '\n')))
+		if ((eol = strchr(ptr, '\n'))) {
 			*eol = 0;
+		}
 		logit(level, show, "%s line %.02d: %s\n", prefix, line++, ptr);
-		if (eol)
+		if (eol) {
 			*eol = '\n';
-		else
+		}
+		else {
 			break;
+		}
 	}
 }
 
@@ -113,13 +139,17 @@ void wproc_reap(int jobs, int msecs)
 	gettimeofday(&start, NULL);
 
 	while (jobs > 0 && msecs > 0) {
+
 		int inputs = iobroker_poll(nagios_iobs, msecs);
-		if (inputs < 0) return;
+		if (inputs < 0) {
+			return;
+		}
 
 		jobs -= inputs; /* One input is roughly equivalent to one job. */
 
 		struct timeval now;
 		gettimeofday(&now, NULL);
+
 		msecs -= tv_delta_msec(&start, &now);
 		start = now;
 	}
@@ -131,20 +161,24 @@ int wproc_can_spawn(struct load_control *lc)
 	time_t now;
 
 	/* if no load control is enabled, we can safely run this job */
-	if (!(lc->options & LOADCTL_ENABLED))
+	if (!(lc->options & LOADCTL_ENABLED)) {
 		return 1;
+	}
 
 	now = time(NULL);
 	if (lc->last_check + lc->check_interval > now) {
+
 		lc->last_check = now;
 
-		if (getloadavg(lc->load, 3) < 0)
+		if (getloadavg(lc->load, 3) < 0) {
 			return lc->jobs_limit > lc->jobs_running;
+		}
 
 		if (lc->load[0] > lc->backoff_limit) {
 			old = lc->jobs_limit;
 			lc->jobs_limit -= lc->backoff_change;
 		}
+
 		else if (lc->load[0] < lc->rampup_limit) {
 			old = lc->jobs_limit;
 			lc->jobs_limit += lc->rampup_change;
@@ -153,6 +187,7 @@ int wproc_can_spawn(struct load_control *lc)
 		if (lc->jobs_limit > lc->jobs_max) {
 			lc->jobs_limit = lc->jobs_max;
 		}
+
 		else if (lc->jobs_limit < lc->jobs_min) {
 			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Tried to set jobs_limit to %u, below jobs_min (%u)\n",
 				  lc->jobs_limit, lc->jobs_min);
@@ -184,19 +219,28 @@ static struct wproc_job *get_job(struct wproc_worker *wp, int job_id)
 
 static struct wproc_list *get_wproc_list(const char *cmd)
 {
-	struct wproc_list *wp_list;
-	char *cmd_name = NULL, *slash = NULL, *space;
+	struct wproc_list *wp_list = NULL;
+	char *cmd_name             = NULL;
+	char *slash                = NULL;
+	char *space                = NULL;
 
-	if (!specialized_workers)
+	if (!specialized_workers) {
 		return &workers;
+	}
 
 	/* first, look for a specialized worker for this command */
-	if ((space = strchr(cmd, ' ')) != NULL) {
-		int namelen = (unsigned long)space - (unsigned long)cmd;
+	space = strchr(cmd, ' ');
+	if (space != NULL) {
+
+		int namelen = (unsigned long) space - cmd;
+
 		cmd_name = calloc(1, namelen + 1);
+
 		/* not exactly optimal, but what the hells */
-		if (!cmd_name)
+		if (!cmd_name) {
 			return &workers;
+		}
+
 		memcpy(cmd_name, cmd, namelen);
 		slash = strrchr(cmd_name, '/');
 	}
@@ -208,15 +252,20 @@ static struct wproc_list *get_wproc_list(const char *cmd)
 	if (wp_list != NULL) {
 		log_debug_info(DEBUGL_CHECKS, 1, "Found specialized worker(s) for '%s'", (slash && *slash != '/') ? slash : cmd_name);
 	}
-	if (cmd_name)
+	if (cmd_name) {
 		free(cmd_name);
+	}
 
-	return wp_list ? wp_list : &workers;
+	if (wp_list) {
+		return wp_list;
+	}
+
+	return &workers;
 }
 
 static struct wproc_worker *get_worker(const char *cmd)
 {
-	struct wproc_list *wp_list;
+	struct wproc_list *wp_list = NULL;
 
 	log_debug_info(DEBUGL_WORKERS, 0, "get_worker()\n");
 
@@ -246,8 +295,9 @@ static struct wproc_worker *get_worker(const char *cmd)
 
 static struct wproc_job *create_job(int type, void *arg, time_t timeout, const char *cmd)
 {
-	struct wproc_job *job;
-	struct wproc_worker *wp;
+	struct wproc_job *job   = NULL;
+	struct wproc_worker *wp = NULL;
+	int result              = 0;
 
 	log_debug_info(DEBUGL_WORKERS, 0, "create_job()\n");	
 
@@ -270,9 +320,17 @@ static struct wproc_job *create_job(int type, void *arg, time_t timeout, const c
 	job->timeout = timeout;
 	job->command = strdup(cmd);
 
-	if ((fanout_add(wp->jobs, job->id, job) < 0) || (job->command == NULL)) {
+	if (job->command == NULL) {
 
-		log_debug_info(DEBUGL_WORKERS, 1, " * Can't add job to wp->jobs\n");
+		log_debug_info(DEBUGL_WORKERS, 1, " * job command can't be null, bailing\n");
+		free(job);
+		return NULL;
+	}
+
+	result = fanout_add(wp->jobs, job->id, job)
+	if (result < 0) {
+
+		log_debug_info(DEBUGL_WORKERS, 1, " * Can't add job to wp->jobs, bailing\n");
 		free(job);
 		return NULL;
 	}
@@ -284,26 +342,48 @@ static void run_job_callback(struct wproc_job *job, struct wproc_result *wpres, 
 {
 	wproc_callback_job *cj;
 
-	if (!job || !job->arg)
+	log_debug_info(DEBUGL_WORKERS, 0, "run_job_callback()\n");
+
+	if (job == NULL) {
+
+		log_debug_info(DEBUGL_WORKERS, 1, " * job is null, bailing\n");
 		return;
+	}
+
+	if (job->arg == NULL) {
+
+		log_debug_info(DEBUGL_WORKERS, 1, " * job arg is null, bailing\n");
+		return;
+	}
+
 	cj = (struct wproc_callback_job *)job->arg;
 
-	if (!cj->callback)
+	if (cj->callback == NULL) {
+
+		log_debug_info(DEBUGL_WORKERS, 1, " * callback_job callback is null, bailing\n");
 		return;
+	}
+
 	cj->callback(wpres, cj->data, val);
 	cj->callback = NULL;
 }
 
 static void destroy_job(struct wproc_job *job)
 {
-	if (!job)
+	if (job == NULL) {
+
+		log_debug_info(DEBUGL_WORKERS, 1, " * destroy_job -> job is null, bailing\n");
 		return;
+	}
+
+	log_debug_info(DEBUGL_WORKERS, 0, "destroy_job(%d=%s)\n", job->type, wpjob_type_name(job->type));
 
 	switch (job->type) {
 	case WPJOB_CHECK:
 		free_check_result(job->arg);
 		free(job->arg);
 		break;
+
 	case WPJOB_NOTIFY:
 	case WPJOB_OCSP:
 	case WPJOB_OCHP:
@@ -318,20 +398,25 @@ static void destroy_job(struct wproc_job *job)
 	case WPJOB_SVC_PERFDATA:
 		/* these require nothing special */
 		break;
+
 	case WPJOB_CALLBACK:
 		/* call with NULL result to make callback clean things up */
 		run_job_callback(job, NULL, 0);
 		break;
+
 	default:
 		logit(NSLOG_RUNTIME_WARNING, TRUE, "wproc: Unknown job type: %d\n", job->type);
 		break;
 	}
 
 	my_free(job->command);
-	if (job->wp) {
+	if (job->wp != NULL) {
+
+		log_debug_info(DEBUGL_WORKERS, 1, " * removing job->wp\n");
 		fanout_remove(job->wp->jobs, job->id);
 		job->wp->jobs_running--;
 	}
+
 	loadctl.jobs_running--;
 
 	free(job);
@@ -344,8 +429,10 @@ static void fo_destroy_job(void *job)
 
 static int wproc_is_alive(struct wproc_worker *wp)
 {
-	if (!wp || !wp->pid)
+	if (wp == NULL || wp->pid <= 0) {
 		return 0;
+	}
+
 	if (kill(wp->pid, 0) == 0 && iobroker_is_registered(nagios_iobs, wp->sd))
 		return 1;
 	return 0;
@@ -353,18 +440,22 @@ static int wproc_is_alive(struct wproc_worker *wp)
 
 static int wproc_destroy(struct wproc_worker *wp, int flags)
 {
-	int i = 0, force = 0, self;
+	int i     = 0;
+	int force = 0;
+	int self  = 0;
 
-	if (!wp)
+	if (!wp) {
 		return 0;
+	}
 
 	force = !!(flags & WPROC_FORCE);
 
 	self = getpid();
 
 	/* master retains workers through restarts */
-	if (self == nagios_pid && !force)
+	if (self == nagios_pid && !force) {
 		return 0;
+	}
 
 	/* free all memory when either forcing or a worker called us */
 	iocache_destroy(wp->ioc);
@@ -374,8 +465,9 @@ static int wproc_destroy(struct wproc_worker *wp, int flags)
 	wp->jobs = NULL;
 
 	/* workers must never control other workers, so they return early */
-	if (self != nagios_pid)
+	if (self != nagios_pid) {
 		return 0;
+	}
 
 	/* kill(0, SIGKILL) equals suicide, so we avoid it */
 	if (wp->pid) {
@@ -398,39 +490,54 @@ static int remove_specialized(void *data)
 {
 	if (data == to_remove) {
 		return DKHASH_WALK_REMOVE;
-	} else if (to_remove == NULL) {
+	}
+
+	else if (to_remove == NULL) {
+
 		/* remove all specialised workers and their lists */
 		struct wproc_list *h = data;
 		int i;
-		for (i=0;i<h->len;i++) {
+
+		for (i = 0; i < h->len; i++) {
+
 			/* not sure what WPROC_FORCE is actually for.
 			 * Nagios does *not* retain workers across
 			 * restarts, as stated in wproc_destroy?
 			 */
 			wproc_destroy(h->wps[i], WPROC_FORCE);
 		}
+
 		h->len = 0;
 		free(h->wps);
 		free(h);
+
 		return DKHASH_WALK_REMOVE;
 	}
+
 	return 0;
 }
 
 /* remove worker from job assignment list */
 static void remove_worker(struct wproc_worker *worker)
 {
-	unsigned int i, j = 0;
+	unsigned int i         = 0;
+	unsigned int j         = 0;
 	struct wproc_list *wpl = worker->wp_list;
+
 	for (i = 0; i < wpl->len; i++) {
-		if (wpl->wps[i] == worker)
+
+		if (wpl->wps[i] == worker) {
 			continue;
+		}
+
 		wpl->wps[j++] = wpl->wps[i];
 	}
+
 	wpl->len = j;
 
-	if (!specialized_workers || wpl->len)
+	if (specialized_workers == NULL || wpl->len > 0) {
 		return;
+	}
 
 	to_remove = wpl;
 	dkhash_walk_data(specialized_workers, remove_specialized);
@@ -462,22 +569,28 @@ void free_worker_memory(int flags)
 	to_remove = NULL;
 	dkhash_walk_data(specialized_workers, remove_specialized);
 	dkhash_destroy(specialized_workers);
-	specialized_workers = NULL; /* Don't leave pointers to freed memory. */
+
+	/* Don't leave pointers to freed memory. */
+	specialized_workers = NULL;
 }
 
 static int str2timeval(char *str, struct timeval *tv)
 {
-	char *ptr, *ptr2;
+	char *ptr  == NULL;
+	char *ptr2 == NULL;
 
 	tv->tv_sec = strtoul(str, &ptr, 10);
+
 	if (ptr == str) {
 		tv->tv_sec = tv->tv_usec = 0;
 		return -1;
 	}
+
 	if (*ptr == '.' || *ptr == ',') {
 		ptr2 = ptr + 1;
 		tv->tv_usec = strtoul(ptr2, &ptr, 10);
 	}
+
 	return 0;
 }
 
@@ -486,28 +599,32 @@ static int handle_worker_check(wproc_result *wpres, struct wproc_worker *wp, str
 	int result = ERROR;
 	check_result *cr = (check_result *)job->arg;
 
-	cr->start_time.tv_sec = wpres->start.tv_sec;
-	cr->start_time.tv_usec = wpres->start.tv_usec;
-	cr->finish_time.tv_sec = wpres->stop.tv_sec;
+	cr->start_time.tv_sec   = wpres->start.tv_sec;
+	cr->start_time.tv_usec  = wpres->start.tv_usec;
+	cr->finish_time.tv_sec  = wpres->stop.tv_sec;
 	cr->finish_time.tv_usec = wpres->stop.tv_usec;
+
 	if (WIFEXITED(wpres->wait_status)) {
 		cr->return_code = WEXITSTATUS(wpres->wait_status);
-	} else {
+	}
+	else {
 		cr->return_code = STATE_UNKNOWN;
 	}
 
 	if (wpres->outstd && *wpres->outstd) {
 		cr->output = strdup(wpres->outstd);
-	} else if (wpres->outerr) {
+	}
+	else if (wpres->outerr) {
 		asprintf(&cr->output, "(No output on stdout) stderr: %s", wpres->outerr);
-	} else {
+	}
+	else {
 		cr->output = NULL;
 	}
 
 	cr->early_timeout = wpres->early_timeout;
-	cr->exited_ok = wpres->exited_ok;
-	cr->engine = NULL;
-	cr->source = wp->name;
+	cr->exited_ok     = wpres->exited_ok;
+	cr->engine        = NULL;
+	cr->source        = wp->name;
 
 	process_check_result(cr);
 	free_check_result(cr);

@@ -232,7 +232,7 @@ static struct wproc_list *get_wproc_list(const char *cmd)
 	space = strchr(cmd, ' ');
 	if (space != NULL) {
 
-		int namelen = (unsigned long) space - cmd;
+		int namelen = (unsigned long) space - (unsigned long) cmd;
 
 		cmd_name = calloc(1, namelen + 1);
 
@@ -327,7 +327,7 @@ static struct wproc_job *create_job(int type, void *arg, time_t timeout, const c
 		return NULL;
 	}
 
-	result = fanout_add(wp->jobs, job->id, job)
+	result = fanout_add(wp->jobs, job->id, job);
 	if (result < 0) {
 
 		log_debug_info(DEBUGL_WORKERS, 1, " * Can't add job to wp->jobs, bailing\n");
@@ -576,8 +576,8 @@ void free_worker_memory(int flags)
 
 static int str2timeval(char *str, struct timeval *tv)
 {
-	char *ptr  == NULL;
-	char *ptr2 == NULL;
+	char *ptr  = NULL;
+	char *ptr2 = NULL;
 
 	tv->tv_sec = strtoul(str, &ptr, 10);
 

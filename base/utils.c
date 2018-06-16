@@ -2294,19 +2294,21 @@ int process_check_result(check_result *cr)
 /* static char *unescape_check_result_file_output(char*); */
 
 /* reads check result(s) from a file */
-int process_check_result_file(char *fname) {
-	mmapfile *thefile = NULL;
-	char *input = NULL;
-	char *var = NULL;
-	char *val = NULL;
-	char *vartok = NULL;
-	char *valtok = NULL;
+int process_check_result_file(char *fname)
+{
+	mmapfile *thefile    = NULL;
+	char *input          = NULL;
+	char *var            = NULL;
+	char *val            = NULL;
+	char *vartok         = NULL;
+	char *valtok         = NULL;
 	char *v1 = NULL, *v2 = NULL;
 	time_t current_time;
 	check_result cr;
 
-	if(fname == NULL)
+	if (fname == NULL) {
 		return ERROR;
+	}
 
 	init_check_result(&cr);
 	cr.engine = &nagios_spool_check_engine;
@@ -2316,49 +2318,59 @@ int process_check_result_file(char *fname) {
 	log_debug_info(DEBUGL_CHECKS, 1, "Processing check result file: '%s'\n", fname);
 
 	/* open the file for reading */
-	if((thefile = mmap_fopen(fname)) == NULL) {
+	thefile = mmap_fopen(fname);
+	if (thefile == NULL) {
 
 		/* try removing the file - zero length files can't be mmap()'ed, so it might exist */
 		log_debug_info(DEBUGL_CHECKS, 1, "Failed to open check result file for reading: '%s'\n", fname);
 		delete_check_result_file(fname);
 
 		return ERROR;
-		}
+	}
 
 	/* read in all lines from the file */
 	while(1) {
 
 		/* free memory */
 		my_free(input);
+		my_free(var);
+		my_free(val);
 
 		/* read the next line */
-		if((input = mmap_fgets_multiline(thefile)) == NULL)
+		input = mmap_fgets_multiline(thefile);
+		if (input == NULL) {
 			break;
+		}
 
 		/* skip comments */
-		if(input[0] == '#')
+		if (input[0] == '#') {
 			continue;
+		}
 
 		/* empty line indicates end of record */
-		else if(input[0] == '\n') {
+		else if (input[0] == '\n') {
 
 			/* do we have the minimum amount of data? */
-			if(cr.host_name != NULL && cr.output != NULL) {
+			if (cr.host_name != NULL && cr.output != NULL) {
 
 				/* process the check result */
 				process_check_result(&cr);
-
-				}
+			}
 
 			/* cleanse for next check result */
 			free_check_result(&cr);
 			init_check_result(&cr);
 			cr.output_file = fname;
-			}
+		}
 
-		if((vartok = my_strtok_with_free(input, "=", FALSE)) == NULL)
+		vartok = my_strtok_with_free(input, "=", FALSE);
+		if (vartok == NULL) {
 			continue;
-		if((valtok = my_strtok_with_free(NULL, "\n", FALSE)) == NULL) {
+		}
+
+		valtok = my_strtok_with_free(NULL, "\n", FALSE);
+		if (valtok == NULL) {
+
 			vartok = my_strtok_with_free(NULL, NULL, TRUE);
 			continue;
 		}
@@ -2371,61 +2383,77 @@ int process_check_result_file(char *fname) {
 		log_debug_info(DEBUGL_CHECKS, 2, " * %25s: %s\n", var, val);
 
 		/* found the file time */
-		if(!strcmp(var, "file_time")) {
+		if (!strcmp(var, "file_time")) {
 
 			/* file is too old - ignore check results it contains and delete it */
 			/* this will only work as intended if file_time comes before check results */
-			if(max_check_result_file_age > 0 
+			if ((max_check_result_file_age > 0)
 				&& (current_time - (strtoul(val, NULL, 0)) > max_check_result_file_age)) {
 
 				log_debug_info(DEBUGL_CHECKS, 1, 
 					"Skipping check_result because file_time is %s and max cr file age is %lu", 
 					val, max_check_result_file_age);
 				break;
-				}
 			}
+		}
 
 		/* else we have check result data */
 		else {
-			if(!strcmp(var, "host_name"))
+
+			if (!strcmp(var, "host_name")) {
 				cr.host_name = (char *)strdup(val);
-			else if(!strcmp(var, "service_description")) {
+			}
+			else if (!strcmp(var, "service_description")) {
 				cr.service_description = (char *)strdup(val);
 				cr.object_check_type = SERVICE_CHECK;
-				}
-			else if(!strcmp(var, "check_type"))
+			}
+			else if (!strcmp(var, "check_type")) {
 				cr.check_type = atoi(val);
-			else if(!strcmp(var, "check_options"))
+			}
+			else if (!strcmp(var, "check_options")) {
 				cr.check_options = atoi(val);
-			else if(!strcmp(var, "scheduled_check"))
+			}
+			else if (!strcmp(var, "scheduled_check")) {
 				cr.scheduled_check = atoi(val);
-			else if(!strcmp(var, "reschedule_check"))
+			}
+			else if (!strcmp(var, "reschedule_check")) {
 				cr.reschedule_check = atoi(val);
-			else if(!strcmp(var, "latency"))
+			}
+			else if (!strcmp(var, "latency")) {
 				cr.latency = strtod(val, NULL);
-			else if(!strcmp(var, "start_time")) {
-				if((v1 = strtok(val, ".")) == NULL)
+			}
+			else if (!strcmp(var, "start_time") || !strcmp(var, "finish_time")) {
+
+				v1 = strtok(val, ".");
+				if (v1 == NULL) {
 					continue;
-				if((v2 = strtok(NULL, "\n")) == NULL)
-					continue;
-				cr.start_time.tv_sec = strtoul(v1, NULL, 0);
-				cr.start_time.tv_usec = strtoul(v2, NULL, 0);
 				}
-			else if(!strcmp(var, "finish_time")) {
-				if((v1 = strtok(val, ".")) == NULL)
+
+				v2 = strtok(NULL, "\n");
+				if (v2 == NULL) {
 					continue;
-				if((v2 = strtok(NULL, "\n")) == NULL)
-					continue;
-				cr.finish_time.tv_sec = strtoul(v1, NULL, 0);
-				cr.finish_time.tv_usec = strtoul(v2, NULL, 0);
 				}
-			else if(!strcmp(var, "early_timeout"))
+
+				if (!strcmp(var, "start_time")) {
+					cr.start_time.tv_sec = strtoul(v1, NULL, 0);
+					cr.start_time.tv_usec = strtoul(v2, NULL, 0);
+				}
+				else {
+					cr.finish_time.tv_sec = strtoul(v1, NULL, 0);
+					cr.finish_time.tv_usec = strtoul(v2, NULL, 0);
+				}
+			}
+			else if (!strcmp(var, "early_timeout")) {
 				cr.early_timeout = atoi(val);
-			else if(!strcmp(var, "exited_ok"))
+			}
+			else if (!strcmp(var, "exited_ok")) {
 				cr.exited_ok = atoi(val);
-			else if(!strcmp(var, "return_code"))
+			}
+			else if (!strcmp(var, "return_code")) {
 				cr.return_code = atoi(val);
-			else if(!strcmp(var, "output"))
+			}
+			else if (!strcmp(var, "output")) {
+
 				/* Interpolate "\\\\" and "\\n" escape sequences to the literal
 				 * characters they represent. This converts from the single line
 				 * format used to store the output in a checkresult file, to the
@@ -2435,16 +2463,21 @@ int process_check_result_file(char *fname) {
 				cr.output = unescape_check_result_output(val);
 			}
 		}
+	}
+
+	my_free(var);
+	my_free(val);
 
 	log_debug_info(DEBUGL_CHECKS, 2, " **************\n");
 
 	/* do we have the minimum amount of data? */
-	if(cr.host_name != NULL && cr.output != NULL) {
+	if (cr.host_name != NULL && cr.output != NULL) {
 
 		/* process check result */
 		process_check_result(&cr);
 	}
 	else {
+
 		/* log a debug message */
 		log_debug_info(DEBUGL_CHECKS, 1, "Minimum amount of data not present; Skipped check result file: '%s'\n", fname);
 	}
@@ -2458,74 +2491,79 @@ int process_check_result_file(char *fname) {
 	delete_check_result_file(fname);
 
 	return OK;
-	}
+}
 
 
 
 
 /* deletes as check result file, as well as its ok-to-go file */
-int delete_check_result_file(char *fname) {
+int delete_check_result_file(char *fname)
+{
 	char *temp_buffer = NULL;
-	int result = OK;
+	int result        = OK;
 
 	/* delete the result file */
 	result = unlink(fname);
 
 	/* delete the ok-to-go file */
 	asprintf(&temp_buffer, "%s.ok", fname);
+
 	result |= unlink(temp_buffer);
+
 	my_free(temp_buffer);
 
 	return result;
-	}
+}
 
 
 
 
 /* initializes a host/service check result */
-int init_check_result(check_result *info) {
-
-	if(info == NULL)
+int init_check_result(check_result *info)
+{
+	if (info == NULL) {
 		return ERROR;
+	}
 
 	/* reset vars */
-	info->object_check_type = HOST_CHECK;
-	info->host_name = NULL;
+	info->object_check_type   = HOST_CHECK;
+	info->host_name           = NULL;
 	info->service_description = NULL;
-	info->check_type = CHECK_TYPE_ACTIVE;
-	info->check_options = CHECK_OPTION_NONE;
-	info->scheduled_check = FALSE;
-	info->reschedule_check = FALSE;
-	info->output_file_fp = NULL;
-	info->latency = 0.0;
-	info->start_time.tv_sec = 0;
-	info->start_time.tv_usec = 0;
-	info->finish_time.tv_sec = 0;
+	info->check_type          = CHECK_TYPE_ACTIVE;
+	info->check_options       = CHECK_OPTION_NONE;
+	info->scheduled_check     = FALSE;
+	info->reschedule_check    = FALSE;
+	info->output_file_fp      = NULL;
+	info->latency             = 0.0;
+	info->start_time.tv_sec   = 0;
+	info->start_time.tv_usec  = 0;
+	info->finish_time.tv_sec  = 0;
 	info->finish_time.tv_usec = 0;
-	info->early_timeout = FALSE;
-	info->exited_ok = TRUE;
-	info->return_code = 0;
-	info->output = NULL;
-	info->source = NULL;
-	info->engine = NULL;
+	info->early_timeout       = FALSE;
+	info->exited_ok           = TRUE;
+	info->return_code         = 0;
+	info->output              = NULL;
+	info->source              = NULL;
+	info->engine              = NULL;
 
 	return OK;
-	}
+}
 
 
 
 /* frees memory associated with a host/service check result */
-int free_check_result(check_result *info) {
-
-	if(info == NULL)
+int free_check_result(check_result *info)
+{
+	if (info == NULL) {
 		return OK;
+	}
 
 	my_free(info->host_name);
 	my_free(info->service_description);
 	my_free(info->output);
 
 	return OK;
-	}
+}
 
 
 /******************************************************************/

@@ -374,6 +374,9 @@ void create_check_result_file(int number, char * host_name, char * service_descr
     }
 
     fclose(cr);
+
+    my_free(filename);
+    my_free(ok_filename);
 }
 
 void setup_parent(host ** parent, const char * host_name)
@@ -1298,9 +1301,13 @@ void run_passive_host_tests()
     hst1->current_state = STATE_DOWN;
     hst1->state_type = SOFT_STATE;
 
+    /* after this guy, we get a reschedule event (schedule_host_check())
+       which creates a new event. we need to free that memory when done */
     handle_hst1();
 
     test_hst_handler_notification_logging(40, EVENT_HANDLED | LOGGED );
+
+    my_free(hst1->next_check_event);
 
     free_all();
 }
@@ -1331,6 +1338,7 @@ void run_misc_host_check_tests()
         this is the beauty of coverage reporting!
     */
     create_objects(STATE_UP, HARD_STATE, "host up", STATE_OK, HARD_STATE, "service up");
+
     create_check_result(check_type, STATE_DOWN, "host down");
     chk_result->early_timeout = TRUE;
     chk_result->latency             = 42;
@@ -1443,7 +1451,7 @@ void run_misc_host_check_tests()
 
     create_check_result(check_type, HOST_UP, "host up");
 
-
+    free_all();
 }
 
 /* todo: run_parent_host_check_tests() */

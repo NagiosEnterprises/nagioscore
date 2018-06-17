@@ -67,8 +67,8 @@ define service{
 	host_name		hplj2605dn		; The name of the host the service is associated with
 	service_description	Printer Status		; The service description
 	check_command		check_hpjd!-C public	; The command used to monitor the service
-	check_interval		10			; Check the service every 10 minutes under normal conditions
-	retry_interval		1			; Re-check the service every minute until its final/hard state is determined
+	check_interval	10	; Check the service every 10 minutes under normal conditions
+	retry_interval	1	; Re-check the service every minute until its final/hard state is determined
 	}
 
 
@@ -79,6 +79,6 @@ define service{
 	host_name		hplj2605dn
 	service_description	PING
 	check_command		check_ping!3000.0,80%!5000.0,100%
-	check_interval		10
-	retry_interval		1
+	check_interval	10
+	retry_interval	1
         }

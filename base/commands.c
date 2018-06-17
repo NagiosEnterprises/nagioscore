@@ -2860,7 +2860,6 @@ int cmd_delete_downtime(int cmd, char *args) {
 int cmd_delete_downtime_by_host_name(int cmd, char *args)
 {
 	char *temp_ptr             = NULL;
-	char *orig_ptr             = NULL;
 	char *end_ptr              = NULL;
 	char *hostname             = NULL;
 	char *service_description  = NULL;
@@ -2877,7 +2876,6 @@ int cmd_delete_downtime_by_host_name(int cmd, char *args)
 	if (temp_ptr == NULL) {
 		return ERROR;
 	}
-	orig_ptr = temp_ptr;
 	hostname = temp_ptr;
 
 	/* get the optional service name */

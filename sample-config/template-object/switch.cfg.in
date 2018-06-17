@@ -74,7 +74,7 @@ define service{
 define service{
 	use			generic-service	; Inherit values from a template
 	host_name		linksys-srw224p
-	service_description	Uptime	
+	service_description	Uptime
 	check_command		check_snmp!-C public -o sysUpTime.0
 	}
 

@@ -5,7 +5,7 @@
 # NOTES: This config file provides you with some example object definition
 #        templates that are referred by other host, service, contact, etc.
 #        definitions in other config files.
-#       
+#
 #        You don't need to keep these definitions in a separate file from your
 #        other object definitions.  This has been done just to make things
 #        easier to understand.
@@ -182,6 +182,6 @@ define service{
         max_check_attempts              4			; Re-check the service up to 4 times in order to determine its final (hard) state
         check_interval           5			; Check the service every 5 minutes under normal conditions
         retry_interval            1			; Re-check the service every minute until a hard state can be determined
-        register                        0       		; DON'T REGISTER THIS DEFINITION - ITS NOT A REAL SERVICE, JUST A TEMPLATE!
+        register                        0       		; DONT REGISTER THIS DEFINITION - ITS NOT A REAL SERVICE, JUST A TEMPLATE!
 	}
 

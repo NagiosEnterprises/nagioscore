@@ -15,40 +15,37 @@
 
 
 ###############################################################################
-###############################################################################
 #
 # CONTACTS
 #
-###############################################################################
 ###############################################################################
 
 # Just one contact defined by default - the Nagios admin (that's you)
 # This contact definition inherits a lot of default values from the
 # 'generic-contact' template which is defined elsewhere.
 
-define contact{
-        contact_name                    nagiosadmin		; Short name of user
-	use				generic-contact		; Inherit default values from generic-contact template (defined above)
-        alias                           Nagios Admin		; Full name of user
+define contact {
 
-        email                           @nagios_user@@localhost	; <<***** CHANGE THIS TO YOUR EMAIL ADDRESS ******
-        }
+    contact_name            nagiosadmin             ; Short name of user
+    use                     generic-contact         ; Inherit default values from generic-contact template (defined above)
+    alias                   Nagios Admin            ; Full name of user
+    email                   @nagios_user@@localhost ; <<***** CHANGE THIS TO YOUR EMAIL ADDRESS ******
+}
 
 
 
-###############################################################################
 ###############################################################################
 #
 # CONTACT GROUPS
 #
 ###############################################################################
-###############################################################################
 
 # We only have one contact in this simple configuration file, so there is
 # no need to create more than one contact group.
 
-define contactgroup{
-        contactgroup_name       admins
-        alias                   Nagios Administrators
-        members                 nagiosadmin
-        }
+define contactgroup {
+
+    contactgroup_name       admins
+    alias                   Nagios Administrators
+    members                 nagiosadmin
+}

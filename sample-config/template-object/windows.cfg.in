@@ -3,142 +3,139 @@
 #
 #
 # NOTES: This config file assumes that you are using the sample configuration
-#	 files that get installed with the Nagios quickstart guide.
+#    files that get installed with the Nagios quickstart guide.
 #
 ###############################################################################
 
 
 
-
-###############################################################################
 ###############################################################################
 #
 # HOST DEFINITIONS
 #
 ###############################################################################
-###############################################################################
 
 # Define a host for the Windows machine we'll be monitoring
 # Change the host_name, alias, and address to fit your situation
 
-define host{
-	use		windows-server	; Inherit default values from a template
-	host_name	winserver	; The name we're giving to this host
-	alias		My Windows Server	; A longer name associated with the host
-	address		192.168.1.2	; IP address of the host
-	}
+define host {
+
+    use                     windows-server          ; Inherit default values from a template
+    host_name               winserver               ; The name we're giving to this host
+    alias                   My Windows Server       ; A longer name associated with the host
+    address                 192.168.1.2             ; IP address of the host
+}
 
 
 
-
-###############################################################################
 ###############################################################################
 #
 # HOST GROUP DEFINITIONS
 #
 ###############################################################################
-###############################################################################
-
 
 # Define a hostgroup for Windows machines
 # All hosts that use the windows-server template will automatically be a member of this group
 
-define hostgroup{
-	hostgroup_name	windows-servers	; The name of the hostgroup
-	alias		Windows Servers	; Long name of the group
-	}
+define hostgroup {
+
+    hostgroup_name          windows-servers         ; The name of the hostgroup
+    alias                   Windows Servers         ; Long name of the group
+}
 
 
 
-
-###############################################################################
 ###############################################################################
 #
 # SERVICE DEFINITIONS
 #
 ###############################################################################
-###############################################################################
-
 
 # Create a service for monitoring the version of NSCLient++ that is installed
 # Change the host_name to match the name of the host you defined above
 
-define service{
-	use			generic-service
-	host_name		winserver
-	service_description	NSClient++ Version
-	check_command		check_nt!CLIENTVERSION
-	}
+define service {
+
+    use                     generic-service
+    host_name               winserver
+    service_description     NSClient++ Version
+    check_command           check_nt!CLIENTVERSION
+}
 
 
 
 # Create a service for monitoring the uptime of the server
 # Change the host_name to match the name of the host you defined above
 
-define service{
-	use			generic-service
-	host_name		winserver
-	service_description	Uptime
-	check_command		check_nt!UPTIME
-	}
+define service {
+
+    use                     generic-service
+    host_name               winserver
+    service_description     Uptime
+    check_command           check_nt!UPTIME
+}
 
 
 
 # Create a service for monitoring CPU load
 # Change the host_name to match the name of the host you defined above
 
-define service{
-	use			generic-service
-	host_name		winserver
-	service_description	CPU Load
-	check_command		check_nt!CPULOAD!-l 5,80,90
-	}
+define service {
+
+    use                     generic-service
+    host_name               winserver
+    service_description     CPU Load
+    check_command           check_nt!CPULOAD!-l 5,80,90
+}
 
 
 
 # Create a service for monitoring memory usage
 # Change the host_name to match the name of the host you defined above
 
-define service{
-	use			generic-service
-	host_name		winserver
-	service_description	Memory Usage
-	check_command		check_nt!MEMUSE!-w 80 -c 90
-	}
+define service {
+
+    use                     generic-service
+    host_name               winserver
+    service_description     Memory Usage
+    check_command           check_nt!MEMUSE!-w 80 -c 90
+}
 
 
 
 # Create a service for monitoring C:\ disk usage
 # Change the host_name to match the name of the host you defined above
 
-define service{
-	use			generic-service
-	host_name		winserver
-	service_description	C:\ Drive Space
-	check_command		check_nt!USEDDISKSPACE!-l c -w 80 -c 90
-	}
+define service {
+
+    use                     generic-service
+    host_name               winserver
+    service_description     C:\ Drive Space
+    check_command           check_nt!USEDDISKSPACE!-l c -w 80 -c 90
+}
 
 
 
 # Create a service for monitoring the W3SVC service
 # Change the host_name to match the name of the host you defined above
 
-define service{
-	use			generic-service
-	host_name		winserver
-	service_description	W3SVC
-	check_command		check_nt!SERVICESTATE!-d SHOWALL -l W3SVC
-	}
+define service {
+
+    use                     generic-service
+    host_name               winserver
+    service_description     W3SVC
+    check_command           check_nt!SERVICESTATE!-d SHOWALL -l W3SVC
+}
 
 
 
 # Create a service for monitoring the Explorer.exe process
 # Change the host_name to match the name of the host you defined above
 
-define service{
-	use			generic-service
-	host_name		winserver
-	service_description	Explorer
-	check_command		check_nt!PROCSTATE!-d SHOWALL -l Explorer.exe
-	}
+define service {
 
+    use                     generic-service
+    host_name               winserver
+    service_description     Explorer
+    check_command           check_nt!PROCSTATE!-d SHOWALL -l Explorer.exe
+}

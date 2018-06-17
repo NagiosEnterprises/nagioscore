@@ -3,82 +3,80 @@
 #
 #
 # NOTES: This config file assumes that you are using the sample configuration
-#	 files that get installed with the Nagios quickstart guide.
+#    files that get installed with the Nagios quickstart guide.
 #
 ###############################################################################
 
 
 
-
-###############################################################################
 ###############################################################################
 #
 # HOST DEFINITIONS
 #
 ###############################################################################
-###############################################################################
 
 # Define a host for the printer we'll be monitoring
 # Change the host_name, alias, and address to fit your situation
 
-define host{
-	use		generic-printer		; Inherit default values from a template
-	host_name	hplj2605dn		; The name we're giving to this printer
-	alias		HP LaserJet 2605dn	; A longer name associated with the printer
-	address		192.168.1.30		; IP address of the printer
-	hostgroups	network-printers 	; Host groups this printer is associated with
-	}
+define host {
+
+    use                     generic-printer         ; Inherit default values from a template
+    host_name               hplj2605dn              ; The name we're giving to this printer
+    alias                   HP LaserJet 2605dn      ; A longer name associated with the printer
+    address                 192.168.1.30            ; IP address of the printer
+    hostgroups              network-printers        ; Host groups this printer is associated with
+}
 
 
 
-
-###############################################################################
 ###############################################################################
 #
 # HOST GROUP DEFINITIONS
 #
 ###############################################################################
-###############################################################################
 
 # A hostgroup for network printers
 
-define hostgroup{
-	hostgroup_name	network-printers	; The name of the hostgroup
-	alias		Network Printers	; Long name of the group
-	}
+define hostgroup {
+
+    hostgroup_name          network-printers        ; The name of the hostgroup
+    alias                   Network Printers        ; Long name of the group
+}
 
 
 
-
-###############################################################################
 ###############################################################################
 #
 # SERVICE DEFINITIONS
 #
 ###############################################################################
-###############################################################################
 
 # Create a service for monitoring the status of the printer
 # Change the host_name to match the name of the host you defined above
-# If the printer has an SNMP community string other than "public", change the check_command directive to reflect that
+# If the printer has an SNMP community string other than "public",
+# change the check_command directive to reflect that
 
-define service{
-	use			generic-service		; Inherit values from a template
-	host_name		hplj2605dn		; The name of the host the service is associated with
-	service_description	Printer Status		; The service description
-	check_command		check_hpjd!-C public	; The command used to monitor the service
-	check_interval	10	; Check the service every 10 minutes under normal conditions
-	retry_interval	1	; Re-check the service every minute until its final/hard state is determined
-	}
+define service {
+
+    use                     generic-service         ; Inherit values from a template
+    host_name               hplj2605dn              ; The name of the host the service is associated with
+    service_description     Printer Status          ; The service description
+    check_command           check_hpjd!-C public    ; The command used to monitor the service
+    check_interval          10                      ; Check the service every 10 minutes under normal conditions
+    retry_interval          1                       ; Re-check the service every minute until its final/hard state is determined
+}
 
 
-# Create a service for "pinging" the printer occasionally.  Useful for monitoring RTA, packet loss, etc.
 
-define service{
-	use			generic-service
-	host_name		hplj2605dn
-	service_description	PING
-	check_command		check_ping!3000.0,80%!5000.0,100%
-	check_interval	10
-	retry_interval	1
-        }
+# Create a service for "pinging" the printer occasionally.
+# Useful for monitoring RTA, packet loss, etc.
+
+define service {
+
+    use                     generic-service
+    host_name               hplj2605dn
+    service_description     PING
+    check_command           check_ping!3000.0,80%!5000.0,100%
+    check_interval          10
+    retry_interval          1
+}

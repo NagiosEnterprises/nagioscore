@@ -4,7 +4,7 @@
 #
 # NOTES: This config file provides you with some example command definitions
 #        that you can reference in host, service, and contact definitions.
-#       
+#
 #        You don't need to keep commands in a separate file from your other
 #        object definitions.  This has been done just to make things easier to
 #        understand.
@@ -17,7 +17,7 @@
 # SAMPLE NOTIFICATION COMMANDS
 #
 # These are some example notification commands.  They may or may not work on
-# your system without modification.  As an example, some systems will require 
+# your system without modification.  As an example, some systems will require
 # you to use "/usr/bin/mailx" instead of "/usr/bin/mail" in the commands below.
 #
 ################################################################################
@@ -47,7 +47,7 @@ define command{
 
 
 # This command checks to see if a host is "alive" by pinging it
-# The check must result in a 100% packet loss or 5 second (5000ms) round trip 
+# The check must result in a 100% packet loss or 5 second (5000ms) round trip
 # average time to produce a critical error.
 # Note: Five ICMP echo packets are sent (determined by the '-p 5' argument)
 
@@ -65,7 +65,7 @@ define command{
 # SAMPLE SERVICE CHECK COMMANDS
 #
 # These are some example service check commands.  They may or may not work on
-# your system, as they must be modified for your plugins.  See the HTML 
+# your system, as they must be modified for your plugins.  See the HTML
 # documentation on the plugins for examples of how to configure command definitions.
 #
 # NOTE:  The following 'check_local_...' functions are designed to monitor
@@ -82,7 +82,7 @@ define command{
 # 'check_local_load' command definition
 define command{
         command_name    check_local_load
-        command_line    $USER1$/check_load -w $ARG1$ -c $ARG2$
+        command_line    $USER1$/check_load -r -w $ARG1$ -c $ARG2$
         }
 
 
@@ -217,7 +217,7 @@ define command{
 #
 # These are sample performance data commands that can be used to send performance
 # data output to two text files (one for hosts, another for services).  If you
-# plan on simply writing performance data out to a file, consider using the 
+# plan on simply writing performance data out to a file, consider using the
 # host_perfdata_file and service_perfdata_file options in the main config file.
 #
 ################################################################################

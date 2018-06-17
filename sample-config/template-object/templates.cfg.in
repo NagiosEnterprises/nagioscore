@@ -5,7 +5,7 @@
 # NOTES: This config file provides you with some example object definition
 #        templates that are referred by other host, service, contact, etc.
 #        definitions in other config files.
-#       
+#
 #        You don't need to keep these definitions in a separate file from your
 #        other object definitions.  This has been done just to make things
 #        easier to understand.
@@ -164,8 +164,8 @@ define service{
         is_volatile                     0       		; The service is not volatile
         check_period                    24x7			; The service can be checked at any time of the day
         max_check_attempts              3			; Re-check the service up to 3 times in order to determine its final (hard) state
-        check_interval           10			; Check the service every 10 minutes under normal conditions
-        retry_interval            2			; Re-check the service every two minutes until a hard state can be determined
+        check_interval           	10			; Check the service every 10 minutes under normal conditions
+        retry_interval            	2			; Re-check the service every two minutes until a hard state can be determined
         contact_groups                  admins			; Notifications get sent out to everyone in the 'admins' group
 	notification_options		w,u,c,r			; Send notifications about warning, unknown, critical, and recovery events
         notification_interval           60			; Re-notify about service problems every hour
@@ -180,8 +180,8 @@ define service{
 	name				local-service 		; The name of this service template
 	use				generic-service		; Inherit default values from the generic-service definition
         max_check_attempts              4			; Re-check the service up to 4 times in order to determine its final (hard) state
-        check_interval           5			; Check the service every 5 minutes under normal conditions
-        retry_interval            1			; Re-check the service every minute until a hard state can be determined
-        register                        0       		; DON'T REGISTER THIS DEFINITION - ITS NOT A REAL SERVICE, JUST A TEMPLATE!
+        check_interval           	5			; Check the service every 5 minutes under normal conditions
+        retry_interval            	1			; Re-check the service every minute until a hard state can be determined
+        register                        0       		; DONT REGISTER THIS DEFINITION - ITS NOT A REAL SERVICE, JUST A TEMPLATE!
 	}
 

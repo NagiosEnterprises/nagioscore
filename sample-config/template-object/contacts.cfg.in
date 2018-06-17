@@ -5,7 +5,7 @@
 # NOTES: This config file provides you with some example contact and contact
 #        group definitions that you can reference in host and service
 #        definitions.
-#       
+#
 #        You don't need to keep these definitions in a separate file from your
 #        other object definitions.  This has been done just to make things
 #        easier to understand.
@@ -23,14 +23,13 @@
 ###############################################################################
 
 # Just one contact defined by default - the Nagios admin (that's you)
-# This contact definition inherits a lot of default values from the 'generic-contact' 
-# template which is defined elsewhere.
+# This contact definition inherits a lot of default values from the
+# 'generic-contact' template which is defined elsewhere.
 
 define contact{
         contact_name                    nagiosadmin		; Short name of user
 	use				generic-contact		; Inherit default values from generic-contact template (defined above)
         alias                           Nagios Admin		; Full name of user
-
         email                           @nagios_user@@localhost	; <<***** CHANGE THIS TO YOUR EMAIL ADDRESS ******
         }
 

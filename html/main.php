@@ -14,7 +14,7 @@ $this_year = '2018';
 <title>Nagios Core</title>
 <link rel="stylesheet" type="text/css" href="stylesheets/common.css?<?php echo $this_version; ?>" />
 <link rel="stylesheet" type="text/css" href="stylesheets/nag_funcs.css?<?php echo $this_version; ?>" />
-<script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
+<script type="text/javascript" src="js/jquery-1.12.4.min.js"></script>
 <script type="text/javascript" src="js/nag_funcs.js"></script>
 
 <script type='text/javascript'>
@@ -214,7 +214,7 @@ $this_year = '2018';
 		</div>
 
 	</div><!-- end splashrow1 -->
-	
+
 	<div id="splashrow2">
 
 		<div id="splashbox4" class="splashbox splashbox-clear"><!-- latest news feed -->
@@ -245,7 +245,7 @@ $this_year = '2018';
 		<a href="https://www.nagios.org/" target="_blank"><img src="images/weblogo1.png" width="102" height="47" border="0" style="padding: 0 40px 0 40px;" title="Nagios.org" /></a>
 		<a href="http://sourceforge.net/projects/nagios" target="_blank"><img src="images/sflogo.png" width="88" height="31" border="0" alt="SourceForge.net Logo" /></a>
 	</div>
-</div> 
+</div>
 
 
 </body>

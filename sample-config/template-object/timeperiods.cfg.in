@@ -25,6 +25,7 @@
 
 define timeperiod {
 
+    name                    24x7
     timeperiod_name         24x7
     alias                   24 Hours A Day, 7 Days A Week
 
@@ -44,6 +45,7 @@ define timeperiod {
 
 define timeperiod {
 
+    name                    workhours
     timeperiod_name         workhours
     alias                   Normal Work Hours
 
@@ -61,6 +63,7 @@ define timeperiod {
 
 define timeperiod {
 
+    name                    none
     timeperiod_name         none
     alias                   No Time Is A Good Time
 }
@@ -74,6 +77,7 @@ define timeperiod {
 
 define timeperiod {
 
+    name                    us-holidays
     timeperiod_name         us-holidays
     alias                   U.S. Holidays
 
@@ -92,6 +96,7 @@ define timeperiod {
 
 define timeperiod {
 
+    name                    24x7_sans_holidays
     timeperiod_name         24x7_sans_holidays
     alias                   24x7 Sans Holidays
 

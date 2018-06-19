@@ -2,7 +2,7 @@
 Nagios Core 4 Change Log
 ########################
 
-4.4.0 - xxxx-xx-xx
+4.4.0 - 2018-06-19
 ------------------
 ENHANCEMENTS
 * new status for check dependencies (John Frickson)

@@ -1084,14 +1084,7 @@ angular.module("mapApp")
 						});
 					}
 
-					// If the node has no children and the host list
-					// does, create the property and initialize it
-					// This used to work when it was !hOP(chlidren[SIC]) || node.children == null
-					// Then someone corrected chlidren to children and it started adding
-					// extra nodes. That was working because the !hOP (hasownproperty)
-					// Was always returning true - the node.children == null was never checked.
-					// See GitHub issue #471 - BH 2018-06-01
-					if (node.hasOwnProperty("children")) {
+					if (!node.hasOwnProperty("children") || node.children == null) {
 						node.children = new Array;
 					}
 

@@ -38,7 +38,6 @@ FIXES
 * Fixed segfault when navbarsearch was used in status.cgi for something other than a host (#489) (Bryan Heden)
 * Fixed some miscellaneous ./configure issues on Solaris (Bryan Heden, Troy Lea)
 * Fixed "Locate host on map" link (#496) (Troy Lea)
-* Fixed duplicate nodes in map (#471) (Bryan Heden)
 * Fixed service groups defined with unknown service members (that aren't first in the list) not erroring out (#500) (Bryan Heden)
 * Fixed tac.cgi to have consistent behavior with the other cgis (#481) (Bryan Heden, Matt Capra)
 * Fixed clear_host/service_flapping command logic to broker/notify properly (#525) (Bryan Heden, Karsten Weiss)

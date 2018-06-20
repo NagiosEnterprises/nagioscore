@@ -75,7 +75,8 @@ extern const char *runcmd_strerror(int code);
  * @param[in] iobregarg The "arg" value to pass to iobroker_register()
  */
 extern int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
-		void (*iobreg)(int, int, void *), void *iobregarg);
+		void (*iobreg)(int, int, void *), void *iobregarg)
+	__attribute__((__nonnull__(1, 2, 3, 5, 6)));
 
 /**
  * Close a command and return its exit status

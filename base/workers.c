@@ -318,19 +318,19 @@ static struct wproc_job *create_job(int type, void *arg, time_t timeout, const c
 	job->type    = type;
 	job->arg     = arg;
 	job->timeout = timeout;
-	job->command = strdup(cmd);
-
-	if (job->command == NULL) {
-
-		log_debug_info(DEBUGL_WORKERS, 1, " * job command can't be null, bailing\n");
-		free(job);
-		return NULL;
-	}
 
 	result = fanout_add(wp->jobs, job->id, job);
 	if (result < 0) {
 
 		log_debug_info(DEBUGL_WORKERS, 1, " * Can't add job to wp->jobs, bailing\n");
+		free(job);
+		return NULL;
+	}
+
+	job->command = strdup(cmd);
+	if (job->command == NULL) {
+
+		log_debug_info(DEBUGL_WORKERS, 1, " * job command can't be null, bailing\n");
 		free(job);
 		return NULL;
 	}
@@ -1128,7 +1128,7 @@ int init_workers(int desired_workers)
  */
 static int wproc_run_job(struct wproc_job *job, nagios_macros *mac)
 {
-	static struct kvvec * kvv;
+	static struct kvvec kvv = KVVEC_INITIALIZER;
 	struct kvvec_buf *kvvb;
 	struct kvvec *env_kvvp = NULL;
 	struct kvvec_buf *env_kvvb = NULL;
@@ -1141,32 +1141,29 @@ static int wproc_run_job(struct wproc_job *job, nagios_macros *mac)
 
 	wp = job->wp;
 
-	/* job_id, type, command and timeout 
-	   +2 extra to stop a kvvec_grow from happening 
-	   a grow occurs when add_num >= cur_num - 1 */
-	if ((kvv = kvvec_create(6)) == NULL)
+	if (!kvvec_init(&kvv, 4))	/* job_id, type, command and timeout */
 		return ERROR;
 
-	kvvec_addkv(kvv, "job_id", (char *)mkstr("%d", job->id));
-	kvvec_addkv(kvv, "type", (char *)mkstr("%d", job->type));
-	kvvec_addkv(kvv, "command", job->command);
-	kvvec_addkv(kvv, "timeout", (char *)mkstr("%u", job->timeout));
+	kvvec_addkv(&kvv, "job_id", (char *)mkstr("%d", job->id));
+	kvvec_addkv(&kvv, "type", (char *)mkstr("%d", job->type));
+	kvvec_addkv(&kvv, "command", job->command);
+	kvvec_addkv(&kvv, "timeout", (char *)mkstr("%u", job->timeout));
 
 	/* Add the macro environment variables */
 	if(mac) {
 		env_kvvp = macros_to_kvv(mac);
 		if(NULL != env_kvvp) {
 			env_kvvb = kvvec2buf(env_kvvp, '=', '\n', 0);
-			if(NULL != env_kvvb) {
-				kvvec_addkv_wlen(kvv, "env", strlen("env"), env_kvvb->buf,
+			if(NULL == env_kvvb) {
+				kvvec_destroy(env_kvvp, KVVEC_FREE_KEYS);
+			}
+			else {
+				kvvec_addkv_wlen(&kvv, "env", strlen("env"), env_kvvb->buf,
 						env_kvvb->buflen);
 			}
-			kvvec_destroy(env_kvvp, KVVEC_FREE_KEYS);
-			my_free(env_kvvb->buf);
-			my_free(env_kvvb);
 		}
 	}
-	kvvb = build_kvvec_buf(kvv);
+	kvvb = build_kvvec_buf(&kvv);
 	/* ret = write(wp->sd, kvvb->buf, kvvb->bufsize); */
 	ret = nwrite(wp->sd, kvvb->buf, kvvb->bufsize, &written);
 	if (ret != (int)kvvb->bufsize) {
@@ -1179,12 +1176,13 @@ static int wproc_run_job(struct wproc_job *job, nagios_macros *mac)
 		wp->jobs_started++;
 		loadctl.jobs_running++;
 	}
-
-	my_free(kvvb->buf);
-	my_free(kvvb);
-
-	/* no key/value flags, they were not allocated */
-	kvvec_destroy(kvv, 0);
+	if(NULL != env_kvvp) kvvec_destroy(env_kvvp, KVVEC_FREE_KEYS);
+	if(NULL != env_kvvb) {
+		free(env_kvvb->buf);
+		free(env_kvvb);
+	}
+	free(kvvb->buf);
+	free(kvvb);
 
 	return result;
 }

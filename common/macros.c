@@ -205,8 +205,8 @@ int process_macros_r(nagios_macros *mac, char *input_buffer, char **output_buffe
 				}
 			}
 
-			/* insert macro otherwise */
-			else if(selected_macro != NULL) {
+			/* insert macro */
+			if (selected_macro != NULL) {
 
 				log_debug_info(DEBUGL_MACROS, 2, "  Processed '%s', Free: %d,  Cleaning options: %d\n", temp_buffer, free_macro, options);
 

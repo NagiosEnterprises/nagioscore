@@ -916,6 +916,7 @@ AC_OUTPUT([
 	startup/upstart-init
 	t/Makefile 
 	t-tap/Makefile
+	nagios.spec
 ])
 
 perl subst include/locations.h

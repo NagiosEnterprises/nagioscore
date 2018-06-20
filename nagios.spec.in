@@ -92,7 +92,7 @@ CFLAGS="%{mycflags} %{myXcflags}" LDFLAGS="$CFLAGS" %configure \
     --with-gd-lib="%{_libdir}" \
     --with-gd-inc="%{_includedir}" \
     --with-htmurl="/nagios" \
-    --with-init-dir="%{_initrddir}" \
+    --with-init-dir="@initdir@" \
     --with-lockfile="%{_localstatedir}/nagios/nagios.pid" \
     --with-mail="/bin/mail" \
     --with-nagios-user="nagios" \
@@ -145,8 +145,7 @@ export PATH=%{_bindir}:/bin:\$PATH
 %{__cp} -a Documentation/html/* %{buildroot}%{_datadir}/nagios/documentation
 
 # Put the new RC script in place
-# TODO: this should be more automatically created with @initdir@, etc.
-%{__install} -m 0755 daemon-init %{buildroot}/%{_initrddir}/nagios
+%{__install} -m 0755 daemon-init %{buildroot}@initdir@/@initname@
 %{__install} -d -m 0755 %{buildroot}/%{_sysconfdir}/sysconfig/
 %{__install} -m 0644 nagios.sysconfig %{buildroot}/%{_sysconfdir}/sysconfig/nagios
 
@@ -212,7 +211,11 @@ fi
 %doc Changelog INSTALLING LEGAL LICENSE README.md THANKS UPGRADING
 %attr(0644,root,root) %config(noreplace) %{_sysconfdir}/httpd/conf.d/nagios.conf
 %attr(0644,root,root) %config(noreplace) %{_sysconfdir}/sysconfig/nagios
-%attr(0755,root,root) %config %{_initrddir}/nagios
+if [ "@initname@" = "nagios.service" ]; then
+    %attr(0644,root,root) %config @initdir@/@initname@
+else
+    %attr(0755,root,root) %config @initdir@/@initname@
+fi
 %attr(0755,root,root) %{_bindir}/nagios
 %attr(0755,root,root) %{_bindir}/nagiostats
 %attr(0755,root,root) %{_libdir}/nagios/plugins/
@@ -236,6 +239,10 @@ fi
 %attr(0755,root,root) %{_libdir}/nagios/plugins/eventhandlers/
 
 %changelog
+* Wed Jun 20 2018 Bryan Heden <bheden@nagios.com> 4.4.1
+- Updated for systemd inclusion
+- Moved to .in substition file for ./configure
+
 * Fri Nov 15 2013 Eric Stanley  <estanley@nagios.com> 4.0.1-1
 - Corrected permissions on plugins directory (bug #494 - patch by Karsten Weiss)
 - Corrected doc directive (bug #494 - patch by Karsten Weiss)

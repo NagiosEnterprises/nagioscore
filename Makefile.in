@@ -63,7 +63,14 @@ none:
 		@echo "Please supply a command line argument (i.e. 'make all').  Other targets are:"
 		@echo "   nagios cgis contrib modules workers"
 		@echo "   test"
-		@echo "   install install-base install-cgis install-html install-exfoliation install-config install-init install-commandmode fullinstall"
+		@echo "   install                          install-base"
+		@echo "   install-cgis                     install-html"
+		@echo "   install-webconf                  install-config"
+		@echo "   install-init                     install-daemoninit" 
+		@echo "   install-commandmode              install-groups-users"
+		@echo "   install-exfoliation              install-classicui"
+		@echo "   install-basic                    install-unstripped"
+		@echo "   fullinstall"
 #		@echo "   uninstall"
 		@echo "   clean"
 
@@ -101,6 +108,10 @@ all:
 	@echo ""
 	@echo "  make install-init"
 	@echo "     - This installs the init script in $(DESTDIR)$(INIT_DIR)"
+	@echo ""
+	@echo "  make install-daemoninit"
+	@echo "     - This will initialize the init script"
+	@echo "       in $(DESTDIR)$(INIT_DIR)"
 	@echo ""
 	@echo "  make install-groups-users"
 	@echo "     - This adds the users and groups if they do not exist"
@@ -369,10 +380,10 @@ install-classicui:
 	@echo "NOTE: Use 'make install-exfoliation' to use new Nagios theme";
 	@echo ""
 
-install-init: install-daemoninit
+install-init:
+	$(INSTALL) -m 755 $(INIT_OPTS) startup/$(SRC_INIT) $(DESTDIR)$(INIT_DIR)/$(INIT_FILE)
 
-install-daemoninit:
-	$(INSTALL) -m 755 $(INIT_OPTS) startup/$(SRC_INIT) $(INIT_DIR)/$(INIT_FILE)
+install-daemoninit: install-init
 	@if [ x$(INIT_TYPE) = xsysv ]; then \
 		if which chkconfig >/dev/null 2>&1; then \
 			chkconfig --add nagios; \

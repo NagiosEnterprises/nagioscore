@@ -45,6 +45,7 @@ NagiosCfgtestFile=@localstatedir@/nagios.configtest
 NagiosStatusFile=@localstatedir@/status.dat
 NagiosRetentionFile=@localstatedir@/retention.dat
 NagiosCommandFile=@localstatedir@/rw/nagios.cmd
+NagiosRunFile=@subsyslockfile@
 NagiosVarDir=@localstatedir@
 NagiosCGIDir=@sbindir@
 NagiosUser=@nagios_user@
@@ -169,14 +170,6 @@ fi
 if [ ! -f $NagiosCfgFile ]; then
     echo "Configuration file $NagiosCfgFile not found. Exiting."
     exit 1
-fi
-
-# Get the lock_file from nagios.cfg
-NagiosRunFile=`sed -n -e 's/^lock_file=*//p' $NagiosCfgFile`
-if [ $? -ne 0 ]; then
-
-	# If there was a problem the use the value from when Core was compiled
-	NagiosRunFile=@subsyslockfile@
 fi
 
 # See how we were called.

@@ -667,7 +667,7 @@ int main(int argc, char **argv) {
 			temp_ptr = my_strsep(&temp_ptr2, "[");
 			temp_ptr = my_strsep(&temp_ptr2, ";");
 
-			printf("# serviceextinfo definition\n", temp_ptr);
+			printf("# '%s' serviceextinfo definition\n", temp_ptr);
 			printf("define serviceextinfo{\n");
 			printf("\thost_name\t\t%s\t\t; The name of the service this data is associated with\n", temp_ptr);
 

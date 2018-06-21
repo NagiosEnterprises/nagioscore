@@ -69,8 +69,11 @@ if test "x$src_init" != "xdefault-init" -a \
 
 	src_init="default-init"
 	init_type="sysv"
-	initdir="/etc/init.d"
 	initname="nagios"
+
+	if test "x$initdiroverridden" != "xyes"; then
+		initdir="/etc/init.d"
+	fi
 fi
 
 dnl We need to check for a lock file specified

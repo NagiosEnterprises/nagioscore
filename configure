@@ -673,6 +673,7 @@ subsyslockfile
 subsyslockdir
 tmpfilesd
 inetddir
+initdiroverridden
 initdir
 spooldir
 pipedir
@@ -4908,6 +4909,7 @@ $as_echo "$inetd_type" >&6; }
 
 
 
+
 if test x$DBG_PATHS != x; then
 	echo
 	echo Incoming paths:
@@ -5605,10 +5607,12 @@ case $init_type in #(
 esac
 
 # Now see if they supplied any overwriting values
+initdiroverridden=no
 
 # Check whether --with-initdir was given.
 if test "${with_initdir+set}" = set; then :
   withval=$with_initdir; initdir=$withval
+	initdiroverridden=yes
 else
   initdir=$initdir
 
@@ -5749,8 +5753,11 @@ if test "x$src_init" != "xdefault-init" -a \
 
 	src_init="default-init"
 	init_type="sysv"
-	initdir="/etc/init.d"
 	initname="nagios"
+
+	if test "x$initdiroverridden" != "xyes"; then
+		initdir="/etc/init.d"
+	fi
 fi
 
 if test "x$subsyslockdir" = "xN/A"; then

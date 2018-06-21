@@ -62,6 +62,7 @@ AC_SUBST(piddir)
 AC_SUBST(pipedir)
 AC_SUBST(spooldir)
 AC_SUBST(initdir)
+AC_SUBST(initdiroverridden)
 AC_SUBST(inetddir)
 AC_SUBST(tmpfilesd)
 AC_SUBST(subsyslockdir)
@@ -729,10 +730,12 @@ AS_CASE([$init_type],
 		initname=unknown)
 
 # Now see if they supplied any overwriting values
+initdiroverridden=no
 AC_ARG_WITH(initdir,
 	AC_HELP_STRING([--with-initdir=<path>],
 		[overrides path for initdir]),
-	initdir=$withval,
+	initdir=$withval
+	initdiroverridden=yes,
 	initdir=$initdir
 )
 

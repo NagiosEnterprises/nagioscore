@@ -381,6 +381,7 @@ install-classicui:
 	@echo ""
 
 install-init:
+	$(INSTALL) -m 755 -d $(INIT_OPTS) $(DESTDIR)$(INIT_DIR)
 	$(INSTALL) -m 755 $(INIT_OPTS) startup/$(SRC_INIT) $(DESTDIR)$(INIT_DIR)/$(INIT_FILE)
 
 install-daemoninit: install-init

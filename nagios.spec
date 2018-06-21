@@ -105,15 +105,6 @@ This package contains all the files from the contrib directory
 
 %build
 
-
-### The init-dir passed to ./configure must be in line with where `make` will `install-init`
-%if %{use_systemd}
-  %define with_init_dir %{_unitdir}
-%else
-  %define with_init_dir %{_initrddir}
-%endif
-
-
 CFLAGS="%{mycflags} %{myXcflags}" LDFLAGS="$CFLAGS" %configure \
     --datadir="%{_datadir}/nagios" \
     --libexecdir="%{_libdir}/nagios/plugins" \
@@ -186,16 +177,6 @@ export PATH=%{_bindir}:/bin:\$PATH
 %{__mkdir_p} %{buildroot}%{_datadir}/nagios/documentation
 %{__cp} -a Documentation/html/* %{buildroot}%{_datadir}/nagios/documentation
 
-
-### Put the new RC script in place
-
-%if %{use_systemd}
-  %{__mkdir_p} %{buildroot}/{%_unitdir}/
-  %{__install} -m 0644 startup/default-service %{buildroot}/{%_unitdir}/nagios.service
-%else
-  %{__mkdir_p} %{buildroot}/{%_initrddir}/
-  %{__install} -m 0755 startup/default-init %{buildroot}/{%_initrddir}/nagios
-%endif
 
 %{__install} -d -m 0755 %{buildroot}/%{_sysconfdir}/sysconfig/
 %{__install} -m 0644 nagios.sysconfig %{buildroot}/%{_sysconfdir}/sysconfig/nagios

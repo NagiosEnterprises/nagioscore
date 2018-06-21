@@ -46,13 +46,13 @@ BuildRequires: doxygen
 BuildRequires: gperf
 
 %if %{use_systemd}
-  Requires:           systemd
-  BuildRequires:      systemd
+Requires:           systemd
+BuildRequires:      systemd
 %else
-  Requires:           initscripts >= 8.36
-  Requires(postun):   initscripts
-  Requires(post):     chkconfig
-  Requires(preun):    chkconfig
+Requires:           initscripts >= 8.36
+Requires(postun):   initscripts
+Requires(post):     chkconfig
+Requires(preun):    chkconfig
 %endif
 
 Obsoletes: nagios-www <= %{version}
@@ -190,8 +190,10 @@ export PATH=%{_bindir}:/bin:\$PATH
 ### Put the new RC script in place
 
 %if %{use_systemd}
+  %{__mkdir_p} %{buildroot}/{%_unitdir}/
   %{__install} -m 0644 startup/default-service %{buildroot}/{%_unitdir}/nagios.service
 %else
+  %{__mkdir_p} %{buildroot}/{%_initrddir}/
   %{__install} -m 0755 startup/default-init %{buildroot}/{%_initrddir}/nagios
 %endif
 

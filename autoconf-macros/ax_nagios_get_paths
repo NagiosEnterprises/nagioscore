@@ -728,6 +728,14 @@ AS_CASE([$init_type],
 		initdir=unknown
 		initname=unknown)
 
+# Now see if they supplied any overwriting values
+AC_ARG_WITH(initdir,
+	AC_HELP_STRING([--with-initdir=<path>],
+		[overrides path for initdir]),
+	initdir=$withval,
+	initdir=$initdir
+)
+
 #
 # Inetd (per connection) scripts/files
 #

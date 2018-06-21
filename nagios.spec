@@ -29,7 +29,7 @@
 
 Summary: Open Source host, service and network monitoring program
 Name: nagios
-Version: 4.4.0
+Version: 4.4.1
 Release: 2%{?dist}
 License: GPL
 Group: Applications/System
@@ -103,6 +103,14 @@ This package contains all the files from the contrib directory
 %{__perl} -pi.orig -e 's|/usr/local/nagios/var/rw|%{_localstatedir}/nagios/rw|g;' contrib/eventhandlers/submit_check_result
 
 
+### The initdir passed to ./configure must be in line with where `make` will `install-init`
+%if %{use_systemd}
+  %define with_initdir %{_unitdir}
+%else
+  %define with_initdir %{_initrddir}
+%endif
+
+
 %build
 
 CFLAGS="%{mycflags} %{myXcflags}" LDFLAGS="$CFLAGS" %configure \
@@ -118,7 +126,7 @@ CFLAGS="%{mycflags} %{myXcflags}" LDFLAGS="$CFLAGS" %configure \
     --with-gd-lib="%{_libdir}" \
     --with-gd-inc="%{_includedir}" \
     --with-htmurl="/nagios" \
-    --with-init-dir="%{with_init_dir}" \
+    --with-initdir="%{with_initdir}" \
     --with-lockfile="%{_localstatedir}/nagios/nagios.pid" \
     --with-mail="/bin/mail" \
     --with-nagios-user="nagios" \

@@ -776,6 +776,7 @@ with_cgibindir
 with_logdir
 with_piddir
 with_pipedir
+with_initdir
 with_lockfile
 with_root_group
 enable_testing
@@ -1475,6 +1476,7 @@ Optional Packages:
   --with-logdir=DIR       where log files should be placed
   --with-piddir=DIR       where the PID file should be placed
   --with-pipedir=DIR      where socket and pipe files should be placed
+  --with-initdir=<path>   overrides path for initdir
   --with-lockfile=<path>  sets path for lockfile
   --with-root-group=<grp> sets group name for installing init
   --with-this-user        sets all user/group info for current user running
@@ -2441,9 +2443,9 @@ ac_config_headers="$ac_config_headers include/config.h lib/snprintf.h lib/iobrok
 
 PKG_NAME=nagios
 
-PKG_VERSION="4.4.0"
+PKG_VERSION="4.4.1"
 PKG_HOME_URL="https://www.nagios.org/"
-PKG_REL_DATE="2018-06-19"
+PKG_REL_DATE="2018-06-21"
 
 ac_aux_dir=
 for ac_dir in "$srcdir" "$srcdir/.." "$srcdir/../.."; do
@@ -5601,6 +5603,17 @@ case $init_type in #(
   *) :
      ;;
 esac
+
+# Now see if they supplied any overwriting values
+
+# Check whether --with-initdir was given.
+if test "${with_initdir+set}" = set; then :
+  withval=$with_initdir; initdir=$withval
+else
+  initdir=$initdir
+
+fi
+
 
 #
 # Inetd (per connection) scripts/files

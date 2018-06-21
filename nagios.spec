@@ -1,9 +1,11 @@
 # Upstream: Ethan Galstad <nagios$nagios,org>
 # Modified version from original dag spec
 
+
 ### FIXME: TODO: Add sysv script based on template. (remove cmd-file on start-up)
 %define logmsg logger -t %{name}/rpm
 %define logdir %{_localstatedir}/log/nagios
+
 
 # Setup some debugging options in case we build with --with debug
 %if %{defined _with_debug}
@@ -12,12 +14,18 @@
   %define mycflags %{nil}
 %endif
 
-# Allow newer compiler to suppress warnings
+
+### Allow newer compiler to suppress warnings
 %if 0%{?el6}
   %define myXcflags -Wno-unused-result
 %else
   %define myXcflags %{nil}
 %endif
+
+
+### Specify systemd for specific operating systems
+%define use_systemd (0%{?fedora} && 0%{?fedora} >= 18) || (0%{?rhel} && 0%{?rhel} >= 7) || (0%{?suse_version} && 0%{?suse_version} >=1210)
+
 
 Summary: Open Source host, service and network monitoring program
 Name: nagios
@@ -37,8 +45,19 @@ BuildRequires: libjpeg-devel
 BuildRequires: doxygen
 BuildRequires: gperf
 
+%if %{use_systemd}
+  Requires:           systemd
+  BuildRequires:      systemd
+%else
+  Requires:           initscripts >= 8.36
+  Requires(postun):   initscripts
+  Requires(post):     chkconfig
+  Requires(preun):    chkconfig
+%endif
+
 Obsoletes: nagios-www <= %{version}
 Requires: httpd,php
+
 
 %description
 Nagios is an application, system and network monitoring application.
@@ -52,10 +71,12 @@ The actual service checks are performed by separate "plugin" programs
 which return the status of the checks to Nagios. The plugins are
 located in the nagios-plugins package.
 
+
 %package devel
 Summary: Header files, libraries and development documentation for %{name}
 Group: Development/Libraries
 Requires: %{name} = %{version}-%{release}
+
 
 %description devel
 This package contains the header files, static libraries and development
@@ -63,21 +84,35 @@ documentation for %{name}. If you are a NEB-module author or wish to
 write addons for Nagios using Nagios' own API's, you should install
 this package.
 
+
 %package contrib
 Summary: Files from the contrib directory
 Group: Development/Utils
 Requires: %{name} = %{version}-%{release}
 
+
 %description contrib
 This package contains all the files from the contrib directory
+
 
 %prep
 %setup
 
-# /usr/local/nagios is hardcoded in many places
+
+### /usr/local/nagios is hardcoded in many places
 %{__perl} -pi.orig -e 's|/usr/local/nagios/var/rw|%{_localstatedir}/nagios/rw|g;' contrib/eventhandlers/submit_check_result
 
+
 %build
+
+
+### The init-dir passed to ./configure must be in line with where `make` will `install-init`
+%if %{use_systemd}
+  %define with_init_dir %{_unitdir}
+%else
+  %define with_init_dir %{_initrddir}
+%endif
+
 
 CFLAGS="%{mycflags} %{myXcflags}" LDFLAGS="$CFLAGS" %configure \
     --datadir="%{_datadir}/nagios" \
@@ -92,7 +127,7 @@ CFLAGS="%{mycflags} %{myXcflags}" LDFLAGS="$CFLAGS" %configure \
     --with-gd-lib="%{_libdir}" \
     --with-gd-inc="%{_includedir}" \
     --with-htmurl="/nagios" \
-    --with-init-dir="@initdir@" \
+    --with-init-dir="%{with_init_dir}" \
     --with-lockfile="%{_localstatedir}/nagios/nagios.pid" \
     --with-mail="/bin/mail" \
     --with-nagios-user="nagios" \
@@ -104,11 +139,14 @@ CFLAGS="%{mycflags} %{myXcflags}" LDFLAGS="$CFLAGS" %configure \
 find . -type f -name Makefile -exec /usr/bin/perl -p -i -e "s/-mtune=generic/-march=nocona/g" Makefile {} \; -print
 %{__make} %{?_smp_mflags} all
 
+
 ### Build our documentation
 %{__make} dox
 
+
 ### Apparently contrib does not obey configure !
 %{__make} %{?_smp_mflags} -C contrib
+
 
 %install
 export PATH=%{_bindir}:/bin:\$PATH
@@ -126,6 +164,7 @@ export PATH=%{_bindir}:/bin:\$PATH
 
 %{__install} -Dp -m 0644 sample-config/httpd.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/nagios.conf
 
+
 ### FIX log-paths
 %{__perl} -pi -e '
         s|log_file.*|log_file=%{logdir}/nagios.log|;
@@ -133,26 +172,38 @@ export PATH=%{_bindir}:/bin:\$PATH
         s|debug_file=.*|debug_file=%{logdir}/nagios.debug|;
    ' %{buildroot}%{_sysconfdir}/nagios/nagios.cfg
 
+
 ### make logdirs
 %{__mkdir_p} %{buildroot}%{logdir}/
 %{__mkdir_p} %{buildroot}%{logdir}/archives/
 
+
 ### Install logos
 %{__mkdir_p} %{buildroot}%{_datadir}/nagios/images/logos
+
 
 ### Install documentation
 %{__mkdir_p} %{buildroot}%{_datadir}/nagios/documentation
 %{__cp} -a Documentation/html/* %{buildroot}%{_datadir}/nagios/documentation
 
-# Put the new RC script in place
-%{__install} -m 0755 daemon-init %{buildroot}@initdir@/@initname@
+
+### Put the new RC script in place
+
+%if %{use_systemd}
+  %{__install} -m 0644 startup/default-service %{buildroot}/{%_unitdir}/nagios.service
+%else
+  %{__install} -m 0755 startup/default-init %{buildroot}/{%_initrddir}/nagios
+%endif
+
 %{__install} -d -m 0755 %{buildroot}/%{_sysconfdir}/sysconfig/
 %{__install} -m 0644 nagios.sysconfig %{buildroot}/%{_sysconfdir}/sysconfig/nagios
+
 
 ### Apparently contrib wants to do embedded-perl stuff as well and does not obey configure !
 %{__make} install -C contrib \
     DESTDIR="%{buildroot}" \
     INSTALL_OPTS=""
+
 
 ### Install libnagios
 %{__install} -m 0644 lib/libnagios.a %{buildroot}%{_libdir}/libnagios.a
@@ -178,6 +229,8 @@ if ! /usr/bin/getent group nagiocmd &>/dev/null; then
         %logmsg "Unexpected error adding group \"nagiocmd\". Aborting installation."
 fi
 
+
+
 %post
 /sbin/chkconfig --add nagios
 
@@ -189,11 +242,15 @@ else
     %logmsg "User \"apache\" does not exist and is not added to group \"nagios\". Sending commands to Nagios from the command CGI is not possible."
 fi
 
+
+
 %preun
 if [ $1 -eq 0 ]; then
     /sbin/service nagios stop &>/dev/null || :
     /sbin/chkconfig --del nagios
 fi
+
+
 
 %postun
 # This could be bad if files are left with this uid/gid and then get owned by a new user
@@ -203,19 +260,18 @@ fi
 #fi
 /sbin/service nagios condrestart &>/dev/null || :
 
+
+
 %clean
 %{__rm} -rf %{buildroot}
+
+
 
 %files -f cgi.files
 %defattr(-, root, root, 0755)
 %doc Changelog INSTALLING LEGAL LICENSE README.md THANKS UPGRADING
 %attr(0644,root,root) %config(noreplace) %{_sysconfdir}/httpd/conf.d/nagios.conf
 %attr(0644,root,root) %config(noreplace) %{_sysconfdir}/sysconfig/nagios
-if [ "@initname@" = "nagios.service" ]; then
-    %attr(0644,root,root) %config @initdir@/@initname@
-else
-    %attr(0755,root,root) %config @initdir@/@initname@
-fi
 %attr(0755,root,root) %{_bindir}/nagios
 %attr(0755,root,root) %{_bindir}/nagiostats
 %attr(0755,root,root) %{_libdir}/nagios/plugins/
@@ -229,19 +285,29 @@ fi
 %attr(0755,nagios,nagios) %{logdir}/
 %attr(0755,nagios,apache) %{_localstatedir}/nagios/rw/
 %attr(0644,root,root) %{_libdir}/libnagios.a
+%if %{use_systemd}
+  %attr(0644,root,root) %{_unitdir}/nagios.service
+%else
+  %attr(0755,root,root) %config %{_initrddir}/nagios
+%endif
+
+
 
 %files devel
 %attr(0755,root,root) %{_includedir}/nagios/
+
+
 
 %files contrib -f contrib.files
 %doc contrib/README.contrib
 %attr(0755,root,root) %{_bindir}/convertcfg
 %attr(0755,root,root) %{_libdir}/nagios/plugins/eventhandlers/
 
+
+
 %changelog
 * Wed Jun 20 2018 Bryan Heden <bheden@nagios.com> 4.4.1
-- Updated for systemd inclusion
-- Moved to .in substition file for ./configure
+- Updated for systemd inclusion - (Karsten Weiss and Fr3dY #535, #537)
 
 * Fri Nov 15 2013 Eric Stanley  <estanley@nagios.com> 4.0.1-1
 - Corrected permissions on plugins directory (bug #494 - patch by Karsten Weiss)

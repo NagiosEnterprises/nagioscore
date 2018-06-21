@@ -2,6 +2,14 @@
 Nagios Core 4 Change Log
 ########################
 
+4.4.1 - 2018-06-21
+------------------
+FIXES
+* Revert some macro->kvvec changes causing problems when `enable_environment_macros` was enabled (Bryan Heden)
+* Adjust `process_macro_r` function logic so that it handles macros properly (Bryan Heden)
+* Fix spec file for systemd (Karsten Weiss, Fr3dY, Bryan Heden)
+
+
 4.4.0 - 2018-06-19
 ------------------
 ENHANCEMENTS

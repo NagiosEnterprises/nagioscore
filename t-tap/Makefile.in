@@ -109,7 +109,7 @@ test: $(TESTS)
 	if which valgrind >/dev/null 2>&1; then 	\
 		valgrind ./test_macros					\
 		valgrind ./test_checks					\
-	fi											\
+	fi
 
 each_test: $(TESTS)
 	@for t in $(TESTS); do ./$$t 2>&1; done

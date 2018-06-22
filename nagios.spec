@@ -36,7 +36,7 @@ Group: Applications/System
 URL: https://www.nagios.org/
 Packager: Daniel Wittenberg <dwittenberg2008@gmail.com>
 Vendor: Nagios Enterprises (https://www.nagios.org)
-Source0: http://dl.sf.net/nagios/nagios-%{version}.tar.gz
+Source0: https://github.com/NagiosEnterprises/nagioscore/releases/download/nagios-%{version}/nagios-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildRequires: gd-devel > 1.8
 BuildRequires: zlib-devel
@@ -87,7 +87,7 @@ this package.
 
 %package contrib
 Summary: Files from the contrib directory
-Group: Development/Utils
+Group: Applications/System
 Requires: %{name} = %{version}-%{release}
 
 
@@ -96,7 +96,7 @@ This package contains all the files from the contrib directory
 
 
 %prep
-%setup
+%setup -q
 
 
 ### /usr/local/nagios is hardcoded in many places
@@ -205,8 +205,8 @@ export PATH=%{_bindir}:/bin:\$PATH
 
 CGI=`find contrib/ -name '*.cgi' -type f |sed s/'contrib\/'//g`
 CGI=`for i in $CGI; do echo -n "$i|"; done |sed s/\|$//`
-find %{buildroot}/%{_libdir}/nagios/cgi -type f -print | sed s!'%{buildroot}'!!g | egrep -ve "($CGI)" > cgi.files
-find %{buildroot}/%{_libdir}/nagios/cgi -type f -print | sed s!'%{buildroot}'!!g | egrep "($CGI)" > contrib.files
+find %{buildroot}/%{_libdir}/nagios/cgi -type f -print | sed s!'%{buildroot}'!!g | grep -E -ve "($CGI)" > cgi.files
+find %{buildroot}/%{_libdir}/nagios/cgi -type f -print | sed s!'%{buildroot}'!!g | grep -E "($CGI)" > contrib.files
 
 
 
@@ -244,11 +244,8 @@ fi
 
 
 %postun
-# This could be bad if files are left with this uid/gid and then get owned by a new user
-#if [ $1 -eq 0 ]; then
-#    /usr/sbin/userdel nagios || %logmsg "User \"nagios\" could not be deleted."
-#    /usr/sbin/groupdel nagios || %logmsg "Group \"nagios\" could not be deleted."
-#fi
+# groups and users are not supposed to be removed here
+# See https://fedoraproject.org/wiki/Packaging:UsersAndGroups?rd=Packaging/UsersAndGroups
 /sbin/service nagios condrestart &>/dev/null || :
 
 

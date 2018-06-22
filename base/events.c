@@ -757,65 +757,72 @@ int init_event_queue(void)
 	unsigned int size;
 
 	size = num_objects.hosts + num_objects.services;
-	if(size < 4096)
+	if (size < 4096) {
 		size = 4096;
+	}
 
 	nagios_squeue = squeue_create(size);
 	return 0;
 }
 
 /* schedule a new timed event */
-timed_event *schedule_new_event(int event_type, int high_priority, time_t run_time, int recurring, unsigned long event_interval, void *timing_func, int compensate_for_time_change, void *event_data, void *event_args, int event_options) {
-	timed_event *new_event;
- 	char run_time_string[MAX_DATETIME_LENGTH] = "";
+timed_event *schedule_new_event(int event_type, int high_priority, time_t run_time, 
+								int recurring, unsigned long event_interval, void *timing_func, 
+								int compensate_for_time_change, void *event_data, void *event_args, int event_options)
+{
+	timed_event * new_event                    = NULL;
+	char run_time_string[MAX_DATETIME_LENGTH] = "";
 
-	log_debug_info(DEBUGL_FUNCTIONS, 0, "schedule_new_event()\n");
-
-	get_datetime_string(&run_time, run_time_string, MAX_DATETIME_LENGTH,
-			SHORT_DATE_TIME);
-	log_debug_info(DEBUGL_EVENTS, 0, "New Event Details:\n");
-	log_debug_info(DEBUGL_EVENTS, 0, " Type:                       EVENT_%s\n",
-			EVENT_TYPE_STR(event_type));
-	log_debug_info(DEBUGL_EVENTS, 0, " High Priority:              %s\n",
-			( high_priority ? "Yes" : "No"));
-	log_debug_info(DEBUGL_EVENTS, 0, " Run Time:                   %s\n",
-			run_time_string);
-	log_debug_info(DEBUGL_EVENTS, 0, " Recurring:                  %s\n",
-			( recurring ? "Yes" : "No"));
-	log_debug_info(DEBUGL_EVENTS, 0, " Event Interval:             %lu\n",
-			event_interval);
-	log_debug_info(DEBUGL_EVENTS, 0, " Compensate for Time Change: %s\n",
-			( compensate_for_time_change ? "Yes" : "No"));
-	log_debug_info(DEBUGL_EVENTS, 0, " Event Options:              %d\n",
-			event_options);
+	get_datetime_string(&run_time, run_time_string, MAX_DATETIME_LENGTH, SHORT_DATE_TIME);
 
 	new_event = (timed_event *)calloc(1, sizeof(timed_event));
-	if(new_event != NULL) {
-		new_event->event_type = event_type;
-		new_event->event_data = event_data;
-		new_event->event_args = event_args;
-		new_event->event_options = event_options;
-		new_event->run_time = run_time;
-		new_event->recurring = recurring;
-		new_event->event_interval = event_interval;
-		new_event->timing_func = timing_func;
-		new_event->compensate_for_time_change = compensate_for_time_change;
-		new_event->priority = high_priority;
-		}
-	else
-		return NULL;
+	if (new_event != NULL) {
 
-	log_debug_info(DEBUGL_EVENTS, 0, " Event ID:                   %p\n", new_event);
+		new_event->event_type                 = event_type;
+		new_event->event_data                 = event_data;
+		new_event->event_args                 = event_args;
+		new_event->event_options              = event_options;
+		new_event->run_time                   = run_time;
+		new_event->recurring                  = recurring;
+		new_event->event_interval             = event_interval;
+		new_event->timing_func                = timing_func;
+		new_event->compensate_for_time_change = compensate_for_time_change;
+		new_event->priority                   = high_priority;
+	}
+	else {
+		return NULL;
+	}
+
+	log_debug_info(DEBUGL_FUNCTIONS, 0, 
+		"schedule_new_event()\n"
+		"New Event Details:\n"
+		" Event ID:                   %p\n"
+		" Type:                       EVENT_%s\n"
+		" High Priority:              %d\n"
+		" Run Time:                   %s\n"
+		" Recurring:                  %d\n"
+		" Event Interval:             %lu\n"
+		" Compensate for Time Change: %d\n"
+		" Event Options:              %d\n",
+		new_event,
+		EVENT_TYPE_STR(event_type),
+		high_priority,
+		run_time_string,
+		recurring,
+		event_interval,
+		compensate_for_time_change,
+		event_options);
 
 	/* add the event to the event list */
 	add_event(nagios_squeue, new_event);
 
 	return new_event;
-	}
+}
 
 
 /* reschedule an event in order of execution time */
-void reschedule_event(squeue_t *sq, timed_event *event) {
+void reschedule_event(squeue_t *sq, timed_event *event)
+{
 	time_t current_time = 0L;
 	time_t (*timingfunc)(void);
 
@@ -826,84 +833,99 @@ void reschedule_event(squeue_t *sq, timed_event *event) {
 
 		/* use custom timing function */
 		if(event->timing_func != NULL) {
-			timingfunc = event->timing_func;
+
+			timingfunc      = event->timing_func;
 			event->run_time = (*timingfunc)();
-			}
+		}
 
 		/* normal recurring events */
 		else {
+
 			event->run_time = event->run_time + event->event_interval;
 			time(&current_time);
-			if(event->run_time < current_time)
+
+			if(event->run_time < current_time) {
 				event->run_time = current_time;
 			}
 		}
+	}
 
 	/* add the event to the event list */
 	add_event(sq, event);
-
-	return;
-	}
+}
 
 
 /* add an event to list ordered by execution time */
-void add_event(squeue_t *sq, timed_event *event) {
-
+void add_event(squeue_t *sq, timed_event *event)
+{
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "add_event()\n");
 
-	if(event->sq_event) {
+	if (event->sq_event != NULL) {
+
 		logit(NSLOG_RUNTIME_ERROR, TRUE,
 		      "Error: Adding %s event that seems to already be scheduled\n",
 		      EVENT_TYPE_STR(event->event_type));
+
 		remove_event(sq, event);
 	}
 
-	if(event->priority) {
+	if (event->priority > 0) {
 		event->sq_event = squeue_add_usec(sq, event->run_time, event->priority - 1, event);
-		}
+	}
 	else {
 		event->sq_event = squeue_add(sq, event->run_time, event);
-		}
-	if(!event->sq_event) {
-		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Failed to add event to squeue '%p' with prio %u: %s\n",
-			  sq, event->priority, strerror(errno));
-		}
+	}
 
-	if(sq == nagios_squeue)
+	if (event->sq_event == NULL) {
+
+		logit(NSLOG_RUNTIME_ERROR, TRUE, 
+			"Error: Failed to add event to squeue '%p' with prio %u: %s\n",
+			 sq, event->priority, strerror(errno));
+	}
+
+	/* this specifies + just to ensure different than `-1` visually */
+	if (sq == nagios_squeue) {
 		track_events(event->event_type, +1);
+	}
 
 #ifdef USE_EVENT_BROKER
 	else {
-		/* send event data to broker */
 		broker_timed_event(NEBTYPE_TIMEDEVENT_ADD, NEBFLAG_NONE, NEBATTR_NONE, event, NULL);
-		}
+	}
 #endif
 
-	return;
-	}
+}
 
 
 
 /* remove an event from the queue */
-void remove_event(squeue_t *sq, timed_event *event) {
+void remove_event(squeue_t *sq, timed_event *event)
+{
+
 #ifdef USE_EVENT_BROKER
-	/* send event data to broker */
 	broker_timed_event(NEBTYPE_TIMEDEVENT_REMOVE, NEBFLAG_NONE, NEBATTR_NONE, event, NULL);
 #endif
-	if(!event || !event->sq_event)
+
+	if (event == NULL || event->sq_event == NULL) {
 		return;
+	}
 
-	if (sq)
+	if (sq != NULL) {
 		squeue_remove(sq, event->sq_event);
-	else
+	}
+	else {
+
 		logit(NSLOG_RUNTIME_ERROR, TRUE,
-		      "Error: remove_event() called for %s event with NULL sq parameter\n",
-		      EVENT_TYPE_STR(event->event_type));
+			"Error: remove_event() called for %s event with NULL sq parameter\n",
+			EVENT_TYPE_STR(event->event_type));
+	}
 
-	if(sq == nagios_squeue)
+	if (sq == nagios_squeue) {
 		track_events(event->event_type, -1);
+	}
 
-	event->sq_event = NULL; /* mark this event as unscheduled */
+	/* mark this event as unscheduled */
+	event->sq_event = NULL;
 
 	/*
 	 * if we catch an event from the queue which gets removed when
@@ -915,89 +937,122 @@ void remove_event(squeue_t *sq, timed_event *event) {
 	 */
 	if (event == current_event) {
 		current_event = NULL;
-		}
 	}
+}
 
 
 static int should_run_event(timed_event *temp_event)
 {
-	int run_event = TRUE;	/* default action is to execute the event */
+	/* default action is to execute the event */
+	int run_event     = TRUE;
 	int nudge_seconds = 0;
 
 	/* we only care about jobs that cause processes to run */
-	if (temp_event->event_type != EVENT_HOST_CHECK &&
-	    temp_event->event_type != EVENT_SERVICE_CHECK)
-	{
+	if (temp_event->event_type != EVENT_HOST_CHECK
+		&& temp_event->event_type != EVENT_SERVICE_CHECK) {
+
 		return TRUE;
 	}
 
 	/* if we can't spawn any more jobs, don't bother */
-	if (!wproc_can_spawn(&loadctl)) {
-		wproc_reap(1, 1); /* Try to reap one job for one msec. */
+	if (wproc_can_spawn(&loadctl) <= 0) {
+
+		/* Try to reap one job for one msec. */
+		wproc_reap(1, 1);
 		return FALSE;
 	}
 
 	/* run a few checks before executing a service check... */
-	if(temp_event->event_type == EVENT_SERVICE_CHECK) {
+	if (temp_event->event_type == EVENT_SERVICE_CHECK) {
+
 		service *temp_service = (service *)temp_event->event_data;
 
 		/* forced checks override normal check logic */
-		if((temp_service->check_options & CHECK_OPTION_FORCE_EXECUTION))
+		if((temp_service->check_options & CHECK_OPTION_FORCE_EXECUTION)) {
 			return TRUE;
+		}
 
 		/* don't run a service check if we're already maxed out on the number of parallel service checks...  */
-		if(max_parallel_service_checks != 0 && (currently_running_service_checks >= max_parallel_service_checks)) {
+		if (max_parallel_service_checks != 0 
+			&& currently_running_service_checks >= max_parallel_service_checks) {
+
 			nudge_seconds = ranged_urand(NUDGE_MIN, NUDGE_MAX);
-			logit(NSLOG_RUNTIME_WARNING, TRUE, "\tMax concurrent service checks (%d) has been reached.  Nudging %s:%s by %d seconds...\n", max_parallel_service_checks, temp_service->host_name, temp_service->description, nudge_seconds);
+			logit(NSLOG_RUNTIME_WARNING, TRUE, 
+				"\tMax concurrent service checks (%d) has been reached."
+				"  Nudging %s:%s by %d seconds...\n", 
+				max_parallel_service_checks, temp_service->host_name, 
+				temp_service->description, nudge_seconds);
+
 			run_event = FALSE;
 		}
 
 		/* don't run a service check if active checks are disabled */
-		if(execute_service_checks == FALSE) {
-			log_debug_info(DEBUGL_EVENTS | DEBUGL_CHECKS, 1, "We're not executing service checks right now, so we'll skip check event for service '%s;%s'.\n", temp_service->host_name, temp_service->description);
+		if (execute_service_checks == FALSE) {
+
+			log_debug_info(DEBUGL_EVENTS | DEBUGL_CHECKS, 1, 
+				"We're not executing service checks right now, so we'll skip check event for service '%s;%s'.\n",
+				temp_service->host_name, temp_service->description);
+
 			run_event = FALSE;
 		}
 
 		/* reschedule the check if we can't run it now */
-		if(run_event == FALSE) {
+		if (run_event == FALSE) {
+
 			remove_event(nagios_squeue, temp_event);
 
-			if(nudge_seconds) {
-				/* We nudge the next check time when it is due to too many concurrent service checks */
+			/* We nudge the next check time when it is
+			   due to too many concurrent service checks */
+			if (nudge_seconds) {
 				temp_service->next_check = (time_t)(temp_service->next_check + nudge_seconds);
 			}
+
+			/* Otherwise just schedule as normal */
 			else {
 				temp_service->next_check += check_window(temp_service);
 			}
 
 			temp_event->run_time = temp_service->next_check;
+
 			reschedule_event(nagios_squeue, temp_event);
 			update_service_status(temp_service, FALSE);
 
 			run_event = FALSE;
 		}
 	}
+
 	/* run a few checks before executing a host check... */
-	else if(temp_event->event_type == EVENT_HOST_CHECK) {
+	else if (temp_event->event_type == EVENT_HOST_CHECK) {
+
 		host *temp_host = (host *)temp_event->event_data;
 
 		/* forced checks override normal check logic */
-		if((temp_host->check_options & CHECK_OPTION_FORCE_EXECUTION))
+		if ((temp_host->check_options & CHECK_OPTION_FORCE_EXECUTION)) {
+
 			return TRUE;
+		}
 
 		/* don't run a host check if active checks are disabled */
-		if(execute_host_checks == FALSE) {
-			log_debug_info(DEBUGL_EVENTS | DEBUGL_CHECKS, 1, "We're not executing host checks right now, so we'll skip host check event for host '%s'.\n", temp_host->name);
+		if (execute_host_checks == FALSE) {
+
+			log_debug_info(DEBUGL_EVENTS | DEBUGL_CHECKS, 1, 
+				"We're not executing host checks right now, so we'll skip host check event for host '%s'.\n", 
+				temp_host->name);
+
 			run_event = FALSE;
 		}
 
 		/* reschedule the host check if we can't run it right now */
-		if(run_event == FALSE) {
+		if (run_event == FALSE) {
+
 			remove_event(nagios_squeue, temp_event);
+
 			temp_host->next_check += check_window(temp_host);
 			temp_event->run_time = temp_host->next_check;
+
 			reschedule_event(nagios_squeue, temp_event);
 			update_host_status(temp_host, FALSE);
+
 			run_event = FALSE;
 		}
 	}

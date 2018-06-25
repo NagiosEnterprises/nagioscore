@@ -18,6 +18,7 @@ matrix:
             - php5
             - php5-gd
             - unzip
+            - valgrind
       env:
         - MATRIX_EVAL="CC=gcc && CXX=g++"
 
@@ -38,6 +39,7 @@ matrix:
             - php5
             - php5-gd
             - unzip
+            - valgrind
       env:
         - MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
 
@@ -58,6 +60,7 @@ matrix:
             - php5
             - php5-gd
             - unzip
+            - valgrind
       env:
         - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
 
@@ -78,6 +81,7 @@ matrix:
             - php5
             - php5-gd
             - unzip
+            - valgrind
       env:
         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
 
@@ -98,6 +102,7 @@ matrix:
             - php5
             - php5-gd
             - unzip
+            - valgrind
       env:
         - MATRIX_EVAL="CC=gcc-8 && CXX=g++-8"
 
@@ -118,6 +123,7 @@ matrix:
             - php5
             - php5-gd
             - unzip
+            - valgrind
       env:
         - MATRIX_EVAL="CC=clang-5.0 && CXX=clang++-5.0"
 
@@ -140,6 +146,7 @@ matrix:
             - php5
             - php5-gd
             - unzip
+            - valgrind
       env:
         - MATRIX_EVAL="CC=clang-6.0 && CXX=clang++-6.0"
 

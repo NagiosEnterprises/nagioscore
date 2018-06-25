@@ -1128,21 +1128,33 @@ int init_workers(int desired_workers)
  */
 static int wproc_run_job(struct wproc_job *job, nagios_macros *mac)
 {
-	static struct kvvec kvv = KVVEC_INITIALIZER;
-	struct kvvec_buf *kvvb;
-	struct kvvec *env_kvvp = NULL;
+	static struct kvvec kvv    = KVVEC_INITIALIZER;
+	struct kvvec_buf *kvvb     = NULL;
+	struct kvvec *env_kvvp     = NULL;
 	struct kvvec_buf *env_kvvb = NULL;
-	struct wproc_worker *wp;
-	int ret, result = OK;
-    ssize_t written = 0;
+	struct wproc_worker *wp    = NULL;
+	int ret                    = OK;
+	int result                 = OK;
+	ssize_t written            = 0;
 
-	if (!job || !job->wp)
+	log_debug_info(DEBUGL_WORKERS, 1, "wproc_run_job()\n");
+
+	if (job == NULL) {
+		log_debug_info(DEBUGL_WORKERS, 1, " * failed because job was null\n");
 		return ERROR;
+	}
+
+	if (job->wp == NULL) {
+		log_debug_info(DEBUGL_WORKERS, 1, " * failed because job worker process was null\n");
+		return ERROR;
+	}
 
 	wp = job->wp;
 
-	if (!kvvec_init(&kvv, 4))	/* job_id, type, command and timeout */
+	/* job_id, type, command and timeout */
+	if (!kvvec_init(&kvv, 4)) {
 		return ERROR;
+	}
 
 	kvvec_addkv(&kvv, "job_id", (char *)mkstr("%d", job->id));
 	kvvec_addkv(&kvv, "type", (char *)mkstr("%d", job->type));
@@ -1150,37 +1162,53 @@ static int wproc_run_job(struct wproc_job *job, nagios_macros *mac)
 	kvvec_addkv(&kvv, "timeout", (char *)mkstr("%u", job->timeout));
 
 	/* Add the macro environment variables */
-	if(mac) {
+	if (mac != NULL) {
+
 		env_kvvp = macros_to_kvv(mac);
-		if(NULL != env_kvvp) {
+
+		if (env_kvvp != NULL) {
+
 			env_kvvb = kvvec2buf(env_kvvp, '=', '\n', 0);
-			if(NULL == env_kvvb) {
+
+			if (env_kvvb == NULL) {
 				kvvec_destroy(env_kvvp, KVVEC_FREE_KEYS);
 			}
 			else {
-				kvvec_addkv_wlen(&kvv, "env", strlen("env"), env_kvvb->buf,
-						env_kvvb->buflen);
+				/* no reason to call strlen("env") 
+				  when we know it's 3 characters */
+				kvvec_addkv_wlen(&kvv, "env", 3, env_kvvb->buf, env_kvvb->buflen);
 			}
 		}
 	}
+
 	kvvb = build_kvvec_buf(&kvv);
+
 	/* ret = write(wp->sd, kvvb->buf, kvvb->bufsize); */
 	ret = nwrite(wp->sd, kvvb->buf, kvvb->bufsize, &written);
-	if (ret != (int)kvvb->bufsize) {
-		logit(NSLOG_RUNTIME_ERROR, TRUE, "wproc: '%s' seems to be choked. ret = %d; bufsize = %lu: written = %lu; errno = %d (%s)\n",
-			  wp->name, ret, kvvb->bufsize, written, errno, strerror(errno));
+
+	if (ret != (int) kvvb->bufsize) {
+
+		logit(NSLOG_RUNTIME_ERROR, TRUE, 
+			"wproc: '%s' seems to be choked. ret = %d; bufsize = %lu: written = %lu; errno = %d (%s)\n",
+			wp->name, ret, kvvb->bufsize, (long unsigned int) written, errno, strerror(errno));
 		destroy_job(job);
 		result = ERROR;
+
 	} else {
 		wp->jobs_running++;
 		wp->jobs_started++;
 		loadctl.jobs_running++;
 	}
-	if(NULL != env_kvvp) kvvec_destroy(env_kvvp, KVVEC_FREE_KEYS);
-	if(NULL != env_kvvb) {
+
+	if (env_kvvp != NULL) {
+		kvvec_destroy(env_kvvp, KVVEC_FREE_KEYS);
+	}
+
+	if (env_kvvb != NULL) {
 		free(env_kvvb->buf);
 		free(env_kvvb);
 	}
+
 	free(kvvb->buf);
 	free(kvvb);
 

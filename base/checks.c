@@ -937,7 +937,7 @@ static inline void host_state_or_hard_state_type_change(host * hst, int state_ch
 	int state_or_type_change = FALSE;
 
 	/* check if we simulate a hard state change */
-	if (hst->check_type == CHECK_TYPE_PASSIVE && passive_host_checks_are_soft == FALSE) {
+	if (state_change == TRUE && hst->check_type == CHECK_TYPE_PASSIVE && passive_host_checks_are_soft == FALSE) {
 
 		log_debug_info(DEBUGL_CHECKS, 2, "Check type passive and passive host checks aren't false\n");
 		

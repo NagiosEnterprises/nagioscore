@@ -1368,6 +1368,9 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 		else {
 
 			log_debug_info(DEBUGL_CHECKS, 1, "Service is a non-OK state (%s)!", service_state_name(svc->current_state));
+            
+            svc->state_type = SOFT_STATE;
+			svc->current_attempt = 1;
 
 			handle_event = TRUE;
 		}
@@ -1418,6 +1421,14 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 			}
 		}
 	}
+    
+    /* soft states should be using retry_interval */
+    if (svc->state_type == SOFT_STATE) {
+        
+            log_debug_info(DEBUGL_CHECKS, 2, "Service state type is soft, using retry_interval\n");
+            
+            next_check = (unsigned long) (current_time + svc->retry_interval * interval_length);
+    }
 
 	/* check for a state change */
 	if (svc->current_state != svc->last_state || (svc->current_state == STATE_OK && svc->state_type == SOFT_STATE)) {
@@ -1454,6 +1465,8 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 	if (svc->current_attempt >= svc->max_attempts && svc->current_state != svc->last_hard_state) {
 
 		log_debug_info(DEBUGL_CHECKS, 2, "Service had a HARD STATE CHANGE!!\n");
+        
+        next_check = (unsigned long)(current_time + (svc->check_interval * interval_length));
 
 		hard_state_change = TRUE;
 
@@ -2197,6 +2210,9 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 		else {
 
 			log_debug_info(DEBUGL_CHECKS, 1, "Host is no longer UP (%s)!\n", host_state_name(hst->current_state));
+            
+            hst->state_type = SOFT_STATE;
+            hst->current_attempt = 1;
 
 			/* propagate checks to immediate parents if they are UP */
 			host_propagate_checks_to_immediate_parents(hst, FALSE, current_time);
@@ -2276,7 +2292,9 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 	if (hst->current_state != HOST_UP && (hst->check_type == CHECK_TYPE_ACTIVE || translate_passive_host_checks == TRUE)) {
 
 		hst->current_state = determine_host_reachability(hst);
-		next_check = (unsigned long)(current_time + (hst->retry_interval * interval_length));
+		if (hst->state_type == SOFT_STATE)
+            next_check = (unsigned long)(current_time + (hst->retry_interval * interval_length));
+        
 	}
 
 	/* check for state change */
@@ -2310,7 +2328,9 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 
 		log_debug_info(DEBUGL_CHECKS, 2, "Host had a HARD STATE CHANGE!!\n");
 
-		hard_state_change = TRUE;
+		next_check = (unsigned long)(current_time + (hst->check_interval * interval_length));
+        
+        hard_state_change = TRUE;
 		send_notification = TRUE;
 	}
 

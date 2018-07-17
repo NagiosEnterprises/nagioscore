@@ -239,6 +239,7 @@ int xrddefault_save_state_information(void) {
 		fprintf(fp, "is_flapping=%d\n", temp_host->is_flapping);
 		fprintf(fp, "percent_state_change=%.2f\n", temp_host->percent_state_change);
 		fprintf(fp, "check_flapping_recovery_notification=%d\n", temp_host->check_flapping_recovery_notification);
+		fprintf(fp, "flapping_comment_id=%lu\n", temp_host->flapping_comment_id);
 
 		fprintf(fp, "state_history=");
 		for(x = 0; x < MAX_STATE_HISTORY_ENTRIES; x++)
@@ -311,6 +312,7 @@ int xrddefault_save_state_information(void) {
 		fprintf(fp, "is_flapping=%d\n", temp_service->is_flapping);
 		fprintf(fp, "percent_state_change=%.2f\n", temp_service->percent_state_change);
 		fprintf(fp, "check_flapping_recovery_notification=%d\n", temp_service->check_flapping_recovery_notification);
+		fprintf(fp, "flapping_comment_id=%lu\n", temp_service->flapping_comment_id);
 
 		fprintf(fp, "state_history=");
 		for(x = 0; x < MAX_STATE_HISTORY_ENTRIES; x++)
@@ -1086,6 +1088,8 @@ int xrddefault_read_state_information(void) {
 									}
 								temp_host->state_history_index = 0;
 								}
+							else if(!strcmp(var, "flapping_comment_id") && sigrestart == TRUE)
+								temp_host->flapping_comment_id = strtoul(val, NULL, 10);
 							else
 								found_directive = FALSE;
 							}
@@ -1357,6 +1361,8 @@ int xrddefault_read_state_information(void) {
 									}
 								temp_service->state_history_index = 0;
 								}
+							else if(!strcmp(var, "flapping_comment_id") && sigrestart == TRUE)
+								temp_service->flapping_comment_id = strtoul(val, NULL, 10);
 							else
 								found_directive = FALSE;
 							}

@@ -4,7 +4,7 @@ Nagios Core 4 Change Log
 
 4.4.2 - 2018-07-??
 ------------------
-* Fix for duplicate comments on reload (Bryan Heden)
+* Fix for duplicate comments on reload (#549) (Bryan Heden)
 * Fix for check_interval/retry_interval bug (Scott Wilkerson)
 * Fix passive checks sending recovery email when host was previously up (Scott Wilkerson)
 

@@ -26,7 +26,7 @@ static int qh_echo(int sd, char *buf, unsigned int len)
 {
 	int result = 0;
 
-	if (buf == NULL || !strcmp(buf, "help")) {
+	if (!strcmp(buf, "help")) {
 
 		nsock_printf_nul(sd,
 			"Query handler that simply echoes back what you send it.");
@@ -371,7 +371,7 @@ static int qh_help(int sd, char *buf, unsigned int len)
 {
 	struct query_handler *qh = NULL;
 
-	if (buf == NULL || !strcmp(buf, "help")) {
+	if (!*buf || !strcmp(buf, "help")) {
 		nsock_printf_nul(sd,
 			"  help <name>   show help for handler <name>\n"
 			"  help list     list registered handlers\n");
@@ -405,7 +405,7 @@ static int qh_core(int sd, char *buf, unsigned int len)
 {
 	char *space;
 
-	if (buf == NULL || !strcmp(buf, "help")) {
+	if (*buf == 0 || !strcmp(buf, "help")) {
 
 		nsock_printf_nul(sd, 
 			"Query handler for manipulating nagios core.\n"

@@ -7,7 +7,6 @@ Nagios Core 4 Change Log
 * Fix for duplicate comments on reload (#549) (Bryan Heden)
 * Fix for check_interval/retry_interval bug (Scott Wilkerson)
 * Fix passive checks sending recovery email when host was previously up (Scott Wilkerson)
-* Fix for CVE-2018-13441 null pointer dereference (Trevor McDonald)
 
 4.4.1 - 2018-06-25
 ------------------

@@ -9,6 +9,7 @@ FIXES
 * Adjust `process_macro_r` function logic so that it handles macros properly (Bryan Heden)
 * Fix spec file for systemd (Karsten Weiss, Fr3dY, Bryan Heden)
 * Fix bug where `ssize_t` typedef to int on some systems (Bryan Heden)
+* Fix syntax error in file: default-init.in (#558) (Christian Zettel)
 
 
 4.4.0 - 2018-06-19

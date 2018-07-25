@@ -837,6 +837,7 @@ void show_service_status_totals(void) {
 	servicestatus *temp_servicestatus;
 	service *temp_service;
 	host *temp_host;
+	servicegroup *temp_servicegroup;
 	int count_service;
 	regex_t preg_hostname;
 
@@ -846,9 +847,15 @@ void show_service_status_totals(void) {
 	/* check the status of all services... */
 	for(temp_servicestatus = servicestatus_list; temp_servicestatus != NULL; temp_servicestatus = temp_servicestatus->next) {
 
-		/* find the host and service... */
+		/* find the host, service and servicegroup... */
 		temp_host = find_host(temp_servicestatus->host_name);
 		temp_service = find_service(temp_servicestatus->host_name, temp_servicestatus->description);
+		temp_servicegroup = find_servicegroup(servicegroup_name);
+
+		/* if the service is not a member of the servicegroup continue ... */
+		if(is_service_member_of_servicegroup(temp_servicegroup, temp_service) == FALSE) {
+			continue;
+		}
 
 		/* make sure user has rights to see this service... */
 		if(is_authorized_for_service(temp_service, &current_authdata) == FALSE)

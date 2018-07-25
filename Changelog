@@ -10,6 +10,8 @@ FIXES
 * Fixed passive checks sending recovery email when host was previously UP (Scott Wilkerson)
 * Fixed flapping comments duplication on nagios reload (Christian Jung)
 * Fix for CVE-2018-13441 null pointer dereference (Trevor McDonald)
+* Fixed syntax error in file: default-init.in (#558) (Christian Zettel)
+* Fixed wrong counting of service status totals when showing servicegroup details (#548) (Christian Zettel)
 
 
 4.4.1 - 2018-06-25

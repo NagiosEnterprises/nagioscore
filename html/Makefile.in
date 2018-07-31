@@ -133,7 +133,12 @@ install:
 # Side bar quicklinks
 	rm -f $(DESTDIR)$(HTMLDIR)/quicklinks.php
 	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(CFGDIR)
-	$(INSTALL) -m 664 $(INSTALL_OPTS) quicklinks.php  $(DESTDIR)$(CFGDIR)/quicklinks.php
+	if [ ! -f $(DESTDIR)$(CFGDIR)/quicklinks.php ]; \
+	then \
+	  $(INSTALL) -m 664 $(INSTALL_OPTS) quicklinks.php  $(DESTDIR)$(CFGDIR)/quicklinks.php; \
+	else \
+	  $(INSTALL) -m 664 $(INSTALL_OPTS) quicklinks.php  $(DESTDIR)$(CFGDIR)/quicklinks.php.new; \
+	fi
 	$(LN_S) $(CFGDIR)/quicklinks.php $(DESTDIR)$(HTMLDIR)/quicklinks.php
 # End of side bar quicklinks
 

@@ -1228,7 +1228,7 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 	next_check = (time_t)(svc->last_check + (svc->check_interval * interval_length));
 
 	/***********************************************/
-	/********** SCHEDULE HOST CHECK LOGIC **********/
+	/********** SCHEDULE SERVICE CHECK LOGIC **********/
 	/***********************************************/
 	if (svc->current_state == STATE_OK) {
 
@@ -1269,6 +1269,18 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 
 			svc->host_problem_at_last_check = TRUE;
 		}
+        
+        /* reset all service variables because its okay now... */
+        svc->host_problem_at_last_check = FALSE;
+        svc->current_attempt = 1;
+        svc->state_type = HARD_STATE;
+        svc->last_hard_state = STATE_OK;
+        svc->last_notification = (time_t)0;
+        svc->next_notification = (time_t)0;
+        svc->current_notification_number = 0;
+        svc->problem_has_been_acknowledged = FALSE;
+        svc->acknowledgement_type = ACKNOWLEDGEMENT_NONE;
+        svc->notified_on = 0;
 	}
 	else {
 
@@ -2392,6 +2404,12 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 		}
 	}
 
+    /* the host recovered, so reset the current notification number and state flags (after the recovery notification has gone out) */
+    if(hst->current_state == HOST_UP && hst->state_type == HARD_STATE && hard_state_change == TRUE) {
+        hst->current_notification_number = 0;
+        hst->notified_on = 0;
+        }
+        
 	if (obsess_over_hosts == TRUE) {
 		obsessive_compulsive_host_check_processor(hst);
 	}

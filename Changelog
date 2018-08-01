@@ -8,6 +8,7 @@ FIXES
 * Fix comment data being duplicated after a `service nagios reload` or similar (Bryan Heden)
 * Fix check_interval and retry_interval not changing at the appropriate times (Scott Wilkerson)
 * Fixed passive checks sending recovery email when host was previously UP (Scott Wilkerson)
+* Reset current notification number and state flags when the host recovers, reset all service variables when they recover fixes (#557) (Scott Wilkerson)
 
 4.4.1 - 2018-06-25
 ------------------

@@ -937,11 +937,14 @@ static inline void host_state_or_hard_state_type_change(host * hst, int state_ch
 	int state_or_type_change = FALSE;
 
 	/* check if we simulate a hard state change */
-	if (state_change == TRUE && hst->check_type == CHECK_TYPE_PASSIVE && passive_host_checks_are_soft == FALSE) {
+	if (hst->check_type == CHECK_TYPE_PASSIVE && passive_host_checks_are_soft == FALSE) {
 
 		log_debug_info(DEBUGL_CHECKS, 2, "Check type passive and passive host checks aren't false\n");
 		
-		hst->current_attempt = 1;
+		if (state_change == TRUE) {
+            hst->current_attempt = 1;
+        }
+        
 		hard_state_change = TRUE;
 	}
 
@@ -1270,17 +1273,6 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 			svc->host_problem_at_last_check = TRUE;
 		}
         
-        /* reset all service variables because its okay now... */
-        svc->host_problem_at_last_check = FALSE;
-        svc->current_attempt = 1;
-        svc->state_type = HARD_STATE;
-        svc->last_hard_state = STATE_OK;
-        svc->last_notification = (time_t)0;
-        svc->next_notification = (time_t)0;
-        svc->current_notification_number = 0;
-        svc->problem_has_been_acknowledged = FALSE;
-        svc->acknowledgement_type = ACKNOWLEDGEMENT_NONE;
-        svc->notified_on = 0;
 	}
 	else {
 
@@ -1410,6 +1402,21 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 
 				log_debug_info(DEBUGL_CHECKS, 1, "Service experienced a SOFT recovery.\n");				
 			}
+            
+            
+            /* reset all service variables because its okay now... */
+            svc->host_problem_at_last_check = FALSE;
+            svc->current_attempt = 1;
+            svc->state_type = HARD_STATE;
+            svc->last_hard_state = STATE_OK;
+            svc->last_notification = (time_t)0;
+            svc->next_notification = (time_t)0;
+            svc->current_notification_number = 0;
+            svc->problem_has_been_acknowledged = FALSE;
+            svc->acknowledgement_type = ACKNOWLEDGEMENT_NONE;
+            svc->notified_on = 0;
+            
+            hard_state_change = TRUE;
 		}
 
 		/***** SERVICE IS STILL IN PROBLEM STATE *****/

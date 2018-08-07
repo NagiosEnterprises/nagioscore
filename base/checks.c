@@ -911,6 +911,11 @@ static inline void service_state_or_hard_state_type_change(service * svc, int st
 
 	if (state_or_type_change) {
 
+		/* check if service should go into downtime from flexible downtime */
+		if (svc->pending_flex_downtime > 0) {
+			check_pending_flex_service_downtime(svc);
+		}
+
 		/* reset notification times and suppression option */
 		svc->last_notification = (time_t)0;
 		svc->next_notification = (time_t)0;
@@ -991,6 +996,9 @@ static inline void host_state_or_hard_state_type_change(host * hst, int state_ch
 	}
 
 	if (state_or_type_change) {
+
+		/* check if host should go into downtime from flexible downtime */
+		check_pending_flex_host_downtime(hst);
 
 		/* reset notification times and suppression option */
 		hst->last_notification = (time_t)0;

@@ -5,6 +5,7 @@ Nagios Core 4 Change Log
 4.5.0 - ??????????
 ------------------
 ENHANCEMENTS
+* Support for customizing side.php with quicklinks (Xavier Bachelot)
 
 FIXES
 

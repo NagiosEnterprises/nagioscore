@@ -15,6 +15,7 @@ INSTALL_OPTS=@INSTALL_OPTS@
 COMMAND_OPTS=@COMMAND_OPTS@
 
 CP=@CP@
+LN_S=@LN_S@
 
 all html:
 	(cd angularjs && unzip -u angular-1.3.9.zip)
@@ -129,6 +130,17 @@ install:
 	$(INSTALL) -m 664 $(INSTALL_OPTS) d3/d3.min.js $(DESTDIR)$(HTMLDIR)/d3
 	$(INSTALL) -m 664 $(INSTALL_OPTS) spin/spin.min.js $(DESTDIR)$(HTMLDIR)/spin
 # End of support files for new graphical CGIs
+# Side bar quicklinks
+	rm -f $(DESTDIR)$(HTMLDIR)/quicklinks.php
+	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(CFGDIR)
+	if [ ! -f $(DESTDIR)$(CFGDIR)/quicklinks.php ]; \
+	then \
+	  $(INSTALL) -m 664 $(INSTALL_OPTS) quicklinks.php  $(DESTDIR)$(CFGDIR)/quicklinks.php; \
+	else \
+	  $(INSTALL) -m 664 $(INSTALL_OPTS) quicklinks.php  $(DESTDIR)$(CFGDIR)/quicklinks.php.new; \
+	fi
+	$(LN_S) $(CFGDIR)/quicklinks.php $(DESTDIR)$(HTMLDIR)/quicklinks.php
+# End of side bar quicklinks
 
 install-unstripped:
 	$(MAKE) install

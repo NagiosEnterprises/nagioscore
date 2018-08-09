@@ -1487,6 +1487,9 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 
 	 		svc->current_attempt++;
 	 	}
+        
+        /* all soft states are state changes */
+        state_change = TRUE;
 	}
 
 	if (svc->current_attempt >= svc->max_attempts && svc->current_state != svc->last_hard_state) {

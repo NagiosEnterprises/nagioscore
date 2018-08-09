@@ -893,6 +893,9 @@ static inline void service_state_or_hard_state_type_change(service * svc, int st
 		if (svc->current_state == STATE_OK) {
 			svc->last_problem_id = svc->current_problem_id;
 			svc->current_problem_id = 0L;
+            svc->current_attempt = 1;
+            svc->current_notification_number = 0;
+            svc->host_problem_at_last_check = FALSE;
 		}
 
 		svc->state_type = SOFT_STATE;
@@ -1412,18 +1415,10 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 			}
             
             
-            /* reset all service variables because its okay now... */
-            svc->host_problem_at_last_check = FALSE;
-            svc->current_attempt = 1;
+            /* reset all service variables because its ok now... */
             svc->state_type = HARD_STATE;
-            svc->last_hard_state = STATE_OK;
-            svc->last_notification = (time_t)0;
-            svc->next_notification = (time_t)0;
-            svc->current_notification_number = 0;
-            svc->problem_has_been_acknowledged = FALSE;
-            svc->acknowledgement_type = ACKNOWLEDGEMENT_NONE;
-            svc->notified_on = 0;
-            
+            send_notification = TRUE;
+            state_change = TRUE;
             hard_state_change = TRUE;
 		}
 

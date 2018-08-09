@@ -1452,9 +1452,9 @@ int handle_async_service_check_result(service *svc, check_result *cr)
     /* soft states should be using retry_interval */
     if (svc->state_type == SOFT_STATE) {
         
-            log_debug_info(DEBUGL_CHECKS, 2, "Service state type is soft, using retry_interval\n");
-            
-            next_check = (unsigned long) (current_time + svc->retry_interval * interval_length);
+		log_debug_info(DEBUGL_CHECKS, 2, "Service state type is soft, using retry_interval\n");
+
+		next_check = (unsigned long) (current_time + svc->retry_interval * interval_length);
     }
 
 	/* check for a state change */
@@ -1487,9 +1487,6 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 
 	 		svc->current_attempt++;
 	 	}
-        
-        /* all soft states are state changes */
-        state_change = TRUE;
 	}
 
 	if (svc->current_attempt >= svc->max_attempts && svc->current_state != svc->last_hard_state) {
@@ -1506,6 +1503,11 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 
 	/* handle some acknowledgement things and update last_state_change */
 	service_state_or_hard_state_type_change(svc, state_change, hard_state_change, &log_event, &handle_event);
+
+	/* fix edge cases where log_event wouldn't have been set or won't be */
+	if (svc->current_state != STATE_OK && svc->state_type == SOFT_STATE) {
+		log_event = TRUE;
+	}
 
 	record_last_service_state_ended(svc);
 

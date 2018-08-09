@@ -593,7 +593,7 @@ void run_service_tests(int check_type)
         "Last notification not reset");
     ok(svc1->next_notification == (time_t) 22222L,
         "Next notification not reset");
-    test_svc_handler_notification_logging(4, EVENT_HANDLED);
+    test_svc_handler_notification_logging(4, EVENT_HANDLED | LOGGED);
 
 
 
@@ -605,7 +605,7 @@ void run_service_tests(int check_type)
         "Ack left");
     ok(svc1->current_attempt == 3, 
         "Expecting current attempt %d, got %d", 3, svc1->current_attempt);
-    test_svc_handler_notification_logging(5, EVENT_HANDLED);
+    test_svc_handler_notification_logging(5, EVENT_HANDLED | LOGGED);
 
 
 

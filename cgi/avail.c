@@ -4999,7 +4999,7 @@ void display_service_availability(void)
 			printf("<td CLASS='dataOdd'>%2.3f%%</td>", percent_time_warning_unscheduled);
 			printf("<td CLASS='dataOdd'>%2.3f%%</td></tr>\n", percent_time_warning_unscheduled_known);
 			printf("<tr CLASS='dataOdd'><td CLASS='dataOdd'>Scheduled</td>");
-			printf("td CLASS='dataOdd'>%s</td>", time_warning_scheduled_string);
+			printf("<td CLASS='dataOdd'>%s</td>", time_warning_scheduled_string);
 			printf("<td CLASS='dataOdd'>%2.3f%%</td>", percent_time_warning_scheduled);
 			printf("<td CLASS='dataOdd'>%2.3f%%</td></tr>\n", percent_time_warning_scheduled_known);
 			printf("<tr CLASS='serviceWARNING'><td CLASS='serviceWARNING'>Total</td>");

@@ -1417,7 +1417,6 @@ int handle_async_service_check_result(service *svc, check_result *cr)
             
             /* reset all service variables because its ok now... */
             svc->state_type = HARD_STATE;
-            send_notification = TRUE;
             state_change = TRUE;
             hard_state_change = TRUE;
 		}

@@ -2,7 +2,7 @@
 Nagios Core 4 Change Log
 ########################
 
-4.4.2 - ??????????
+4.4.2 - 2018-08-14
 ------------------
 FIXES
 * Fix comment data being duplicated after a `service nagios reload` or similar (Bryan Heden)

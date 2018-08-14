@@ -951,9 +951,10 @@ static inline void host_state_or_hard_state_type_change(host * hst, int state_ch
 		
 		if (state_change == TRUE) {
             hst->current_attempt = 1;
+            hard_state_change = TRUE;
         }
         
-		hard_state_change = TRUE;
+		hst->state_type = HARD_STATE;
 	}
 
 	/* update event and problem ids */

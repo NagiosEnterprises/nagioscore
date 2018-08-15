@@ -567,29 +567,6 @@ int check_service_notification_viability(service *svc, int type, int options) {
 		return ERROR;
 		}
 
-	/***** RECOVERY NOTIFICATIONS ARE GOOD TO GO AT THIS POINT *****/
-	if(svc->current_state == STATE_OK)
-		return OK;
-
-	/* don't notify contacts about this service problem again if the notification interval is set to 0 */
-	if(svc->no_more_notifications == TRUE) {
-		log_debug_info(DEBUGL_NOTIFICATIONS, 1, "We shouldn't re-notify contacts about this service problem.\n");
-		return ERROR;
-		}
-
-	/* if the host is down or unreachable, don't notify contacts about service failures */
-	if(temp_host->current_state != STATE_UP && temp_host->state_type == HARD_STATE) {
-		log_debug_info(DEBUGL_NOTIFICATIONS, 1, "The host is either down or unreachable, so we won't notify contacts about this service.\n");
-		return ERROR;
-		}
-
-	/* don't notify if we haven't waited long enough since the last time (and the service is not marked as being volatile) */
-	if((current_time < svc->next_notification) && svc->is_volatile == FALSE) {
-		log_debug_info(DEBUGL_NOTIFICATIONS, 1, "We haven't waited long enough to re-notify contacts about this service.\n");
-		log_debug_info(DEBUGL_NOTIFICATIONS, 1, "Next valid notification time: %s", ctime(&svc->next_notification));
-		return ERROR;
-		}
-
 	/* if this service is currently in a scheduled downtime period, don't send the notification */
 	if(svc->scheduled_downtime_depth > 0) {
 		log_debug_info(DEBUGL_NOTIFICATIONS, 1, "This service is currently in a scheduled downtime, so we won't send notifications.\n");
@@ -611,6 +588,29 @@ int check_service_notification_viability(service *svc, int type, int options) {
 	/* if this host is currently in a flex downtime period, don't send the notification */
 	if(temp_host->pending_flex_downtime > 0 && is_host_in_pending_flex_downtime(temp_host) == TRUE) {
 		log_debug_info(DEBUGL_NOTIFICATIONS, 1, "The host this service is associated with is starting a flex downtime, so we won't send notifications.\n");
+		return ERROR;
+		}
+
+	/***** RECOVERY NOTIFICATIONS ARE GOOD TO GO AT THIS POINT *****/
+	if(svc->current_state == STATE_OK)
+		return OK;
+
+	/* don't notify contacts about this service problem again if the notification interval is set to 0 */
+	if(svc->no_more_notifications == TRUE) {
+		log_debug_info(DEBUGL_NOTIFICATIONS, 1, "We shouldn't re-notify contacts about this service problem.\n");
+		return ERROR;
+		}
+
+	/* if the host is down or unreachable, don't notify contacts about service failures */
+	if(temp_host->current_state != STATE_UP && temp_host->state_type == HARD_STATE) {
+		log_debug_info(DEBUGL_NOTIFICATIONS, 1, "The host is either down or unreachable, so we won't notify contacts about this service.\n");
+		return ERROR;
+		}
+
+	/* don't notify if we haven't waited long enough since the last time (and the service is not marked as being volatile) */
+	if((current_time < svc->next_notification) && svc->is_volatile == FALSE) {
+		log_debug_info(DEBUGL_NOTIFICATIONS, 1, "We haven't waited long enough to re-notify contacts about this service.\n");
+		log_debug_info(DEBUGL_NOTIFICATIONS, 1, "Next valid notification time: %s", ctime(&svc->next_notification));
 		return ERROR;
 		}
 
@@ -1495,15 +1495,15 @@ int check_host_notification_viability(host *hst, int type, int options) {
 		return ERROR;
 		}
 
-	/***** RECOVERY NOTIFICATIONS ARE GOOD TO GO AT THIS POINT *****/
-	if(hst->current_state == HOST_UP)
-		return OK;
-
 	/* if this host is currently in a scheduled downtime period, don't send the notification */
 	if(hst->scheduled_downtime_depth > 0) {
 		log_debug_info(DEBUGL_NOTIFICATIONS, 1, "This host is currently in a scheduled downtime, so we won't send notifications.\n");
 		return ERROR;
 		}
+
+	/***** RECOVERY NOTIFICATIONS ARE GOOD TO GO AT THIS POINT *****/
+	if(hst->current_state == HOST_UP)
+		return OK;
 
 	/* check if we shouldn't renotify contacts about the host problem */
 	if(hst->no_more_notifications == TRUE) {

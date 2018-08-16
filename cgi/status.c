@@ -873,6 +873,11 @@ void show_service_status_totals(void) {
 				count_service = 1;
 			}
 		else if(display_type == DISPLAY_SERVICEGROUPS) {
+
+			if (is_service_member_of_servicegroup(find_servicegroup(servicegroup_name), temp_service) == FALSE) {
+				continue;
+			}
+
 			if(show_all_servicegroups == TRUE) {
 				count_service = 1;
 				}

@@ -893,6 +893,9 @@ static inline void service_state_or_hard_state_type_change(service * svc, int st
 		if (svc->current_state == STATE_OK) {
 			svc->last_problem_id = svc->current_problem_id;
 			svc->current_problem_id = 0L;
+            svc->current_attempt = 1;
+            svc->current_notification_number = 0;
+            svc->host_problem_at_last_check = FALSE;
 		}
 
 		svc->state_type = SOFT_STATE;
@@ -910,6 +913,11 @@ static inline void service_state_or_hard_state_type_change(service * svc, int st
 	}
 
 	if (state_or_type_change) {
+
+		/* check if service should go into downtime from flexible downtime */
+		if (svc->pending_flex_downtime > 0) {
+			check_pending_flex_service_downtime(svc);
+		}
 
 		/* reset notification times and suppression option */
 		svc->last_notification = (time_t)0;
@@ -937,12 +945,16 @@ static inline void host_state_or_hard_state_type_change(host * hst, int state_ch
 	int state_or_type_change = FALSE;
 
 	/* check if we simulate a hard state change */
-	if (state_change == TRUE && hst->check_type == CHECK_TYPE_PASSIVE && passive_host_checks_are_soft == FALSE) {
+	if (hst->check_type == CHECK_TYPE_PASSIVE && passive_host_checks_are_soft == FALSE) {
 
 		log_debug_info(DEBUGL_CHECKS, 2, "Check type passive and passive host checks aren't false\n");
 		
-		hst->current_attempt = 1;
-		hard_state_change = TRUE;
+		if (state_change == TRUE) {
+            hst->current_attempt = 1;
+            hard_state_change = TRUE;
+        }
+        
+		hst->state_type = HARD_STATE;
 	}
 
 	/* update event and problem ids */
@@ -988,6 +1000,9 @@ static inline void host_state_or_hard_state_type_change(host * hst, int state_ch
 	}
 
 	if (state_or_type_change) {
+
+		/* check if host should go into downtime from flexible downtime */
+		check_pending_flex_host_downtime(hst);
 
 		/* reset notification times and suppression option */
 		hst->last_notification = (time_t)0;
@@ -1228,7 +1243,7 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 	next_check = (time_t)(svc->last_check + (svc->check_interval * interval_length));
 
 	/***********************************************/
-	/********** SCHEDULE HOST CHECK LOGIC **********/
+	/********** SCHEDULE SERVICE CHECK LOGIC **********/
 	/***********************************************/
 	if (svc->current_state == STATE_OK) {
 
@@ -1269,6 +1284,7 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 
 			svc->host_problem_at_last_check = TRUE;
 		}
+        
 	}
 	else {
 
@@ -1398,6 +1414,12 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 
 				log_debug_info(DEBUGL_CHECKS, 1, "Service experienced a SOFT recovery.\n");				
 			}
+            
+            
+            /* reset all service variables because its ok now... */
+            svc->state_type = HARD_STATE;
+            state_change = TRUE;
+            hard_state_change = TRUE;
 		}
 
 		/***** SERVICE IS STILL IN PROBLEM STATE *****/
@@ -1425,9 +1447,9 @@ int handle_async_service_check_result(service *svc, check_result *cr)
     /* soft states should be using retry_interval */
     if (svc->state_type == SOFT_STATE) {
         
-            log_debug_info(DEBUGL_CHECKS, 2, "Service state type is soft, using retry_interval\n");
-            
-            next_check = (unsigned long) (current_time + svc->retry_interval * interval_length);
+		log_debug_info(DEBUGL_CHECKS, 2, "Service state type is soft, using retry_interval\n");
+
+		next_check = (unsigned long) (current_time + svc->retry_interval * interval_length);
     }
 
 	/* check for a state change */
@@ -1476,6 +1498,11 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 
 	/* handle some acknowledgement things and update last_state_change */
 	service_state_or_hard_state_type_change(svc, state_change, hard_state_change, &log_event, &handle_event);
+
+	/* fix edge cases where log_event wouldn't have been set or won't be */
+	if (svc->current_state != STATE_OK && svc->state_type == SOFT_STATE) {
+		log_event = TRUE;
+	}
 
 	record_last_service_state_ended(svc);
 
@@ -2392,6 +2419,12 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 		}
 	}
 
+    /* the host recovered, so reset the current notification number and state flags (after the recovery notification has gone out) */
+    if(hst->current_state == HOST_UP && hst->state_type == HARD_STATE && hard_state_change == TRUE) {
+        hst->current_notification_number = 0;
+        hst->notified_on = 0;
+        }
+        
 	if (obsess_over_hosts == TRUE) {
 		obsessive_compulsive_host_check_processor(hst);
 	}

@@ -593,7 +593,7 @@ void run_service_tests(int check_type)
         "Last notification not reset");
     ok(svc1->next_notification == (time_t) 22222L,
         "Next notification not reset");
-    test_svc_handler_notification_logging(4, EVENT_HANDLED);
+    test_svc_handler_notification_logging(4, EVENT_HANDLED | LOGGED);
 
 
 
@@ -605,7 +605,7 @@ void run_service_tests(int check_type)
         "Ack left");
     ok(svc1->current_attempt == 3, 
         "Expecting current attempt %d, got %d", 3, svc1->current_attempt);
-    test_svc_handler_notification_logging(5, EVENT_HANDLED);
+    test_svc_handler_notification_logging(5, EVENT_HANDLED | LOGGED);
 
 
 
@@ -1277,19 +1277,19 @@ void run_passive_host_tests()
         "Host is down");
     ok(hst1->last_hard_state == STATE_DOWN,
         "Host last hard state was down");
-    ok(hst1->no_more_notifications == FALSE,
-        "Reset no more notifications");
+    ok(hst1->no_more_notifications == TRUE,
+        "No more notifications reatained");
     ok(hst1->acknowledgement_type == ACKNOWLEDGEMENT_NORMAL,
         "Ack same");
-    ok(hst1->last_notification == (time_t)0L,
-        "Last notification reset");
+    ok(hst1->last_notification != (time_t)0L,
+        "Last notification not reset");
     ok(hst1->last_state_change == (time_t) ORIG_START_TIME + 50L,
         "Expected last_state_change time %lu, got %lu", (time_t) (ORIG_START_TIME + 50L), hst1->last_state_change);
-    ok(hst1->last_hard_state_change == (time_t) (ORIG_START_TIME + 60L),
-        "Expected last_hard_state_change time %lu, got %lu", (time_t) (ORIG_START_TIME + 60L), hst1->last_hard_state_change);
+    ok(hst1->last_hard_state_change == (time_t) (ORIG_START_TIME + 50L),
+        "Expected last_hard_state_change time %lu, got %lu", (time_t) (ORIG_START_TIME + 50L), hst1->last_hard_state_change);
     ok(hst1->current_attempt == 1,
         "Expecting current attempt %d, got %d",1, hst1->current_attempt);
-    test_hst_handler_notification_logging(39, EVENT_HANDLED | NOTIFIED | LOGGED );
+    test_hst_handler_notification_logging(39, NOTIFIED );
 
 
 
@@ -1548,6 +1548,8 @@ int main(int argc, char **argv)
     /* the way host checks are handled is
        very different based on active/passive */
     run_active_host_tests();
+
+    passive_host_checks_are_soft = TRUE;
     run_passive_host_tests();
 
     run_misc_host_check_tests(now);

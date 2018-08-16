@@ -878,6 +878,9 @@ int main(int argc, char **argv) {
 			/* clean up the scheduled downtime data */
 			cleanup_downtime_data();
 
+			/* clean up comment data */
+			free_comment_data();
+
 			/* clean up the status data if we are not restarting */
 			if(sigrestart == FALSE) {
 				cleanup_status_data(TRUE);

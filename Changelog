@@ -2,6 +2,20 @@
 Nagios Core 4 Change Log
 ########################
 
+4.4.2 - 2018-08-16
+------------------
+FIXES
+* Fix comment data being duplicated after a `service nagios reload` or similar (#549) (Bryan Heden)
+* Fix check_interval and retry_interval not changing at the appropriate times (#551) (Scott Wilkerson)
+* Fixed passive checks sending recovery email when host was previously UP (#552) (Scott Wilkerson)
+* Fixed flapping comments duplication on nagios reload (#554) (Christian Jung)
+* Fix for CVE-2018-13441, CVE-2018-13458, CVE-2018-13457 null pointer dereference (Trevor McDonald)
+* Fixed syntax error in file: default-init.in (#558) (Christian Zettel)
+* Reset current notification number and state flags when the host recovers, reset all service variables when they recover fixes (#557) (Scott Wilkerson)
+* Fixed wrong counting of service status totals when showing servicegroup details (#548) (Christian Zettel, Bryan Heden)
+* Fixed avail.cgi not printing CSV output when checkbox is checked (for any type: host/service/hostgroup/servicegroup) (#570) (Bryan Heden)
+* Fixed nagios not logging SOFT state changes after 1 (Scott Wilkerson)
+
 4.4.1 - 2018-06-25
 ------------------
 FIXES

@@ -591,10 +591,6 @@ int check_service_notification_viability(service *svc, int type, int options) {
 		return ERROR;
 		}
 
-	/***** RECOVERY NOTIFICATIONS ARE GOOD TO GO AT THIS POINT *****/
-	if(svc->current_state == STATE_OK)
-		return OK;
-
 	/* don't notify contacts about this service problem again if the notification interval is set to 0 */
 	if(svc->no_more_notifications == TRUE) {
 		log_debug_info(DEBUGL_NOTIFICATIONS, 1, "We shouldn't re-notify contacts about this service problem.\n");

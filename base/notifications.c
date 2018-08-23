@@ -1497,10 +1497,6 @@ int check_host_notification_viability(host *hst, int type, int options) {
 		return ERROR;
 		}
 
-	/***** RECOVERY NOTIFICATIONS ARE GOOD TO GO AT THIS POINT *****/
-	if(hst->current_state == HOST_UP)
-		return OK;
-
 	/* check if we shouldn't renotify contacts about the host problem */
 	if(hst->no_more_notifications == TRUE) {
 		log_debug_info(DEBUGL_NOTIFICATIONS, 1, "We shouldn't re-notify contacts about this host problem.\n");

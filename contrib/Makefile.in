@@ -22,7 +22,7 @@ INSTALL_OPTS=@INSTALL_OPTS@
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
-CGIDIR=@sbindir@
+CGIDIR=@cgibindir@
 BINDIR=@bindir@
 
 CGIS=traceroute.cgi daemonchk.cgi

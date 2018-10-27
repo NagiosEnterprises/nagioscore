@@ -6,6 +6,7 @@ Nagios Core 4 Change Log
 ------------------
 FIXES
 * Fixed services sending recovery emails when they recover if host in down state (#572) (Scott Wilkerson)
+* Avoid a make error when building on the aarch64 architecture.
 
 4.4.2 - 2018-08-16
 ------------------

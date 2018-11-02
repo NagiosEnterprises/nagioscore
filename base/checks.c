@@ -1572,6 +1572,12 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 		}
 	}
 
+	/* the service recovered, so reset the current notification number and state flags (after the recovery notification has gone out) */
+	if(svc->current_state == STATE_OK && svc->state_type == HARD_STATE && hard_state_change == TRUE) {
+		svc->current_notification_number = 0;
+		svc->notified_on = 0;
+		}
+
 	if (obsess_over_services == TRUE) {
 		obsessive_compulsive_service_check_processor(svc);
 	}

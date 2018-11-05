@@ -1416,10 +1416,8 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 			}
             
             
-            /* reset all service variables because its ok now... */
-            svc->state_type = HARD_STATE;
-            state_change = TRUE;
-            hard_state_change = TRUE;
+            		/* there was a state change, soft or hard */
+            		state_change = TRUE;
 		}
 
 		/***** SERVICE IS STILL IN PROBLEM STATE *****/

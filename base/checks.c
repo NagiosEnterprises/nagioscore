@@ -890,7 +890,7 @@ static inline void service_state_or_hard_state_type_change(service * svc, int st
 		}
 
 		/* clear the problem id when transitioning from a problem state to an OK state */
-		if (svc->current_state == STATE_OK) {
+		if (svc->current_state == STATE_OK && hard_state_change == TRUE) {
 			svc->last_problem_id = svc->current_problem_id;
 			svc->current_problem_id = 0L;
             svc->current_attempt = 1;
@@ -1414,10 +1414,9 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 
 				log_debug_info(DEBUGL_CHECKS, 1, "Service experienced a SOFT recovery.\n");				
 			}
-            
-            
-            		/* there was a state change, soft or hard */
-            		state_change = TRUE;
+
+            /* there was a state change, soft or hard */
+            state_change = TRUE;
 		}
 
 		/***** SERVICE IS STILL IN PROBLEM STATE *****/
@@ -1463,14 +1462,14 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 
 		/* this has to be first so we don't reset every time a new non-ok state comes
 		   in (and triggers the state_change == TRUE) */
-		if (svc->last_state != STATE_OK && svc->current_state != STATE_OK && svc->current_attempt < svc->max_attempts) {
+		if (svc->last_state != STATE_OK && svc->current_attempt < svc->max_attempts) {
 
 			svc->current_attempt++;
 		}
 
 		/* historically, a soft recovery would actually get up to 2 attempts
 		   and then immediately reset once the next check result came in */
-		else if (state_change == TRUE || svc->current_state == STATE_OK) {
+		else if (state_change == TRUE && svc->current_state != STATE_OK) {
 
 			svc->current_attempt = 1;
 		}
@@ -1488,6 +1487,7 @@ int handle_async_service_check_result(service *svc, check_result *cr)
         
         next_check = (unsigned long)(current_time + (svc->check_interval * interval_length));
 
+        /* set both states changed, this may have been missed... */
 		hard_state_change = TRUE;
 
 		/* this is missed earlier */
@@ -1543,10 +1543,6 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 		}
 
 		schedule_service_check(svc, svc->next_check, CHECK_OPTION_NONE);
-	}
-
-	if (svc->current_state == STATE_OK) {
-		svc->current_attempt = 1;
 	}
 
 	/* volatile service gets everything in non-ok hard state */

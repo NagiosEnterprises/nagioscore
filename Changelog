@@ -7,6 +7,7 @@ Nagios Core 4 Change Log
 FIXES
 * Fixed services sending recovery emails when they recover if host in down state (#572) (Scott Wilkerson)
 * Fixed soft recovery states for services (#575) (Jacob Omann)
+* Fixed XSS vulnerability in Alert Summary report (CVE-2018-18245) (Jacob Omann)
 
 4.4.2 - 2018-08-16
 ------------------

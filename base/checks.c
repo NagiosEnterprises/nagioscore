@@ -889,15 +889,6 @@ static inline void service_state_or_hard_state_type_change(service * svc, int st
 			next_problem_id++;
 		}
 
-		/* clear the problem id when transitioning from a problem state to an OK state */
-		if (svc->current_state == STATE_OK && hard_state_change == TRUE) {
-			svc->last_problem_id = svc->current_problem_id;
-			svc->current_problem_id = 0L;
-            svc->current_attempt = 1;
-            svc->current_notification_number = 0;
-            svc->host_problem_at_last_check = FALSE;
-		}
-
 		svc->state_type = SOFT_STATE;
 
 		state_or_type_change = TRUE;
@@ -1589,6 +1580,25 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 
 	if (handle_event == TRUE) {
 		handle_service_event(svc);
+	}
+
+	/* Update OK states since they send out a soft alert but then they
+	   switch into a HARD state and reset the attempts */
+	if (svc->current_state == STATE_OK && state_change == TRUE) {
+
+		/* Reset attempts and problem state */
+		if (hard_state_change == TRUE) {
+			svc->last_problem_id = svc->current_problem_id;
+			svc->current_problem_id = 0L;
+			svc->current_notification_number = 0;
+			svc->host_problem_at_last_check = FALSE;
+		}
+
+		/* Set OK to a hard state */
+		svc->last_hard_state_change = svc->last_check;
+		svc->last_hard_state = svc->current_state;
+		svc->current_attempt = 1;
+		svc->state_type = HARD_STATE;
 	}
 
 	log_debug_info(DEBUGL_CHECKS, 2, 

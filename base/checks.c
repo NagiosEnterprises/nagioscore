@@ -897,6 +897,7 @@ static inline void service_state_or_hard_state_type_change(service * svc, int st
 	if (hard_state_change == TRUE) {
 
 		svc->last_hard_state_change = svc->last_check;
+		svc->last_state_change = svc->last_check;
 		svc->last_hard_state = svc->current_state;
 		svc->state_type = HARD_STATE;
 

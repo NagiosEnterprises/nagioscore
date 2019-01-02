@@ -620,7 +620,7 @@ void run_service_tests(int check_type)
 
     ok(svc1->last_hard_state_change == (time_t) (ORIG_START_TIME + 40L), 
         "Expected last_hard_state_change time %lu, got %lu", (time_t) (ORIG_START_TIME + 40L), svc1->last_hard_state_change);
-    ok(svc1->last_state_change == (time_t) ORIG_START_TIME, 
+    ok(svc1->last_state_change == (time_t) (ORIG_START_TIME + 40L), 
         "Got appropriate last_state_change");
     ok(svc1->last_notification == (time_t) 0L,
         "Last notification was reset");
@@ -810,8 +810,8 @@ void run_service_tests(int check_type)
 
     ok(svc1->current_state == STATE_CRITICAL,
         "Service is critical");
-    ok(svc1->last_state_change == (time_t) ORIG_START_TIME + 40L,
-        "Expected last_state_change time %lu, got %lu", (time_t) (ORIG_START_TIME + 40L), svc1->last_state_change);
+    ok(svc1->last_state_change == (time_t) (ORIG_START_TIME + 60L),
+        "Expected last_state_change time %lu, got %lu", (time_t) (ORIG_START_TIME + 60L), svc1->last_state_change);
     ok(svc1->last_hard_state_change == (time_t) (ORIG_START_TIME + 60L),
         "Expected last_hard_state_change time %lu, got %lu", (time_t) (ORIG_START_TIME + 60L), svc1->last_hard_state_change);
     ok(svc1->last_hard_state == STATE_CRITICAL,

@@ -2375,10 +2375,10 @@ int process_passive_service_check(time_t check_time, char *host_name, char *svc_
 	/* we couldn't find the host */
 	if(temp_host == NULL) {
 		log_debug_info(DEBUGL_CHECKS, 0, 
-			"Passive check result was received for service '%s' on host '%s', but the service could not be found!\n", 
+			"Passive check result was received for service '%s' on host '%s', but the host could not be found!\n", 
 			svc_description, host_name);
 		logit(NSLOG_RUNTIME_WARNING, TRUE, 
-			"Warning:  Passive check result was received for service '%s' on host '%s', but the service could not be found!\n", 
+			"Warning:  Passive check result was received for service '%s' on host '%s', but the host could not be found!\n", 
 			svc_description, host_name);
 		return ERROR;
 		}

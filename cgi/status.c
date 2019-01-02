@@ -3230,7 +3230,7 @@ void show_servicegroup_service_totals_summary(servicegroup *temp_servicegroup) {
 		printf("<td class='miniStatusCRITICAL'><table border='0'>\n");
 		printf("<tr>\n");
 
-		printf("<td class='miniStatusCRITICAL'><a href='%s?servicegroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d CRITICAL</a>&nbsp:</td>\n", STATUS_CGI, url_encode(temp_servicegroup->group_name), SERVICE_CRITICAL, host_status_types, service_properties, host_properties, services_critical);
+		printf("<td class='miniStatusCRITICAL'><a href='%s?servicegroup=%s&style=detail&servicestatustypes=%d&hoststatustypes=%d&serviceprops=%lu&hostprops=%lu'>%d CRITICAL</a>&nbsp;:</td>\n", STATUS_CGI, url_encode(temp_servicegroup->group_name), SERVICE_CRITICAL, host_status_types, service_properties, host_properties, services_critical);
 
 		printf("<td><table border='0'>\n");
 

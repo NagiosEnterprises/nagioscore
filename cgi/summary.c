@@ -1785,7 +1785,7 @@ void display_recent_alerts(void) {
 
 		printf("<td CLASS='data%s'>%s</td>", bgclass, (temp_event->state_type == AE_SOFT_STATE) ? "SOFT" : "HARD");
 
-		printf("<td CLASS='data%s'>%s</td>", bgclass, temp_event->event_info);
+		printf("<td CLASS='data%s'>%s</td>", bgclass, html_encode(temp_event->event_info, 1));
 
 		printf("</tr>\n");
 		}

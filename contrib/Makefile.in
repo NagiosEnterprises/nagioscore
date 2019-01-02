@@ -95,7 +95,11 @@ else
     ifeq ($(ARCH),i686)
 RPM_ARCH := i386
     else
+        ifeq ($(ARCH),aarch64)
+RPM_ARCH := aarch64
+        else
 $(error Unknown arch "$(ARCH)".)
+        endif
     endif
 endif
 

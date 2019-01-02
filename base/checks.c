@@ -1472,7 +1472,8 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 	 	}
 	}
 
-	if (svc->current_attempt >= svc->max_attempts && svc->current_state != svc->last_hard_state) {
+	if (svc->current_attempt >= svc->max_attempts &&
+		(svc->current_state != svc->last_hard_state || svc->state_type == SOFT_STATE)) {
 
 		log_debug_info(DEBUGL_CHECKS, 2, "Service had a HARD STATE CHANGE!!\n");
         

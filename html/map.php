@@ -97,7 +97,8 @@
 					last-update="lastUpdate"
 					initial-state="collapsed"
 					collapsible="true"
-					include-partial="map-links.html">
+					include-partial="map-links.html"
+					root="{{params.root}}">
 			</div>
 		</div>
 		<div id="map-container" ng-hide="formDisplayed"

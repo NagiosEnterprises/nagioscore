@@ -7,10 +7,11 @@ Nagios Core 4 Change Log
 FIXES
 * Fixed services sending recovery emails when they recover if host in down state (#572) (Scott Wilkerson)
 * Fixed a make error when building on the aarch64 architecture (#598) (Gareth Randall)
-* Fixed soft recovery states for services (#575) (Jacob Omann)
-* Fixed XSS vulnerability in Alert Summary report (CVE-2018-18245) (Jacob Omann)
-* Fixed services in soft states sometimes not switching into hard states (#576) (Jacob Omann)
-* Fixed last_state_change to update when a state goes from soft -> hard state (#592) (Jacob Omann)
+* Fixed soft recovery states for services (#575) (Jake Omann)
+* Fixed XSS vulnerability in Alert Summary report (CVE-2018-18245) (Jake Omann)
+* Fixed services in soft states sometimes not switching into hard states (#576) (Jake Omann)
+* Fixed last_state_change to update when a state goes from soft -> hard state (#592) (Jake Omann)
+* Fixed Map link always being set to undefined host (#539) (Jake Omann)
 
 4.4.2 - 2018-08-16
 ------------------

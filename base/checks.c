@@ -1563,10 +1563,6 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 	if (send_notification == TRUE) {
 
 		service_notification(svc, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE);
-		
-		if (should_stalk_notifications(svc)) {
-			log_event = TRUE;
-		}
 	}
 
 	/* the service recovered, so reset the current notification number and state flags (after the recovery notification has gone out) */
@@ -2435,10 +2431,6 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 	if (send_notification == TRUE) {
 
 		host_notification(hst, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE);
-
-		if (should_stalk_notifications(hst)) {
-			log_event = TRUE;
-		}
 	}
 
     /* the host recovered, so reset the current notification number and state flags (after the recovery notification has gone out) */

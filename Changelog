@@ -13,9 +13,10 @@ FIXES
 * Fixed XSS vulnerability in Alert Summary report (CVE-2018-18245) (Jake Omann)
 * Fixed services in soft states sometimes not switching into hard states (#576) (Jake Omann)
 * Fixed last_state_change to update when a state goes from soft -> hard state (#592) (Jake Omann)
-* Fixed Map link always being set to undefined host (#539) (Jake Omann)
+* Fixed Map link always being set to undefined host and don't show link for Nagios Process root note (#539) (Jake Omann)
 * Fixed notifications sending when services went into hard state on a down or unreachable host (#584) (Jake Omann)
 * Fixed log_host_retries not logging the host soft state checks (#599) (Jake Omann)
+* Fixed stalking_options N option to properly log only when a notification is actually sent (#604) (Jake Omann)
 
 
 4.4.2 - 2018-08-16

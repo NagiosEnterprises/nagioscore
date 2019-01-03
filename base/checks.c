@@ -2456,6 +2456,11 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 		log_event = TRUE;
 	}
 
+	/* if log_host_retries is set to true, we have to log soft states too */
+	if (hst->state_type == SOFT_STATE && log_host_retries == TRUE) {
+		log_event = TRUE;
+	}
+
 	if (log_event == TRUE) {
 		log_host_event(hst);
 	}

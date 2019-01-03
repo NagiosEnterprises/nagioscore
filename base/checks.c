@@ -1333,14 +1333,13 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 				host_notification(hst, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE);
 			}
 
-			/* fake a hard state change, because it'll be missed later */
+			/* service hard state change, because if host is down/unreachable
+			   the docs say we have a hard state change (but no notification) */
 			if (svc->last_hard_state != svc->current_state) {
 
-				log_debug_info(DEBUGL_CHECKS, 2, "Faking a hard state change\n");
+				log_debug_info(DEBUGL_CHECKS, 2, "Host is down or unreachable, forcing service hard state change\n");
 
 				hard_state_change = TRUE;
-				svc->state_type = HARD_STATE;
-				svc->last_hard_state = svc->current_state;
 			}
 
 			svc->host_problem_at_last_check = TRUE;

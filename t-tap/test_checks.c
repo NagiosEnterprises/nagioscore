@@ -534,7 +534,7 @@ void run_service_tests(int check_type)
         "next notification reset due to state change");
     ok(svc1->no_more_notifications == FALSE, 
         "no_more_notifications reset due to state change");
-    test_svc_handler_notification_logging(1, EVENT_HANDLED | NOTIFIED | LOGGED);
+    test_svc_handler_notification_logging(1, EVENT_HANDLED | LOGGED);
 
 
 

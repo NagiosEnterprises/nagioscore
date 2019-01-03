@@ -1333,18 +1333,20 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 				host_notification(hst, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE);
 			}
 
-			/* service hard state change, because if host is down/unreachable
-			   the docs say we have a hard state change (but no notification) */
-			if (svc->last_hard_state != svc->current_state) {
-
-				log_debug_info(DEBUGL_CHECKS, 2, "Host is down or unreachable, forcing service hard state change\n");
-
-				hard_state_change = TRUE;
-			}
-
 			svc->host_problem_at_last_check = TRUE;
 		}
 	}
+
+	/* service hard state change, because if host is down/unreachable
+	   the docs say we have a hard state change (but no notification) */
+	if (hst->current_state != HOST_UP && svc->last_hard_state != svc->current_state) {
+
+		log_debug_info(DEBUGL_CHECKS, 2, "Host is down or unreachable, forcing service hard state change\n");
+
+		hard_state_change = TRUE;
+		svc->state_type = HARD_STATE;
+		svc->last_hard_state = svc->current_state;
+    }
 
 	if (check_host == TRUE) {
 		schedule_host_check(hst, current_time, CHECK_OPTION_DEPENDENCY_CHECK);
@@ -1374,9 +1376,13 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 		/***** SERVICE IS NOW IN PROBLEM STATE *****/
 		else {
 
-			log_debug_info(DEBUGL_CHECKS, 1, "Service is a non-OK state (%s)!", service_state_name(svc->current_state));
-            
-            svc->state_type = SOFT_STATE;
+			log_debug_info(DEBUGL_CHECKS, 1, "Service is a non-OK state (%s)!\n", service_state_name(svc->current_state));
+
+			/* skip this service check if host is down/unreachable and state change happened */
+			if (svc->host_problem_at_last_check == FALSE && hard_state_change == FALSE) {
+				svc->state_type = SOFT_STATE;
+			}
+
 			svc->current_attempt = 1;
 
 			handle_event = TRUE;
@@ -1413,7 +1419,7 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 		/***** SERVICE IS STILL IN PROBLEM STATE *****/
 		else {
 
-			log_debug_info(DEBUGL_CHECKS, 1, "Service is still in a non-OK state (%s)!", service_state_name(svc->current_state));
+			log_debug_info(DEBUGL_CHECKS, 1, "Service is still in a non-OK state (%s)!\n", service_state_name(svc->current_state));
 
 			if (svc->state_type == SOFT_STATE) {
 
@@ -1423,7 +1429,12 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 				next_check = (unsigned long) (current_time + svc->retry_interval * interval_length);
 			}
 
-			else {
+			/* check if host is down/unreachable and don't send notifications */
+			else if (svc->host_problem_at_last_check == TRUE) {
+
+				log_debug_info(DEBUGL_CHECKS, 2, "Service state type is hard, but host is down or unreachable, not sending notification\n");
+
+			} else {
 
 				log_debug_info(DEBUGL_CHECKS, 2, "Service state type is hard, sending a notification\n");
 

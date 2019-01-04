@@ -18,6 +18,7 @@ FIXES
 * Fixed log_host_retries not logging the host soft state checks (#599) (Jake Omann)
 * Fixed stalking_options N option to properly log only when a notification is actually sent (#604) (Jake Omann)
 * Fixed issue with service status totals being zero when servicegroup=all on servicegroup status page (#579) (Jake Omann)
+* Fixed escalation notifications logic and recovery notifications not going out (#582) (Jake Omann)
 
 
 4.4.2 - 2018-08-16

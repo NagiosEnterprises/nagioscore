@@ -874,17 +874,16 @@ void show_service_status_totals(void) {
 			}
 		else if(display_type == DISPLAY_SERVICEGROUPS) {
 
-			if (is_service_member_of_servicegroup(find_servicegroup(servicegroup_name), temp_service) == FALSE) {
+			if (show_all_servicegroups == TRUE) {
+				count_service = 1;
+			}
+			else if (is_service_member_of_servicegroup(find_servicegroup(servicegroup_name), temp_service) == FALSE) {
 				continue;
 			}
-
-			if(show_all_servicegroups == TRUE) {
-				count_service = 1;
-				}
 			else if(is_host_member_of_servicegroup(find_servicegroup(servicegroup_name), temp_host) == TRUE) {
 				count_service = 1;
-				}
 			}
+		}
 		else if(display_type == DISPLAY_HOSTGROUPS && (show_all_hostgroups == TRUE || (is_host_member_of_hostgroup(find_hostgroup(hostgroup_name), temp_host) == TRUE)))
 			count_service = 1;
 

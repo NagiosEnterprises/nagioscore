@@ -17,6 +17,7 @@ FIXES
 * Fixed notifications sending when services went into hard state on a down or unreachable host (#584) (Jake Omann)
 * Fixed log_host_retries not logging the host soft state checks (#599) (Jake Omann)
 * Fixed stalking_options N option to properly log only when a notification is actually sent (#604) (Jake Omann)
+* Fixed issue with service status totals being zero when servicegroup=all on servicegroup status page (#579) (Jake Omann)
 
 
 4.4.2 - 2018-08-16

@@ -95,11 +95,6 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 		return ERROR;
 		}
 
-	/* log state due to notification event when stalking_options N is set */
-	if (should_stalk_notifications(svc)) {
-		log_service_event(svc);
-	}
-
 	/* check the viability of sending out a service notification */
 	if(check_service_notification_viability(svc, type, options) == ERROR) {
 		log_debug_info(DEBUGL_NOTIFICATIONS, 0, "Notification viability test failed.  No notification will be sent out.\n");
@@ -111,7 +106,7 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 				if (temp_host->scheduled_downtime_depth > 0 || svc->scheduled_downtime_depth > 0)
 					svc->next_notification = current_time;
 				}
-		return OK;
+		return ERROR;
 		}
 
 	log_debug_info(DEBUGL_NOTIFICATIONS, 0, "Notification viability test passed.\n");
@@ -1071,15 +1066,10 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 	/* check viability of sending out a host notification */
 	if(check_host_notification_viability(hst, type, options) == ERROR) {
 		log_debug_info(DEBUGL_NOTIFICATIONS, 0, "Notification viability test failed.  No notification will be sent out.\n");
-		return OK;
+		return ERROR;
 		}
 
 	log_debug_info(DEBUGL_NOTIFICATIONS, 0, "Notification viability test passed.\n");
-
-	/* log state due to notification event when stalking_options N is set */
-	if (should_stalk_notifications(hst)) {
-		log_host_event(hst);
-	}
 
 	/* should the notification number be increased? */
 	if(type == NOTIFICATION_NORMAL || (options & NOTIFICATION_OPTION_INCREMENT)) {

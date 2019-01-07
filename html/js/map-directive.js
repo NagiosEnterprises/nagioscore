@@ -1286,7 +1286,8 @@ angular.module("mapApp")
 
 					// Reparent the tree to specified root host
 					if ($scope.hostList.hasOwnProperty($scope.root) &&
-						($scope.rootNode != $scope.hostTree)) {
+						($scope.rootNode != $scope.hostTree) &&
+						$scope.hostList[$scope.root].hasOwnProperty("hostNodes")) {
 						reparentTree($scope.hostList[$scope.root].hostNodes[0]);
 					}
 

@@ -136,6 +136,16 @@ angular.module("mapApp")
 				// Force layout information
 				var forceLayout = new Object;
 
+				// Watch for noresize update
+				$scope.$watch("noresize", function() {
+					$scope.allowResize = $scope.noresize == "false";
+					if ($scope.allowResize) {
+						d3.select("#resize-handle").style("visibility", "visible");
+					} else {
+						d3.select("#resize-handle").style("visibility", "hidden");
+					}
+				})
+
 				// Watch for changes on the reload value
 				$scope.$watch("reload", function(newValue) {
 
@@ -1840,6 +1850,14 @@ angular.module("mapApp")
 
 				// Update the map
 				var updateMap = function(source, reparent) {
+
+					// Update config variables before updating the map
+					$scope.showText = $scope.notext == "false";
+					$scope.showLinks = $scope.nolinks == "false";
+					$scope.showPopups = $scope.nopopups == "false";
+					$scope.allowResize = $scope.noresize == "false";
+					$scope.showIcons = $scope.noicons == "false";
+
 					reparent = reparent || false;
 					switch($scope.layout) {
 					case layouts.UserSupplied.index:

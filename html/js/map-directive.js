@@ -1091,14 +1091,13 @@ angular.module("mapApp")
 					// Next add any hosts in the list as children
 					// of the node, if they're not already
 					hosts.forEach(function(e) {
-						var childIndex = findElement(node.children, e,
-								function(list, index) {
-									return list[index].hostInfo.name;
-								});
+						var childIndex = node.children.findIndex(function(s) {
+							return s.hostInfo.name === e;
+						});
 								
 						if ($scope.hostList[e]) {
 
-							if (childIndex == null) {
+							if (childIndex === -1) {
 
 								// Create the node object
 								var hostNode = new Object;
@@ -1668,7 +1667,7 @@ angular.module("mapApp")
 							$scope.hostList[host].serviceStatusJSON[service] =
 								json.data.servicelist[host][service];
 						}
-						if (serviceStatUpdated) {
+						if ($scope.hostList[host].hasOwnProperty("g") && serviceStatUpdated) {
 							$scope.hostList[host].g.forEach(function(e, i, a) {
 								updateNode(e);
 							});

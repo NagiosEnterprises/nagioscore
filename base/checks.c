@@ -889,15 +889,6 @@ static inline void service_state_or_hard_state_type_change(service * svc, int st
 			next_problem_id++;
 		}
 
-		/* clear the problem id when transitioning from a problem state to an OK state */
-		if (svc->current_state == STATE_OK) {
-			svc->last_problem_id = svc->current_problem_id;
-			svc->current_problem_id = 0L;
-            svc->current_attempt = 1;
-            svc->current_notification_number = 0;
-            svc->host_problem_at_last_check = FALSE;
-		}
-
 		svc->state_type = SOFT_STATE;
 
 		state_or_type_change = TRUE;
@@ -906,6 +897,7 @@ static inline void service_state_or_hard_state_type_change(service * svc, int st
 	if (hard_state_change == TRUE) {
 
 		svc->last_hard_state_change = svc->last_check;
+		svc->last_state_change = svc->last_check;
 		svc->last_hard_state = svc->current_state;
 		svc->state_type = HARD_STATE;
 
@@ -1341,19 +1333,20 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 				host_notification(hst, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE);
 			}
 
-			/* fake a hard state change, because it'll be missed later */
-			if (svc->last_hard_state != svc->current_state) {
-
-				log_debug_info(DEBUGL_CHECKS, 2, "Faking a hard state change\n");
-
-				hard_state_change = TRUE;
-				svc->state_type = HARD_STATE;
-				svc->last_hard_state = svc->current_state;
-			}
-
 			svc->host_problem_at_last_check = TRUE;
 		}
 	}
+
+	/* service hard state change, because if host is down/unreachable
+	   the docs say we have a hard state change (but no notification) */
+	if (hst->current_state != HOST_UP && svc->last_hard_state != svc->current_state) {
+
+		log_debug_info(DEBUGL_CHECKS, 2, "Host is down or unreachable, forcing service hard state change\n");
+
+		hard_state_change = TRUE;
+		svc->state_type = HARD_STATE;
+		svc->last_hard_state = svc->current_state;
+    }
 
 	if (check_host == TRUE) {
 		schedule_host_check(hst, current_time, CHECK_OPTION_DEPENDENCY_CHECK);
@@ -1383,9 +1376,13 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 		/***** SERVICE IS NOW IN PROBLEM STATE *****/
 		else {
 
-			log_debug_info(DEBUGL_CHECKS, 1, "Service is a non-OK state (%s)!", service_state_name(svc->current_state));
-            
-            svc->state_type = SOFT_STATE;
+			log_debug_info(DEBUGL_CHECKS, 1, "Service is a non-OK state (%s)!\n", service_state_name(svc->current_state));
+
+			/* skip this service check if host is down/unreachable and state change happened */
+			if (svc->host_problem_at_last_check == FALSE && hard_state_change == FALSE) {
+				svc->state_type = SOFT_STATE;
+			}
+
 			svc->current_attempt = 1;
 
 			handle_event = TRUE;
@@ -1414,18 +1411,15 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 
 				log_debug_info(DEBUGL_CHECKS, 1, "Service experienced a SOFT recovery.\n");				
 			}
-            
-            
-            /* reset all service variables because its ok now... */
-            svc->state_type = HARD_STATE;
+
+            /* there was a state change, soft or hard */
             state_change = TRUE;
-            hard_state_change = TRUE;
 		}
 
 		/***** SERVICE IS STILL IN PROBLEM STATE *****/
 		else {
 
-			log_debug_info(DEBUGL_CHECKS, 1, "Service is still in a non-OK state (%s)!", service_state_name(svc->current_state));
+			log_debug_info(DEBUGL_CHECKS, 1, "Service is still in a non-OK state (%s)!\n", service_state_name(svc->current_state));
 
 			if (svc->state_type == SOFT_STATE) {
 
@@ -1435,7 +1429,12 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 				next_check = (unsigned long) (current_time + svc->retry_interval * interval_length);
 			}
 
-			else {
+			/* check if host is down/unreachable and don't send notifications */
+			else if (svc->host_problem_at_last_check == TRUE) {
+
+				log_debug_info(DEBUGL_CHECKS, 2, "Service state type is hard, but host is down or unreachable, not sending notification\n");
+
+			} else {
 
 				log_debug_info(DEBUGL_CHECKS, 2, "Service state type is hard, sending a notification\n");
 
@@ -1465,14 +1464,14 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 
 		/* this has to be first so we don't reset every time a new non-ok state comes
 		   in (and triggers the state_change == TRUE) */
-		if (svc->last_state != STATE_OK && svc->current_state != STATE_OK && svc->current_attempt < svc->max_attempts) {
+		if (svc->last_state != STATE_OK && svc->current_attempt < svc->max_attempts) {
 
 			svc->current_attempt++;
 		}
 
 		/* historically, a soft recovery would actually get up to 2 attempts
 		   and then immediately reset once the next check result came in */
-		else if (state_change == TRUE || svc->current_state == STATE_OK) {
+		else if (state_change == TRUE && svc->current_state != STATE_OK) {
 
 			svc->current_attempt = 1;
 		}
@@ -1484,12 +1483,14 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 	 	}
 	}
 
-	if (svc->current_attempt >= svc->max_attempts && svc->current_state != svc->last_hard_state) {
+	if (svc->current_attempt >= svc->max_attempts &&
+		(svc->current_state != svc->last_hard_state || svc->state_type == SOFT_STATE)) {
 
 		log_debug_info(DEBUGL_CHECKS, 2, "Service had a HARD STATE CHANGE!!\n");
         
         next_check = (unsigned long)(current_time + (svc->check_interval * interval_length));
 
+        /* set both states changed, this may have been missed... */
 		hard_state_change = TRUE;
 
 		/* this is missed earlier */
@@ -1547,10 +1548,6 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 		schedule_service_check(svc, svc->next_check, CHECK_OPTION_NONE);
 	}
 
-	if (svc->current_state == STATE_OK) {
-		svc->current_attempt = 1;
-	}
-
 	/* volatile service gets everything in non-ok hard state */
 	if ((svc->current_state != STATE_OK) 
 		&& (svc->state_type == HARD_STATE) 
@@ -1565,12 +1562,21 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 
 	if (send_notification == TRUE) {
 
-		service_notification(svc, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE);
-		
-		if (should_stalk_notifications(svc)) {
-			log_event = TRUE;
+		/* send notification */
+		if (service_notification(svc, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE) == OK) {
+
+			/* log state due to notification event when stalking_options N is set */
+			if (should_stalk_notifications(svc)) {
+				log_event = TRUE;
+			}
 		}
 	}
+
+	/* the service recovered, so reset the current notification number and state flags (after the recovery notification has gone out) */
+	if(svc->current_state == STATE_OK && svc->state_type == HARD_STATE && hard_state_change == TRUE) {
+		svc->current_notification_number = 0;
+		svc->notified_on = 0;
+		}
 
 	if (obsess_over_services == TRUE) {
 		obsessive_compulsive_service_check_processor(svc);
@@ -1589,6 +1595,25 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 
 	if (handle_event == TRUE) {
 		handle_service_event(svc);
+	}
+
+	/* Update OK states since they send out a soft alert but then they
+	   switch into a HARD state and reset the attempts */
+	if (svc->current_state == STATE_OK && state_change == TRUE) {
+
+		/* Reset attempts and problem state */
+		if (hard_state_change == TRUE) {
+			svc->last_problem_id = svc->current_problem_id;
+			svc->current_problem_id = 0L;
+			svc->current_notification_number = 0;
+			svc->host_problem_at_last_check = FALSE;
+		}
+
+		/* Set OK to a hard state */
+		svc->last_hard_state_change = svc->last_check;
+		svc->last_hard_state = svc->current_state;
+		svc->current_attempt = 1;
+		svc->state_type = HARD_STATE;
 	}
 
 	log_debug_info(DEBUGL_CHECKS, 2, 
@@ -2412,10 +2437,13 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 
 	if (send_notification == TRUE) {
 
-		host_notification(hst, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE);
+		/* send notifications */
+		if (host_notification(hst, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE) == OK) {
 
-		if (should_stalk_notifications(hst)) {
-			log_event = TRUE;
+			/* log state due to notification event when stalking_options N is set */
+			if (should_stalk_notifications(hst)) {
+				log_event = TRUE;
+			}
 		}
 	}
 
@@ -2431,6 +2459,11 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 	
 	/* if we're stalking this state type AND the plugin output changed since last check, log it now.. */
 	if (should_stalk(hst) && compare_strings(old_plugin_output, hst->plugin_output)) {
+		log_event = TRUE;
+	}
+
+	/* if log_host_retries is set to true, we have to log soft states too */
+	if (hst->state_type == SOFT_STATE && log_host_retries == TRUE) {
 		log_event = TRUE;
 	}
 

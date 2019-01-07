@@ -106,7 +106,7 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 				if (temp_host->scheduled_downtime_depth > 0 || svc->scheduled_downtime_depth > 0)
 					svc->next_notification = current_time;
 				}
-		return OK;
+		return ERROR;
 		}
 
 	log_debug_info(DEBUGL_NOTIFICATIONS, 0, "Notification viability test passed.\n");
@@ -591,10 +591,6 @@ int check_service_notification_viability(service *svc, int type, int options) {
 		return ERROR;
 		}
 
-	/***** RECOVERY NOTIFICATIONS ARE GOOD TO GO AT THIS POINT *****/
-	if(svc->current_state == STATE_OK)
-		return OK;
-
 	/* don't notify contacts about this service problem again if the notification interval is set to 0 */
 	if(svc->no_more_notifications == TRUE) {
 		log_debug_info(DEBUGL_NOTIFICATIONS, 1, "We shouldn't re-notify contacts about this service problem.\n");
@@ -1070,7 +1066,7 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 	/* check viability of sending out a host notification */
 	if(check_host_notification_viability(hst, type, options) == ERROR) {
 		log_debug_info(DEBUGL_NOTIFICATIONS, 0, "Notification viability test failed.  No notification will be sent out.\n");
-		return OK;
+		return ERROR;
 		}
 
 	log_debug_info(DEBUGL_NOTIFICATIONS, 0, "Notification viability test passed.\n");
@@ -1500,10 +1496,6 @@ int check_host_notification_viability(host *hst, int type, int options) {
 		log_debug_info(DEBUGL_NOTIFICATIONS, 1, "This host is currently in a scheduled downtime, so we won't send notifications.\n");
 		return ERROR;
 		}
-
-	/***** RECOVERY NOTIFICATIONS ARE GOOD TO GO AT THIS POINT *****/
-	if(hst->current_state == HOST_UP)
-		return OK;
 
 	/* check if we shouldn't renotify contacts about the host problem */
 	if(hst->no_more_notifications == TRUE) {

@@ -68,7 +68,7 @@
 		<div class="form-group">
 			<label>Root Node</label>
 			<select class="form-control" ng-model="params.root"
-					ng-options="node for node in nodelist">
+					ng-options="node for node in nodelist track by node">
 			</select>
 		</div>
 		<div class="form-group">

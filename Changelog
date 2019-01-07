@@ -2,6 +2,27 @@
 Nagios Core 4 Change Log
 ########################
 
+
+4.4.3 - 2019-XX-XX
+------------------
+FIXES
+* Fixed services sending recovery emails when they recover if host in down state (#572) (Scott Wilkerson)
+* Fixed a make error when building on the aarch64 architecture (#598) (Gareth Randall)
+* Fixed --with-cgibindir and --with-webdir to actually set values given (#585) (lawsontyler)
+* Fixed soft recovery states for services (#575) (Jake Omann)
+* Fixed XSS vulnerability in Alert Summary report (CVE-2018-18245) (Jake Omann)
+* Fixed services in soft states sometimes not switching into hard states (#576) (Jake Omann)
+* Fixed last_state_change to update when a state goes from soft -> hard state (#592) (Jake Omann)
+* Fixed Map link always being set to undefined host and don't show link for Nagios Process root note (#539) (Jake Omann)
+* Fixed notifications sending when services went into hard state on a down or unreachable host (#584) (Jake Omann)
+* Fixed log_host_retries not logging the host soft state checks (#599) (Jake Omann)
+* Fixed stalking_options N option to properly log only when a notification is actually sent (#604) (Jake Omann)
+* Fixed issue with service status totals being zero when servicegroup=all on servicegroup status page (#579) (Jake Omann)
+* Fixed escalation notifications logic and recovery notifications not going out (#582) (Jake Omann)
+* Fixed not finding child index causing duplicate hosts showing in the Map (#471) (Jake Omann)
+* Fixed Map configuration popup checkboxes not working and Root Node not populating (#543) (Jake Omann)
+
+
 4.4.2 - 2018-08-16
 ------------------
 FIXES
@@ -15,6 +36,7 @@ FIXES
 * Fixed wrong counting of service status totals when showing servicegroup details (#548) (Christian Zettel, Bryan Heden)
 * Fixed avail.cgi not printing CSV output when checkbox is checked (for any type: host/service/hostgroup/servicegroup) (#570) (Bryan Heden)
 * Fixed nagios not logging SOFT state changes after 1 (Scott Wilkerson)
+
 
 4.4.1 - 2018-06-25
 ------------------

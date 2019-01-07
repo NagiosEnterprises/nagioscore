@@ -23,7 +23,8 @@ angular.module("nagiosDecorations", [])
 				lastUpdate: "=lastUpdate",
 				initialState: "@initialState",
 				collapsible: "@collapsible",
-				includePartial: "@includePartial"
+				includePartial: "@includePartial",
+				root: "@root"
 			},
 			controller: function($scope, $element, $attrs, $http) {
 
@@ -33,6 +34,12 @@ angular.module("nagiosDecorations", [])
 				$scope.isCollapsable = $scope.collapsible == "true";
 
 				$scope.haveProgramStatus = false;
+
+				// Create cgiurl and root node name
+				$scope.params = { cgiurl: $scope.cgiurl, root: $scope.root };
+				$scope.$watch("root", function() {
+					$scope.params.root = $scope.root;
+				});
 
 				$scope.$watch("cgiurl", function() {
 					getStatus();

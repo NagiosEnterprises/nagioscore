@@ -2,15 +2,6 @@
 Nagios Core 4 Change Log
 ########################
 
-4.5.0 - ??????????
-------------------
-ENHANCEMENTS
-* Support for customizing side.php with quicklinks (Xavier Bachelot)
-
-FIXES
-
-
-=======
 4.4.2 - 2018-08-16
 FIXES
 * Fix comment data being duplicated after a `service nagios reload` or similar (#549) (Bryan Heden)

@@ -32,7 +32,6 @@ $link_target = 'main';
 </div>
 
 <div class="navsection">
-	<?php include_once(dirname(__FILE__).'/quicklinks.php');?>
 	<div class="navsectiontitle">Current Status</div>
 	<div class="navsectionlinks">
 		<ul class="navsectionlinks">

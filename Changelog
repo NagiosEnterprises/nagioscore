@@ -3,6 +3,7 @@ Nagios Core 4 Change Log
 ########################
 
 4.4.2 - 2018-08-16
+------------------
 FIXES
 * Fix comment data being duplicated after a `service nagios reload` or similar (#549) (Bryan Heden)
 * Fix check_interval and retry_interval not changing at the appropriate times (#551) (Scott Wilkerson)

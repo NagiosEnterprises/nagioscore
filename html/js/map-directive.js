@@ -938,6 +938,11 @@ angular.module("mapApp")
 						// First record the parent node of the current node
 						var parent = currentNode.parent;
 
+						// Fix root nodes with no parent nodes
+						if (parent === undefined) {
+							return true;
+						}
+
 						// Next remove the current node as a child of
 						// the parent node
 						parent.children = parent.children.filter(function(e, i, a) {
@@ -1281,7 +1286,7 @@ angular.module("mapApp")
 
 					// Reparent the tree to specified root host
 					if ($scope.hostList.hasOwnProperty($scope.root) &&
-							($scope.rootNode != $scope.hostTree)) {
+						($scope.rootNode != $scope.hostTree)) {
 						reparentTree($scope.hostList[$scope.root].hostNodes[0]);
 					}
 

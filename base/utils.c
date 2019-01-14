@@ -1968,6 +1968,10 @@ int daemon_init(void)
 		cleanup();
 		cleanup_performance_data();
 		cleanup_downtime_data();
+		my_free(lock_file);
+		my_free(config_file);
+		my_free(config_file_dir);
+		my_free(nagios_binary_path);
 		exit(OK);
 	}
 
@@ -3528,10 +3532,6 @@ void free_memory(nagios_macros *mac) {
 	my_free(check_result_path);
 	my_free(log_archive_path);
 	my_free(website_url);
-	my_free(lock_file);
-	my_free(config_file);
-	my_free(config_file_dir);
-	my_free(nagios_binary_path);
 	my_free(status_file);
 	my_free(retention_file);
 

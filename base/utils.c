@@ -1561,6 +1561,7 @@ time_t get_next_log_rotation_time(void) {
 	struct tm *t, tm_s;
 	int is_dst_now = FALSE;
 	time_t run_time;
+	int expected_mday;
 
 	time(&current_time);
 	t = localtime_r(&current_time, &tm_s);
@@ -1594,8 +1595,15 @@ time_t get_next_log_rotation_time(void) {
 
 	if(is_dst_now == TRUE && t->tm_isdst == 0)
 		run_time += 3600;
-	else if(is_dst_now == FALSE && t->tm_isdst > 0)
+	else if(is_dst_now == FALSE && t->tm_isdst > 0) {
+		expected_mday = t->tm_mday;
 		run_time -= 3600;
+		t = localtime(&run_time);
+		/* add an hour back if we would end up in the */
+		/* day before */
+		if (t->tm_mday < expected_mday)
+			run_time += 3600;
+		}
 
 	return run_time;
 	}

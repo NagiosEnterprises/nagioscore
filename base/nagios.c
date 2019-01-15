@@ -547,6 +547,8 @@ int main(int argc, char **argv) {
 		/* make valgrind shut up about still reachable memory */
 		neb_free_module_list();
 		cleanup();
+		my_free(config_file);
+		my_free(config_file_dir);
 
 		exit(result);
 		}
@@ -910,6 +912,8 @@ int main(int argc, char **argv) {
 					}
 
 				log_debug_info(DEBUGL_PROCESS, 1, "All children have been wait()ed on\n");
+
+				cleanup();
 				}
 
 			/* close debug log */
@@ -923,6 +927,10 @@ int main(int argc, char **argv) {
 
 		/* free misc memory */
 		cleanup();
+		my_free(lock_file);
+		my_free(config_file);
+		my_free(config_file_dir);
+		my_free(nagios_binary_path);
 		}
 
 	return OK;

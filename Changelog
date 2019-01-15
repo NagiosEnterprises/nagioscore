@@ -21,6 +21,7 @@ FIXES
 * Fixed escalation notifications logic and recovery notifications not going out (#582) (Jake Omann)
 * Fixed not finding child index causing duplicate hosts showing in the Map (#471) (Jake Omann)
 * Fixed Map configuration popup checkboxes not working and Root Node not populating (#543) (Jake Omann)
+* Fixed cleanup and deinit of neb modules on reload (#573) (Jake Omann)
 
 
 4.4.2 - 2018-08-16

@@ -3,7 +3,7 @@ Nagios Core 4 Change Log
 ########################
 
 
-4.4.3 - 2019-XX-XX
+4.4.3 - 2019-01-15
 ------------------
 FIXES
 * Fixed services sending recovery emails when they recover if host in down state (#572) (Scott Wilkerson)

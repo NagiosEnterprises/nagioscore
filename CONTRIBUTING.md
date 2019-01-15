@@ -155,7 +155,7 @@ When you submit a Pull Request, make sure you follow the guidelines:
 * Keep commit messages as concise as possible.
 * Update the appropriate files in regards to your changes:
 
-  * `CHANGES`
+  * `Changelog`
 
   * `THANKS`
 

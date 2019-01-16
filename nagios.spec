@@ -120,6 +120,7 @@ CFLAGS="%{mycflags} %{myXcflags}" LDFLAGS="$CFLAGS" %configure \
     --with-checkresult-dir="%{_localstatedir}/nagios/spool/checkresults" \
     --sbindir="%{_libdir}/nagios/cgi" \
     --sysconfdir="%{_sysconfdir}/nagios" \
+    --with-cgibindir="%{_libdir}/nagios/cgi" \
     --with-cgiurl="/nagios/cgi-bin" \
     --with-command-user="apache" \
     --with-command-group="apache" \

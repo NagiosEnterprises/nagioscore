@@ -295,6 +295,9 @@ fi
 
 
 %changelog
+* Wed Jan 16 2019 Jake Omann <jomann@nagios.com> 4.4.3
+- Updated configure to use --with-cgibindir since cgis are no longer placed in sbindir
+
 * Wed Jun 20 2018 Bryan Heden <bheden@nagios.com> 4.4.1
 - Updated for systemd inclusion - (Karsten Weiss and Fr3dY #535, #537)
 

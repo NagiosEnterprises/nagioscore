@@ -2073,6 +2073,9 @@ void compute_subject_availability_times(int first_state, int last_state, time_t 
 		}
 	}
 
+	/* save "processed state" info */
+	as->processed_state = subject->last_known_state;
+
 	/* special case if first entry was program start */
 	if (first_state == AS_PROGRAM_START) {
 
@@ -2089,6 +2092,9 @@ void compute_subject_availability_times(int first_state, int last_state, time_t 
 					start_state = AS_SVC_OK;
 				}
 			}
+
+			/* save "processed state" info */
+			as->processed_state = start_state;
 		}
 		else {
 			return;
@@ -2099,8 +2105,7 @@ void compute_subject_availability_times(int first_state, int last_state, time_t 
 		subject->last_known_state = first_state;
 	}
 
-	/* save "processed state" info */
-	as->processed_state = start_state;
+	
 
 #ifdef DEBUG
 	printf("PASSED TIME CHECKS, CLIPPED VALUES: START=%lu, END=%lu\n", start_time, end_time);
@@ -2386,13 +2391,8 @@ void compute_subject_downtime_times(time_t start_time, time_t end_time, avail_su
 		compute_subject_downtime_part_times(start_time, end_time, part_subject_state, subject);
 	}
 	else {
-		/* is outside scheduled time, use end schdule downtime */
-		if (last->time_stamp > end_time) {
-			compute_subject_downtime_part_times(saved_stamp, end_time, saved_status, subject);
-		}
-		else {
-			compute_subject_downtime_part_times(saved_stamp, last->time_stamp, saved_status, subject);
-		}
+		/* is outside scheduled time, or at the end of the log, so fake the end of scheduled downtime */
+		compute_subject_downtime_part_times(saved_stamp, end_time, saved_status, subject);
 	}
 }
 
@@ -4340,7 +4340,7 @@ void display_host_availability(void)
 			printf("<td CLASS='hostUP' rowspan=3>UP</td>");
 			printf("<td CLASS='dataEven'>Unscheduled</td>");
 			printf("<td CLASS='dataEven'>%s</td>", time_up_unscheduled_string);
-			printf("<td CLASS='dataEven'>%2.3f%%</td>", percent_time_up);
+			printf("<td CLASS='dataEven'>%2.3f%%</td>", percent_time_up_unscheduled);
 			printf("<td class='dataEven'>%2.3f%%</td></tr>\n", percent_time_up_known);
 			printf("<tr CLASS='dataEven'>");
 			printf("<td CLASS='dataEven'>Scheduled</td>");

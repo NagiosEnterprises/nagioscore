@@ -2107,7 +2107,10 @@ void compute_subject_availability_times(int first_state, int last_state, time_t 
 
 	/* save "processed state" info */
 	as->processed_state = start_state;
+
+#ifdef DEBUG2
 	printf("PROCESSED_STATE: %d\n", start_state);
+#endif
 
 #ifdef DEBUG
 	printf("PASSED TIME CHECKS, CLIPPED VALUES: START=%lu, END=%lu\n", start_time, end_time);
@@ -2365,6 +2368,11 @@ void compute_subject_downtime_times(time_t start_time, time_t end_time, avail_su
 
 		/* if status changed, we have to calculate */
 		if (saved_status != temp_as->entry_type) {
+
+			/* accommodate status for program start/end */
+			if (saved_status == AS_PROGRAM_START || saved_status == AS_PROGRAM_END) {
+				saved_status = temp_as->processed_state;
+			}
 
 			/* is outside schedule time, use end schdule downtime */
 			if (temp_as->time_stamp > end_time) {

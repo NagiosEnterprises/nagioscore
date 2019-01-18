@@ -2097,6 +2097,7 @@ void compute_subject_availability_times(int first_state, int last_state, time_t 
 			}
 		}
 		else {
+			as->processed_state = AS_NO_DATA;
 			return;
 		}
 	}
@@ -2412,6 +2413,10 @@ void compute_subject_downtime_times(time_t start_time, time_t end_time, avail_su
 		printf("<b>LAST ENTRY TYPE: %d</b>\n", last->entry_type);
 #endif
 		if (last->entry_type == AS_PROGRAM_START || last->entry_type == AS_PROGRAM_END) {
+			/* if we are NOT assuming initial states, then we do not want to add this data into the downtime */
+			if (last->entry_type == AS_PROGRAM_START && assume_initial_states == FALSE) {
+				return;
+			}
 			compute_subject_downtime_part_times(saved_stamp, end_time, part_subject_state, subject);
 		} else {
 			compute_subject_downtime_part_times(saved_stamp, end_time, saved_status, subject);
@@ -4370,7 +4375,7 @@ void display_host_availability(void)
 			printf("<td CLASS='dataEven'>Unscheduled</td>");
 			printf("<td CLASS='dataEven'>%s</td>", time_up_unscheduled_string);
 			printf("<td CLASS='dataEven'>%2.3f%%</td>", percent_time_up_unscheduled);
-			printf("<td class='dataEven'>%2.3f%%</td></tr>\n", percent_time_up_known);
+			printf("<td class='dataEven'>%2.3f%%</td></tr>\n", percent_time_up_unscheduled_known);
 			printf("<tr CLASS='dataEven'>");
 			printf("<td CLASS='dataEven'>Scheduled</td>");
 			printf("<td CLASS='dataEven'>%s</td>", time_up_scheduled_string);

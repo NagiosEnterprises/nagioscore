@@ -2400,7 +2400,9 @@ void compute_subject_downtime_times(time_t start_time, time_t end_time, avail_su
 	}
 	else {
 		/* is outside scheduled time, or at the end of the log, so fake the end of scheduled downtime */
+#ifdef DEBUG2
 		printf("<b>LAST ENTRY TYPE: %d</b>\n", last->entry_type);
+#endif
 		if (last->entry_type == AS_PROGRAM_START || last->entry_type == AS_PROGRAM_END) {
 			compute_subject_downtime_part_times(saved_stamp, end_time, part_subject_state, subject);
 		} else {

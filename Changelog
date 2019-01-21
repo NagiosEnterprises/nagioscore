@@ -3,6 +3,11 @@ Nagios Core 4 Change Log
 ########################
 
 
+4.4.4 - 2019-??-??
+------------------
+* Fixed log rotation logic to not repeatedly schedule rotation on a DST change (#610) (Jaroslav Jindrak)
+
+
 4.4.3 - 2019-01-15
 ------------------
 FIXES

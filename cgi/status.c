@@ -1810,7 +1810,7 @@ void show_service_detail(void) {
 				if(temp_hoststatus->notifications_enabled == FALSE) {
 					printf("<td ALIGN=center valign=center><a href='%s?type=%d&host=%s'><IMG SRC='%s%s' border=0 WIDTH=%d HEIGHT=%d ALT='Notifications for this host have been disabled' TITLE='Notifications for this host have been disabled'></a></td>", EXTINFO_CGI, DISPLAY_HOST_INFO, url_encode(temp_status->host_name), url_images_path, NOTIFICATIONS_DISABLED_ICON, STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT);
 					}
-				if(temp_hoststatus->checks_enabled == FALSE) {
+				if(temp_hoststatus->checks_enabled == FALSE && temp_hoststatus->accept_passive_checks == FALSE) {
 					printf("<td ALIGN=center valign=center><a href='%s?type=%d&host=%s'><IMG SRC='%s%s' border=0 WIDTH=%d HEIGHT=%d ALT='Checks of this host have been disabled'd TITLE='Checks of this host have been disabled'></a></td>", EXTINFO_CGI, DISPLAY_HOST_INFO, url_encode(temp_status->host_name), url_images_path, DISABLED_ICON, STATUS_ICON_WIDTH, STATUS_ICON_HEIGHT);
 					}
 				if(temp_hoststatus->is_flapping == TRUE) {

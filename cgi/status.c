@@ -1619,7 +1619,7 @@ void show_service_detail(void) {
 		/* get the host status information */
 		temp_hoststatus = find_hoststatus(temp_service->host_name);
 
-		/* see if we should display services for hosts with tis type of status */
+		/* see if we should display services for hosts with this type of status */
 		if(!(host_status_types & temp_hoststatus->status))
 			continue;
 

@@ -1601,10 +1601,12 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 	   switch into a HARD state and reset the attempts */
 	if (svc->current_state == STATE_OK && state_change == TRUE) {
 
-		/* Reset attempts and problem state */
+		/*  Problem state starts regardless of SOFT/HARD status. */
+		svc->last_problem_id = svc->current_problem_id;
+		svc->current_problem_id = 0L;
+
+		/* Reset attempts */
 		if (hard_state_change == TRUE) {
-			svc->last_problem_id = svc->current_problem_id;
-			svc->current_problem_id = 0L;
 			svc->current_notification_number = 0;
 			svc->host_problem_at_last_check = FALSE;
 		}

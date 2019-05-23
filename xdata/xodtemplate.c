@@ -513,6 +513,52 @@ int xodtemplate_read_config_data(const char *main_config_file, int options) {
 	return result;
 	}
 
+/* Destructively handles semicolons in the nagios configuration language.
+ * Escaped semicolons "\\;" are turned into semicolons
+ * The first non-escaped semicolon indicates the start of a comment, 
+ * and the string is truncated at this point.
+ */
+void xodtemplate_handle_semicolons(char* input) {
+
+	/* These two integers only come into play if there are escaped semicolons. */
+	int dest_end = 0; /* The index to input that we need to copy to */
+	int src_start = 0; /* The index to input that we need to copy from */
+
+	register int x = 0;
+
+	/* grab data before comment delimiter - faster than a strtok() and strncpy()... */
+	for(x = 0; input[x] != '\x0'; x++) {
+		if(input[x] == ';') {
+			if(x == 0 || input[x - 1] != '\\') {
+				break;
+				}
+
+			/* We need to escape semicolons */
+			if (dest_end == 0) {
+				/* src_start is also uninitialized */
+				dest_end = x - 1;
+				src_start = x;
+				continue;
+				}
+
+			/* dest_end and src_start are initialized - we need to do a copy. */
+			/* Copy from src_start (usually a semicolon) up to just before the blackslash */
+			int copy_size = (x - 1) - src_start;
+			memmove(input + dest_end, input + src_start, copy_size);
+			dest_end += copy_size;
+			src_start = x;
+			}
+		}
+
+	if (dest_end != 0) {
+		memmove(input + dest_end, input + src_start, x - src_start);
+		x += dest_end - src_start;
+		}
+
+	input[x] = '\x0';
+
+}
+
 
 /* process all files in a specific config directory */
 int xodtemplate_process_config_dir(char *dirname, int options) {
@@ -638,16 +684,8 @@ int xodtemplate_process_config_file(char *filename, int options) {
 
 		current_line = thefile->current_line;
 
-		/* grab data before comment delimiter - faster than a strtok() and strncpy()... */
-		for(x = 0; input[x] != '\x0'; x++) {
-			if(input[x] == ';') {
-				if(x == 0)
-					break;
-				else if(input[x - 1] != '\\')
-					break;
-				}
-			}
-		input[x] = '\x0';
+		/* Remove comments and handle escaped semicolons */
+		xodtemplate_handle_semicolons(input);
 
 		/* strip input */
 		strip(input);

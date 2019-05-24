@@ -749,7 +749,7 @@ static int handle_worker_result(int sd, int events, void *arg)
 		remove_worker(wp);
 		fanout_destroy(wp->jobs, fo_reassign_wproc_job);
 		wp->jobs = NULL;
-		wproc_destroy(wp, 0);
+		wproc_destroy(wp, WPROC_FORCE);
 		return 0;
 	}
 	while ((buf = worker_ioc2msg(wp->ioc, &size, 0))) {

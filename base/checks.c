@@ -1610,8 +1610,6 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 		}
 
 		/* Set OK to a hard state */
-		svc->last_hard_state_change = svc->last_check;
-		svc->last_hard_state = svc->current_state;
 		svc->current_attempt = 1;
 		svc->state_type = HARD_STATE;
 	}
@@ -1631,6 +1629,15 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 #ifdef USE_EVENT_BROKER
 	broker_service_check(NEBTYPE_SERVICECHECK_PROCESSED, NEBFLAG_NONE, NEBATTR_NONE, svc, svc->check_type, cr->start_time, cr->finish_time, NULL, svc->latency, svc->execution_time, service_check_timeout, cr->early_timeout, cr->return_code, NULL, NULL, cr);
 #endif
+
+	/* last_hard_state cleanup
+	 * This occurs after being brokered so that last_hard_state refers to the previous logged hard state, 
+	 * rather than the current hard state 
+	 */
+	if (svc->current_state == STATE_OK && state_change == TRUE) {
+		svc->last_hard_state_change = svc->last_check;
+		svc->last_hard_state = svc->current_state;
+	}
 
 	svc->has_been_checked = TRUE;
 	update_service_status(svc, FALSE);

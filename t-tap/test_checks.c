@@ -1473,6 +1473,7 @@ void run_misc_service_check_tests()
 
 void run_reaper_tests()
 {
+    int result;
     /* test null dir */
     my_free(check_result_path);
     check_result_path = NULL;
@@ -1485,35 +1486,43 @@ void run_reaper_tests()
         "cant open check result path is an error");
     my_free(check_result_path);
 
+    /* Allow the check reaper to take awhile */
+    max_check_reaper_time = 10;
+
     /* existing dir, with nothing in it */
     check_result_path = nspath_absolute("./../t-tap/var/reaper/no_files", NULL);
-    ok(process_check_result_queue(check_result_path) == 0,
-        "0 files (as there shouldn't be)");
+    result = process_check_result_queue(check_result_path);
+    ok(result == 0,
+        "%d files processed, expected 0 files", result);
     my_free(check_result_path);
 
     /* existing dir, with 2 check files in it */
     create_check_result_file(1, "hst1", "svc1", "output");
     create_check_result_file(2, "hst1", NULL, "output");
     check_result_path = nspath_absolute("./../t-tap/var/reaper/some_files", NULL);
-    ok(process_check_result_queue(check_result_path) == 2,
-        "2 files (as there should be)");
+    result = process_check_result_queue(check_result_path);
+    ok(result == 2,
+        "%d files processed, expected 2 files", result);
     my_free(check_result_path);
     test_check_debugging=FALSE;
 
     /* do sig_{shutdown,restart} work as intended */
     sigshutdown = TRUE;
     check_result_path = nspath_absolute("./../t-tap/var/reaper/some_files", NULL);
-    ok(process_check_result_queue(check_result_path) == 0,
-        "0 files (as there shouldn't be)");
+    result = process_check_result_queue(check_result_path);
+    ok(result == 0,
+        "%d files processed, expected 0 files", result);
     sigshutdown = FALSE;
     sigrestart = TRUE;
-    ok(process_check_result_queue(check_result_path) == 0,
-        "0 files (as there shouldn't be)");
+    result = process_check_result_queue(check_result_path);
+    ok(result == 0,
+        "%d files processed, expected 0 files", result);
 
     /* force too long of a check */
     max_check_reaper_time = -5;
     sigrestart = FALSE;
-    ok(process_check_result_queue(check_result_path) == 0,
+    result = process_check_result_queue(check_result_path);
+    ok(result == 0,
         "cant process if taking too long");
     my_free(check_result_path);
 

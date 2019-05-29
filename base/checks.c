@@ -1201,7 +1201,6 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 	int log_event                  = FALSE;
 	int check_host                 = FALSE;
 	int update_host_stats          = FALSE;
-	int new_last_hard_state	       = svc->last_hard_state;
 
 	char * old_plugin_output       = NULL;
 
@@ -1217,6 +1216,8 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 	if (is_valid_check_result_data(hst, cr) == FALSE) {
 		return ERROR;
 	}
+
+	int new_last_hard_state	       = svc->last_hard_state;
 
 	if (cr->check_type == CHECK_TYPE_PASSIVE) {
 		if (service_is_passive(svc, cr) == FALSE) {
@@ -2239,7 +2240,6 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 	int send_notification    = FALSE;
 	int handle_event         = FALSE;
 	int log_event            = FALSE;
-	int new_last_hard_state	 = hst->last_hard_state;
 
 	char * old_plugin_output = NULL;
 
@@ -2248,6 +2248,8 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 	if (is_valid_check_result_data(hst, cr) == FALSE) {
 		return ERROR;
 	}
+
+	int new_last_hard_state	 = hst->last_hard_state;
 
 	if (cr->check_type == CHECK_TYPE_PASSIVE) {
 		if (host_is_passive(hst, cr) == FALSE) {

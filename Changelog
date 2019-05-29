@@ -8,6 +8,7 @@ Nagios Core 4 Change Log
 * Fixed log rotation logic to not repeatedly schedule rotation on a DST change (#610) (Jaroslav Jindrak)
 * Fixed $SERVICEPROBLEMID$ to be reset after service recovery (#621) (Sebastian Wolf)
 * Fixed main nagios thread to release nagios.qh on a closed connection (#635) (Sebastian Wolf)
+* Fixed semicolon escaping to remove prepended backslash (\) (#643) (Sebastian Wolf)
 
 
 4.4.3 - 2019-01-15

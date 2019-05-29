@@ -1510,7 +1510,7 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 
 		/* svc->last_hard_state now gets written only after the service status is brokered */
 		new_last_hard_state = svc->last_hard_state;
-		svc->last_hard_state = fixme_tmp_hack;
+		svc->last_hard_state = original_last_hard_state;
 	}
 
 	/* fix edge cases where log_event wouldn't have been set or won't be */
@@ -2239,6 +2239,7 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 	int send_notification    = FALSE;
 	int handle_event         = FALSE;
 	int log_event            = FALSE;
+	int new_last_hard_state	 = hst->last_hard_state;
 
 	char * old_plugin_output = NULL;
 
@@ -2400,7 +2401,7 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 		}
 	}
 
-	if (hst->current_attempt >= hst->max_attempts && hst->current_state != hst->last_hard_state) {
+	if (hst->current_attempt >= hst->max_attempts && hst->current_state != new_last_hard_state) {
 
 		log_debug_info(DEBUGL_CHECKS, 2, "Host had a HARD STATE CHANGE!!\n");
 
@@ -2411,7 +2412,15 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 	}
 
 	/* handle some acknowledgement things and update last_state_change */
+	/* @fixme 4.5.0 - See similar comment in handle_async_service_check_result() */
+	int original_last_hard_state = hst->last_hard_state;
 	host_state_or_hard_state_type_change(hst, state_change, hard_state_change, &log_event, &handle_event, &send_notification);
+	if (original_last_hard_state != hst->last_hard_state) {
+
+		/* svc->last_hard_state now gets written only after the service status is brokered */
+		new_last_hard_state = hst->last_hard_state;
+		hst->last_hard_state = original_last_hard_state;
+	}
 
 	record_last_host_state_ended(hst);
 
@@ -2518,6 +2527,12 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 	hst->has_been_checked = TRUE;
 	update_host_status(hst, FALSE);
 	update_host_performance_data(hst);
+
+	/* last_hard_state cleanup
+	 * This occurs after being brokered so that last_hard_state refers to the previous logged hard state, 
+	 * rather than the current hard state 
+	 */
+	hst->last_hard_state = new_last_hard_state;
 
 	/* free memory */
 	my_free(old_plugin_output);

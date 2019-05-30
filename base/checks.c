@@ -701,11 +701,13 @@ static inline void host_is_active(host *hst)
  *****************************************************************************/
 static inline void debug_async_service(service *svc, check_result *cr)
 {
-	log_debug_info(DEBUGL_CHECKS, 0, "** Handling %s async check result for service '%s' on host '%s' from '%s'...\n", 
+	log_debug_info(DEBUGL_CHECKS, 0, "** Handling %s async check result for service '%s' on host '%s' from '%s'... current state %d last_hard_state %d \n", 
 		(cr->check_type == CHECK_TYPE_ACTIVE) ? "ACTIVE" : "PASSIVE",
 		svc->description, 
 		svc->host_name, 
-		check_result_source(cr));
+		check_result_source(cr),
+		svc->current_state,
+		svc->last_hard_state);
 
 	log_debug_info(DEBUGL_CHECKS, 1, 
 		" * OPTIONS: %d, SCHEDULED: %d, RESCHEDULE: %d, EXITED OK: %d, RETURN CODE: %d, OUTPUT:\n%s\n", 
@@ -1215,6 +1217,8 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 		return ERROR;
 	}
 
+	int new_last_hard_state	       = svc->last_hard_state;
+
 	if (cr->check_type == CHECK_TYPE_PASSIVE) {
 		if (service_is_passive(svc, cr) == FALSE) {
 			return ERROR;
@@ -1339,13 +1343,13 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 
 	/* service hard state change, because if host is down/unreachable
 	   the docs say we have a hard state change (but no notification) */
-	if (hst->current_state != HOST_UP && svc->last_hard_state != svc->current_state) {
+	if (hst->current_state != HOST_UP && new_last_hard_state != svc->current_state) {
 
 		log_debug_info(DEBUGL_CHECKS, 2, "Host is down or unreachable, forcing service hard state change\n");
 
 		hard_state_change = TRUE;
 		svc->state_type = HARD_STATE;
-		svc->last_hard_state = svc->current_state;
+		new_last_hard_state = svc->current_state;
     }
 
 	if (check_host == TRUE) {
@@ -1484,7 +1488,7 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 	}
 
 	if (svc->current_attempt >= svc->max_attempts &&
-		(svc->current_state != svc->last_hard_state || svc->state_type == SOFT_STATE)) {
+		(svc->current_state != new_last_hard_state || svc->state_type == SOFT_STATE)) {
 
 		log_debug_info(DEBUGL_CHECKS, 2, "Service had a HARD STATE CHANGE!!\n");
         
@@ -1498,7 +1502,17 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 	}
 
 	/* handle some acknowledgement things and update last_state_change */
+	/* This is a temporary fix that lets us avoid changing any function boundaries in a bugfix release */
+	/* @fixme 4.5.0 - refactor so that each specific struct member is only modified in */
+	/* service_state_or_hard_state_type_change() or handle_async_service_check_result(), not both.*/
+	int original_last_hard_state = svc->last_hard_state;
 	service_state_or_hard_state_type_change(svc, state_change, hard_state_change, &log_event, &handle_event);
+	if (original_last_hard_state != svc->last_hard_state) {
+
+		/* svc->last_hard_state now gets written only after the service status is brokered */
+		new_last_hard_state = svc->last_hard_state;
+		svc->last_hard_state = original_last_hard_state;
+	}
 
 	/* fix edge cases where log_event wouldn't have been set or won't be */
 	if (svc->current_state != STATE_OK && svc->state_type == SOFT_STATE) {
@@ -1594,6 +1608,9 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 	}
 
 	if (handle_event == TRUE) {
+
+		log_debug_info(DEBUGL_CHECKS, 0, "IS TIME FOR HANDLE THE SERVICE KTHX");
+		debug_async_service(svc, cr);
 		handle_service_event(svc);
 	}
 
@@ -1611,9 +1628,10 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 			svc->host_problem_at_last_check = FALSE;
 		}
 
-		/* Set OK to a hard state */
 		svc->last_hard_state_change = svc->last_check;
-		svc->last_hard_state = svc->current_state;
+		new_last_hard_state = svc->current_state;
+
+		/* Set OK to a hard state */
 		svc->current_attempt = 1;
 		svc->state_type = HARD_STATE;
 	}
@@ -1634,9 +1652,16 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 	broker_service_check(NEBTYPE_SERVICECHECK_PROCESSED, NEBFLAG_NONE, NEBATTR_NONE, svc, svc->check_type, cr->start_time, cr->finish_time, NULL, svc->latency, svc->execution_time, service_check_timeout, cr->early_timeout, cr->return_code, NULL, NULL, cr);
 #endif
 
+
 	svc->has_been_checked = TRUE;
 	update_service_status(svc, FALSE);
 	update_service_performance_data(svc);
+
+	/* last_hard_state cleanup
+	 * This occurs after being brokered so that last_hard_state refers to the previous logged hard state, 
+	 * rather than the current hard state 
+	 */
+	svc->last_hard_state = new_last_hard_state;
 
 	my_free(old_plugin_output);
 
@@ -2226,6 +2251,8 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 		return ERROR;
 	}
 
+	int new_last_hard_state	 = hst->last_hard_state;
+
 	if (cr->check_type == CHECK_TYPE_PASSIVE) {
 		if (host_is_passive(hst, cr) == FALSE) {
 			return ERROR;
@@ -2378,7 +2405,7 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 		}
 	}
 
-	if (hst->current_attempt >= hst->max_attempts && hst->current_state != hst->last_hard_state) {
+	if (hst->current_attempt >= hst->max_attempts && hst->current_state != new_last_hard_state) {
 
 		log_debug_info(DEBUGL_CHECKS, 2, "Host had a HARD STATE CHANGE!!\n");
 
@@ -2389,7 +2416,15 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 	}
 
 	/* handle some acknowledgement things and update last_state_change */
+	/* @fixme 4.5.0 - See similar comment in handle_async_service_check_result() */
+	int original_last_hard_state = hst->last_hard_state;
 	host_state_or_hard_state_type_change(hst, state_change, hard_state_change, &log_event, &handle_event, &send_notification);
+	if (original_last_hard_state != hst->last_hard_state) {
+
+		/* svc->last_hard_state now gets written only after the service status is brokered */
+		new_last_hard_state = hst->last_hard_state;
+		hst->last_hard_state = original_last_hard_state;
+	}
 
 	record_last_host_state_ended(hst);
 
@@ -2496,6 +2531,12 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 	hst->has_been_checked = TRUE;
 	update_host_status(hst, FALSE);
 	update_host_performance_data(hst);
+
+	/* last_hard_state cleanup
+	 * This occurs after being brokered so that last_hard_state refers to the previous logged hard state, 
+	 * rather than the current hard state 
+	 */
+	hst->last_hard_state = new_last_hard_state;
 
 	/* free memory */
 	my_free(old_plugin_output);

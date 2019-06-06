@@ -1377,6 +1377,28 @@ void get_next_valid_time(time_t pref_time, time_t *valid_time, timeperiod *tperi
 	_get_next_valid_time(pref_time, valid_time, tperiod);
 	}
 
+/* Given the next valid time in a timeperiod, the timeperiod itself, and the normal rescheduling window, */
+/* return the next check time */
+time_t reschedule_within_timeperiod(time_t starting_valid_time, timeperiod* check_period_ptr, time_t check_window) {
+
+	/* First, find the next time that is outside the timeperiod */
+	time_t next_invalid_time;
+	_get_next_invalid_time(starting_valid_time, &next_invalid_time, check_period_ptr);
+
+	/* Determine whether the next invalid time or the outside of the check_window is closer */
+	time_t max;
+	if (next_invalid_time - starting_valid_time > check_window) {
+		max = check_window;
+		}
+	else {
+		max = next_invalid_time - starting_valid_time;
+		}
+
+	/* Reschedule within the smaller range */
+
+	return starting_valid_time + ranged_urand(0, max);
+	}
+
 
 /* tests if a date range covers just a single day */
 int is_daterange_single_day(daterange *dr) {

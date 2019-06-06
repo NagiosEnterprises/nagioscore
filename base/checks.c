@@ -134,7 +134,7 @@ int run_scheduled_service_check(service *svc, int check_options, double latency)
 					 * don't get all checks subject to that timeperiod
 					 * constraint scheduled at the same time
 					 */
-					svc->next_check += ranged_urand(0, check_window(svc));
+					svc->next_check = reschedule_within_timeperiod(next_valid_time, svc->check_period_ptr, check_window(svc));
 				}
 				svc->should_be_scheduled = TRUE;
 

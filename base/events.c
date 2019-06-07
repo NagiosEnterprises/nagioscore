@@ -356,7 +356,7 @@ void init_timing_loop(void) {
 						"  Fixing check time %lu secs too far away\n",
 						check_delay - check_window(temp_service));
 				fixed_services++;
-				check_delay = ranged_urand(0, check_window(temp_service));
+				check_delay = reschedule_within_timeperiod(next_valid_time, temp_service->check_period_ptr, check_window(temp_service));
 				log_debug_info(DEBUGL_EVENTS, 0, "  New check offset: %d\n",
 						check_delay);
 			}
@@ -509,7 +509,7 @@ void init_timing_loop(void) {
 			log_debug_info(DEBUGL_EVENTS, 1, "Fixing check time (off by %lu)\n",
 					check_delay - check_window(temp_host));
 			fixed_hosts++;
-			check_delay = ranged_urand(0, check_window(temp_host));
+			check_delay = reschedule_within_timeperiod(next_valid_time, temp_host->check_period_ptr, check_window(temp_host));
 			}
 		temp_host->next_check = (time_t)(current_time + check_delay);
 

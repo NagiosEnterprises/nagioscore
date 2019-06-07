@@ -1382,21 +1382,25 @@ void get_next_valid_time(time_t pref_time, time_t *valid_time, timeperiod *tperi
 time_t reschedule_within_timeperiod(time_t starting_valid_time, timeperiod* check_period_ptr, time_t check_window) {
 
 	/* First, find the next time that is outside the timeperiod */
-	time_t next_invalid_time;
-	_get_next_invalid_time(starting_valid_time, &next_invalid_time, check_period_ptr);
+	time_t ending_valid_time;
+	_get_next_invalid_time(starting_valid_time, &ending_valid_time, check_period_ptr);
+
+	/* _get_next_invalid_time returns the first invalid minute. The maximum allowable should be a minute earlier */
+	ending_valid_time -= 60;
+
+	log_debug_info(DEBUGL_CHECKS, 0, "reschedule: The starting time is %s \n", ctime(&starting_valid_time));
+	log_debug_info(DEBUGL_CHECKS, 0, "reschedule: The next invalid time is %s \n", ctime(&ending_valid_time));
 
 	/* Determine whether the next invalid time or the outside of the check_window is closer */
-	time_t max;
-	if (next_invalid_time - starting_valid_time > check_window) {
-		max = check_window;
-		}
-	else {
-		max = next_invalid_time - starting_valid_time;
+	time_t max_nudge = ending_valid_time - starting_valid_time;
+	if (max_nudge <= 0 || max_nudge > check_window) {
+		log_debug_info(DEBUGL_CHECKS, 0, "reschedule: using check_window, check_window %d is smaller than %d\n", check_window, max_nudge);
+		max_nudge = check_window;
 		}
 
 	/* Reschedule within the smaller range */
 
-	return starting_valid_time + ranged_urand(0, max);
+	return starting_valid_time + ranged_urand(0, max_nudge);
 	}
 
 

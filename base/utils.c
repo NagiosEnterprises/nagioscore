@@ -1381,6 +1381,8 @@ void get_next_valid_time(time_t pref_time, time_t *valid_time, timeperiod *tperi
 /* return the next check time */
 time_t reschedule_within_timeperiod(time_t starting_valid_time, timeperiod* check_period_ptr, time_t check_window) {
 
+	log_debug_info(DEBUGL_FUNCTIONS, 0, "reschedule_within_timeperiod");
+
 	/* First, find the next time that is outside the timeperiod */
 	time_t ending_valid_time;
 	_get_next_invalid_time(starting_valid_time, &ending_valid_time, check_period_ptr);
@@ -1388,13 +1390,13 @@ time_t reschedule_within_timeperiod(time_t starting_valid_time, timeperiod* chec
 	/* _get_next_invalid_time returns the first invalid minute. The maximum allowable should be a minute earlier */
 	ending_valid_time -= 60;
 
-	log_debug_info(DEBUGL_CHECKS, 0, "reschedule: The starting time is %s \n", ctime(&starting_valid_time));
-	log_debug_info(DEBUGL_CHECKS, 0, "reschedule: The next invalid time is %s \n", ctime(&ending_valid_time));
-
 	/* Determine whether the next invalid time or the outside of the check_window is closer */
 	time_t max_nudge = ending_valid_time - starting_valid_time;
+
+	/* max_nudge will be less than zero when there's no 'invalid' time */
+	/* Otherwise, use the closest of the two times to reschedule the check */
 	if (max_nudge <= 0 || max_nudge > check_window) {
-		log_debug_info(DEBUGL_CHECKS, 0, "reschedule: using check_window, check_window %d is smaller than %d\n", check_window, max_nudge);
+		log_debug_info(DEBUGL_CHECKS, 0, "Using raw check_window instead of timeperiod for scheduling \n");
 		max_nudge = check_window;
 		}
 

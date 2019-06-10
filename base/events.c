@@ -351,12 +351,13 @@ void init_timing_loop(void) {
 			 */
 			check_delay =
 					mult_factor * scheduling_info.service_inter_check_delay;
-			if(check_delay > check_window(temp_service)) {
+			time_t check_window = reschedule_within_timeperiod(next_valid_time, temp_service->check_period_ptr, check_window(temp_service)) - current_time;
+			if(check_delay > check_window) {
 				log_debug_info(DEBUGL_EVENTS, 0,
 						"  Fixing check time %lu secs too far away\n",
-						check_delay - check_window(temp_service));
+						check_delay - check_window);
 				fixed_services++;
-				check_delay = reschedule_within_timeperiod(next_valid_time, temp_service->check_period_ptr, check_window(temp_service));
+				check_delay = check_window;
 				log_debug_info(DEBUGL_EVENTS, 0, "  New check offset: %d\n",
 						check_delay);
 			}
@@ -364,14 +365,12 @@ void init_timing_loop(void) {
 
 			log_debug_info(DEBUGL_EVENTS, 2, "Preferred Check Time: %lu --> %s\n", (unsigned long)temp_service->next_check, ctime(&temp_service->next_check));
 
-
 			/* make sure the service can actually be scheduled when we want */
 			is_valid_time = check_time_against_period(temp_service->next_check, temp_service->check_period_ptr);
 			if(is_valid_time == ERROR) {
 				log_debug_info(DEBUGL_EVENTS, 2, "Preferred Time is Invalid In Timeperiod '%s': %lu --> %s\n", temp_service->check_period_ptr->name, (unsigned long)temp_service->next_check, ctime(&temp_service->next_check));
 				get_next_valid_time(temp_service->next_check, &next_valid_time, temp_service->check_period_ptr);
-				temp_service->next_check =
-						(time_t)(next_valid_time + check_delay);
+				temp_service->next_check = reschedule_within_timeperiod(next_valid_time, temp_service->check_period_ptr, check_window(temp_service));
 				}
 
 			log_debug_info(DEBUGL_EVENTS, 2, "Actual Check Time: %lu --> %s\n", (unsigned long)temp_service->next_check, ctime(&temp_service->next_check));
@@ -1559,31 +1558,43 @@ void adjust_check_scheduling(void) {
 
 /*		log_debug_info(DEBUGL_SCHEDULING, 2, "Check %d: offset %.3fs, new run time %lu.%06ld.\n", i, new_run_time_offset, (unsigned long)new_run_time.tv_sec, (long)new_run_time.tv_usec);
 */
-		squeue_change_priority_tv(nagios_squeue, sq_event, &new_run_time);
 
-
-		if (temp_event->run_time != new_run_time.tv_sec)
-			temp_event->run_time = new_run_time.tv_sec;
-
+		/* 06/2019 - moved switch earlier in the for loop because we need to check against the check_period before rescheduling the event */
 		switch (temp_event->event_type) {
 			case EVENT_HOST_CHECK:
 				temp_host = temp_event->event_data;
+				if (check_time_against_period(new_run_time.tv_sec, temp_host->check_period_ptr) == ERROR) {
+					continue;
+					}
 				if (temp_host->next_check != new_run_time.tv_sec) {
 					temp_host->next_check = new_run_time.tv_sec;
+					temp_event->run_time = new_run_time.tv_sec;
 					update_host_status(temp_host, FALSE);
 					}
 				break;
 			case EVENT_SERVICE_CHECK:
 				temp_service = temp_event->event_data;
+				if (check_time_against_period(new_run_time.tv_sec, temp_service->check_period_ptr) == ERROR) {
+					continue;
+					}
 				if (temp_service->next_check != new_run_time.tv_sec) {
 					temp_service->next_check = new_run_time.tv_sec;
+					temp_event->run_time = new_run_time.tv_sec;
 					update_service_status(temp_service, FALSE);
 					}
 				break;
 			default:
 				break;
 			}
-		}
+
+		squeue_change_priority_tv(nagios_squeue, sq_event, &new_run_time);
+
+		if (temp_event->run_time != new_run_time.tv_sec) {
+			temp_event->run_time = new_run_time.tv_sec;
+			}
+
+		} /* end for loop */
+
 
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "adjust_check_scheduling() end\n");

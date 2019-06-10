@@ -1595,15 +1595,6 @@ time_t get_next_log_rotation_time(void) {
 
 	if(is_dst_now == TRUE && t->tm_isdst == 0)
 		run_time += 3600;
-	else if(is_dst_now == FALSE && t->tm_isdst > 0) {
-		expected_mday = t->tm_mday;
-		run_time -= 3600;
-		t = localtime(&run_time);
-		/* add an hour back if we would end up in the */
-		/* day before */
-		if (t->tm_mday < expected_mday)
-			run_time += 3600;
-		}
 
 	return run_time;
 	}

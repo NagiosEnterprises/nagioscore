@@ -165,7 +165,7 @@ static int command_input_handler(int sd, int events, void *discard) {
 			}
 
 		if ((cmd_ret = process_external_command1(buf)) != CMD_ERROR_OK) {
-			logit(NSLOG_EXTERNAL_COMMAND | NSLOG_RUNTIME_WARNING, TRUE, "External command error: %s\n", cmd_error_strerror(cmd_ret));
+			logit(NSLOG_EXTERNAL_COMMAND | NSLOG_RUNTIME_WARNING, TRUE, "External command %s returned error %s\n", buf, cmd_error_strerror(cmd_ret));
 			}
 
 		}

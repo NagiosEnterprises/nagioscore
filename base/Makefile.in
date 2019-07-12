@@ -173,19 +173,8 @@ devclean: distclean
 	rm -f wpres-phash.h
 
 install:
-	$(MAKE) install-basic
-	$(MAKE) strip-post-install
-
-install-unstripped:
-	$(MAKE) install-basic
-
-install-basic:
-	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(BINDIR)
-	$(INSTALL) -m 774 $(INSTALL_OPTS) @nagios_name@ $(DESTDIR)$(BINDIR)
-	$(INSTALL) -m 774 $(INSTALL_OPTS) @nagiostats_name@ $(DESTDIR)$(BINDIR)
-
-strip-post-install:
-	$(STRIP) $(DESTDIR)$(BINDIR)/@nagios_name@
-	$(STRIP) $(DESTDIR)$(BINDIR)/@nagiostats_name@
+	$(INSTALL) -s -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(BINDIR)
+	$(INSTALL) -s -m 774 $(INSTALL_OPTS) @nagios_name@ $(DESTDIR)$(BINDIR)
+	$(INSTALL) -s -m 774 $(INSTALL_OPTS) @nagiostats_name@ $(DESTDIR)$(BINDIR)
 
 .PHONY: libnagios

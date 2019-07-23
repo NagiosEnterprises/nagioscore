@@ -203,7 +203,7 @@ install-unstripped:
 	done
 
 install-basic:
-	$(INSTALL) -s -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(CGIDIR)
+	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(CGIDIR)
 	for file in *.cgi; do \
 		$(INSTALL) -s -m 775 $(INSTALL_OPTS) $$file $(DESTDIR)$(CGIDIR); \
 	done

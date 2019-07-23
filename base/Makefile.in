@@ -177,4 +177,9 @@ install:
 	$(INSTALL) -s -m 774 $(INSTALL_OPTS) @nagios_name@ $(DESTDIR)$(BINDIR)
 	$(INSTALL) -s -m 774 $(INSTALL_OPTS) @nagiostats_name@ $(DESTDIR)$(BINDIR)
 
+install-unstripped:
+	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(BINDIR)
+	$(INSTALL) -m 774 $(INSTALL_OPTS) nagios $(DESTDIR)$(BINDIR)
+	$(INSTALL) -m 774 $(INSTALL_OPTS) nagiostats $(DESTDIR)$(BINDIR)
+
 .PHONY: libnagios

@@ -41,15 +41,9 @@ distclean: clean
 devclean: distclean
 
 install:
-	$(MAKE) install-basic
-	$(MAKE) strip-post-install
-
-install-unstripped:
-	$(MAKE) install-basic
-
-install-basic:
 	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(BINDIR)
 	$(INSTALL) -m 774 $(INSTALL_OPTS) worker-ping $(DESTDIR)$(BINDIR)
 
-strip-post-install:
-	$(STRIP) $(DESTDIR)$(BINDIR)/worker-ping
+install-unstripped:
+	$(INSTALL) -s -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(BINDIR)
+	$(INSTALL) -s -m 774 $(INSTALL_OPTS) worker-ping $(DESTDIR)$(BINDIR)

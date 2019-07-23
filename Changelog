@@ -5,12 +5,13 @@ Nagios Core 4 Change Log
 
 4.4.4 - 2019-??-??
 ------------------
-* Fixed log rotation logic to not repeatedly schedule rotation on a DST change (#610) (Jaroslav Jindrak)
+* Fixed log rotation logic to not repeatedly schedule rotation on a DST change (#610, #626) (Jaroslav Jindrak & Sebastian Wolf)
 * Fixed $SERVICEPROBLEMID$ to be reset after service recovery (#621) (Sebastian Wolf)
 * Fixed main nagios thread to release nagios.qh on a closed connection (#635) (Sebastian Wolf)
 * Fixed semicolon escaping to remove prepended backslash (\) (#643) (Sebastian Wolf)
 * Fixed 'Checks of this host have been disabled' message showing on passive-only hosts (#632) (Vojtěch Širůček & Sebastian Wolf)
 * Fixed last_hard_state showing the current hard state when service status is brokered (#633) (Sebastian Wolf)
+* Fixed SOFT recoveries sending when services had HARD recovery some time after host recovery (#651) (Sebastian Wolf)
 
 
 4.4.3 - 2019-01-15

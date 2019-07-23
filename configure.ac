@@ -10,9 +10,9 @@ AC_PREFIX_DEFAULT(/usr/local/nagios)
 
 PKG_NAME=nagios
 
-PKG_VERSION="4.4.3"
+PKG_VERSION="4.4.4-dev"
 PKG_HOME_URL="https://www.nagios.org/"
-PKG_REL_DATE="2019-01-15"
+PKG_REL_DATE="2019-07-23"
 
 dnl Figure out how to invoke "install" and what install options to use.
 AC_PROG_INSTALL

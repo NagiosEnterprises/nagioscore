@@ -1350,6 +1350,7 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 		hard_state_change = TRUE;
 		svc->state_type = HARD_STATE;
 		new_last_hard_state = svc->current_state;
+		svc->current_attempt = svc->max_attempts;
     }
 
 	if (check_host == TRUE) {

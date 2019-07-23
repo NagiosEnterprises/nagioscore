@@ -11,6 +11,7 @@ Nagios Core 4 Change Log
 * Fixed semicolon escaping to remove prepended backslash (\) (#643) (Sebastian Wolf)
 * Fixed 'Checks of this host have been disabled' message showing on passive-only hosts (#632) (Vojtěch Širůček & Sebastian Wolf)
 * Fixed last_hard_state showing the current hard state when service status is brokered (#633) (Sebastian Wolf)
+* Fixed SOFT recoveries sending when services had HARD recovery some time after host recovery (#651) (Sebastian Wolf)
 
 
 4.4.3 - 2019-01-15

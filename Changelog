@@ -7,13 +7,17 @@ Nagios Core 4 Change Log
 ------------------
 * Fixed log rotation logic to not repeatedly schedule rotation on a DST change (#610, #626) (Jaroslav Jindrak & Sebastian Wolf)
 * Fixed $SERVICEPROBLEMID$ to be reset after service recovery (#621) (Sebastian Wolf)
+* Fixed defunct worker processes appearing after nagios was reloaded (#441, #620) (Sebastian Wolf)
 * Fixed main nagios thread to release nagios.qh on a closed connection (#635) (Sebastian Wolf)
 * Fixed semicolon escaping to remove prepended backslash (\) (#643) (Sebastian Wolf)
 * Fixed 'Checks of this host have been disabled' message showing on passive-only hosts (#632) (Vojtěch Širůček & Sebastian Wolf)
 * Fixed last_hard_state showing the current hard state when service status is brokered (#633) (Sebastian Wolf)
+* Fixed long plugin output (>8KB) occasionally getting truncated (#625) (Sebastian Wolf)
+* Fixed check scheduling for objects with large check_intervals and small timeperiods (#647) (Sebastian Wolf)
 * Fixed SOFT recoveries sending when services had HARD recovery some time after host recovery (#651) (Sebastian Wolf)
 * Fixed incorrect permissions on debugging builds of FreeBSD (#420) (Sebastian Wolf)
-
+* Fixed NEB callback lists being partially orphaned when multiple modules subscribe to one callback (#590) (Sebastian Wolf)
+* Removed NEB brokering for nagios daemonization, since daemonization occurs before NEB initialization (#591) (Sebastian Wolf)
 
 
 4.4.3 - 2019-01-15

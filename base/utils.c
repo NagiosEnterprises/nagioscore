@@ -2052,11 +2052,6 @@ int daemon_init(void)
 	val |= FD_CLOEXEC;
 	fcntl(lockfile, F_SETFD, val);
 
-#ifdef USE_EVENT_BROKER
-	/* send program data to broker */
-	broker_program_state(NEBTYPE_PROCESS_DAEMONIZE, NEBFLAG_NONE, NEBATTR_NONE, NULL);
-#endif
-
 	return OK;
 }
 

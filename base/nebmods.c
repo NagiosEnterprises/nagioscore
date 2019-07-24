@@ -406,29 +406,27 @@ int neb_register_callback(int callback_type, void *mod_handle, int priority, int
 	new_callback->priority = priority;
 	new_callback->module_handle = mod_handle;
 	new_callback->callback_func = callback_func;
+	new_callback->next = NULL;
 
 	/* add new function to callback list, sorted by priority (first come, first served for same priority) */
-	new_callback->next = NULL;
-	if(neb_callback_list[callback_type] == NULL)
-		neb_callback_list[callback_type] = new_callback;
-	else {
-		last_callback = NULL;
-		for(temp_callback = neb_callback_list[callback_type]; temp_callback != NULL; temp_callback = temp_callback->next) {
-			if(temp_callback->priority > new_callback->priority)
-				break;
-			last_callback = temp_callback;
-			}
-		if(last_callback == NULL)
-			neb_callback_list[callback_type] = new_callback;
-		else {
-			if(temp_callback == NULL)
-				last_callback->next = new_callback;
-			else {
-				new_callback->next = temp_callback;
-				last_callback->next = new_callback;
-				}
+	
+	for(last_callback = NULL, temp_callback = neb_callback_list[callback_type]; 
+		temp_callback != NULL; 
+		last_callback = temp_callback, temp_callback = temp_callback->next) {
+
+		if(new_callback->priority < temp_callback->priority) {
+			break;
 			}
 		}
+
+	new_callback->next = temp_callback;
+	if(last_callback == NULL) {
+		neb_callback_list[callback_type] = new_callback;
+		}
+	else {
+		last_callback->next = new_callback;
+		}
+
 
 	return OK;
 	}

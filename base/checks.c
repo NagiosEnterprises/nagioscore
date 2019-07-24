@@ -134,7 +134,7 @@ int run_scheduled_service_check(service *svc, int check_options, double latency)
 					 * don't get all checks subject to that timeperiod
 					 * constraint scheduled at the same time
 					 */
-					svc->next_check += ranged_urand(0, check_window(svc));
+					svc->next_check = reschedule_within_timeperiod(next_valid_time, svc->check_period_ptr, check_window(svc));
 				}
 				svc->should_be_scheduled = TRUE;
 
@@ -1557,7 +1557,7 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 		   constraints. Add a random amount so we don't get all checks
 		   subject to that timeperiod constraint scheduled at the same time */
 		if (next_valid_time > preferred_time) {
-			svc->next_check += ranged_urand(0, check_window(svc));
+			svc->next_check = reschedule_within_timeperiod(next_valid_time, svc->check_period_ptr, check_window(svc));
 		}
 
 		schedule_service_check(svc, svc->next_check, CHECK_OPTION_NONE);
@@ -2463,7 +2463,7 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 		   constraints. Add a random amount so we don't get all checks
 		   subject to that timeperiod constraint scheduled at the same time */
 		if (next_valid_time > preferred_time) {
-			hst->next_check += ranged_urand(0, check_window(hst));
+			hst->next_check = reschedule_within_timeperiod(next_valid_time, hst->check_period_ptr, check_window(hst));
 		}
 
 		schedule_host_check(hst, hst->next_check, CHECK_OPTION_NONE);
@@ -3044,7 +3044,7 @@ int run_scheduled_host_check(host *hst, int check_options, double latency)
 			if ((time_is_valid == FALSE) 
 				&& (check_time_against_period(next_valid_time, hst->check_period_ptr) == ERROR)) {
 
-				hst->next_check = preferred_time + ranged_urand(0, check_window(hst));
+				hst->next_check = reschedule_within_timeperiod(next_valid_time, hst->check_period_ptr, check_window(hst));
 
 				logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: Check of host '%s' could not be rescheduled properly.  Scheduling check for %s...\n", hst->name, ctime(&preferred_time));
 
@@ -3060,7 +3060,7 @@ int run_scheduled_host_check(host *hst, int check_options, double latency)
 					 * don't get all checks subject to that timeperiod
 					 * constraint scheduled at the same time
 					 */
-					hst->next_check += ranged_urand(0, check_window(hst));
+					hst->next_check = reschedule_within_timeperiod(next_valid_time, hst->check_period_ptr, check_window(hst));
 				}
 				hst->should_be_scheduled = TRUE;
 

@@ -306,6 +306,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 		clear_volatile_macros_r(&mac);
 		svc->latency = old_latency;
 		free_check_result(cr);
+		my_free(cr);
 		my_free(processed_command);
 		return OK;
 	}
@@ -3232,6 +3233,7 @@ int run_async_host_check(host *hst, int check_options, double latency, int sched
 		clear_volatile_macros_r(&mac);
 		hst->latency = old_latency;
 		free_check_result(cr);
+		my_free(cr);
 		my_free(processed_command);
 		return OK;
 	}

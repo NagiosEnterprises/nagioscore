@@ -17,6 +17,8 @@ Nagios Core 4 Change Log
 * Fixed SOFT recoveries sending when services had HARD recovery some time after host recovery (#651) (Sebastian Wolf)
 * Fixed incorrect permissions on debugging builds of FreeBSD (#420) (Sebastian Wolf)
 * Fixed NEB callback lists being partially orphaned when multiple modules subscribe to one callback (#590) (Sebastian Wolf)
+* Fixed memory leaks in run_async_service_check(), run_async_host_check() when checks are brokered (#664) (Sebastian Wolf)
+* Fixed potential XSS in main.php, map.php (#671, #672) (Jak Gibb)
 * Removed NEB brokering for nagios daemonization, since daemonization occurs before NEB initialization (#591) (Sebastian Wolf)
 
 

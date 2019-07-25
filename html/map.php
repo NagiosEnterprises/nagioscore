@@ -78,7 +78,7 @@
 				var vboxText = "<a href=https://www.nagios.com/tours target=_blank>" +
 							"Click here to watch the entire Nagios Core 4 Tour!</a>";
 				$(document).ready(function() {
-					var user = "<?php echo $_SERVER['REMOTE_USER']; ?>";
+					var user = "<?php echo htmlspecialchars($_SERVER['REMOTE_USER']); ?>";
 
 					vBoxId += ";" + user;
 					vbox = new vidbox({pos:'lr',vidurl:'https://www.youtube.com/embed/leaRdb3BElI',

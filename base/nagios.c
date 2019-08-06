@@ -902,6 +902,8 @@ int main(int argc, char **argv) {
 			/* try and collect any zombie processes */
 			if (sigrestart == TRUE) {
 
+				sleep(1);
+
 				int status = 0;
 				pid_t child_pid;
 				log_debug_info(DEBUGL_PROCESS, 1, "Calling waitpid() on all children...\n");

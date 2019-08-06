@@ -1,7 +1,7 @@
 <?php
 include_once(dirname(__FILE__).'/includes/utils.inc.php');
 
-$this_version = '4.4.3';
+$this_version = '4.4.4';
 $this_year = '2019';
 ?>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
@@ -26,7 +26,7 @@ $this_year = '2019';
 						"Click here to watch the entire Nagios Core 4 Tour!</a>";
 	<?php } ?>
 	$(document).ready(function() {
-		var user = "<?php echo $_SERVER['REMOTE_USER']; ?>";
+		var user = "<?php echo htmlspecialchars($_SERVER['REMOTE_USER']); ?>";
 
 		<?php if ($cfg["enable_page_tour"]) { ?>
 			vBoxId += ";" + user;
@@ -145,7 +145,7 @@ $this_year = '2019';
 <div id="currentversioninfo">
 	<div class="product">Nagios<sup><span style="font-size: small;">&reg;</span></sup> Core<sup><span style="font-size: small;">&trade;</span></sup></div>
 	<div class="version">Version <?php echo $this_version; ?></div>
-	<div class="releasedate">January 15, 2019</div>
+	<div class="releasedate">July 29, 2019</div>
 	<div class="checkforupdates"><a href="https://www.nagios.org/checkforupdates/?version=<?php echo $this_version; ?>&amp;product=nagioscore" target="_blank">Check for updates</a></div>
 </div>
 

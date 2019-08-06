@@ -215,7 +215,7 @@ int worker_buf2kvvec_prealloc(struct kvvec *kvv, char *buf, unsigned long len, i
 	} while (0)
 
 /* forward declaration */
-static int gather_output(child_process *cp, iobuf *io, int final);
+static void gather_output(child_process *cp, iobuf *io, int final);
 
 static void destroy_job(child_process *cp)
 {
@@ -262,15 +262,8 @@ int finish_job(child_process *cp, int reason)
 
 	/* get rid of still open filedescriptors */
 	if (cp->outstd.fd != -1) {
-		int keep_going = 1;
-		int rd;
-		while(keep_going) {
-			log_debug_info(16, 0, "Still going, keep_going is %d", keep_going);
-			rd = gather_output(cp, &cp->outstd, 0);
-			log_debug_info(16, 0, "Finishing job - read another %d bytes!\n", rd);
-			keep_going = rd > 0;
-		}
-		//iobroker_close(iobs, cp->outstd.fd);
+		gather_output(cp, &cp->outstd, 1);
+		iobroker_close(iobs, cp->outstd.fd);
 	}
 	if (cp->outerr.fd != -1) {
 		gather_output(cp, &cp->outerr, 1);
@@ -449,13 +442,13 @@ static void kill_job(child_process *cp, int reason)
 	destroy_job(cp);
 }
 
-static int gather_output(child_process *cp, iobuf *io, int final)
+static void gather_output(child_process *cp, iobuf *io, int final)
 {
 	int retry = 5;
-	int rd;
 
 	for (;;) {
 		char buf[4096];
+		int rd;
 
 		rd = read(io->fd, buf, sizeof(buf));
 		if (rd < 0) {
@@ -491,13 +484,13 @@ static int gather_output(child_process *cp, iobuf *io, int final)
 		if (rd <= 0 || final) {
 			iobroker_close(iobs, io->fd);
 			io->fd = -1;
+			if (!final)
+				check_completion(cp, WNOHANG);
 			break;
 		}
 
 		break;
 	}
-
-	return rd;
 }
 
 

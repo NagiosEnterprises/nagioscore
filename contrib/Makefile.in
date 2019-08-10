@@ -45,7 +45,6 @@ clean:
 	rm -f */*/*~
 	rm -f */*~
 	rm -f *~
-	rm -rf rpmbuild *.rpm
 
 distclean: clean
 	rm -f Makefile
@@ -88,6 +87,8 @@ $(CGI_O): $(CGI_C)
 ##############################################################################
 # rpm making automation for CentOS/RHEL.
 
+ifneq ("$(wildcard /etc/redhat-release)","")
+
 ARCH ?= $(shell uname -m)
 ifeq ($(ARCH),x86_64)
 RPM_ARCH := x86_64
@@ -115,4 +116,6 @@ rpm:
 	@rpmbuild -ba --define "_topdir ${PWD}/rpmbuild"   ../nagios.spec
 	@mv rpmbuild/RPMS/$(RPM_ARCH)/*.rpm .
 	@ls -l *.rpm
-
+rpmclean:
+	rm -rf rpmbuild *.rpm
+endif

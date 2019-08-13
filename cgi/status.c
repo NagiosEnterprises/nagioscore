@@ -221,11 +221,28 @@ int main(void) {
 	document_header(TRUE);
 
 	/* if a navbar search was performed, find the host by name, address or partial name */
-	if(navbar_search == TRUE) {
-		if(host_name != NULL && NULL != strstr(host_name, "*")) {
+	if(navbar_search == TRUE && host_name != NULL) {
+
+		/* Remove trailing spaces from host_name */
+		len = strlen(host_name);
+		for (i = len - 1; i >= 0; i--) {
+			if (!isspace(host_name[i])) {
+				host_name[i+1] = '\0';
+				break;
+			}
+		}
+
+		/* Remove leading spaces from host_name */
+		for (i = 0; i < len; i++) {
+			if (!isspace(host_name[i])) {
+				break;
+			}
+		}
+		strcpy(host_name, host_name + i);
+
+		if(NULL != strstr(host_name, "*")) {
 			/* allocate for 3 extra chars, ^, $ and \0 */
 			host_filter = malloc(sizeof(char) * (strlen(host_name) * 2 + 3));
-			len = strlen(host_name);
 			for(i = 0; i < len; i++, regex_i++) {
 				if(host_name[i] == '*') {
 					host_filter[regex_i++] = '.';
@@ -238,7 +255,7 @@ int main(void) {
 			host_filter[regex_i++] = '$';
 			host_filter[regex_i] = '\0';
 			}
-		else if (host_name != NULL) {
+		else {
 			if((temp_host = find_host(host_name)) == NULL) {
 				for(temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
 					if(is_authorized_for_host(temp_host, &current_authdata) == FALSE)

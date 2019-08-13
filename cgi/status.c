@@ -243,6 +243,7 @@ int main(void) {
 		if(NULL != strstr(host_name, "*")) {
 			/* allocate for 3 extra chars, ^, $ and \0 */
 			host_filter = malloc(sizeof(char) * (strlen(host_name) * 2 + 3));
+			len = strlen(host_name);
 			for(i = 0; i < len; i++, regex_i++) {
 				if(host_name[i] == '*') {
 					host_filter[regex_i++] = '.';

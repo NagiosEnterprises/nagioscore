@@ -116,4 +116,6 @@ rpm:
 	@rpmbuild -ba --define "_topdir ${PWD}/rpmbuild"   ../nagios.spec
 	@mv rpmbuild/RPMS/$(RPM_ARCH)/*.rpm .
 	@ls -l *.rpm
+rpmclean:
+	rm -rf rpmbuild *.rpm
 endif

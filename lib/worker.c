@@ -258,23 +258,22 @@ static void destroy_job(child_process *cp)
 int finish_job(child_process *cp, int reason)
 {
 	static struct kvvec resp = KVVEC_INITIALIZER;
-	int i, ret, rd;
+	int i, ret;
 
 	/* get rid of still open filedescriptors */
 	if (cp->outstd.fd != -1) {
-
-		rd = 1;
-		while(rd > 0) {
+		int keep_going = 1;
+		int rd;
+		while(keep_going) {
+			log_debug_info(16, 0, "Still going, keep_going is %d", keep_going);
 			rd = gather_output(cp, &cp->outstd, 0);
+			log_debug_info(16, 0, "Finishing job - read another %d bytes!\n", rd);
+			keep_going = rd > 0;
 		}
-		iobroker_close(iobs, cp->outstd.fd);
+		//iobroker_close(iobs, cp->outstd.fd);
 	}
 	if (cp->outerr.fd != -1) {
-
-		rd = 1;
-		while(rd > 0) {
-			rd = gather_output(cp, &cp->outerr, 0);
-		}
+		gather_output(cp, &cp->outerr, 1);
 		iobroker_close(iobs, cp->outerr.fd);
 	}
 

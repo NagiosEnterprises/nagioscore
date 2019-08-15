@@ -7,7 +7,8 @@ Nagios Core 4 Change Log
 FIXES
 * Reverted changes related to #625 due to CPU load issues
 * Partially reverted changes for #647 due to CPU load issues
-* Fixed "Quick Search" so that leading/trailing whitespace doesn't affect output (#681)
+* Fixed "Quick Search" so that leading/trailing whitespace doesn't affect output (#681) (Sebastian Wolf)
+* Fixed build issues on non-RPM-based platforms (#617) (T.J. Yang)
 
 4.4.4 - 2019-07-29
 ------------------

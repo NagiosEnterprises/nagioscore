@@ -45,6 +45,7 @@ clean:
 	rm -f */*/*~
 	rm -f */*~
 	rm -f *~
+	rm -rf rpmbuild *.rpm
 
 distclean: clean
 	rm -f Makefile

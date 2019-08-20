@@ -2,7 +2,7 @@
 Nagios Core 4 Change Log
 ########################
 
-4.4.5 - 2019-08-??
+4.4.5 - 2019-08-20
 ------------------
 FIXES
 * Reverted changes related to #625 due to CPU load issues

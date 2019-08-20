@@ -1,5 +1,5 @@
 [Unit]
-Description=Nagios Core 4.4.4
+Description=Nagios Core 4.4.5-dev
 Documentation=https://www.nagios.org/documentation
 After=network.target local-fs.target
 

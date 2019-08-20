@@ -2,9 +2,17 @@
 Nagios Core 4 Change Log
 ########################
 
+4.4.5 - 2019-08-??
+------------------
+FIXES
+* Reverted changes related to #625 due to CPU load issues
+* Partially reverted changes for #647 due to CPU load issues
+* Fixed "Quick Search" so that leading/trailing whitespace doesn't affect output (#681) (Sebastian Wolf)
+* Fixed build issues on non-RPM-based platforms (#617) (T.J. Yang)
 
 4.4.4 - 2019-07-29
 ------------------
+FIXES
 * Fixed log rotation logic to not repeatedly schedule rotation on a DST change (#610, #626) (Jaroslav Jindrak & Sebastian Wolf)
 * Fixed $SERVICEPROBLEMID$ to be reset after service recovery (#621) (Sebastian Wolf)
 * Fixed defunct worker processes appearing after nagios was reloaded (#441, #620) (Sebastian Wolf)

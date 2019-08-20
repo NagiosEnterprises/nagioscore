@@ -351,13 +351,12 @@ void init_timing_loop(void) {
 			 */
 			check_delay =
 					mult_factor * scheduling_info.service_inter_check_delay;
-			time_t check_window = reschedule_within_timeperiod(next_valid_time, temp_service->check_period_ptr, check_window(temp_service)) - current_time;
-			if(check_delay > check_window) {
+			if(check_delay > check_window(temp_service)) {
 				log_debug_info(DEBUGL_EVENTS, 0,
 						"  Fixing check time %lu secs too far away\n",
-						check_delay - check_window);
+						check_delay - check_window(temp_service));
 				fixed_services++;
-				check_delay = check_window;
+				check_delay = check_window(temp_service);
 				log_debug_info(DEBUGL_EVENTS, 0, "  New check offset: %d\n",
 						check_delay);
 			}
@@ -370,7 +369,8 @@ void init_timing_loop(void) {
 			if(is_valid_time == ERROR) {
 				log_debug_info(DEBUGL_EVENTS, 2, "Preferred Time is Invalid In Timeperiod '%s': %lu --> %s\n", temp_service->check_period_ptr->name, (unsigned long)temp_service->next_check, ctime(&temp_service->next_check));
 				get_next_valid_time(temp_service->next_check, &next_valid_time, temp_service->check_period_ptr);
-				temp_service->next_check = reschedule_within_timeperiod(next_valid_time, temp_service->check_period_ptr, check_window(temp_service));
+				temp_service->next_check = 
+					(time_t)(next_valid_time + check_delay);
 				}
 
 			log_debug_info(DEBUGL_EVENTS, 2, "Actual Check Time: %lu --> %s\n", (unsigned long)temp_service->next_check, ctime(&temp_service->next_check));
@@ -508,7 +508,7 @@ void init_timing_loop(void) {
 			log_debug_info(DEBUGL_EVENTS, 1, "Fixing check time (off by %lu)\n",
 					check_delay - check_window(temp_host));
 			fixed_hosts++;
-			check_delay = reschedule_within_timeperiod(next_valid_time, temp_host->check_period_ptr, check_window(temp_host));
+			check_delay = ranged_urand(0, check_window(temp_host));
 			}
 		temp_host->next_check = (time_t)(current_time + check_delay);
 

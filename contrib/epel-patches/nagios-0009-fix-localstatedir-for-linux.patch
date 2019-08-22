@@ -1,0 +1,281 @@
+diff -up ./base/Makefile.in.fix_localstatedir ./base/Makefile.in
+--- ./base/Makefile.in.fix_localstatedir	2019-01-16 13:29:13.079040249 -0600
++++ ./base/Makefile.in	2019-01-16 13:32:54.103372583 -0600
+@@ -33,7 +33,7 @@ LIBS=@LIBS@
+ 
+ prefix=@prefix@
+ exec_prefix=@exec_prefix@
+-LOGDIR=@localstatedir@
++LOGDIR=@localstatedir@/log/nagios/
+ CFGDIR=@sysconfdir@
+ BINDIR=@bindir@
+ CGIDIR=@cgibindir@
+diff -up ./cgi/Makefile.in.fix_localstatedir ./cgi/Makefile.in
+--- ./cgi/Makefile.in.fix_localstatedir	2019-01-16 13:33:14.596032529 -0600
++++ ./cgi/Makefile.in	2019-01-16 13:33:35.252689754 -0600
+@@ -12,7 +12,7 @@ SRC_LIB=../lib
+ 
+ prefix=@prefix@
+ exec_prefix=@exec_prefix@
+-LOGDIR=@localstatedir@
++LOGDIR=@localstatedir@/log/nagios/
+ CFGDIR=@sysconfdir@
+ BINDIR=@bindir@
+ CGIDIR=@cgibindir@
+diff -up ./common/Makefile.in.fix_localstatedir ./common/Makefile.in
+--- ./common/Makefile.in.fix_localstatedir	2019-01-16 13:33:51.236424521 -0600
++++ ./common/Makefile.in	2019-01-16 13:34:17.928981586 -0600
+@@ -13,7 +13,7 @@ LDFLAGS=@LDFLAGS@ @LIBS@
+ 
+ prefix=@prefix@
+ exec_prefix=@exec_prefix@
+-LOGDIR=@localstatedir@
++LOGDIR=@localstatedir@/log/nagios/
+ CFGDIR=@sysconfdir@
+ BINDIR=@bindir@
+ CGIDIR=@cgibindir@
+diff -up ./html/config.inc.php.in.fix_localstatedir ./html/config.inc.php.in
+--- ./html/config.inc.php.in.fix_localstatedir	2019-01-16 13:35:06.875169375 -0600
++++ ./html/config.inc.php.in	2019-01-16 14:25:51.436714786 -0600
+@@ -9,8 +9,8 @@ $cfg['cgi_base_url']='@cgiurl@';
+ 
+ // FILE LOCATION DEFAULTS
+ $cfg['main_config_file']='@sysconfdir@/nagios.cfg';  // default location of the main Nagios config file
+-$cfg['status_file']='@localstatedir@/status.dat'; // default location of Nagios status file
+-$cfg['state_retention_file']='@localstatedir@/retention.dat'; // default location of Nagios retention file
++$cfg['status_file']='@localstatedir@/spool/nagios/status.dat'; // default location of Nagios status file
++$cfg['state_retention_file']='@localstatedir@/spool/nagios/retention.dat'; // default location of Nagios retention file
+ 
+ 
+ 
+diff -up ./html/Makefile.in.fix_localstatedir ./html/Makefile.in
+--- ./html/Makefile.in.fix_localstatedir	2019-01-16 13:37:18.936977949 -0600
++++ ./html/Makefile.in	2019-01-16 13:37:36.645684091 -0600
+@@ -4,7 +4,7 @@ LDFLAGS=@LDFLAGS@ @LIBS@
+ 
+ prefix=@prefix@
+ exec_prefix=@exec_prefix@
+-LOGDIR=@localstatedir@
++LOGDIR=@localstatedir@/log/nagios/
+ CFGDIR=@sysconfdir@
+ BINDIR=@bindir@
+ CGIDIR=@cgibindir@
+diff -up ./include/locations.h.in.fix_localstatedir ./include/locations.h.in
+--- ./include/locations.h.in.fix_localstatedir	2019-01-16 13:38:02.700251743 -0600
++++ ./include/locations.h.in	2019-01-16 14:36:54.105757936 -0600
+@@ -17,18 +17,18 @@
+  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  ************************************************************************/
+ 
+-#define DEFAULT_TEMP_FILE			"@localstatedir@/tempfile"
++#define DEFAULT_TEMP_FILE			"@localstatedir@/spool/nagios/tempfile"
+ #define DEFAULT_TEMP_PATH                       "/tmp"
+-#define DEFAULT_CHECK_RESULT_PATH		"@localstatedir@/spool/checkresults"
+-#define DEFAULT_STATUS_FILE			"@localstatedir@/status.dat"
+-#define DEFAULT_LOG_FILE			"@localstatedir@/nagios.log"
+-#define DEFAULT_LOG_ARCHIVE_PATH		"@localstatedir@/archives/"
+-#define DEFAULT_DEBUG_FILE                      "@localstatedir@/nagios.debug"
+-#define DEFAULT_COMMENT_FILE			"@localstatedir@/comments.dat"
+-#define DEFAULT_DOWNTIME_FILE			"@localstatedir@/downtime.dat"
+-#define DEFAULT_RETENTION_FILE			"@localstatedir@/retention.dat"
+-#define DEFAULT_COMMAND_FILE			"@localstatedir@/rw/nagios.cmd"
+-#define DEFAULT_QUERY_SOCKET            "@localstatedir@/rw/nagios.qh"
++#define DEFAULT_CHECK_RESULT_PATH		"@localstatedir@/spool/nagios/checkresults"
++#define DEFAULT_STATUS_FILE			"@localstatedir@/spool/nagios/status.dat"
++#define DEFAULT_LOG_FILE			"@localstatedir@/log/nagios/nagios.log"
++#define DEFAULT_LOG_ARCHIVE_PATH		"@localstatedir@/log/nagios/archives/"
++#define DEFAULT_DEBUG_FILE                      "@localstatedir@/log/nagios/nagios.debug"
++#define DEFAULT_COMMENT_FILE			"@localstatedir@/spool/nagios/comments.dat"
++#define DEFAULT_DOWNTIME_FILE			"@localstatedir@/spool/nagios/downtime.dat"
++#define DEFAULT_RETENTION_FILE			"@localstatedir@/spool/nagios/retention.dat"
++#define DEFAULT_COMMAND_FILE			"@localstatedir@/spool/nagios/cmd/nagios.cmd"
++#define DEFAULT_QUERY_SOCKET            	"@localstatedir@/spool/nagios/cmd/nagios.qh"
+ #define DEFAULT_CONFIG_FILE			"@sysconfdir@/nagios.cfg"
+ #define DEFAULT_PHYSICAL_HTML_PATH		"@datadir@"
+ #define DEFAULT_URL_HTML_PATH			"@htmurl@"
+@@ -36,6 +36,6 @@
+ #define DEFAULT_URL_CGIBIN_PATH			"@cgiurl@"
+ #define DEFAULT_CGI_CONFIG_FILE			"@sysconfdir@/cgi.cfg"
+ #define DEFAULT_LOCK_FILE			"@subsyslockfile@"
+-#define DEFAULT_OBJECT_CACHE_FILE		"@localstatedir@/objects.cache"
+-#define DEFAULT_PRECACHED_OBJECT_FILE		"@localstatedir@/objects.precache"
+-#define DEFAULT_EVENT_BROKER_FILE		"@localstatedir@/broker.socket"
++#define DEFAULT_OBJECT_CACHE_FILE		"@localstatedir@/spool/nagios/objects.cache"
++#define DEFAULT_PRECACHED_OBJECT_FILE		"@localstatedir@/spool/nagios/objects.precache"
++#define DEFAULT_EVENT_BROKER_FILE		"@localstatedir@/spool/nagios/broker.socket"
+diff -up ./sample-config/nagios.cfg.in.fix_localstatedir ./sample-config/nagios.cfg.in
+--- ./sample-config/nagios.cfg.in.fix_localstatedir	2018-08-16 15:10:12.000000000 -0400
++++ ./sample-config/nagios.cfg.in	2018-11-30 13:52:14.989761698 -0500
+@@ -15,7 +15,7 @@
+ # for historical purposes.  This should be the first option specified
+ # in the config file!!!
+ 
+-log_file=@localstatedir@/nagios.log
++log_file=@localstatedir@/log/nagios/nagios.log
+ 
+ 
+ 
+@@ -63,7 +63,7 @@ cfg_file=@sysconfdir@/objects/localhost.
+ # directly) in order to prevent inconsistencies that can occur
+ # when the config files are modified after Nagios starts.
+ 
+-object_cache_file=@localstatedir@/objects.cache
++object_cache_file=@localstatedir@/spool/nagios/objects.cache
+ 
+ 
+ 
+@@ -79,7 +79,7 @@ object_cache_file=@localstatedir@/object
+ # Read the documentation section on optimizing Nagios to find our more
+ # about how this feature works.
+ 
+-precached_object_file=@localstatedir@/objects.precache
++precached_object_file=@localstatedir@/spool/nagios/objects.precache
+ 
+ 
+ 
+@@ -92,7 +92,7 @@ precached_object_file=@localstatedir@/ob
+ # defined as macros in this file and restrictive permissions (600)
+ # can be placed on this file.
+ 
+-resource_file=@sysconfdir@/resource.cfg
++resource_file=@sysconfdir@/private/resource.cfg
+ 
+ 
+ 
+@@ -102,7 +102,7 @@ resource_file=@sysconfdir@/resource.cfg
+ # The contents of the status file are deleted every time Nagios
+ #  restarts.
+ 
+-status_file=@localstatedir@/status.dat
++status_file=@localstatedir@/spool/nagios/status.dat
+ 
+ 
+ 
+@@ -151,14 +151,14 @@ check_external_commands=1
+ # directory level instead of on the file, as the file is deleted every
+ # time its contents are processed.
+ 
+-command_file=@localstatedir@/rw/nagios.cmd
++command_file=@localstatedir@/spool/nagios/cmd/nagios.cmd
+ 
+ 
+ 
+ # QUERY HANDLER INTERFACE
+ # This is the socket that is created for the Query Handler interface
+ 
+-#query_socket=@localstatedir@/rw/nagios.qh
++#query_socket=@localstatedir@/spool/nagios/cmd/nagios.qh
+ 
+ 
+ 
+@@ -176,7 +176,7 @@ lock_file=@subsyslockfile@
+ # is created, used, and deleted throughout the time that Nagios is
+ # running.
+ 
+-temp_file=@localstatedir@/nagios.tmp
++temp_file=@localstatedir@/spool/nagios/nagios.tmp
+ 
+ 
+ 
+@@ -243,7 +243,7 @@ log_rotation_method=d
+ # This is the directory where archived (rotated) log files should be
+ # placed (assuming you've chosen to do log rotation).
+ 
+-log_archive_path=@localstatedir@/archives
++log_archive_path=@localstatedir@/log/nagios/archives
+ 
+ 
+ 
+@@ -618,7 +618,7 @@ retain_state_information=1
+ # This file is used only if the retain_state_information
+ # variable is set to 1.
+ 
+-state_retention_file=@localstatedir@/retention.dat
++state_retention_file=@localstatedir@/spool/nagios/retention.dat
+ 
+ 
+ 
+@@ -831,8 +831,8 @@ process_performance_data=0
+ # Performance data is only written to these files if the
+ # enable_performance_data option (above) is set to 1.
+ 
+-#host_perfdata_file=@localstatedir@/host-perfdata
+-#service_perfdata_file=@localstatedir@/service-perfdata
++#host_perfdata_file=@localstatedir@/log/nagios/host-perfdata
++#service_perfdata_file=@localstatedir@/log/nagios/service-perfdata
+ 
+ 
+ 
+@@ -1292,7 +1292,7 @@ debug_verbosity=1
+ # DEBUG FILE
+ # This option determines where Nagios should write debugging information.
+ 
+-debug_file=@localstatedir@/nagios.debug
++debug_file=@localstatedir@/log/nagios/nagios.debug
+ 
+ 
+ 
+diff -up ./sample-config/template-object/commands.cfg.in.fix_localstatedir ./sample-config/template-object/commands.cfg.in
+--- ./sample-config/template-object/commands.cfg.in.fix_localstatedir	2019-01-16 13:50:29.366875513 -0600
++++ ./sample-config/template-object/commands.cfg.in	2019-01-16 13:51:22.140000845 -0600
+@@ -241,7 +241,7 @@ define command {
+ define command {
+ 
+     command_name    process-host-perfdata
+-    command_line    /usr/bin/printf "%b" "$LASTHOSTCHECK$\t$HOSTNAME$\t$HOSTSTATE$\t$HOSTATTEMPT$\t$HOSTSTATETYPE$\t$HOSTEXECUTIONTIME$\t$HOSTOUTPUT$\t$HOSTPERFDATA$\n" >> @localstatedir@/host-perfdata.out
++    command_line    /usr/bin/printf "%b" "$LASTHOSTCHECK$\t$HOSTNAME$\t$HOSTSTATE$\t$HOSTATTEMPT$\t$HOSTSTATETYPE$\t$HOSTEXECUTIONTIME$\t$HOSTOUTPUT$\t$HOSTPERFDATA$\n" >> @localstatedir@/log/nagios/host-perfdata.out
+ }
+ 
+ 
+@@ -249,5 +249,5 @@ define command {
+ define command {
+ 
+     command_name    process-service-perfdata
+-    command_line    /usr/bin/printf "%b" "$LASTSERVICECHECK$\t$HOSTNAME$\t$SERVICEDESC$\t$SERVICESTATE$\t$SERVICEATTEMPT$\t$SERVICESTATETYPE$\t$SERVICEEXECUTIONTIME$\t$SERVICELATENCY$\t$SERVICEOUTPUT$\t$SERVICEPERFDATA$\n" >> @localstatedir@/service-perfdata.out
++    command_line    /usr/bin/printf "%b" "$LASTSERVICECHECK$\t$HOSTNAME$\t$SERVICEDESC$\t$SERVICESTATE$\t$SERVICEATTEMPT$\t$SERVICESTATETYPE$\t$SERVICEEXECUTIONTIME$\t$SERVICELATENCY$\t$SERVICEOUTPUT$\t$SERVICEPERFDATA$\n" >> @localstatedir@/log/nagios/service-perfdata.out
+ }
+diff -up ./startup/default-init.in.fix_localstatedir ./startup/default-init.in
+--- ./startup/default-init.in.fix_localstatedir	2019-01-16 14:16:54.874599523 -0600
++++ ./startup/default-init.in	2019-01-16 14:22:55.103634621 -0600
+@@ -41,12 +41,12 @@
+ # Our install-time configuration.
+ NagiosBin=@bindir@/@nagios_name@
+ NagiosCfgFile=@sysconfdir@/nagios.cfg
+-NagiosCfgtestFile=@localstatedir@/nagios.configtest
+-NagiosStatusFile=@localstatedir@/status.dat
+-NagiosRetentionFile=@localstatedir@/retention.dat
+-NagiosCommandFile=@localstatedir@/rw/nagios.cmd
++NagiosCfgtestFile=@localstatedir@/spool/nagios/nagios.configtest
++NagiosStatusFile=@localstatedir@/spool/nagios/status.dat
++NagiosRetentionFile=@localstatedir@/spool/nagios/retention.dat
++NagiosCommandFile=@localstatedir@/spool/nagios/cmd/nagios.cmd
+ NagiosRunFile=@subsyslockfile@
+-NagiosVarDir=@localstatedir@
++NagiosVarDir=@localstatedir@/spool/nagios/
+ NagiosCGIDir=@cgibindir@
+ NagiosUser=@nagios_user@
+ NagiosGroup=@nagios_grp@
+diff -up ./startup/default-service.in.fix_localstatedir ./startup/default-service.in
+--- ./startup/default-service.in.fix_localstatedir	2019-01-16 14:23:17.575262522 -0600
++++ ./startup/default-service.in	2019-01-16 14:23:39.273903222 -0600
+@@ -8,7 +8,7 @@ Type=forking
+ ExecStartPre=@bindir@/nagios -v @sysconfdir@/nagios.cfg
+ ExecStart=@bindir@/nagios -d @sysconfdir@/nagios.cfg
+ ExecStop=@BIN_KILL@ -s TERM ${MAINPID}
+-ExecStopPost=@BIN_RM@ -f @localstatedir@/rw/nagios.cmd
++ExecStopPost=@BIN_RM@ -f @localstatedir@/spool/nagios/cmd/nagios.cmd
+ ExecReload=@BIN_KILL@ -s HUP ${MAINPID}
+ 
+ [Install]
+diff -up ./t-tap/Makefile.in.fix_localstatedir ./t-tap/Makefile.in
+--- ./t-tap/Makefile.in.fix_localstatedir	2019-01-16 14:24:14.944312569 -0600
++++ ./t-tap/Makefile.in	2019-01-16 14:24:42.359858604 -0600
+@@ -42,7 +42,7 @@ LIBS=@LIBS@ ../lib/libnagios.a
+ 
+ prefix=@prefix@
+ exec_prefix=@exec_prefix@
+-LOGDIR=@localstatedir@
++LOGDIR=@localstatedir@/log/nagios/
+ CFGDIR=@sysconfdir@
+ BINDIR=@bindir@
+ CGIDIR=@cgibindir@

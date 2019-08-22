@@ -1,0 +1,11 @@
+diff -up ./Makefile.in.fix_httpd_conf_d ./Makefile.in
+--- ./Makefile.in.fix_httpd_conf_d	2018-11-28 12:36:22.206486501 -0600
++++ ./Makefile.in	2018-11-28 12:37:26.098414877 -0600
+@@ -337,6 +337,7 @@ install-groups-users:
+ 	@autoconf-macros/add_group_user $(DIST) $(NAGIOS_USER) $(NAGIOS_GRP) 1
+ 
+ install-webconf:
++	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(HTTPD_CONF)
+ 	$(INSTALL) -m 644 sample-config/httpd.conf $(DESTDIR)$(HTTPD_CONF)/nagios.conf
+ 	if [ $(LN_HTTPD_SITES_ENABLED) -eq 1 ]; then \
+ 		$(LN_S) $(DESTDIR)$(HTTPD_CONF)/nagios.conf $(DESTDIR)/etc/apache2/sites-enabled/nagios.conf; \

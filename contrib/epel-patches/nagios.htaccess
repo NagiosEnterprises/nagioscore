@@ -1,0 +1,50 @@
+ScriptAlias /nagios/cgi-bin/ /usr/lib/nagios/cgi-bin/
+<Directory /usr/lib/nagios/cgi-bin/>
+   Options ExecCGI
+   order deny,allow
+   deny from all
+   allow from 127.0.0.1
+   AuthType Basic
+   AuthUserFile /etc/nagios/passwd
+   AuthName "nagios"
+   require valid-user
+</Directory>
+
+Alias /nagios/ /usr/share/nagios/html/
+<Directory /usr/share/nagios/html/>
+   Options None
+   order deny,allow
+   deny from all
+   allow from 127.0.0.1
+   AuthType Basic
+   AuthUserFile /etc/nagios/passwd
+   AuthName "nagios"
+   require valid-user
+</Directory>
+
+# For SSL-servers
+#<Directory /usr/lib/nagios/cgi-bin/>
+#   Options ExecCGI
+#   SSLRequireSSL
+#   order deny,allow
+#   deny from all
+#   allow from 127.0.0.1
+#   AuthType Basic
+#   AuthUserFile /etc/nagios/passwd
+#   AuthName "nagios"
+#   require valid-user
+#</Directory>
+#
+#Alias /nagios/ /usr/share/nagios/html/
+#<Directory /usr/share/nagios/html/>
+#   Options None
+#   SSLRequireSSL
+#   order deny,allow
+#   deny from all
+#   allow from 127.0.0.1
+#   AuthType Basic
+#   AuthUserFile /etc/nagios/passwd
+#   AuthName "nagios"
+#   require valid-user
+#</Directory>
+

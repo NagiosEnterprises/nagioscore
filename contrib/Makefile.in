@@ -92,7 +92,13 @@ $(CGI_O): $(CGI_C)
 # pyparsing systemtap perl-ExtUtils-Manifest libdb perl-ExtUtils-MakeMaker
 # perl-ExtUtils-Install perl-devel perl-ExtUtils-ParseXS perl-local-lib
 # perl-CPAN perl-ExtUtils-AutoInstall perl-Test-Simple perl-ExtUtils-Embed
-# rpmdevtools 
+# rpmdevtools gcc libtool rpmbuild
+#
+# To Upgrade for local EPEL RRPMs
+# sudo rpm -Uvh nagios-common-4.4.5-1.el7.x86_64.rpm \
+# nagios-contrib-4.4.5-1.el7.x86_64.rpm nagios-devel-4.4.5-1.el7.x86_64.rpm  nagios-4.4.5-1.el7.x86_64.rpm
+# sudo systemctl daemon-reload
+# sudo systemctl restart nagios
 
 ifneq ("$(wildcard /etc/redhat-release)","")
 

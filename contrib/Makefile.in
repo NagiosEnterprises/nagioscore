@@ -92,6 +92,7 @@ $(CGI_O): $(CGI_C)
 # pyparsing systemtap perl-ExtUtils-Manifest libdb perl-ExtUtils-MakeMaker
 # perl-ExtUtils-Install perl-devel perl-ExtUtils-ParseXS perl-local-lib
 # perl-CPAN perl-ExtUtils-AutoInstall perl-Test-Simple perl-ExtUtils-Embed
+# perl-HTML-Lint
 # rpmdevtools gcc libtool rpmbuild
 #
 # To Upgrade for local EPEL RRPMs

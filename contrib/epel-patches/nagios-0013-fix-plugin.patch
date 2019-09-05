@@ -1,0 +1,36 @@
+diff -up ./contrib/eventhandlers/distributed-monitoring/obsessive_svc_handler.fix_plugin ./contrib/eventhandlers/distributed-monitoring/obsessive_svc_handler
+--- ./contrib/eventhandlers/distributed-monitoring/obsessive_svc_handler.fix_plugin	2017-08-24 17:43:48.000000000 -0400
++++ ./contrib/eventhandlers/distributed-monitoring/obsessive_svc_handler	2017-09-19 15:21:28.201643586 -0400
+@@ -21,7 +21,7 @@
+ #
+ 
+ # Location of the submit_check_result_via_nsca script
+-SubmitCmd="/usr/local/nagios/libexec/eventhandlers/submit_check_result_via_nsca"
++SubmitCmd="/usr/lib64/nagios/plugins/eventhandlers/submit_check_result_via_nsca"
+ 
+ # Convert the state string to the corresponding return code
+ return_code=-1
+diff -up ./contrib/eventhandlers/redundancy-scenario1/handle-master-host-event.fix_plugin ./contrib/eventhandlers/redundancy-scenario1/handle-master-host-event
+--- ./contrib/eventhandlers/redundancy-scenario1/handle-master-host-event.fix_plugin	2017-08-24 17:43:48.000000000 -0400
++++ ./contrib/eventhandlers/redundancy-scenario1/handle-master-host-event	2017-09-19 15:21:28.202643604 -0400
+@@ -13,7 +13,7 @@ echocmd="/bin/echo"
+ mailcmd="/bin/mail"
+ 
+ # Location of the event handlers
+-eventhandlerdir="/usr/local/nagios/libexec/eventhandlers"
++eventhandlerdir="/usr/lib64/nagios/plugins/eventhandlers"
+ 
+ 
+ # Only take action on hard host states...
+diff -up ./contrib/eventhandlers/redundancy-scenario1/handle-master-proc-event.fix_plugin ./contrib/eventhandlers/redundancy-scenario1/handle-master-proc-event
+--- ./contrib/eventhandlers/redundancy-scenario1/handle-master-proc-event.fix_plugin	2017-08-24 17:43:48.000000000 -0400
++++ ./contrib/eventhandlers/redundancy-scenario1/handle-master-proc-event	2017-09-19 15:21:28.203643623 -0400
+@@ -13,7 +13,7 @@ echocmd="/bin/echo"
+ mailcmd="/bin/mail"
+ 
+ # Location of the event handlers
+-eventhandlerdir="/usr/local/nagios/libexec/eventhandlers"
++eventhandlerdir="/usr/lib64/nagios/plugins/eventhandlers"
+ 
+ 
+ # Only take action on hard service states...

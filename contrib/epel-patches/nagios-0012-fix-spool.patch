@@ -1,0 +1,48 @@
+diff -up ./contrib/eventhandlers/disable_active_service_checks.fix_spool ./contrib/eventhandlers/disable_active_service_checks
+--- ./contrib/eventhandlers/disable_active_service_checks.fix_spool	2017-08-24 17:43:48.000000000 -0400
++++ ./contrib/eventhandlers/disable_active_service_checks	2017-09-19 15:21:28.173643069 -0400
+@@ -16,7 +16,7 @@
+ 
+ printfcmd="/usr/bin/printf"
+ 
+-CommandFile="/usr/local/nagios/var/rw/nagios.cmd"
++CommandFile="/var/spool/nagios/"
+ 
+ # get the current date/time in seconds since UNIX epoch
+ datetime=`date +%s`
+diff -up ./contrib/eventhandlers/disable_notifications.fix_spool ./contrib/eventhandlers/disable_notifications
+--- ./contrib/eventhandlers/disable_notifications.fix_spool	2017-08-24 17:43:48.000000000 -0400
++++ ./contrib/eventhandlers/disable_notifications	2017-09-19 15:21:28.198643530 -0400
+@@ -14,7 +14,7 @@
+ 
+ printfcmd="/usr/bin/printf"
+ 
+-CommandFile="/usr/local/nagios/var/rw/nagios.cmd"
++CommandFile="/var/spool/nagios/"
+ 
+ # get the current date/time in seconds since UNIX epoch
+ datetime=`date +%s`
+diff -up ./contrib/eventhandlers/enable_active_service_checks.fix_spool ./contrib/eventhandlers/enable_active_service_checks
+--- ./contrib/eventhandlers/enable_active_service_checks.fix_spool	2017-08-24 17:43:48.000000000 -0400
++++ ./contrib/eventhandlers/enable_active_service_checks	2017-09-19 15:21:28.199643549 -0400
+@@ -16,7 +16,7 @@
+ 
+ printfcmd="/usr/bin/printf"
+ 
+-CommandFile="/usr/local/nagios/var/rw/nagios.cmd"
++CommandFile="/var/spool/nagios/"
+ 
+ # get the current date/time in seconds since UNIX epoch
+ datetime=`date +%s`
+diff -up ./contrib/eventhandlers/submit_check_result.fix_spool ./contrib/eventhandlers/submit_check_result
+--- ./contrib/eventhandlers/submit_check_result.fix_spool	2017-08-24 17:43:48.000000000 -0400
++++ ./contrib/eventhandlers/submit_check_result	2017-09-19 15:21:28.200643567 -0400
+@@ -24,7 +24,7 @@
+  
+ echocmd="/bin/echo"
+  
+-CommandFile="/usr/local/nagios/var/rw/nagios.cmd"
++CommandFile="/var/spool/nagios/"
+  
+ # get the current date/time in seconds since UNIX epoch
+ datetime=`date +%s`

@@ -1,0 +1,12 @@
+diff -up ./Makefile.in.install_config ./Makefile.in
+--- ./Makefile.in.install_config	2017-04-19 19:11:47.783707415 -0400
++++ ./Makefile.in	2017-04-19 19:11:47.785707384 -0400
+@@ -377,7 +377,7 @@ dox:
+ 	doxygen doxy.conf
+ 
+ 
+-fullinstall: install install-init install-commandmode install-webconf install-devel
++fullinstall: install install-init install-commandmode install-webconf install-devel install-config
+ 
+ # Uninstall is too destructive if base install directory is /usr, etc.
+ #uninstall:

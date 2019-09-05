@@ -1,0 +1,12 @@
+diff -up ./sample-config/nagios.cfg.in.conf_d ./sample-config/nagios.cfg.in
+--- ./sample-config/nagios.cfg.in.conf_d	2017-08-24 17:43:48.000000000 -0400
++++ ./sample-config/nagios.cfg.in	2017-09-15 18:29:48.659666387 -0400
+@@ -53,6 +53,8 @@ cfg_file=@sysconfdir@/objects/localhost.
+ #cfg_dir=@sysconfdir@/switches
+ #cfg_dir=@sysconfdir@/routers
+ 
++cfg_dir=@sysconfdir@/conf.d
++
+ 
+ 
+ 

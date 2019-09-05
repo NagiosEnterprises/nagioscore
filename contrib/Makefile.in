@@ -86,20 +86,7 @@ $(CGI_O): $(CGI_C)
 	$(CC) $(CFLAGS) $(LDFLAGS) $< $(CGI_O) -o $@
 
 ##############################################################################
-# rpm making automation for CentOS/RHEL.
-# rpmbuild environment
-# policycoreutils-devel selinux-policy-devel perl-generators gdbm-devel
-# pyparsing systemtap perl-ExtUtils-Manifest libdb perl-ExtUtils-MakeMaker
-# perl-ExtUtils-Install perl-devel perl-ExtUtils-ParseXS perl-local-lib
-# perl-CPAN perl-ExtUtils-AutoInstall perl-Test-Simple perl-ExtUtils-Embed
-# perl-HTML-Lint
-# rpmdevtools gcc libtool rpmbuild
-#
-# To Upgrade for local EPEL RRPMs
-# sudo rpm -Uvh nagios-common-4.4.5-1.el7.x86_64.rpm \
-# nagios-contrib-4.4.5-1.el7.x86_64.rpm nagios-devel-4.4.5-1.el7.x86_64.rpm  nagios-4.4.5-1.el7.x86_64.rpm
-# sudo systemctl daemon-reload
-# sudo systemctl restart nagios
+# making similiar EPEL rpm for Fedora/RHEL/CentOS 
 
 ifneq ("$(wildcard /etc/redhat-release)","")
 

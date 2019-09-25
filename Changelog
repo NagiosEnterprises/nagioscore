@@ -15,6 +15,7 @@ FIXES
 * Update packaging instructions for RPM/EPEL (#850) (T.J. Yang)
 * Include packaging instructions for DEB (#842) (Catfriend1)
 * Fixed CGI object processing when names end in \ (#819) (Sebastian Wolf)
+* $SERVICEPROBLEMID$ now accessible when notifications are sent (#688) (Sebastian Wolf)
 
 4.4.6 - 2020-04-28
 ------------------

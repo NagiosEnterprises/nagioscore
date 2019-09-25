@@ -1564,6 +1564,14 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 		schedule_service_check(svc, svc->next_check, CHECK_OPTION_NONE);
 	}
 
+	if (svc->current_state == STATE_OK && state_change == TRUE) {
+
+		/* Reset problem ID. It's important to have this happen before
+		 * notification-sending logic */
+		svc->last_problem_id = svc->current_problem_id;
+		svc->current_problem_id = 0L;
+	}
+
 	/* volatile service gets everything in non-ok hard state */
 	if ((svc->current_state != STATE_OK) 
 		&& (svc->state_type == HARD_STATE) 
@@ -1619,10 +1627,6 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 	/* Update OK states since they send out a soft alert but then they
 	   switch into a HARD state and reset the attempts */
 	if (svc->current_state == STATE_OK && state_change == TRUE) {
-
-		/*  Problem state starts regardless of SOFT/HARD status. */
-		svc->last_problem_id = svc->current_problem_id;
-		svc->current_problem_id = 0L;
 
 		/* Reset attempts */
 		if (hard_state_change == TRUE) {

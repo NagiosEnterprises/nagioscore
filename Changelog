@@ -2,6 +2,11 @@
 Nagios Core 4 Change Log
 ########################
 
+4.5.0 - 2019-??-??
+------------------
+FIXES
+* $SERVICEPROBLEMID$ now accessible when notifications are sent (#688) (Sebastian Wolf)
+
 4.4.5 - 2019-08-??
 ------------------
 FIXES

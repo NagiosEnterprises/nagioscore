@@ -2,6 +2,11 @@
 Nagios Core 4 Change Log
 ########################
 
+4.5.0 - 2019-??-??
+------------------
+FIXES
+* Check reaper no longer requires a decimal point in timestamp field (#622) (Sebastian Wolf)
+
 4.4.5 - 2019-08-??
 ------------------
 FIXES

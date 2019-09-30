@@ -1,0 +1,39 @@
+module nagios_epel 1.1;
+
+require {
+        type devlog_t;
+        type hostname_exec_t;
+        type kernel_t;
+        type ldconfig_exec_t;
+	type initrc_tmp_t;
+	type nagios_exec_t;
+        type httpd_nagios_script_t;
+        type nagios_services_plugin_t;
+        type nagios_spool_t;
+        type nagios_system_plugin_t;
+        type nagios_t;
+	class capability chown;
+        class file { execute execute_no_trans getattr open read };
+        class sock_file { write create unlink };
+        class unix_dgram_socket { connect create sendto };
+        class unix_stream_socket connectto;
+}
+
+#============= nagios_services_plugin_t ==============
+allow nagios_services_plugin_t devlog_t:sock_file write;
+allow nagios_services_plugin_t kernel_t:unix_dgram_socket sendto;
+allow nagios_services_plugin_t self:unix_dgram_socket { connect create };
+
+#============= nagios_t ==============
+allow nagios_t hostname_exec_t:file { read getattr open execute execute_no_trans };
+allow nagios_t ldconfig_exec_t:file { execute execute_no_trans open read };
+allow nagios_t nagios_exec_t:file execute_no_trans;
+allow nagios_t nagios_spool_t:sock_file { write create unlink };
+allow nagios_t self:capability chown;
+allow nagios_t self:unix_stream_socket connectto;
+
+#============= httpd_nagios_script_t ==============
+allow httpd_nagios_script_t nagios_spool_t:file { getattr open read };
+
+#============= nagios_system_plugin_t ==============
+allow nagios_system_plugin_t nagios_spool_t:file { getattr open read };

@@ -12,10 +12,10 @@ else
 fi
 
 # Current version number
-CURRENTVERSION=4.4.4
+CURRENTVERSION=4.4.5
 
 # Last date
-LASTDATE=2019-07-29
+LASTDATE=2019-08-20
 
 if [ "x$1" = "x" ]
 then
@@ -65,6 +65,10 @@ perl -i -p -e "s/Description=.*/Description=Nagios Core $newversion/;" startup/d
 
 # Update RPM spec file with version number
 perl -i -p -e "s/Version: .*/Version: $newversion/;" nagios.spec
+
+# Update EPEL RPM spec file in contrib directory  with version number
+perl -i -p -e "s/Version: .*/Version: $newversion/;" contrib/epel-nagios.spec
+
 
 # Update the doxygen docs
 perl -i -p -e "s/^PROJECT_NUMBER = .*/PROJECT_NUMBER = $newversion/;" doxy.conf

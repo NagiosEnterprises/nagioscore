@@ -77,6 +77,7 @@ extern char url_stylesheets_path[MAX_FILENAME_LENGTH];
 #define DISPLAY_HOST_AVAIL      2
 #define DISPLAY_SERVICE_AVAIL   3
 #define DISPLAY_SERVICEGROUP_AVAIL 4
+#define DISPLAY_COMBINED_AVAIL 5
 
 /* subject types */
 #define HOST_SUBJECT            0
@@ -979,6 +980,12 @@ int main(int argc, char **argv) {
 				display_hostgroup_availability();
 			else if (display_type == DISPLAY_SERVICEGROUP_AVAIL)
 				display_servicegroup_availability();
+			else if (display_type == DISPLAY_COMBINED_AVAIL) {
+				if (show_all_hosts)
+					display_host_availability();
+				if (show_all_services)
+					display_service_availability();
+				}
 
 			/* free memory allocated to availability data */
 			free_availability_data();
@@ -1606,6 +1613,33 @@ int process_cgivars(void) {
 					break;
 					}
 				}
+			}
+
+		/* use special combined csv output MUST BE AT END OF QUERY DUE TO display_type OVERRIDES */
+		else if (!strcmp(variables[x], "combinedcsv")) {
+
+			x++;
+			if (variables[x] == NULL) {
+				error = TRUE;
+				break;
+				}
+
+			/* force csv and no header for this */
+			display_header = FALSE;
+			output_format = CSV_OUTPUT;
+
+			/* set these to all so that the functions loop over the subject list */
+			show_all_hosts = TRUE;
+			show_all_services = TRUE;
+			if (!strcmp(variables[x], "hostonly")) {
+				show_all_services = FALSE;
+			} else if (!strcmp(variables[x], "serviceonly")) {
+				show_all_hosts = FALSE;
+			}
+
+			/* set special display which includes both hosts and services */
+			display_type = DISPLAY_COMBINED_AVAIL;
+
 			}
 
 		}
@@ -2627,6 +2661,75 @@ void create_subject_list(void)
 			}
 		}
 	}
+
+	/* we're doing a combined csv which means we check host, service, hostgroup and servicegroup */
+	else if (display_type == DISPLAY_COMBINED_AVAIL) {
+
+		/* If we are doing a host only query */
+		if (host_name && strcmp(host_name, "")) {
+
+			add_subject(HOST_SUBJECT, host_name, NULL);
+
+			if (svc_description && strcmp(svc_description, "")) {
+
+				/* add only the host and single service */
+				add_subject(SERVICE_SUBJECT, host_name, svc_description);
+
+			} else {
+
+				/* add all services to the host if no service is set */
+				for (temp_service = service_list; temp_service != NULL; temp_service = temp_service->next) {
+					if (!strcmp(temp_service->host_name, host_name)) {
+						add_subject(SERVICE_SUBJECT, host_name, temp_service->description);
+					}
+				}
+
+			}
+
+		} else if (hostgroup_name && strcmp(hostgroup_name, "")) {
+
+			/* Add all hosts + services from hostgroup to subject list */
+			temp_hostgroup = find_hostgroup(hostgroup_name);
+			if (temp_hostgroup != NULL) {
+				for (temp_hgmember = temp_hostgroup->members; temp_hgmember != NULL; temp_hgmember = temp_hgmember->next) {
+					add_subject(HOST_SUBJECT, temp_hgmember->host_name, NULL);
+					for (temp_service = service_list; temp_service != NULL; temp_service = temp_service->next) {
+						if (!strcmp(temp_service->host_name, temp_hgmember->host_name)) {
+							add_subject(SERVICE_SUBJECT, temp_hgmember->host_name, temp_service->description);
+						}
+					}
+				}
+			}
+
+		} else if (servicegroup_name && strcmp(servicegroup_name, "")) {
+
+			/* add all hosts + services from servicegroup to subject list */
+			temp_servicegroup = find_servicegroup(servicegroup_name);
+			if (temp_servicegroup != NULL) {
+				for (temp_sgmember = temp_servicegroup->members; temp_sgmember != NULL; temp_sgmember = temp_sgmember->next) {
+					add_subject(SERVICE_SUBJECT, temp_sgmember->host_name, temp_sgmember->service_description);
+					if (strcmp(last_host_name, temp_sgmember->host_name)) {
+						add_subject(HOST_SUBJECT, temp_sgmember->host_name, NULL);
+					}
+					last_host_name = temp_sgmember->host_name;
+				}
+			}
+
+		} else {
+
+			/* Passing no filter options shows EVERYTHING (this really isn't ideal...) */
+
+			for (temp_host = host_list; temp_host != NULL; temp_host = temp_host->next) {
+				add_subject(HOST_SUBJECT, temp_host->name, NULL);
+			}
+
+			for (temp_service = service_list; temp_service != NULL; temp_service = temp_service->next) {
+				add_subject(SERVICE_SUBJECT, temp_service->host_name, temp_service->description);
+			}
+
+		}
+
+	}
 }
 
 
@@ -3016,7 +3119,8 @@ void scan_log_file_for_archived_state_data(char *filename) {
 		if (strstr(input, "Bailing out"))
 			add_global_archived_state(AS_PROGRAM_END, AS_NO_DATA, time_stamp, "Abnormal program termination");
 
-		if (display_type == DISPLAY_HOST_AVAIL || display_type == DISPLAY_HOSTGROUP_AVAIL || display_type == DISPLAY_SERVICEGROUP_AVAIL) {
+		if (display_type == DISPLAY_HOST_AVAIL || display_type == DISPLAY_HOSTGROUP_AVAIL || display_type == DISPLAY_SERVICEGROUP_AVAIL ||
+			(display_type == DISPLAY_COMBINED_AVAIL && show_all_hosts == TRUE)) {
 
 			/* normal host alerts and initial/current states */
 			if (strstr(input, "HOST ALERT:") || strstr(input, "INITIAL HOST STATE:") || strstr(input, "CURRENT HOST STATE:")) {
@@ -3082,7 +3186,8 @@ void scan_log_file_for_archived_state_data(char *filename) {
 				}
 			}
 
-		if (display_type == DISPLAY_SERVICE_AVAIL || display_type == DISPLAY_HOST_AVAIL || display_type == DISPLAY_SERVICEGROUP_AVAIL) {
+		if (display_type == DISPLAY_SERVICE_AVAIL || display_type == DISPLAY_HOST_AVAIL || display_type == DISPLAY_SERVICEGROUP_AVAIL ||
+			(display_type == DISPLAY_COMBINED_AVAIL && show_all_services == TRUE)) {
 
 			/* normal service alerts and initial/current states */
 			if (strstr(input, "SERVICE ALERT:") || strstr(input, "INITIAL SERVICE STATE:") || strstr(input, "CURRENT SERVICE STATE:")) {

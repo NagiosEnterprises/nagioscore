@@ -1106,9 +1106,13 @@ angular.module("mapApp")
 					// Next add any hosts in the list as children
 					// of the node, if they're not already
 					hosts.forEach(function(e) {
-						var childIndex = node.children.findIndex(function(s) {
-							return s.hostInfo.name === e;
-						});
+						var childIndex = -1;
+						for (let i = 0; i < node.children.length; i++) {
+							if (node.children[i].hostInfo.name === e) {
+								childIndex = i;
+								break;
+							}
+						}
 								
 						if ($scope.hostList[e]) {
 

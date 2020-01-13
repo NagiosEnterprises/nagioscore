@@ -2738,8 +2738,6 @@ json_object *json_status_host(unsigned format_options, host *temp_host,
 	json_object *json_host = json_new_object();
 	json_object *json_details = json_new_object();
 
-	json_object_append_string(json_details, "name", &percent_escapes,
-			temp_host->name);
 	json_status_host_details(json_details, format_options, temp_host, 
 			temp_hoststatus);
 	json_object_append_object(json_host, "host", json_details);
@@ -3460,10 +3458,6 @@ json_object *json_status_service(unsigned format_options, service *temp_service,
 	json_object *json_service = json_new_object();
 	json_object *json_details = json_new_object();
 
-	json_object_append_string(json_details, "host_name", &percent_escapes,
-			temp_service->host_name);
-	json_object_append_string(json_details, "description", &percent_escapes,
-			temp_service->description);
 	json_status_service_details(json_details, format_options, temp_service, 
 			temp_servicestatus);
 	json_object_append_object(json_service, "service", json_details);
@@ -3846,8 +3840,6 @@ json_object *json_status_comment(unsigned format_options,
 	json_object *json_comment = json_new_object();
 	json_object *json_details = json_new_object();
 
-	json_object_append_integer(json_details, "comment_id", 
-			temp_comment->comment_id);
 	json_status_comment_details(json_details, format_options, temp_comment); 
 	json_object_append_object(json_comment, "comment", json_details);
 
@@ -4171,8 +4163,6 @@ json_object *json_status_downtime(unsigned format_options,
 	json_object *json_downtime = json_new_object();
 	json_object *json_details = json_new_object();
 
-	json_object_append_integer(json_details, "downtime_id", 
-			temp_downtime->downtime_id);
 	json_status_downtime_details(json_details, format_options, temp_downtime); 
 	json_object_append_object(json_downtime, "downtime", json_details);
 

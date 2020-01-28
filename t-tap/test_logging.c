@@ -26,7 +26,6 @@
 
 #define TEST_LOGGING 1
 
-int date_format                     = 0;
 char *log_file                      = NULL;
 int verify_config                   = FALSE;
 int test_scheduling                 = FALSE;

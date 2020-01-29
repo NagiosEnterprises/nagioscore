@@ -80,6 +80,7 @@ time_t end_time = 0L;
 int affect_host_and_services = FALSE;
 int propagate_to_children = FALSE;
 int fixed = FALSE;
+int expires = FALSE;
 unsigned long duration = 0L;
 unsigned long triggered_by = 0L;
 int child_options = 0;
@@ -150,6 +151,9 @@ int main(void) {
 		}
 
 	/* This requires the date_format parameter in the main config file */
+	if(strcmp(expire_time_string, ""))
+		string_to_time(expire_time_string, &expire_time);
+
 	if(strcmp(start_time_string, ""))
 		string_to_time(start_time_string, &start_time);
 
@@ -501,6 +505,10 @@ int process_cgivars(void) {
 				servicegroup_name = "";
 			strip_html_brackets(servicegroup_name);
 			}
+        /* we found the expires boolean */
+        else if(!strcmp(variables[x], "expires")) {
+            expires = TRUE; 
+        }
 
 		/* we got the persistence option for a comment */
 		else if(!strcmp(variables[x], "persistent"))
@@ -634,7 +642,12 @@ int process_cgivars(void) {
 			duration += (unsigned long)(atoi(variables[x]) * 60);
 			}
 
-		/* we found the start time */
+        /* we found the expires boolean */
+        else if(!strcmp(variables[x], "expires")) {
+            expires = TRUE; 
+        }
+
+		/* we found the expire time */
 		else if(!strcmp(variables[x], "expire_time")) {
 			x++;
 			if(variables[x] == NULL) {
@@ -647,7 +660,7 @@ int process_cgivars(void) {
 				expire_time_string = "";
 			else
 				strcpy(expire_time_string, variables[x]);
-			}
+	    }
 
 
 		/* we found the start time */
@@ -724,7 +737,6 @@ int process_cgivars(void) {
 
 			form_id = (char*)strdup(variables[x]);
 		}
-
 	}
 
 	/* free memory allocated to the CGI variables */
@@ -1047,7 +1059,7 @@ void request_command_data(int cmd) {
 			printf("<tr><td CLASS='optBoxItem'>Persistent%s:</td><td><b>", (cmd == CMD_ACKNOWLEDGE_HOST_PROBLEM) ? " Comment" : "");
 			printf("<INPUT TYPE='checkbox' NAME='persistent' %s></b></td>", (cmd == CMD_ACKNOWLEDGE_HOST_PROBLEM) ? "" : "CHECKED");
 			printf("<td CLASS='optBoxItem'>Expires%s:</td><td><b>", (cmd == CMD_ACKNOWLEDGE_HOST_PROBLEM) ? " Comment" : "");
-			printf("<INPUT TYPE='checkbox' NAME='expires' %s>", (cmd == CMD_ACKNOWLEDGE_HOST_PROBLEM) ? "" : "CHECKED");
+			printf("<INPUT TYPE='checkbox' NAME='expires' VALUE='TRUE'>");
 			printf("<INPUT TYPE='datetime-local' NAME='expire_time' VALUE='%s'>",buffer);
 			printf("</b></td></tr>\n");
 			print_comment_field(cmd);
@@ -2011,7 +2023,9 @@ int commit_command(int cmd) {
 	time_t current_time;
 	time_t scheduled_time;
 	time_t notification_time;
+    time_t expiration = 0L;
 	int result;
+    struct tm exp_struct;
 
 	/* get the current time */
 	time(&current_time);
@@ -2102,7 +2116,15 @@ int commit_command(int cmd) {
 			break;
 
 		case CMD_ADD_HOST_COMMENT:
-			result = cmd_submitf(cmd, "%s;%d", host_name, persistent_comment);
+		    sscanf(expire_time_string, "%04d-%02d-%02d%*[ T]%02d:%02d:%02d",
+		                                &exp_struct.tm_year,
+		                                &exp_struct.tm_mon,
+		                                &exp_struct.tm_mday,
+		                                &exp_struct.tm_hour,
+		                                &exp_struct.tm_min,
+		                                &exp_struct.tm_sec);
+		    expiration = mktime(&exp_struct);
+			result = cmd_submitf(cmd, "%s;%d;%d;%lu", host_name, persistent_comment, expires, expiration);
 			break;
 
 		case CMD_ADD_SVC_COMMENT:

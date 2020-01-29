@@ -1999,14 +1999,11 @@ int process_contactgroup_command(int cmd, time_t entry_time, char *args) {
 
 /* adds a host or service comment to the status log */
 int cmd_add_comment(int cmd, time_t entry_time, char *args) {
-	char *temp_ptr = NULL;
 	host *temp_host = NULL;
 	service *temp_service = NULL;
 	char *host_name = NULL;
 	char *svc_description = NULL;
-	char *user = NULL;
-	char *comment_data = NULL;
-	int persistent = 0;
+
 	int result = 0;
 
 	/* get the host name */
@@ -2029,25 +2026,48 @@ int cmd_add_comment(int cmd, time_t entry_time, char *args) {
 	if((temp_host = find_host(host_name)) == NULL)
 		return ERROR;
 
-	/* get the persistent flag */
-	if((temp_ptr = my_strtok(NULL, ";")) == NULL)
-		return ERROR;
-	persistent = atoi(temp_ptr);
-	if(persistent > 1)
-		persistent = 1;
-	else if(persistent < 0)
-		persistent = 0;
+//	/* get the persistent flag */
+//	if((temp_ptr = my_strtok(NULL, ";")) == NULL)
+//		return ERROR;
+//	persistent = atoi(temp_ptr);
+//	if(persistent > 1)
+//		persistent = 1;
+//	else if(persistent < 0)
+//		persistent = 0;
+//
+//	if ((temp_ptr = my_strtok(NULL, ";")) == NULL)
+//		return ERROR;
+//	expires = atoi(temp_ptr);
+//	if ((temp_ptr = my_strtok(NULL, ";")) == NULL)
+//		return ERROR;
+//	expire_time = atoi(temp_ptr);
+//
+//
+//	/* get the name of the user who entered the comment */
+//	if((user = my_strtok(NULL, ";")) == NULL)
+//		return ERROR;
+//
+//	/* get the comment */
+//	if((comment_data = my_strtok(NULL, "\n")) == NULL)
+//		return ERROR;
 
-	/* get the name of the user who entered the comment */
-	if((user = my_strtok(NULL, ";")) == NULL)
-		return ERROR;
+    char *user = NULL;
+    char *comment_data = NULL;
+    char expire_time_string[20] = {0};
+    time_t expire_time = 0L;
+    int expires = 0;
+    int persistent = 0;
+    struct tm exp_struct;
+    // localhost;1;1;2020-01-29T01:11:40;Nagios Admin;asdfasfasdfasdfsdafsdafasdfl\n
+    
+    sscanf(args, "%s;%i;%i;%19s;%s;%s\n", host_name, &persistent, &expires, expire_time_string, user, comment_data);
 
-	/* get the comment */
-	if((comment_data = my_strtok(NULL, "\n")) == NULL)
-		return ERROR;
-
+	log_debug_info(DEBUGL_EXTERNALCOMMANDS, 2, "Expire String:%i;%i;%19s;%s;%s\n", persistent, expires, expire_time_string, user, comment_data);
+    sscanf(expire_time_string, "%04d-%02d-%02d%*[ T]%02d:%02d:%02d", &exp_struct.tm_year, &exp_struct.tm_mon, &exp_struct.tm_mday, &exp_struct.tm_hour, &exp_struct.tm_min, &exp_struct.tm_sec);
+    expire_time = mktime(&exp_struct);
+	log_debug_info(DEBUGL_EXTERNALCOMMANDS, 2, "Epochy: %lu\n", expire_time);
 	/* add the comment */
-	result = add_new_comment((cmd == CMD_ADD_HOST_COMMENT) ? HOST_COMMENT : SERVICE_COMMENT, USER_COMMENT, host_name, svc_description, entry_time, user, comment_data, persistent, COMMENTSOURCE_EXTERNAL, FALSE, (time_t)0, NULL);
+	result = add_new_comment((cmd == CMD_ADD_HOST_COMMENT) ? HOST_COMMENT : SERVICE_COMMENT, USER_COMMENT, host_name, svc_description, entry_time, user, comment_data, persistent, COMMENTSOURCE_EXTERNAL, expires, expire_time, NULL);
 
 	if(result < 0)
 		return ERROR;
@@ -2654,7 +2674,6 @@ int cmd_schedule_downtime(int cmd, time_t entry_time, char *args) {
 	char *servicegroup_name = NULL;
 	char *svc_description = NULL;
 	char *temp_ptr = NULL;
-	time_t expire_time = 0L;
 	time_t start_time = 0L;
 	time_t end_time = 0L;
 	int fixed = 0;

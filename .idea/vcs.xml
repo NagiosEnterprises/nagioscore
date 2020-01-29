@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="$PROJECT_DIR$" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/.vim/bundle/Vundle.vim" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/.vim/bundle/ctrlp.vim" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/.vim/bundle/nerdtree" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/.vim/bundle/vim-vinegar" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/plugins" vcs="Git" />
+  </component>
+</project>

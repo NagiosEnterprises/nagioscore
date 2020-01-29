@@ -44,17 +44,22 @@ RUN make install-commandmode
 RUN make install-config
 RUN make install-webconf
 
-# Make sure plugins directory is available (Commented for troubleshooting with search)
-RUN ctags -R *
-
 RUN htpasswd -bc /usr/local/nagios/etc/htpasswd.users nagiosadmin admin
 RUN echo "ServerName localhost" >> /etc/httpd/conf/httpd.conf
 
 RUN /usr/sbin/httpd -k start
 RUN /etc/init.d/nagios start
 
-RUN ln -s /var/www/html/.vimrc /root/.vimrc
-RUN ln -s /var/www/html/.vim /root/.vim
+RUN mkdir -p /root/.vim/bundle
+RUN mkdir -p /root/.vim/colors
+RUN mkdir -p /root/.vim/plugins
+RUN ln -s /var/www/html/.vim/plugins /root/.vim/plugins
+RUN git clone https://github.com/VundleVim/Vundle.vim.git .vim/bundle/Vundle.vim
+CMD [ "/bin/bash" , "-c", "vim +PluginInstall +qall" ]
+# Make sure plugins directory is available (Commented for troubleshooting with search)
+RUN git config --global core.editor "/usr/bin/vim"
+RUN git config --global user.email "iwhite@nagios.com"
+RUN git config --global user.name  "Isaac A. White"
 
 ## Must have plugins repo inside Nagios Core Repo (~/nagioscore/plugins)
 ## TODO: Make plugins another container.
@@ -63,7 +68,7 @@ RUN ln -s /var/www/html/.vim /root/.vim
 #CMD [ "/bin/bash", "-c", "./tools/setup && ./configure" ]
 #CMD [ "/bin/bash", "-c", "make && make install" ]
 #RUN find . -exec touch {} +
-WORKDIR /var/www/html
+WORKDIR /var/www/html/
 
 CMD /usr/bin/supervisord -c /var/www/html/supervisord.conf
 

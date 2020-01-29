@@ -1,9 +1,6 @@
-FROM vim
+FROM cen
 LABEL author="Isaac A. White <iwhite@nagios.com>"
 
-WORKDIR /var/www/html/
-COPY .vimrc /root/.vimrc
-COPY .vim /root/
 
 # WORKDIR /var/www/html/plugins
 # RUN ./tools/setup && ./configure

@@ -1,4 +1,3 @@
-#ifdef ENABLE_NERD
 /*
  * Nagios Event Radio Dispatcher
  *
@@ -26,6 +25,8 @@
 #include "include/nebmods.h"
 #include "include/nebmodules.h"
 #include "include/nebstructs.h"
+
+#ifdef ENABLE_NERD
 
 struct nerd_channel {
 	const char *name; /* name of this channel */

@@ -3542,7 +3542,7 @@ void write_log_entries(avail_subject *subject)
 
 			/* show blank event duration if the end time is past the start time */
 			if ((t2 - temp_as->time_stamp) > atoi(end_date_time)) {
-				duration = '\0';
+				*duration = '\0';
 			} else {
 				snprintf(duration, sizeof(duration) - 1, "%dd %dh %dm %ds+", days, hours, minutes, seconds);
 			}

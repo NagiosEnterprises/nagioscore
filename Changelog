@@ -4,6 +4,9 @@ Nagios Core 4 Change Log
 
 4.5.0 - 2019-??-??
 ------------------
+ENHANCEMENTS
+* Allow multi-line host/service comments in the web interface (#687) (Isaac White)
+
 FIXES
 * Check reaper no longer requires a decimal point in timestamp field (#622) (Sebastian Wolf)
 * $SERVICEPROBLEMID$ now accessible when notifications are sent (#688) (Sebastian Wolf)

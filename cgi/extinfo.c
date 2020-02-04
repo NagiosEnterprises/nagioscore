@@ -2504,8 +2504,8 @@ void display_comments(int type) {
 
 		if(display_comment == TRUE) {
 
-            bg_class = odd ? "commentOdd" : "commentEven";
-            odd = odd ? 0 : 1;
+			bg_class = odd ? "commentOdd" : "commentEven";
+			odd = odd ? 0 : 1;
 
 			switch(temp_comment->entry_type) {
 				case USER_COMMENT:
@@ -2610,8 +2610,6 @@ void show_all_downtime(void) {
 		total_downtime++;
 
 
-		bg_class = odd ? "downtimeOdd" : "downtimeEven";
-		odd = odd ? 0 : 1;
 		bg_class = odd ? "downtimeOdd" : "downtimeEven";
 		odd = odd ? 0 : 1;
 		printf("<tr CLASS='%s'>", bg_class);

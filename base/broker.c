@@ -534,7 +534,7 @@ void broker_service_status(int type, int flags, int attr, service *svc, struct t
 
 /* sends contact status updates to broker */
 void broker_contact_status(int type, int flags, int attr, contact *cntct, struct timeval *timestamp) {
-	nebstruct_service_status_data ds;
+	nebstruct_contact_status_data ds;
 
 	if(!(event_broker_options & BROKER_STATUS_DATA))
 		return;

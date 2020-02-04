@@ -1,0 +1,22 @@
+Nagios v4 Upgrade Considerations
+================================
+
+This applies if you are upgrading from Nagios v2 or v3.
+
+The Nagios v2 or v3 nagios.cfg is will not pass a Nagios v4 syntax check without modification. Also note that Nagios Core v4 has more strict host/service definition requirements.
+The following attributes from Nagios v2 or v3 are incompatible with Nagios v4 and will generate an error.
+
+use_embedded_perl_implicitly
+sleep_time
+p1_file
+external_command_buffer_slots
+enable_embedded_perl
+command_check_interval
+
+In order to force a Nagios v2 or v3 nagios.cfg file to run with Nagios v4 simply commment out these nagios.cfg lines.
+
+The included script UpgradeToVersion4.sh will do this automatically for the file 
+/etc/nagios/nagios.cfg (the standard location for the nagios.cfg file)
+
+This is a work-around and you should consider implementing the new nagios.cfg file.
+

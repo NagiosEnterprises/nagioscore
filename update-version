@@ -66,6 +66,10 @@ perl -i -p -e "s/Description=.*/Description=Nagios Core $newversion/;" startup/d
 # Update RPM spec file with version number
 perl -i -p -e "s/Version: .*/Version: $newversion/;" nagios.spec
 
+# Update EPEL RPM spec file in contrib directory  with version number
+perl -i -p -e "s/Version: .*/Version: $newversion/;" contrib/epel-nagios.spec
+
+
 # Update the doxygen docs
 perl -i -p -e "s/^PROJECT_NUMBER = .*/PROJECT_NUMBER = $newversion/;" doxy.conf
 

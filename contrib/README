@@ -37,7 +37,28 @@ Miscellaneous Goodies:
   Apache to require password authentication for access to the web
   interface.
 
-- Automated rpm making. 
-  1. ./configure # to generate contrib/Makefile
-  2. cd contrib ; make rpm
-  3. *.rpm will be generated in contrib directory.
+- epel-nagios.spec and epel-patches directory are added for creating EPEL like rpms
+
+  1. Prepare your rpmbuild environment for CentOS/RHEL
+
+  sudo yum instatll -y rpmdevtools gcc libtool rpmbuild
+
+  sudo yum instatll -y policycoreutils-devel selinux-policy-devel \
+  perl-generators gdbm-devel pyparsing systemtap perl-ExtUtils-Manifest \
+  libdb perl-ExtUtils-MakeMaker  perl-ExtUtils-Install perl-devel  \
+  perl-ExtUtils-ParseXS perl-local-lib  perl-CPAN perl-ExtUtils-AutoInstall \
+  perl-Test-Simple perl-ExtUtils-Embed  perl-HTML-Lint
+
+  2. Generate contrib/Makefile from contrib/Makefile.in
+
+     ../configure      # to generate contrib/Makefile
+     make rpm          # get nagioscore released tar ball
+     make localsrc-rpm # tar up existing src code to create rpm
+
+  3. To Upgrade for local EPEL RRPMs
+
+  sudo rpm -Uvh nagios-common-4.4.5-1.el7.x86_64.rpm \
+  nagios-contrib-4.4.5-1.el7.x86_64.rpm nagios-devel-4.4.5-1.el7.x86_64.rpm  nagios-4.4.5-1.el7.x86_64.rpm
+  sudo systemctl daemon-reload
+  sudo systemctl restart nagios
+

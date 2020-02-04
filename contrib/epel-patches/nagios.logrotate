@@ -1,0 +1,15 @@
+# Important!  Nagios rotates its own logs.  Only enable this logrotate if you
+# know what you are doing!
+
+# For more information please see "log_rotate_method" in: 
+# /etc/nagios/nagios.cfg
+
+# ----- logrotate config -------------
+#/var/log/nagios/*.log {
+#       missingok
+#       weekly
+#       notifempty
+#       nocompress
+#       create 644 nagios nagios
+#}
+

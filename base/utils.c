@@ -1589,7 +1589,6 @@ time_t get_next_log_rotation_time(void) {
 	struct tm *t, tm_s;
 	int is_dst_now = FALSE;
 	time_t run_time;
-	int expected_mday;
 
 	time(&current_time);
 	t = localtime_r(&current_time, &tm_s);

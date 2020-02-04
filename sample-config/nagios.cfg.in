@@ -1343,9 +1343,9 @@ allow_empty_hostgroup_assignment=0
 #      1     Set the service status to STATE_WARNING
 #      2     Set the service status to STATE_CRITICAL
 #      3     Set the service status to STATE_UNKNOWN
-# The host_dependency_skip_check_status option will allow you to set the
+# The host_skip_check_dependency_status option will allow you to set the
 # status of a host when itscheck is skipped due to a failed dependency check.
-# Valid values for the host_dependency_skip_check_status are:
+# Valid values for the host_skip_check_dependency_status are:
 #     -1     Do not change the service status (default - same as before 4.4)
 #      0     Set the host status to STATE_UP
 #      1     Set the host status to STATE_DOWN

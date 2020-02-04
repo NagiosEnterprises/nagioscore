@@ -8,7 +8,7 @@ FIXES
 * Check reaper no longer requires a decimal point in timestamp field (#622) (Sebastian Wolf)
 * $SERVICEPROBLEMID$ now accessible when notifications are sent (#688) (Sebastian Wolf)
 
-4.4.5 - 2019-08-??
+4.4.5 - 2019-08-20
 ------------------
 FIXES
 * Reverted changes related to #625 due to CPU load issues

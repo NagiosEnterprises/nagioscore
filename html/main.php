@@ -145,7 +145,11 @@ $this_year = '2019';
 <div id="currentversioninfo">
 	<div class="product">Nagios<sup><span style="font-size: small;">&reg;</span></sup> Core<sup><span style="font-size: small;">&trade;</span></sup></div>
 	<div class="version">Version <?php echo $this_version; ?></div>
+<<<<<<< HEAD
 	<div class="releasedate">September 19, 2019</div>
+=======
+	<div class="releasedate">August 20, 2019</div>
+>>>>>>> master
 	<div class="checkforupdates"><a href="https://www.nagios.org/checkforupdates/?version=<?php echo $this_version; ?>&amp;product=nagioscore" target="_blank">Check for updates</a></div>
 </div>
 

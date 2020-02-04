@@ -1,0 +1,29 @@
+diff -up ./sample-config/template-object/templates.cfg.in.more_images ./sample-config/template-object/templates.cfg.in
+--- ./sample-config/template-object/templates.cfg.in.more_images	2018-11-28 13:10:25.822264939 -0600
++++ ./sample-config/template-object/templates.cfg.in	2018-11-28 13:16:15.711410141 -0600
+@@ -123,6 +123,7 @@ define host {
+     notification_interval           30                      ; Resend notifications every 30 minutes
+     notification_options            d,r                     ; Only send notifications for specific host states
+     contact_groups                  admins                  ; Notifications get sent to the admins by default
++    statusmap_image		printer.png
+     register                        0                       ; DON'T REGISTER THIS - ITS JUST A TEMPLATE
+ }
+ 
+@@ -142,9 +143,17 @@ define host {
+     notification_interval           30                      ; Resend notifications every 30 minutes
+     notification_options            d,r                     ; Only send notifications for specific host states
+     contact_groups                  admins                  ; Notifications get sent to the admins by default
++    statusmap_image		switch.png
+     register                        0                       ; DON'T REGISTER THIS - ITS JUST A TEMPLATE
+ }
+ 
++# Define a template for routers that we can reuse
++define host{
++    name			generic-router	; The name of this host template
++    use			generic-switch	; Inherit default values from the generic-host template
++    statusmap_image		router.png
++    register		0		; DONT REGISTER THIS - ITS JUST A TEMPLATE
++}
+ 
+ 
+ ###############################################################################

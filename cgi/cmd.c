@@ -1472,7 +1472,7 @@ int print_comment_field(int cmd_id)
 	printf("<INPUT TYPE='TEXT' NAME='com_author' VALUE='%s' %s>", escape_string(comment_author), (lock_author_names == TRUE) ? "READONLY DISABLED" : "");
 	printf("</b></td></tr>\n");
 	printf("<tr><td CLASS='%s'>Comment:</td><td><b>", reqtext);
-	printf("<INPUT TYPE='TEXT' NAME='com_data' VALUE='%s' SIZE=40>", escape_string(comment));
+	printf("<TEXTAREA NAME='com_data' PLACEHOLDER=\"Please Comment\" VALUE=\"%s\" rows=4 cols=40></TEXTAREA>", escape_string(comment));
 	printf("</b></td></tr>\n");
 	return TRUE;
 }
@@ -1951,10 +1951,30 @@ static int cmd_submitf(int id, const char *fmt, ...) {
 		}
 
 	if (*comment_data != '\0') {
+		// If '\n' is present within the comment, replace with <br> (just the character, to literal "\n", which is \\n).
+	    char *p = strchr(comment_data, '\n');
+	    if (p != NULL) {
+	    	*p++ = '\0';
+	    }
 		len2 = snprintf(cmd + len, sizeof(cmd) - len, ";%s;%s", comment_author, comment_data);
 		len += len2;
 		if(len2 < 0 || len >= sizeof(cmd))
 			return ERROR;
+
+		// Continue replacement until all '\n' are removed.
+		comment_data = p;
+		while (comment_data != NULL) {
+			p = strchr(comment_data, '\n');
+			if (p != NULL) {
+				*p++ = '\0';
+			}
+			// Insert HTML carriage breaks where line endings were provided.
+			len2 = snprintf(cmd + len, sizeof(cmd) - len, "<br>%s", comment_data);
+			len += len2;
+			if(len2 < 0 || len >= sizeof(cmd))
+				return ERROR;
+			comment_data = p;
+		}
 	}
 
 	cmd[len] = 0; /* 0 <= len < sizeof(cmd) */

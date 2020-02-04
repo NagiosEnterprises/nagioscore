@@ -1956,6 +1956,7 @@ static int cmd_submitf(int id, const char *fmt, ...) {
 	    if (p != NULL) {
 	    	*p++ = '\0';
 	    }
+
 		len2 = snprintf(cmd + len, sizeof(cmd) - len, ";%s;%s", comment_author, comment_data);
 		len += len2;
 		if(len2 < 0 || len >= sizeof(cmd))

@@ -1871,7 +1871,7 @@ void show_all_comments(void) {
 
 		total_comments++;
 
-        bg_class = odd ? "commentOdd" : "commentEven";
+		bg_class = odd ? "commentOdd" : "commentEven";
 		odd = odd ? 0 : 1;
 
 		switch(temp_comment->entry_type) {
@@ -2505,7 +2505,7 @@ void display_comments(int type) {
 		if(display_comment == TRUE) {
 
             bg_class = odd ? "commentOdd" : "commentEven";
-			odd = odd ? 0 : 1;
+            odd = odd ? 0 : 1;
 
 			switch(temp_comment->entry_type) {
 				case USER_COMMENT:

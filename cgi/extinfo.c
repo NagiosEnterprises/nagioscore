@@ -1801,14 +1801,8 @@ void show_all_comments(void) {
 
 		total_comments++;
 
-		if(odd) {
-			odd = 0;
-			bg_class = "commentOdd";
-			}
-		else {
-			odd = 1;
-			bg_class = "commentEven";
-			}
+		bg_class = odd ? "commentOdd" : "commentEven";
+		odd = odd ? 0 : 1;
 
 		switch(temp_comment->entry_type) {
 			case USER_COMMENT:
@@ -1877,14 +1871,8 @@ void show_all_comments(void) {
 
 		total_comments++;
 
-		if(odd) {
-			odd = 0;
-			bg_class = "commentOdd";
-			}
-		else {
-			odd = 1;
-			bg_class = "commentEven";
-			}
+		bg_class = odd ? "commentOdd" : "commentEven";
+		odd = odd ? 0 : 1;
 
 		switch(temp_comment->entry_type) {
 			case USER_COMMENT:
@@ -2516,14 +2504,8 @@ void display_comments(int type) {
 
 		if(display_comment == TRUE) {
 
-			if(odd) {
-				odd = 0;
-				bg_class = "commentOdd";
-				}
-			else {
-				odd = 1;
-				bg_class = "commentEven";
-				}
+			bg_class = odd ? "commentOdd" : "commentEven";
+			odd = odd ? 0 : 1;
 
 			switch(temp_comment->entry_type) {
 				case USER_COMMENT:
@@ -2627,15 +2609,9 @@ void show_all_downtime(void) {
 
 		total_downtime++;
 
-		if(odd) {
-			odd = 0;
-			bg_class = "downtimeOdd";
-			}
-		else {
-			odd = 1;
-			bg_class = "downtimeEven";
-			}
 
+		bg_class = odd ? "downtimeOdd" : "downtimeEven";
+		odd = odd ? 0 : 1;
 		printf("<tr CLASS='%s'>", bg_class);
 		printf("<td CLASS='%s'><A HREF='%s?type=%d&host=%s'>%s</A></td>", bg_class, EXTINFO_CGI, DISPLAY_HOST_INFO, url_encode(temp_downtime->host_name), temp_downtime->host_name);
 		get_time_string(&temp_downtime->entry_time, date_time, (int)sizeof(date_time), SHORT_DATE_TIME);
@@ -2695,14 +2671,9 @@ void show_all_downtime(void) {
 
 		total_downtime++;
 
-		if(odd) {
-			odd = 0;
-			bg_class = "downtimeOdd";
-			}
-		else {
-			odd = 1;
-			bg_class = "downtimeEven";
-			}
+
+		bg_class = odd ? "downtimeOdd" : "downtimeEven";
+		odd = odd ? 0 : 1;
 
 		printf("<tr CLASS='%s'>", bg_class);
 		printf("<td CLASS='%s'><A HREF='%s?type=%d&host=%s'>%s</A></td>", bg_class, EXTINFO_CGI, DISPLAY_HOST_INFO, url_encode(temp_downtime->host_name), temp_downtime->host_name);
@@ -2749,7 +2720,7 @@ void show_scheduling_queue(void) {
 	char date_time[MAX_DATETIME_LENGTH];
 	char temp_url[MAX_INPUT_BUFFER];
 	int odd = 0;
-	const char *bgclass = "";
+	const char *bg_class = "";
 
 
 	/* make sure the user has rights to view system information */
@@ -2820,32 +2791,26 @@ void show_scheduling_queue(void) {
 				}
 			}
 
-		if(odd) {
-			odd = 0;
-			bgclass = "Even";
-			}
-		else {
-			odd = 1;
-			bgclass = "Odd";
-			}
+		bg_class = odd ? "Odd" : "Even";
+		odd = odd ? 0 : 1;
 
-		printf("<TR CLASS='queue%s'>", bgclass);
+		printf("<TR CLASS='queue%s'>", bg_class);
 
 		/* get the service status */
 		if(temp_sortdata->is_service == TRUE) {
 
-			printf("<TD CLASS='queue%s'><A HREF='%s?type=%d&host=%s'>%s</A></TD>", bgclass, EXTINFO_CGI, DISPLAY_HOST_INFO, url_encode(temp_svcstatus->host_name), temp_svcstatus->host_name);
+			printf("<TD CLASS='queue%s'><A HREF='%s?type=%d&host=%s'>%s</A></TD>", bg_class, EXTINFO_CGI, DISPLAY_HOST_INFO, url_encode(temp_svcstatus->host_name), temp_svcstatus->host_name);
 
-			printf("<TD CLASS='queue%s'><A HREF='%s?type=%d&host=%s", bgclass, EXTINFO_CGI, DISPLAY_SERVICE_INFO, url_encode(temp_svcstatus->host_name));
+			printf("<TD CLASS='queue%s'><A HREF='%s?type=%d&host=%s", bg_class, EXTINFO_CGI, DISPLAY_SERVICE_INFO, url_encode(temp_svcstatus->host_name));
 			printf("&service=%s'>%s</A></TD>", url_encode(temp_svcstatus->description), temp_svcstatus->description);
 
 			get_time_string(&temp_svcstatus->last_check, date_time, (int)sizeof(date_time), SHORT_DATE_TIME);
-			printf("<TD CLASS='queue%s'>%s</TD>", bgclass, (temp_svcstatus->last_check == (time_t)0) ? "N/A" : date_time);
+			printf("<TD CLASS='queue%s'>%s</TD>", bg_class, (temp_svcstatus->last_check == (time_t)0) ? "N/A" : date_time);
 
 			get_time_string(&temp_svcstatus->next_check, date_time, (int)sizeof(date_time), SHORT_DATE_TIME);
-			printf("<TD CLASS='queue%s'>%s</TD>", bgclass, (temp_svcstatus->next_check == (time_t)0) ? "N/A" : date_time);
+			printf("<TD CLASS='queue%s'>%s</TD>", bg_class, (temp_svcstatus->next_check == (time_t)0) ? "N/A" : date_time);
 
-			printf("<TD CLASS='queue%s'>", bgclass);
+			printf("<TD CLASS='queue%s'>", bg_class);
 			if(temp_svcstatus->check_options == CHECK_OPTION_NONE)
 				printf("Normal ");
 			else {
@@ -2860,7 +2825,7 @@ void show_scheduling_queue(void) {
 
 			printf("<TD CLASS='queue%s'>%s</TD>", (temp_svcstatus->checks_enabled == TRUE) ? "ENABLED" : "DISABLED", (temp_svcstatus->checks_enabled == TRUE) ? "ENABLED" : "DISABLED");
 
-			printf("<TD CLASS='queue%s'>", bgclass);
+			printf("<TD CLASS='queue%s'>", bg_class);
 			if(temp_svcstatus->checks_enabled == TRUE) {
 				printf("<a href='%s?cmd_typ=%d&host=%s", COMMAND_CGI, CMD_DISABLE_SVC_CHECK, url_encode(temp_svcstatus->host_name));
 				printf("&service=%s'><img src='%s%s' border=0 ALT='Disable Active Checks Of This Service' TITLE='Disable Active Checks Of This Service'></a>\n", url_encode(temp_svcstatus->description), url_images_path, DISABLED_ICON);
@@ -2877,17 +2842,17 @@ void show_scheduling_queue(void) {
 		/* get the host status */
 		else {
 
-			printf("<TD CLASS='queue%s'><A HREF='%s?type=%d&host=%s'>%s</A></TD>", bgclass, EXTINFO_CGI, DISPLAY_HOST_INFO, url_encode(temp_hststatus->host_name), temp_hststatus->host_name);
+			printf("<TD CLASS='queue%s'><A HREF='%s?type=%d&host=%s'>%s</A></TD>", bg_class, EXTINFO_CGI, DISPLAY_HOST_INFO, url_encode(temp_hststatus->host_name), temp_hststatus->host_name);
 
-			printf("<TD CLASS='queue%s'>&nbsp;</TD>", bgclass);
+			printf("<TD CLASS='queue%s'>&nbsp;</TD>", bg_class);
 
 			get_time_string(&temp_hststatus->last_check, date_time, (int)sizeof(date_time), SHORT_DATE_TIME);
-			printf("<TD CLASS='queue%s'>%s</TD>", bgclass, (temp_hststatus->last_check == (time_t)0) ? "N/A" : date_time);
+			printf("<TD CLASS='queue%s'>%s</TD>", bg_class, (temp_hststatus->last_check == (time_t)0) ? "N/A" : date_time);
 
 			get_time_string(&temp_hststatus->next_check, date_time, (int)sizeof(date_time), SHORT_DATE_TIME);
-			printf("<TD CLASS='queue%s'>%s</TD>", bgclass, (temp_hststatus->next_check == (time_t)0) ? "N/A" : date_time);
+			printf("<TD CLASS='queue%s'>%s</TD>", bg_class, (temp_hststatus->next_check == (time_t)0) ? "N/A" : date_time);
 
-			printf("<TD CLASS='queue%s'>", bgclass);
+			printf("<TD CLASS='queue%s'>", bg_class);
 			if(temp_hststatus->check_options == CHECK_OPTION_NONE)
 				printf("Normal ");
 			else {
@@ -2902,7 +2867,7 @@ void show_scheduling_queue(void) {
 
 			printf("<TD CLASS='queue%s'>%s</TD>", (temp_hststatus->checks_enabled == TRUE) ? "ENABLED" : "DISABLED", (temp_hststatus->checks_enabled == TRUE) ? "ENABLED" : "DISABLED");
 
-			printf("<TD CLASS='queue%s'>", bgclass);
+			printf("<TD CLASS='queue%s'>", bg_class);
 			if(temp_hststatus->checks_enabled == TRUE) {
 				printf("<a href='%s?cmd_typ=%d&host=%s", COMMAND_CGI, CMD_DISABLE_HOST_CHECK, url_encode(temp_hststatus->host_name));
 				printf("'><img src='%s%s' border=0 ALT='Disable Active Checks Of This Host' TITLE='Disable Active Checks Of This Host'></a>\n", url_images_path, DISABLED_ICON);

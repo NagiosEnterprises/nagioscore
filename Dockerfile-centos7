@@ -55,7 +55,7 @@ WORKDIR /var/www/html/plugins/
 # TODO: Build Plugins - Does not work in Dockerfile, but a shell script might...
 #CMD [ "/bin/bash", "-c", "./tools/setup && ./configure" ]
 #CMD [ "/bin/bash", "-c", "make && make install" ]
-#RUN find . -exec touch {} \
+#RUN find . -exec touch {} +
 WORKDIR /var/www/html
 
 CMD /usr/bin/supervisord -c /var/www/html/supervisord.conf

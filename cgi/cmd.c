@@ -154,7 +154,6 @@ int main(void) {
 	if(strcmp(end_time_string, ""))
 		string_to_time(end_time_string, &end_time);
 
-
 	/* read all object configuration data */
 	result = read_all_object_configuration_data(main_config_file, READ_ALL_OBJECT_DATA);
 	if(result == ERROR) {

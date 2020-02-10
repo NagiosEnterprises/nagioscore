@@ -1,2 +1,2 @@
 @ECHO off
-docker exec -it ncentos7 /bin/bash
+docker exec -it ncen /bin/bash

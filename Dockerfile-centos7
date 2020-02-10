@@ -1,4 +1,4 @@
-FROM centos:7.3.1611
+FROM centos:7.7.1908
 LABEL author="Isaac A. White <iwhite@nagios.com>"
 
 RUN yum update -y && yum install -y epel-release
@@ -56,10 +56,10 @@ RUN /etc/init.d/nagios start
 RUN ln -s /var/www/html/.vimrc /root/.vimrc
 RUN ln -s /var/www/html/.vim /root/.vim
 
-# Must have plugins repo inside Nagios Core Repo (~/nagioscore/plugins)
-# TODO: Make plugins another container.
-WORKDIR /var/www/html/plugins/
-# TODO: Build Plugins - Does not work in Dockerfile, but a shell script might...
+## Must have plugins repo inside Nagios Core Repo (~/nagioscore/plugins)
+## TODO: Make plugins another container.
+#WORKDIR /var/www/html/plugins/
+## TODO: Build Plugins - Does not work in Dockerfile, but a shell script might...
 #CMD [ "/bin/bash", "-c", "./tools/setup && ./configure" ]
 #CMD [ "/bin/bash", "-c", "make && make install" ]
 #RUN find . -exec touch {} +

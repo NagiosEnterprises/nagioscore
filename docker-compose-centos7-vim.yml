@@ -1,6 +1,6 @@
-vim:
-    container_name: nvim
-    image: vim
+cen:
+    container_name: ncen
+    image: cen
     volumes:
      - .:/var/www/html
     ports:

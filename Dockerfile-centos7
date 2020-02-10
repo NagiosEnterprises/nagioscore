@@ -15,6 +15,7 @@ RUN yum update -y && yum install -y \
 	perl \
 	postfix \
 	vim \
+    ctags \
 	git \
 	make \
 	supervisor \
@@ -43,11 +44,17 @@ RUN make install-commandmode
 RUN make install-config
 RUN make install-webconf
 
+# Make sure plugins directory is available (Commented for troubleshooting with search)
+RUN ctags -R *
+
 RUN htpasswd -bc /usr/local/nagios/etc/htpasswd.users nagiosadmin admin
 RUN echo "ServerName localhost" >> /etc/httpd/conf/httpd.conf
 
 RUN /usr/sbin/httpd -k start
 RUN /etc/init.d/nagios start
+
+RUN ln -s /var/www/html/.vimrc /root/.vimrc
+RUN ln -s /var/www/html/.vim /root/.vim
 
 # Must have plugins repo inside Nagios Core Repo (~/nagioscore/plugins)
 # TODO: Make plugins another container.

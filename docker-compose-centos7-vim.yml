@@ -1,0 +1,7 @@
+vim:
+    container_name: nvim
+    image: vim
+    volumes:
+     - .:/var/www/html
+    ports:
+     - "5555:80"

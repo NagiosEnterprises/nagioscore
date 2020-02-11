@@ -58,6 +58,7 @@ char *servicegroup_name = "";
 char *service_desc = "";
 char *comment_author = "";
 char *comment_data = "";
+char *expire_time_string = "";
 char *start_time_string = "";
 char *end_time_string = "";
 char *cookie_form_id = NULL, *form_id = NULL;
@@ -73,6 +74,7 @@ int force_check = FALSE;
 int plugin_state = STATE_OK;
 char plugin_output[MAX_INPUT_BUFFER] = "";
 char performance_data[MAX_INPUT_BUFFER] = "";
+time_t expire_time = 0L;
 time_t start_time = 0L;
 time_t end_time = 0L;
 int affect_host_and_services = FALSE;
@@ -633,6 +635,22 @@ int process_cgivars(void) {
 			}
 
 		/* we found the start time */
+		else if(!strcmp(variables[x], "expire_time")) {
+			x++;
+			if(variables[x] == NULL) {
+				error = TRUE;
+				break;
+				}
+
+			expire_time_string = (char *)malloc(strlen(variables[x]) + 1);
+			if(expire_time_string == NULL)
+				expire_time_string = "";
+			else
+				strcpy(expire_time_string, variables[x]);
+			}
+
+
+		/* we found the start time */
 		else if(!strcmp(variables[x], "start_time")) {
 			x++;
 			if(variables[x] == NULL) {
@@ -1024,8 +1042,13 @@ void request_command_data(int cmd) {
 				printf("<INPUT TYPE='checkbox' NAME='send_notification' %s>", (ack_no_send == TRUE) ? "" : "CHECKED");
 				printf("</b></td></tr>\n");
 				}
+			time(&t);
+			get_time_string(&t, buffer, sizeof(buffer) - 1, EXPIRE_DATE_TIME);
 			printf("<tr><td CLASS='optBoxItem'>Persistent%s:</td><td><b>", (cmd == CMD_ACKNOWLEDGE_HOST_PROBLEM) ? " Comment" : "");
-			printf("<INPUT TYPE='checkbox' NAME='persistent' %s>", (cmd == CMD_ACKNOWLEDGE_HOST_PROBLEM) ? "" : "CHECKED");
+			printf("<INPUT TYPE='checkbox' NAME='persistent' %s></b></td>", (cmd == CMD_ACKNOWLEDGE_HOST_PROBLEM) ? "" : "CHECKED");
+			printf("<td CLASS='optBoxItem'>Expires%s:</td><td><b>", (cmd == CMD_ACKNOWLEDGE_HOST_PROBLEM) ? " Comment" : "");
+			printf("<INPUT TYPE='checkbox' NAME='expires' %s>", (cmd == CMD_ACKNOWLEDGE_HOST_PROBLEM) ? "" : "CHECKED");
+			printf("<INPUT TYPE='datetime-local' NAME='expire_time' VALUE='%s'>",buffer);
 			printf("</b></td></tr>\n");
 			print_comment_field(cmd);
 			break;

@@ -1009,6 +1009,16 @@ void get_time_string(time_t *raw_time, char *buffer, int buffer_length, int type
 	/* expiration date/time for HTTP headers */
 	else if(type == HTTP_DATE_TIME)
 		snprintf(buffer, buffer_length, "%s, %02d %s %d %02d:%02d:%02d GMT", weekdays[tm_ptr->tm_wday], day, months[tm_ptr->tm_mon], year, hour, minute, second);
+    else if (type == EXPIRE_DATE_TIME)
+			snprintf(buffer,
+			         buffer_length,
+			         "%04d-%02d-%02dT%02d:%02d:%02d",
+			         tm_ptr->tm_year + 1900,
+			         tm_ptr->tm_mon + 1,
+			         tm_ptr->tm_mday,
+			         tm_ptr->tm_hour,
+			         tm_ptr->tm_min,
+			         tm_ptr->tm_sec);
 
     /* short time */
 	else

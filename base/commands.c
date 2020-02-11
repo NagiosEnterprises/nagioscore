@@ -2654,6 +2654,7 @@ int cmd_schedule_downtime(int cmd, time_t entry_time, char *args) {
 	char *servicegroup_name = NULL;
 	char *svc_description = NULL;
 	char *temp_ptr = NULL;
+	time_t expire_time = 0L;
 	time_t start_time = 0L;
 	time_t end_time = 0L;
 	int fixed = 0;

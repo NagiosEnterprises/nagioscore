@@ -1,10 +1,3 @@
 let g:netrw_dirhistmax  =10
-let g:netrw_dirhist_cnt =8
-let g:netrw_dirhist_1='/root'
-let g:netrw_dirhist_2='/var/www/html/.vim/plugins'
-let g:netrw_dirhist_3='/var/www/html/.vim'
-let g:netrw_dirhist_4='/var/www/html/.vim/bundle'
-let g:netrw_dirhist_5='/var/www/html/.vim'
-let g:netrw_dirhist_6='/var/www/html'
-let g:netrw_dirhist_7='/var/www/html/.vim'
-let g:netrw_dirhist_8='/var/www/html'
+let g:netrw_dirhistcnt =1
+let g:netrw_dirhist_1='/var/home/Work/repos/nagioscore/cgi'

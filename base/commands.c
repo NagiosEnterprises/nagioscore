@@ -2002,8 +2002,14 @@ int cmd_add_comment(int cmd, time_t entry_time, char *args) {
 	host *temp_host = NULL;
 	service *temp_service = NULL;
 	char *host_name = NULL;
+    char host_name_buf[80];
 	char *svc_description = NULL;
-
+    char svc_description_buf[80];
+    char user[128];
+    char comment_data[16384];
+    time_t expire_time = 0L;
+    int expires = 0;
+    int persistent = 0;
 	int result = 0;
 
 	/* get the host name */
@@ -2020,19 +2026,27 @@ int cmd_add_comment(int cmd, time_t entry_time, char *args) {
 		/* verify that the service is valid */
 		if((temp_service = find_service(host_name, svc_description)) == NULL)
 			return ERROR;
-	}
-    /* else verify that the host is valid */
-    if((temp_host = find_host(host_name)) == NULL)
-        return ERROR;
+        // This gets each item via semi-colon (';') delimiter and Linux EOL ('\n')
+        // It needs to be this way so as to avoid issues with blank spaces (' ') within sscanf() 
+        sscanf(args, "%[^';'];%[^';'];%i;%i;%li;%[^';'];%[^'\n']", host_name_buf, svc_description_buf, &persistent, &expires, &expire_time, user, comment_data);
+                          
+    } else {
+        /* else verify that the host is valid */
+        if((temp_host = find_host(host_name)) == NULL)
+            return ERROR;
 
-    char user[128];
-    char comment_data[16384];
-    time_t expire_time = 0L;
-    int expires = 0;
-    int persistent = 0;
-    
-    sscanf(args, "%[^';'];%i;%i;%li;%[^';'];%[^'\n']", host_name, &persistent, &expires, &expire_time, user, comment_data);
-    
+        char user[128];
+        char comment_data[16384];
+        time_t expire_time = 0L;
+        int expires = 0;
+        int persistent = 0;
+       
+        // This gets each item via semi-colon (';') delimiter and Linux EOL ('\n')
+        // It needs to be this way so as to avoid issues with blank spaces (' ') within sscanf() 
+        sscanf(args, "%[^';'];%i;%i;%li;%[^';'];%[^'\n']", host_name_buf,&persistent, &expires, &expire_time, user, comment_data);
+        
+    }
+    log_debug_info(DEBUGL_FUNCTIONS, 0, "XXXXX: %i, %li, %s\n", expires, expire_time, comment_data);
 	/* add the comment */
 	result = add_new_comment((cmd == CMD_ADD_HOST_COMMENT) ? HOST_COMMENT : SERVICE_COMMENT, USER_COMMENT, host_name, svc_description, entry_time, user, comment_data, persistent, COMMENTSOURCE_EXTERNAL, expires, expire_time, NULL);
 

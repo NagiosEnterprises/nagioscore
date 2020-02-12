@@ -24,4 +24,4 @@ datetime2=`date --date="+60 seconds" +%s`
 # pipe the command to the command file
 echo $datetime
 echo $datetime2
-`$printfcmd "[%i] ADD_HOST_COMMENT;localhost;1;1;$datetime;NagiosAdmin;asdfasfasdfasdfsdafsdafasdfl\n" $datetime $datetime2 >> $CommandFile` && echo $?
+`$printfcmd "[%i] ADD_HOST_COMMENT;localhost;1;0;%i;Nagios Admin;asdf a   s fa s  dfa   s dfs d; a;;fsd;;af;asdfl\n" $datetime $datetime2 >> $CommandFile` && echo $?

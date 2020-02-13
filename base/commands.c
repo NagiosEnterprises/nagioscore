@@ -2035,20 +2035,14 @@ int cmd_add_comment(int cmd, time_t entry_time, char *args) {
         if((temp_host = find_host(host_name)) == NULL)
             return ERROR;
 
-        char user[128];
-        char comment_data[16384];
-        time_t expire_time = 0L;
-        int expires = 0;
-        int persistent = 0;
-       
         // This gets each item via semi-colon (';') delimiter and Linux EOL ('\n')
         // It needs to be this way so as to avoid issues with blank spaces (' ') within sscanf() 
         sscanf(args, "%[^';'];%i;%i;%li;%[^';'];%[^'\n']", host_name_buf,&persistent, &expires, &expire_time, user, comment_data);
         
     }
-    log_debug_info(DEBUGL_FUNCTIONS, 0, "XXXXX: %i, %li, %s\n", expires, expire_time, comment_data);
-	/* add the comment */
-	result = add_new_comment((cmd == CMD_ADD_HOST_COMMENT) ? HOST_COMMENT : SERVICE_COMMENT, USER_COMMENT, host_name, svc_description, entry_time, user, comment_data, persistent, COMMENTSOURCE_EXTERNAL, expires, expire_time, NULL);
+	
+    /* add the comment */
+    result = add_new_comment((cmd == CMD_ADD_HOST_COMMENT) ? HOST_COMMENT : SERVICE_COMMENT, USER_COMMENT, host_name, svc_description, entry_time, user, comment_data, persistent, COMMENTSOURCE_EXTERNAL, expires, expire_time, NULL);
 
 	if(result < 0)
 		return ERROR;

@@ -1,7 +1,6 @@
 FROM centos:7.7.1908
 LABEL author="Isaac A. White <iwhite@nagios.com>"
 
-RUN yum update -y && yum install -y epel-release
 RUN yum update -y && yum install -y \
 	gcc \
 	glibc \
@@ -18,7 +17,6 @@ RUN yum update -y && yum install -y \
     ctags \
 	git \
 	make \
-	supervisor \
 	ntp \
 	man \
 	gettext \
@@ -54,7 +52,6 @@ RUN mkdir -p /root/.vim/bundle
 RUN mkdir -p /root/.vim/colors
 RUN mkdir -p /root/.vim/plugins
 RUN ln -s /var/www/html/.vim/plugins /root/.vim/plugins
-RUN git clone https://github.com/VundleVim/Vundle.vim.git .vim/bundle/Vundle.vim
 CMD [ "/bin/bash" , "-c", "vim +PluginInstall +qall" ]
 # Make sure plugins directory is available (Commented for troubleshooting with search)
 RUN git config --global core.editor "/usr/bin/vim"
@@ -70,5 +67,8 @@ RUN git config --global user.name  "Isaac A. White"
 #RUN find . -exec touch {} +
 WORKDIR /var/www/html/
 
-CMD /usr/bin/supervisord -c /var/www/html/supervisord.conf
+RUN yum update -y && yum install -y supervisor
+RUN mkdir -p /etc/nagios
+COPY supervisord.conf /etc/nagios/supervisord.conf
+CMD /usr/bin/supervisord -c /etc/nagios/supervisord.conf
 

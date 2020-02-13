@@ -40,6 +40,11 @@ core.[1-9]*
 coverage-report/
 nagioscore.info-file
 .vim/.netrwhist
+.bash_history
+.gitconfig
+.idea/
+.viminfo
+.vimrc
 
 html/angularjs/angular-1.3.9
 html/angularjs/ui-utils-0.2.3

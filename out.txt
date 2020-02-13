@@ -1,0 +1,373 @@
+cd ./base && make install
+make[1]: Entering directory `/var/www/html/base'
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/bin
+/usr/bin/install -c -s -m 774 -o nagios -g nagios nagios /usr/local/nagios/bin
+/usr/bin/install -c -s -m 774 -o nagios -g nagios nagiostats /usr/local/nagios/bin
+make[1]: Leaving directory `/var/www/html/base'
+cd ./cgi && make install
+make[1]: Entering directory `/var/www/html/cgi'
+make install-basic
+make[2]: Entering directory `/var/www/html/cgi'
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/sbin
+for file in *.cgi; do \
+	/usr/bin/install -c -s -m 775 -o nagios -g nagios $file /usr/local/nagios/sbin; \
+done
+make[2]: Leaving directory `/var/www/html/cgi'
+make[1]: Leaving directory `/var/www/html/cgi'
+cd ./html && make install
+make[1]: Entering directory `/var/www/html/html'
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/share
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/share/media
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/share/stylesheets
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/share/contexthelp
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/share/docs
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/share/docs/images
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/share/js
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/share/images
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/share/images/logos
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/share/includes
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/share/ssi
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/share/angularjs
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/share/angularjs/angular-1.3.9
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/share/angularjs/ui-utils-0.2.3
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/share/bootstrap-3.3.7
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/share/bootstrap-3.3.7/css
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/share/d3
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/share/spin
+/usr/bin/install -c -m 664 -o nagios -g nagios robots.txt /usr/local/nagios/share
+rm -f /usr/local/nagios/share/index.html
+rm -f /usr/local/nagios/share/main.html
+rm -f /usr/local/nagios/share/side.html
+rm -f /usr/local/nagios/share/map.html
+rm -f /usr/local/nagios/share/rss-*
+rm -rf /usr/local/nagios/share/include/rss
+/usr/bin/install -c -m 664 -o nagios -g nagios jsonquery.html /usr/local/nagios/share
+/usr/bin/install -c -m 664 -o nagios -g nagios graph-header.html /usr/local/nagios/share
+/usr/bin/install -c -m 664 -o nagios -g nagios histogram.html /usr/local/nagios/share
+/usr/bin/install -c -m 664 -o nagios -g nagios histogram-form.html /usr/local/nagios/share
+/usr/bin/install -c -m 664 -o nagios -g nagios histogram-graph.html /usr/local/nagios/share
+/usr/bin/install -c -m 664 -o nagios -g nagios histogram-links.html /usr/local/nagios/share
+/usr/bin/install -c -m 664 -o nagios -g nagios infobox.html /usr/local/nagios/share
+/usr/bin/install -c -m 664 -o nagios -g nagios map.php /usr/local/nagios/share
+/usr/bin/install -c -m 664 -o nagios -g nagios map-directive.html /usr/local/nagios/share
+/usr/bin/install -c -m 664 -o nagios -g nagios map-form.html /usr/local/nagios/share
+/usr/bin/install -c -m 664 -o nagios -g nagios map-links.html /usr/local/nagios/share
+/usr/bin/install -c -m 664 -o nagios -g nagios map-popup.html /usr/local/nagios/share
+/usr/bin/install -c -m 664 -o nagios -g nagios trends.html /usr/local/nagios/share
+/usr/bin/install -c -m 664 -o nagios -g nagios trends-form.html /usr/local/nagios/share
+/usr/bin/install -c -m 664 -o nagios -g nagios trends-graph.html /usr/local/nagios/share
+/usr/bin/install -c -m 664 -o nagios -g nagios trends-host-yaxis.html /usr/local/nagios/share
+/usr/bin/install -c -m 664 -o nagios -g nagios trends-links.html /usr/local/nagios/share
+/usr/bin/install -c -m 664 -o nagios -g nagios trends-service-yaxis.html /usr/local/nagios/share
+for file in *.php; \
+do /usr/bin/install -c -m 664 -o nagios -g nagios $file /usr/local/nagios/share; done
+for file in stylesheets/*.css; \
+do /usr/bin/install -c -m 664 -o nagios -g nagios $file /usr/local/nagios/share/stylesheets; done
+for file in contexthelp/*.html; \
+do /usr/bin/install -c -m 664 -o nagios -g nagios $file /usr/local/nagios/share/contexthelp; done
+for file in js/*.js; \
+do /usr/bin/install -c -m 664 -o nagios -g nagios $file /usr/local/nagios/share/js; done
+for file in images/*.gif; \
+do /usr/bin/install -c -m 664 -o nagios -g nagios $file /usr/local/nagios/share/images; done
+for file in images/*.jpg; \
+do /usr/bin/install -c -m 664 -o nagios -g nagios $file /usr/local/nagios/share/images; done
+for file in images/*.png; \
+do /usr/bin/install -c -m 664 -o nagios -g nagios $file /usr/local/nagios/share/images; done
+for file in images/*.ico; \
+do /usr/bin/install -c -m 664 -o nagios -g nagios $file /usr/local/nagios/share/images; done
+for file in images/logos/*.*; \
+do /usr/bin/install -c -m 664 -o nagios -g nagios $file /usr/local/nagios/share/images/logos; done
+for file in includes/*.*; \
+do /usr/bin/install -c -m 664 -o nagios -g nagios $file /usr/local/nagios/share/includes; done
+/usr/bin/install -c -m 664 -o nagios -g nagios angularjs/angular-1.3.9/angular.min.js  /usr/local/nagios/share/angularjs/angular-1.3.9
+/usr/bin/install -c -m 664 -o nagios -g nagios angularjs/angular-1.3.9/angular.min.js.map  /usr/local/nagios/share/angularjs/angular-1.3.9
+/usr/bin/install -c -m 664 -o nagios -g nagios angularjs/ui-bootstrap-tpls-0.14.3.min.js  /usr/local/nagios/share/angularjs
+/usr/bin/install -c -m 664 -o nagios -g nagios angularjs/ui-utils-0.2.3/ui-utils.js   /usr/local/nagios/share/angularjs/ui-utils-0.2.3
+/usr/bin/install -c -m 664 -o nagios -g nagios bootstrap-3.3.7/css/bootstrap.min.css /usr/local/nagios/share/bootstrap-3.3.7/css
+/usr/bin/install -c -m 664 -o nagios -g nagios bootstrap-3.3.7/css/bootstrap-theme.min.css /usr/local/nagios/share/bootstrap-3.3.7/css
+/usr/bin/install -c -m 664 -o nagios -g nagios d3/d3.min.js /usr/local/nagios/share/d3
+/usr/bin/install -c -m 664 -o nagios -g nagios spin/spin.min.js /usr/local/nagios/share/spin
+make[1]: Leaving directory `/var/www/html/html'
+make install-exfoliation
+make[1]: Entering directory `/var/www/html'
+
+*** Exfoliation theme installed ***
+NOTE: Use 'make install-classicui' to revert to classic Nagios theme
+
+make[1]: Leaving directory `/var/www/html'
+make install-basic
+make[1]: Entering directory `/var/www/html'
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/libexec
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/var
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/var/archives
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/var/spool/checkresults
+chmod g+s /usr/local/nagios/var/spool/checkresults
+
+*** Main program, CGIs and HTML files installed ***
+
+You can continue with installing Nagios as follows (type 'make'
+without any arguments for a list of all possible options):
+
+  make install-init
+     - This installs the init script in /etc/init.d
+
+  make install-commandmode
+     - This installs and configures permissions on the
+       directory for holding the external command file
+
+  make install-config
+     - This installs sample config files in /usr/local/nagios/etc
+
+make[1]: Leaving directory `/var/www/html'
+cd ./base && make
+make[1]: Entering directory `/var/www/html/base'
+gcc -Wall -I.. -g -O2 -DHAVE_CONFIG_H -DNSCORE -c -o ../common/shared.o ../common/shared.c
+make -C ../lib
+make[2]: Entering directory `/var/www/html/lib'
+make[2]: Nothing to be done for `all'.
+make[2]: Leaving directory `/var/www/html/lib'
+gcc -Wall -I.. -g -O2 -DHAVE_CONFIG_H -DNSCORE -o nagios nagios.o broker.o nebmods.o ../common/shared.o  query-handler.o workers.o checks.o config.o commands.o events.o flapping.o logging.o macros-base.o netutils.o notifications.o sehandlers.o utils.o retention-base.o xretention-base.o comments-base.o xcomments-base.o objects-base.o xobjects-base.o statusdata-base.o xstatusdata-base.o perfdata-base.o xperfdata-base.o downtime-base.o  -Wl,-export-dynamic   -lm  -ldl  ../lib/libnagios.a
+gcc -Wall -I.. -g -O2 -DHAVE_CONFIG_H -DNSCORE -o nagiostats nagiostats.c  -lm  ../lib/libnagios.a
+make[1]: Leaving directory `/var/www/html/base'
+cd ./cgi && make
+make[1]: Entering directory `/var/www/html/cgi'
+gcc -Wall -I.. -g -O2 -DHAVE_CONFIG_H -DNSCGI -DJSON_NAGIOS_4X  -o archivejson.cgi archivejson.c ../common/shared.o getcgi.o cgiutils.o cgiauth.o macros-cgi.o  objects-cgi.o xobjects-cgi.o statusdata-cgi.o xstatusdata-cgi.o comments-cgi.o downtime-cgi.o ../lib/libnagios.a archiveutils.o jsonutils.o 
+gcc -Wall -I.. -g -O2 -DHAVE_CONFIG_H -DNSCGI  -o avail.cgi avail.c ../common/shared.o getcgi.o cgiutils.o cgiauth.o macros-cgi.o  objects-cgi.o xobjects-cgi.o statusdata-cgi.o xstatusdata-cgi.o comments-cgi.o downtime-cgi.o ../lib/libnagios.a 
+gcc -Wall -I.. -g -O2 -DHAVE_CONFIG_H -DNSCGI  -o cmd.cgi cmd.c extcmd_list.o ../common/shared.o getcgi.o cgiutils.o cgiauth.o macros-cgi.o  objects-cgi.o xobjects-cgi.o statusdata-cgi.o xstatusdata-cgi.o comments-cgi.o downtime-cgi.o ../lib/libnagios.a   
+gcc -Wall -I.. -g -O2 -DHAVE_CONFIG_H -DNSCGI  -o config.cgi config.c  ../common/shared.o getcgi.o cgiutils.o cgiauth.o macros-cgi.o  objects-cgi.o xobjects-cgi.o statusdata-cgi.o xstatusdata-cgi.o comments-cgi.o downtime-cgi.o ../lib/libnagios.a 
+gcc -Wall -I.. -g -O2 -DHAVE_CONFIG_H -DNSCGI  -o extinfo.cgi extinfo.c ../common/shared.o getcgi.o cgiutils.o cgiauth.o macros-cgi.o  objects-cgi.o xobjects-cgi.o statusdata-cgi.o xstatusdata-cgi.o comments-cgi.o downtime-cgi.o ../lib/libnagios.a   
+gcc -Wall -I.. -g -O2 -DHAVE_CONFIG_H -DNSCGI  -o history.cgi history.c ../common/shared.o getcgi.o cgiutils.o cgiauth.o macros-cgi.o  objects-cgi.o xobjects-cgi.o statusdata-cgi.o xstatusdata-cgi.o comments-cgi.o downtime-cgi.o ../lib/libnagios.a 
+gcc -Wall -I.. -g -O2 -DHAVE_CONFIG_H -DNSCGI  -o notifications.cgi notifications.c ../common/shared.o getcgi.o cgiutils.o cgiauth.o macros-cgi.o  objects-cgi.o xobjects-cgi.o statusdata-cgi.o xstatusdata-cgi.o comments-cgi.o downtime-cgi.o ../lib/libnagios.a 
+gcc -Wall -I.. -g -O2 -DHAVE_CONFIG_H -DNSCGI -DJSON_NAGIOS_4X  -o objectjson.cgi objectjson.c ../common/shared.o getcgi.o cgiutils.o cgiauth.o macros-cgi.o  objects-cgi.o xobjects-cgi.o statusdata-cgi.o xstatusdata-cgi.o comments-cgi.o downtime-cgi.o ../lib/libnagios.a jsonutils.o 
+gcc -Wall -I.. -g -O2 -DHAVE_CONFIG_H -DNSCGI  -o outages.cgi outages.c ../common/shared.o getcgi.o cgiutils.o cgiauth.o macros-cgi.o  objects-cgi.o xobjects-cgi.o statusdata-cgi.o xstatusdata-cgi.o comments-cgi.o downtime-cgi.o ../lib/libnagios.a  
+gcc -Wall -I.. -g -O2 -DHAVE_CONFIG_H -DNSCGI  -o showlog.cgi showlog.c ../common/shared.o getcgi.o cgiutils.o cgiauth.o macros-cgi.o  objects-cgi.o xobjects-cgi.o statusdata-cgi.o xstatusdata-cgi.o comments-cgi.o downtime-cgi.o ../lib/libnagios.a 
+gcc -Wall -I.. -g -O2 -DHAVE_CONFIG_H -DNSCGI  -o status.cgi status.c ../common/shared.o getcgi.o cgiutils.o cgiauth.o macros-cgi.o  objects-cgi.o xobjects-cgi.o statusdata-cgi.o xstatusdata-cgi.o comments-cgi.o downtime-cgi.o ../lib/libnagios.a  
+gcc -Wall -I.. -g -O2 -DHAVE_CONFIG_H -DNSCGI -DJSON_NAGIOS_4X  -o statusjson.cgi statusjson.c ../common/shared.o getcgi.o cgiutils.o cgiauth.o macros-cgi.o  objects-cgi.o xobjects-cgi.o statusdata-cgi.o xstatusdata-cgi.o comments-cgi.o downtime-cgi.o ../lib/libnagios.a jsonutils.o 
+gcc -Wall -I.. -g -O2 -DHAVE_CONFIG_H -DNSCGI  -o statuswml.cgi statuswml.c ../common/shared.o getcgi.o cgiutils.o cgiauth.o macros-cgi.o  objects-cgi.o xobjects-cgi.o statusdata-cgi.o xstatusdata-cgi.o comments-cgi.o downtime-cgi.o ../lib/libnagios.a 
+gcc -Wall -I.. -g -O2 -DHAVE_CONFIG_H -DNSCGI  -o summary.cgi summary.c ../common/shared.o getcgi.o cgiutils.o cgiauth.o macros-cgi.o  objects-cgi.o xobjects-cgi.o statusdata-cgi.o xstatusdata-cgi.o comments-cgi.o downtime-cgi.o ../lib/libnagios.a 
+gcc -Wall -I.. -g -O2 -DHAVE_CONFIG_H -DNSCGI  -o tac.cgi tac.c ../common/shared.o getcgi.o cgiutils.o cgiauth.o macros-cgi.o  objects-cgi.o xobjects-cgi.o statusdata-cgi.o xstatusdata-cgi.o comments-cgi.o downtime-cgi.o ../lib/libnagios.a  
+gcc -Wall -I.. -g -O2 -DHAVE_CONFIG_H -DNSCGI  -o statuswrl.cgi statuswrl.c ../common/shared.o getcgi.o cgiutils.o cgiauth.o macros-cgi.o  objects-cgi.o xobjects-cgi.o statusdata-cgi.o xstatusdata-cgi.o comments-cgi.o downtime-cgi.o ../lib/libnagios.a -lm 
+gcc -Wall -I.. -g -O2 -DHAVE_CONFIG_H -DNSCGI  -o statusmap.cgi statusmap.c ../common/shared.o getcgi.o cgiutils.o cgiauth.o macros-cgi.o  objects-cgi.o xobjects-cgi.o statusdata-cgi.o xstatusdata-cgi.o comments-cgi.o downtime-cgi.o ../lib/libnagios.a -lgd  -lpng -ljpeg -lz -lm 
+gcc -Wall -I.. -g -O2 -DHAVE_CONFIG_H -DNSCGI  -o trends.cgi trends.c ../common/shared.o getcgi.o cgiutils.o cgiauth.o macros-cgi.o  objects-cgi.o xobjects-cgi.o statusdata-cgi.o xstatusdata-cgi.o comments-cgi.o downtime-cgi.o ../lib/libnagios.a -lgd  -lpng -ljpeg -lz -lm 
+gcc -Wall -I.. -g -O2 -DHAVE_CONFIG_H -DNSCGI  -o histogram.cgi histogram.c ../common/shared.o getcgi.o cgiutils.o cgiauth.o macros-cgi.o  objects-cgi.o xobjects-cgi.o statusdata-cgi.o xstatusdata-cgi.o comments-cgi.o downtime-cgi.o ../lib/libnagios.a -lgd  -lpng -ljpeg -lz -lm 
+make[1]: Leaving directory `/var/www/html/cgi'
+cd ./html && make
+make[1]: Entering directory `/var/www/html/html'
+(cd angularjs && unzip -u angular-1.3.9.zip)
+Archive:  angular-1.3.9.zip
+(cd angularjs && unzip -u ui-utils-0.2.3.zip)
+Archive:  ui-utils-0.2.3.zip
+125cb72d692f9f116454f338f6a5471f3088f9b9
+if [ ! -d bootstrap-3.3.7 ] ; then mkdir -p bootstrap-3.3.7 && ( cd bootstrap-3.3.7 && unzip -u ../bootstrap-3.3.7-dist.zip && mv dist/* . && rmdir dist ) ; fi
+mkdir -p d3
+(cd d3 && unzip -u ../d3-3.5.17.zip)
+Archive:  ../d3-3.5.17.zip
+make[1]: Leaving directory `/var/www/html/html'
+if [ xyes = xyes ]; then \
+	cd ./module && make; \
+fi
+make[1]: Entering directory `/var/www/html/module'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/var/www/html/module'
+cd ./worker && make all
+make[1]: Entering directory `/var/www/html/worker'
+cd ./ping && make all
+make[2]: Entering directory `/var/www/html/worker/ping'
+make[2]: Nothing to be done for `all'.
+make[2]: Leaving directory `/var/www/html/worker/ping'
+make[1]: Leaving directory `/var/www/html/worker'
+
+*** Compile finished ***
+
+If the main program and CGIs compiled without any errors, you
+can continue with testing or installing Nagios as follows (type
+'make' without any arguments for a list of all possible options):
+
+  make test
+     - This runs the test suite
+
+  make install
+     - This installs the main program, CGIs, and HTML files
+
+  make install-init
+     - This installs the init script in /etc/init.d
+
+  make install-daemoninit
+     - This will initialize the init script
+       in /etc/init.d
+
+  make install-groups-users
+     - This adds the users and groups if they do not exist
+
+  make install-commandmode
+     - This installs and configures permissions on the
+       directory for holding the external command file
+
+  make install-config
+     - This installs *SAMPLE* config files in /usr/local/nagios/etc
+       You'll have to modify these sample files before you can
+       use Nagios.  Read the HTML documentation for more info
+       on doing this.  Pay particular attention to the docs on
+       object configuration files, as they determine what/how
+       things get monitored!
+
+  make install-webconf
+     - This installs the Apache config file for the Nagios
+       web interface
+
+  make install-exfoliation
+     - This installs the Exfoliation theme for the Nagios
+       web interface
+
+  make install-classicui
+     - This installs the classic theme for the Nagios
+       web interface
+
+
+*** Support Notes *******************************************
+
+If you have questions about configuring or running Nagios,
+please make sure that you:
+
+     - Look at the sample config files
+     - Read the documentation on the Nagios Library at:
+           https://library.nagios.com
+
+before you post a question to one of the mailing lists.
+Also make sure to include pertinent information that could
+help others help you.  This might include:
+
+     - What version of Nagios you are using
+     - What version of the plugins you are using
+     - Relevant snippets from your config files
+     - Relevant error messages from the Nagios log file
+
+For more information on obtaining support for Nagios, visit:
+
+       https://support.nagios.com
+
+*************************************************************
+
+Enjoy.
+
+cd ./base && make install
+make[1]: Entering directory `/var/www/html/base'
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/bin
+/usr/bin/install -c -s -m 774 -o nagios -g nagios nagios /usr/local/nagios/bin
+/usr/bin/install -c -s -m 774 -o nagios -g nagios nagiostats /usr/local/nagios/bin
+make[1]: Leaving directory `/var/www/html/base'
+cd ./cgi && make install
+make[1]: Entering directory `/var/www/html/cgi'
+make install-basic
+make[2]: Entering directory `/var/www/html/cgi'
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/sbin
+for file in *.cgi; do \
+	/usr/bin/install -c -s -m 775 -o nagios -g nagios $file /usr/local/nagios/sbin; \
+done
+make[2]: Leaving directory `/var/www/html/cgi'
+make[1]: Leaving directory `/var/www/html/cgi'
+cd ./html && make install
+make[1]: Entering directory `/var/www/html/html'
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/share
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/share/media
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/share/stylesheets
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/share/contexthelp
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/share/docs
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/share/docs/images
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/share/js
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/share/images
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/share/images/logos
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/share/includes
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/share/ssi
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/share/angularjs
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/share/angularjs/angular-1.3.9
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/share/angularjs/ui-utils-0.2.3
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/share/bootstrap-3.3.7
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/share/bootstrap-3.3.7/css
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/share/d3
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/share/spin
+/usr/bin/install -c -m 664 -o nagios -g nagios robots.txt /usr/local/nagios/share
+rm -f /usr/local/nagios/share/index.html
+rm -f /usr/local/nagios/share/main.html
+rm -f /usr/local/nagios/share/side.html
+rm -f /usr/local/nagios/share/map.html
+rm -f /usr/local/nagios/share/rss-*
+rm -rf /usr/local/nagios/share/include/rss
+/usr/bin/install -c -m 664 -o nagios -g nagios jsonquery.html /usr/local/nagios/share
+/usr/bin/install -c -m 664 -o nagios -g nagios graph-header.html /usr/local/nagios/share
+/usr/bin/install -c -m 664 -o nagios -g nagios histogram.html /usr/local/nagios/share
+/usr/bin/install -c -m 664 -o nagios -g nagios histogram-form.html /usr/local/nagios/share
+/usr/bin/install -c -m 664 -o nagios -g nagios histogram-graph.html /usr/local/nagios/share
+/usr/bin/install -c -m 664 -o nagios -g nagios histogram-links.html /usr/local/nagios/share
+/usr/bin/install -c -m 664 -o nagios -g nagios infobox.html /usr/local/nagios/share
+/usr/bin/install -c -m 664 -o nagios -g nagios map.php /usr/local/nagios/share
+/usr/bin/install -c -m 664 -o nagios -g nagios map-directive.html /usr/local/nagios/share
+/usr/bin/install -c -m 664 -o nagios -g nagios map-form.html /usr/local/nagios/share
+/usr/bin/install -c -m 664 -o nagios -g nagios map-links.html /usr/local/nagios/share
+/usr/bin/install -c -m 664 -o nagios -g nagios map-popup.html /usr/local/nagios/share
+/usr/bin/install -c -m 664 -o nagios -g nagios trends.html /usr/local/nagios/share
+/usr/bin/install -c -m 664 -o nagios -g nagios trends-form.html /usr/local/nagios/share
+/usr/bin/install -c -m 664 -o nagios -g nagios trends-graph.html /usr/local/nagios/share
+/usr/bin/install -c -m 664 -o nagios -g nagios trends-host-yaxis.html /usr/local/nagios/share
+/usr/bin/install -c -m 664 -o nagios -g nagios trends-links.html /usr/local/nagios/share
+/usr/bin/install -c -m 664 -o nagios -g nagios trends-service-yaxis.html /usr/local/nagios/share
+for file in *.php; \
+do /usr/bin/install -c -m 664 -o nagios -g nagios $file /usr/local/nagios/share; done
+for file in stylesheets/*.css; \
+do /usr/bin/install -c -m 664 -o nagios -g nagios $file /usr/local/nagios/share/stylesheets; done
+for file in contexthelp/*.html; \
+do /usr/bin/install -c -m 664 -o nagios -g nagios $file /usr/local/nagios/share/contexthelp; done
+for file in js/*.js; \
+do /usr/bin/install -c -m 664 -o nagios -g nagios $file /usr/local/nagios/share/js; done
+for file in images/*.gif; \
+do /usr/bin/install -c -m 664 -o nagios -g nagios $file /usr/local/nagios/share/images; done
+for file in images/*.jpg; \
+do /usr/bin/install -c -m 664 -o nagios -g nagios $file /usr/local/nagios/share/images; done
+for file in images/*.png; \
+do /usr/bin/install -c -m 664 -o nagios -g nagios $file /usr/local/nagios/share/images; done
+for file in images/*.ico; \
+do /usr/bin/install -c -m 664 -o nagios -g nagios $file /usr/local/nagios/share/images; done
+for file in images/logos/*.*; \
+do /usr/bin/install -c -m 664 -o nagios -g nagios $file /usr/local/nagios/share/images/logos; done
+for file in includes/*.*; \
+do /usr/bin/install -c -m 664 -o nagios -g nagios $file /usr/local/nagios/share/includes; done
+/usr/bin/install -c -m 664 -o nagios -g nagios angularjs/angular-1.3.9/angular.min.js  /usr/local/nagios/share/angularjs/angular-1.3.9
+/usr/bin/install -c -m 664 -o nagios -g nagios angularjs/angular-1.3.9/angular.min.js.map  /usr/local/nagios/share/angularjs/angular-1.3.9
+/usr/bin/install -c -m 664 -o nagios -g nagios angularjs/ui-bootstrap-tpls-0.14.3.min.js  /usr/local/nagios/share/angularjs
+/usr/bin/install -c -m 664 -o nagios -g nagios angularjs/ui-utils-0.2.3/ui-utils.js   /usr/local/nagios/share/angularjs/ui-utils-0.2.3
+/usr/bin/install -c -m 664 -o nagios -g nagios bootstrap-3.3.7/css/bootstrap.min.css /usr/local/nagios/share/bootstrap-3.3.7/css
+/usr/bin/install -c -m 664 -o nagios -g nagios bootstrap-3.3.7/css/bootstrap-theme.min.css /usr/local/nagios/share/bootstrap-3.3.7/css
+/usr/bin/install -c -m 664 -o nagios -g nagios d3/d3.min.js /usr/local/nagios/share/d3
+/usr/bin/install -c -m 664 -o nagios -g nagios spin/spin.min.js /usr/local/nagios/share/spin
+make[1]: Leaving directory `/var/www/html/html'
+make install-exfoliation
+make[1]: Entering directory `/var/www/html'
+
+*** Exfoliation theme installed ***
+NOTE: Use 'make install-classicui' to revert to classic Nagios theme
+
+make[1]: Leaving directory `/var/www/html'
+make install-basic
+make[1]: Entering directory `/var/www/html'
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/libexec
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/var
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/var/archives
+/usr/bin/install -c -m 775 -o nagios -g nagios -d /usr/local/nagios/var/spool/checkresults
+chmod g+s /usr/local/nagios/var/spool/checkresults
+
+*** Main program, CGIs and HTML files installed ***
+
+You can continue with installing Nagios as follows (type 'make'
+without any arguments for a list of all possible options):
+
+  make install-init
+     - This installs the init script in /etc/init.d
+
+  make install-commandmode
+     - This installs and configures permissions on the
+       directory for holding the external command file
+
+  make install-config
+     - This installs sample config files in /usr/local/nagios/etc
+
+make[1]: Leaving directory `/var/www/html'

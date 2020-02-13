@@ -1,0 +1,9 @@
+ncentos7:
+  container_name: ncentos7
+  image: iwhite5/ncentos7
+  volumes:
+   - .:/var/www/html
+  ports:
+   - "5555:80"
+   - "5666:5666" # NRPE
+   - "5693:5693" # NCPA

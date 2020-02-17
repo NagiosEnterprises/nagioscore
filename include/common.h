@@ -493,7 +493,7 @@ extern const char *cmd_error_strerror(int error_code);
 #define SHORT_DATE              2
 #define SHORT_TIME              3
 #define HTTP_DATE_TIME          4	/* time formatted for use in HTTP headers */
-#define EXPIRE_DATE_TIME          5
+#define EXPIRE_DATE_TIME        5
 
 
 /**************************** DATE FORMATS ******************************/

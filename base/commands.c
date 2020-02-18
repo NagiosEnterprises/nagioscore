@@ -2002,10 +2002,10 @@ int cmd_add_comment(int cmd, time_t entry_time, char *args) {
     host *temp_host = NULL;
     service *temp_service = NULL;
     char *host_name = NULL;
-    char host_name_buf[80];
+    char host_name_buf[1024];
     char *svc_description = NULL;
-    char svc_description_buf[80];
-    char user[128];
+    char svc_description_buf[1024];
+    char user[1024];
     char comment_data[16384];
     time_t expire_time = 0L;
     int expires = 0;

@@ -2036,6 +2036,17 @@ int commit_command(int cmd) {
     /* get the notification time */
     notification_time = current_time + (notification_delay * 60);
 
+    sscanf(expire_time_string, "%04d-%02d-%02d%*[ T]%02d:%02d:%02d",
+                                &exp_struct.tm_year,
+                                &exp_struct.tm_mon,
+                                &exp_struct.tm_mday,
+                                &exp_struct.tm_hour,
+                                &exp_struct.tm_min,
+                                &exp_struct.tm_sec);
+    exp_struct.tm_year-=1900;
+    exp_struct.tm_mon--;
+    expiration = mktime(&exp_struct);
+
     /*
      * these are supposed to be implanted inside the
      * completed commands shipped off to nagios and
@@ -2116,21 +2127,11 @@ int commit_command(int cmd) {
             break;
 
         case CMD_ADD_HOST_COMMENT:
-            sscanf(expire_time_string, "%04d-%02d-%02d%*[ T]%02d:%02d:%02d",
-                                        &exp_struct.tm_year,
-                                        &exp_struct.tm_mon,
-                                        &exp_struct.tm_mday,
-                                        &exp_struct.tm_hour,
-                                        &exp_struct.tm_min,
-                                        &exp_struct.tm_sec);
-            exp_struct.tm_year-=1900;
-            exp_struct.tm_mon--;
-            expiration = mktime(&exp_struct);
             result = cmd_submitf(cmd, "%s;%d;%d;%lu", host_name, persistent_comment, expires, expiration);
             break;
 
         case CMD_ADD_SVC_COMMENT:
-            result = cmd_submitf(cmd, "%s;%s;%d", host_name, service_desc, persistent_comment);
+            result = cmd_submitf(cmd, "%s;%s;%d;%d;%lu", host_name, service_desc, persistent_comment, expires, expiration);
             break;
 
         case CMD_DEL_HOST_COMMENT:

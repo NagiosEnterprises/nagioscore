@@ -1,0 +1,8 @@
+cen:
+    container_name: ncen
+    image: cen
+    volumes:
+     - .:/var/www/html
+    ports:
+     - "80:80"
+     - "2222:22"

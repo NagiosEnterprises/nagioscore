@@ -1,0 +1,31 @@
+FROM centos:7.7.1908
+LABEL author="Isaac A. White <iwhite@nagios.com>"
+
+RUN yum update -y && yum install -y \
+	gcc \
+	glibc \
+	glibc-common \
+	wget \
+	unzip \
+	gettext \
+	automake \
+	autoconf \
+	openssl-devel \
+	net-snmp \
+	net-snmp-utils \
+	epel-release \
+	perl-Net-SNMPd \
+	git \
+	make \
+	vim
+
+RUN mkdir -p /var/www
+WORKDIR /var/www
+RUN cd /var/www
+RUN git clone https://github.com/nagios-plugins/nagios-plugins.git plugins
+WORKDIR /var/www/plugins
+RUN ./tools/setup
+RUN ./configure
+RUN make
+RUN make install
+

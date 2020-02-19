@@ -488,11 +488,12 @@ extern const char *cmd_error_strerror(int error_code);
 
 /************************** DATE/TIME TYPES *****************************/
 
-#define LONG_DATE_TIME			0
-#define SHORT_DATE_TIME			1
-#define SHORT_DATE			2
-#define SHORT_TIME			3
-#define HTTP_DATE_TIME			4	/* time formatted for use in HTTP headers */
+#define LONG_DATE_TIME          0
+#define SHORT_DATE_TIME         1
+#define SHORT_DATE              2
+#define SHORT_TIME              3
+#define HTTP_DATE_TIME          4	/* time formatted for use in HTTP headers */
+#define EXPIRE_DATE_TIME        5
 
 
 /**************************** DATE FORMATS ******************************/

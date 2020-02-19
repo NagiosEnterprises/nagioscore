@@ -191,6 +191,7 @@ case "$1" in
 		su $NagiosUser -c "touch $NagiosVarDir/nagios.log $NagiosRetentionFile"
 		@BIN_RM@ -f $NagiosCommandFile
 		touch $NagiosRunFile
+		chown $NagiosUser:$NagiosGroup $NagiosRunFile
 		$NagiosBin -d $NagiosCfgFile
 
 		echo "done."

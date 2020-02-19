@@ -2012,7 +2012,6 @@ static int cmd_submitf(int id, const char *fmt, ...) {
         }
     }
  
-    fprintf(stdout, "I am CMD: %s\n", cmd);
     cmd[len] = 0; /* 0 <= len < sizeof(cmd) */
     return write_command_to_file(cmd);
     }
@@ -2127,7 +2126,6 @@ int commit_command(int cmd) {
             exp_struct.tm_year-=1900;
             exp_struct.tm_mon--;
             expiration = mktime(&exp_struct);
-            fprintf(stdout, "Expiration Year:  %i\n Expiration Time (s): %li\n", exp_struct.tm_year, expiration);
             result = cmd_submitf(cmd, "%s;%d;%d;%lu", host_name, persistent_comment, expires, expiration);
             break;
 

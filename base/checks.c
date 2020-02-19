@@ -1610,9 +1610,6 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 	}
 
 	if (handle_event == TRUE) {
-
-		log_debug_info(DEBUGL_CHECKS, 0, "IS TIME FOR HANDLE THE SERVICE KTHX");
-		debug_async_service(svc, cr);
 		handle_service_event(svc);
 	}
 

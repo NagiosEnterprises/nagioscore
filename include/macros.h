@@ -40,6 +40,9 @@
 
 #define MACRO_X_COUNT				163	/* size of macro_x[] array */
 
+#define DICTIONARY_HASHSIZE         2048
+
+
 NAGIOS_BEGIN_DECL
 
 struct nagios_macros {

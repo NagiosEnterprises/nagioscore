@@ -34,6 +34,7 @@
 
 static char *macro_x_names[MACRO_X_COUNT]; /* the macro names */
 char *macro_user[MAX_USER_MACROS]; /* $USERx$ macros */
+struct DictionaryRecord nagiosResourceLibrary[DICTIONARY_HASHSIZE];
 
 struct macro_key_code {
 	char *name;  /* macro key name */
@@ -519,6 +520,8 @@ int grab_macro_value_r(nagios_macros *mac, char *macro_buffer, char **output, in
 			*output = mac->host_ptr->address;
 		return OK;
 		}
+
+    if (nagiosResourceLibrary) printf("HERE");
 
 	/* work with a copy of the original buffer */
 	if((buf = (char *)strdup(macro_buffer)) == NULL)

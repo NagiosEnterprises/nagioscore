@@ -34,7 +34,7 @@
 
 static char *macro_x_names[MACRO_X_COUNT]; /* the macro names */
 char *macro_user[MAX_USER_MACROS]; /* $USERx$ macros */
-struct DictionaryRecord nagiosResourceLibrary[DICTIONARY_HASHSIZE];
+DictionaryRecord *nagiosResourceLibrary[DICTIONARY_HASHSIZE];
 
 struct macro_key_code {
 	char *name;  /* macro key name */
@@ -463,7 +463,7 @@ int grab_macro_value_r(nagios_macros *mac, char *macro_buffer, char **output, in
 	int delimiter_len = 0;
 	int x, result = OK;
 	const struct macro_key_code *mkey;
-
+	DictionaryRecord *record = NULL;
 	/* for the early cases, this is the default */
 	*free_macro = FALSE;
 
@@ -521,7 +521,11 @@ int grab_macro_value_r(nagios_macros *mac, char *macro_buffer, char **output, in
 		return OK;
 		}
 
-    if (nagiosResourceLibrary) printf("HERE");
+    if (1) {//record = (DictionaryRecord *) findDictionaryRecordByKey(nagiosResourceLibrary, macro_buffer) != NULL) { 
+		record->value = "/var/here/not/there";
+        *output = &record->value;
+        return OK;
+	}
 
 	/* work with a copy of the original buffer */
 	if((buf = (char *)strdup(macro_buffer)) == NULL)
@@ -3113,6 +3117,48 @@ int clear_summary_macros(void) {
 /******************************************************************/
 /****************** ENVIRONMENT MACRO FUNCTIONS *******************/
 /******************************************************************/
+
+unsigned int hash(char *key) {
+    unsigned keyHash;
+    for (keyHash = 0; *key != '\0'; key++) {
+        keyHash = *key + 997 * keyHash;
+    }
+
+    return keyHash % DICTIONARY_HASHSIZE;
+}
+
+DictionaryRecord *findDictionaryRecordByKey(DictionaryRecord *library[], char *key) {
+    DictionaryRecord *record;
+    for (record = library[hash(key)]; record != NULL; record = record->next) {
+        fprintf(stdout, "find: \n  Key: %s\n", record->key);
+        if (strcmp(key, record->key) == 0) return record; 
+    }
+    return record; 
+}
+
+DictionaryRecord *writeDictionaryRecord(DictionaryRecord *library[], char *key, char *value) {
+    DictionaryRecord *record;
+    unsigned keyHash;
+    
+	record = findDictionaryRecordByKey(library, key);
+
+    if (record == NULL) {
+        record = (DictionaryRecord *) malloc(sizeof(record));
+        if ((record == NULL || (record->key = strdup(key)) == NULL)) {
+            return record;
+        }
+        keyHash = hash(key);
+        record->next = library[keyHash];
+        library[keyHash] = record;
+    }
+    
+    if ((record->value = strdup(value)) == NULL) {
+        return record;
+    }
+
+    return record;
+}
+
 
 #ifdef NSCORE
 

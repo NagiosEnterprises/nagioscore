@@ -53,15 +53,6 @@ extern char *nagios_user;
 extern char *nagios_group;
 
 extern char *macro_user[MAX_USER_MACROS];
-typedef struct DictionaryRecord {
-    struct DictionaryRecord *next;
-    char *key;
-    char *value;
-} DictionaryRecord;
-
-extern DictionaryRecord nagiosResourceLibrary[DICTIONARY_HASHSIZE];
-struct DictionaryRecord   findDictionaryRecordByKey(struct DictionaryRecord *library, char *key);
-struct DictionaryRecord   writeDictionaryRecord(struct DictionaryRecord *library, char *key, char *value);
 
 extern char *ocsp_command;
 extern char *ochp_command;

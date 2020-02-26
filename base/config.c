@@ -29,10 +29,6 @@
 #include "../include/nebmods.h"
 #include "../include/nebmodules.h"
 
-DictionaryRecord nagiosResourceLibrary[DICTIONARY_HASHSIZE];
-DictionaryRecord findDictionaryRecordByKey(DictionaryRecord *library, char *key);
-DictionaryRecord writeDictionaryRecord(DictionaryRecord *library, char *key, char *value);
-
 /*** helpers ****/
 /*
  * find a command with arguments still attached
@@ -1397,11 +1393,10 @@ int read_resource_file(char *resource_file) {
 				}
 			}
         // Make a dictionary of NAGIOS resource variables. $G_[VARIABLE]
+        // Access using findDictionaryRecordByKey()
         char *key = strdup(variable);
         if (strcmp(strtok(variable, "_"), "$G") == 0) {
             writeDictionaryRecord(nagiosResourceLibrary, key, value);
-            DictionaryRecord record = findDictionaryRecordByKey(nagiosResourceLibrary, "$G_ISAAC");
-			fprintf(stdout, "Keys: \n  Record Key:%s\n  Key: %s\n", record.key, key);
         }    
         my_free(key);
     } 
@@ -1416,49 +1411,6 @@ int read_resource_file(char *resource_file) {
         return ERROR;
     return OK;
 }
-
-unsigned int hash(char *key) {
-    unsigned keyHash;
-    for (keyHash = 0; *key != '\0'; key++) {
-        keyHash = *key + 997 * keyHash;
-    }
-
-    return keyHash % DICTIONARY_HASHSIZE;
-}
-
-DictionaryRecord findDictionaryRecordByKey(DictionaryRecord *library, char *key) {
-    DictionaryRecord record;
-    for (record = library[hash(key)]; record.key != NULL; record = *record.next) {
-        fprintf(stdout, "find: \n  Key: %s\n", record.key);
-        if (strcmp(key, record.key) == 0) return record; 
-    }
-    return record; 
-}
-
-DictionaryRecord writeDictionaryRecord(DictionaryRecord *library, char *key, char *value) {
-    DictionaryRecord record;
-    unsigned keyHash;
-    
-	record = findDictionaryRecordByKey(library, key);
-
-    if (record.key == NULL) {
-        if ((record.key = strdup(key)) == NULL) {
-            return record;
-        }
-        keyHash = hash(key);
-        record.next = &library[keyHash];
-        library[keyHash] = record;
-    }
-    
-    if ((record.value = strdup(value)) == NULL) {
-        return record;
-    }
-
-    return record;
-}
-
-
-
 
 
 

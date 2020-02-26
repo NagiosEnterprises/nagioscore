@@ -62,7 +62,15 @@ struct nagios_macros {
 	};
 typedef struct nagios_macros nagios_macros;
 
+typedef struct DictionaryRecord {
+    struct DictionaryRecord *next;
+    char *key;
+    char *value;
+} DictionaryRecord;
 
+DictionaryRecord *nagiosResourceLibrary[DICTIONARY_HASHSIZE];
+DictionaryRecord *findDictionaryRecordByKey(DictionaryRecord *library[], char *key);
+DictionaryRecord *writeDictionaryRecord(DictionaryRecord *library[], char *key, char *value);
 
 #define MACRO_HOSTNAME				0
 #define MACRO_HOSTALIAS				1

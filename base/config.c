@@ -29,10 +29,6 @@
 #include "../include/nebmods.h"
 #include "../include/nebmodules.h"
 
-DictionaryRecord nagiosResourceLibrary[DICTIONARY_HASHSIZE];
-DictionaryRecord findDictionaryRecordByKey(DictionaryRecord *library, char *key);
-DictionaryRecord writeDictionaryRecord(DictionaryRecord *library, char *key, char *value);
-
 /*** helpers ****/
 /*
  * find a command with arguments still attached
@@ -1388,22 +1384,23 @@ int read_resource_file(char *resource_file) {
 		if(variable[0] == '$' && variable[strlen(variable) - 1] == '$') {
 
 			/* $USERx$ macro declarations */
+            // TODO: figure out when and how to remove this. A dictionary 
+            //       is more comprehensive and comprehensible.
 			if(strstr(variable, "$USER") == variable  && strlen(variable) > 5) {
 				user_index = atoi(variable + 5) - 1;
 				if(user_index >= 0 && user_index < MAX_USER_MACROS) {
 					my_free(macro_user[user_index]);
 					macro_user[user_index] = (char *)strdup(value);
-					}
 				}
-			}
-        // Make a dictionary of NAGIOS resource variables. $G_[VARIABLE]
-        char *key = strdup(variable);
-        if (strcmp(strtok(variable, "_"), "$G") == 0) {
+		    }
+            
+            // Make a dictionary of NAGIOS resource variables. $G_[VARIABLE]
+            // Access using findDictionaryRecordByKey()
+            char *key = strtok(variable, "$");
             writeDictionaryRecord(nagiosResourceLibrary, key, value);
-            DictionaryRecord record = findDictionaryRecordByKey(nagiosResourceLibrary, "$G_ISAAC");
-			fprintf(stdout, "Keys: \n  Record Key:%s\n  Key: %s\n", record.key, key);
-        }    
-        my_free(key);
+            DictionaryRecord *record = findDictionaryRecordByKey(nagiosResourceLibrary, key);
+            fprintf(stdout, "Record: \n    Key:   %s\n    Value: %s\n", record->key, record->value);
+        }
     } 
     /* free leftover memory and close the file */
     my_free(input);
@@ -1416,49 +1413,6 @@ int read_resource_file(char *resource_file) {
         return ERROR;
     return OK;
 }
-
-unsigned int hash(char *key) {
-    unsigned keyHash;
-    for (keyHash = 0; *key != '\0'; key++) {
-        keyHash = *key + 997 * keyHash;
-    }
-
-    return keyHash % DICTIONARY_HASHSIZE;
-}
-
-DictionaryRecord findDictionaryRecordByKey(DictionaryRecord *library, char *key) {
-    DictionaryRecord record;
-    for (record = library[hash(key)]; record.key != NULL; record = *record.next) {
-        fprintf(stdout, "find: \n  Key: %s\n", record.key);
-        if (strcmp(key, record.key) == 0) return record; 
-    }
-    return record; 
-}
-
-DictionaryRecord writeDictionaryRecord(DictionaryRecord *library, char *key, char *value) {
-    DictionaryRecord record;
-    unsigned keyHash;
-    
-	record = findDictionaryRecordByKey(library, key);
-
-    if (record.key == NULL) {
-        if ((record.key = strdup(key)) == NULL) {
-            return record;
-        }
-        keyHash = hash(key);
-        record.next = &library[keyHash];
-        library[keyHash] = record;
-    }
-    
-    if ((record.value = strdup(value)) == NULL) {
-        return record;
-    }
-
-    return record;
-}
-
-
-
 
 
 

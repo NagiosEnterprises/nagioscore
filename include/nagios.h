@@ -44,6 +44,8 @@ extern char *check_result_path;
 extern char *lock_file;
 extern char *object_precache_file;
 
+extern char *macro_user[MAX_USER_MACROS];
+
 extern unsigned int nofile_limit, nproc_limit, max_apps;
 
 extern int num_check_workers;
@@ -51,8 +53,6 @@ extern char *qh_socket_path;
 
 extern char *nagios_user;
 extern char *nagios_group;
-
-extern char *macro_user[MAX_USER_MACROS];
 
 extern char *ocsp_command;
 extern char *ochp_command;

@@ -34,7 +34,6 @@
 
 static char *macro_x_names[MACRO_X_COUNT]; /* the macro names */
 char *macro_user[MAX_USER_MACROS]; /* $USERx$ macros */
-DictionaryRecord *nagiosResourceLibrary[DICTIONARY_HASHSIZE];
 
 struct macro_key_code {
 	char *name;  /* macro key name */
@@ -520,10 +519,10 @@ int grab_macro_value_r(nagios_macros *mac, char *macro_buffer, char **output, in
 			*output = mac->host_ptr->address;
 		return OK;
 		}
-
-    if (1) {//record = (DictionaryRecord *) findDictionaryRecordByKey(nagiosResourceLibrary, macro_buffer) != NULL) { 
-		record->value = "/var/here/not/there";
-        *output = &record->value;
+  
+    if ((record = (DictionaryRecord *) findDictionaryRecordByKey(nagiosResourceLibrary, macro_buffer)) != NULL) { 
+        record = nagiosResourceLibrary[hash(macro_buffer)]; 
+        *output = record->value;
         return OK;
 	}
 
@@ -3128,16 +3127,15 @@ unsigned int hash(char *key) {
 }
 
 DictionaryRecord *findDictionaryRecordByKey(DictionaryRecord *library[], char *key) {
-    DictionaryRecord *record;
+    DictionaryRecord *record = NULL;
     for (record = library[hash(key)]; record != NULL; record = record->next) {
-        fprintf(stdout, "find: \n  Key: %s\n", record->key);
         if (strcmp(key, record->key) == 0) return record; 
     }
     return record; 
 }
 
 DictionaryRecord *writeDictionaryRecord(DictionaryRecord *library[], char *key, char *value) {
-    DictionaryRecord *record;
+    DictionaryRecord *record = NULL;
     unsigned keyHash;
     
 	record = findDictionaryRecordByKey(library, key);

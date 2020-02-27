@@ -69,6 +69,7 @@ typedef struct DictionaryRecord {
 } DictionaryRecord;
 
 DictionaryRecord *nagiosResourceLibrary[DICTIONARY_HASHSIZE];
+unsigned int hash(char *key);
 DictionaryRecord *findDictionaryRecordByKey(DictionaryRecord *library[], char *key);
 DictionaryRecord *writeDictionaryRecord(DictionaryRecord *library[], char *key, char *value);
 

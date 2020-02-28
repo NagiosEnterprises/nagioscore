@@ -520,7 +520,7 @@ int grab_macro_value_r(nagios_macros *mac, char *macro_buffer, char **output, in
         return OK;
         }
   
-    if ((record = (DictionaryRecord *) findDictionaryRecordByKey(nagiosResourceLibrary, macro_buffer)) != NULL) { 
+    if ((strstr(macro_buffer, "G_") != NULL && record = (DictionaryRecord *) findDictionaryRecordByKey(nagiosResourceLibrary, macro_buffer)) != NULL) { 
         record = nagiosResourceLibrary[hash(macro_buffer)]; 
         *output = record->value;
         return OK;

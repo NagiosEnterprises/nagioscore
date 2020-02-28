@@ -44,7 +44,7 @@ extern char *check_result_path;
 extern char *lock_file;
 extern char *object_precache_file;
 
-extern unsigned int nofile_limit, nproc_limit, max_apps;i
+extern unsigned int nofile_limit, nproc_limit, max_apps;
 
 extern int num_check_workers;
 extern char *qh_socket_path;

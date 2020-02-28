@@ -1396,10 +1396,10 @@ int read_resource_file(char *resource_file) {
             
             // Make a dictionary of NAGIOS resource variables. $G_[VARIABLE]
             // Access using findDictionaryRecordByKey()
-            char *key = strtok(variable, "$");
-            writeDictionaryRecord(nagiosResourceLibrary, key, value);
-            DictionaryRecord *record = findDictionaryRecordByKey(nagiosResourceLibrary, key);
-            fprintf(stdout, "Record: \n    Key:   %s\n    Value: %s\n", record->key, record->value);
+            if (strstr(variable, "$G_") != NULL) { 
+                char *key = strtok(variable, "$");
+                writeDictionaryRecord(nagiosResourceLibrary, key, value);
+            }
         }
     } 
     /* free leftover memory and close the file */

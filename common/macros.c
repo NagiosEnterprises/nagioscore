@@ -96,6 +96,7 @@ static const struct macro_key_code *find_macro_key(const char *name) {
     return NULL;
     }
 
+static unsigned int hash(char *key);
 
 /*
  * replace macros in notification commands with their values,
@@ -462,7 +463,7 @@ int grab_macro_value_r(nagios_macros *mac, char *macro_buffer, char **output, in
     int delimiter_len = 0;
     int x, result = OK;
     const struct macro_key_code *mkey;
-    DictionaryRecord *record = NULL;
+    DictionaryRecord *record = findDictionaryRecordByKey(nagiosResourceLibrary, macro_buffer);
     /* for the early cases, this is the default */
     *free_macro = FALSE;
 
@@ -520,8 +521,8 @@ int grab_macro_value_r(nagios_macros *mac, char *macro_buffer, char **output, in
         return OK;
         }
   
-    if ((strstr(macro_buffer, "G_") != NULL && record = (DictionaryRecord *) findDictionaryRecordByKey(nagiosResourceLibrary, macro_buffer)) != NULL) { 
-        record = nagiosResourceLibrary[hash(macro_buffer)]; 
+    if (((strstr(macro_buffer, "G_") != NULL) && 
+         (record != NULL))) { 
         *output = record->value;
         return OK;
     }
@@ -3117,8 +3118,8 @@ int clear_summary_macros(void) {
 /****************** ENVIRONMENT MACRO FUNCTIONS *******************/
 /******************************************************************/
 
-unsigned int hash(char *key) {
-    unsigned keyHash;
+static unsigned int hash(char *key) {
+    unsigned int keyHash;
     for (keyHash = 0; *key != '\0'; key++) {
         keyHash = *key + 997 * keyHash;
     }

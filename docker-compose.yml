@@ -1,7 +1,26 @@
-cen:
-    container_name: ncen
-    image: cen
-    volumes:
-     - .:/var/www/html
-    ports:
-     - "5555:80"
+version: '2'
+services:
+    cen:
+        container_name: ncen
+        build: 
+            context: . 
+            dockerfile: docker/Dockerfile-centos7 
+        volumes:
+         - .:/var/www/html
+         - plugins-bin:/var/www/plugins
+        ports:
+         - "5555:80"
+        depends_on:
+         - apache
+    plugins:
+        container_name: nplugins
+        image: plugins
+        volumes:
+         - plugins-bin:/var/www/plugins
+        depends_on:
+         - cen
+    apache:
+        container_name: apache
+        image: httpd:latest
+volumes:
+    plugins-bin:

@@ -7,7 +7,6 @@ RUN yum update -y && yum install -y \
 	glibc-common \
 	wget \
 	unzip \
-	httpd \
 	php \
 	gd \
 	gd-devel \
@@ -30,9 +29,11 @@ RUN yum update -y && yum install -y \
 
 RUN mkdir -p /var/www/html
 RUN mkdir -p /var/www/plugins
-COPY ./nagioscore /var/www/html
-COPY ./plugins /var/www/plugins
+COPY . /var/www/html
+#COPY ./nagioscore /var/www/html
+#COPY ./plugins /var/www/plugins
 WORKDIR /var/www/html
+RUN ls -al
 RUN ./configure
 RUN make all
 RUN make install-groups-users
@@ -61,19 +62,19 @@ RUN git config --global core.editor "/usr/bin/vim"
 RUN git config --global user.email "iwhite@nagios.com"
 RUN git config --global user.name  "Isaac A. White"
 
-WORKDIR /var/www/plugins/
-RUN git config --global core.editor "/usr/bin/vim"
-RUN git config --global user.email "iwhite@nagios.com"
-RUN git config --global user.name  "Isaac A. White"
-RUN ./tools/setup
-RUN ./configure
-RUN make
-RUN make install
+#WORKDIR /var/www/plugins/
+#RUN git config --global core.editor "/usr/bin/vim"
+#RUN git config --global user.email "iwhite@nagios.com"
+#RUN git config --global user.name  "Isaac A. White"
+#RUN ./tools/setup
+#RUN ./configure
+#RUN make
+#RUN make install
 
-WORKDIR /var/www/html
+#WORKDIR /var/www/html
 
 EXPOSE 80 8080 3306 5555 22 2222 5693 5666
 RUN yum update -y && yum install -y supervisor
 RUN mkdir -p /etc/nagios
-COPY nagioscore/supervisord.conf /etc/nagios/supervisord.conf
+COPY ./docker/supervisord.conf /etc/nagios/supervisord.conf
 CMD /usr/bin/supervisord -c /etc/nagios/supervisord.conf

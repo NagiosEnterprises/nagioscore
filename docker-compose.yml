@@ -4,7 +4,7 @@ services:
         container_name: nagioscore
         build: 
             context: . 
-            dockerfile: docker/Dockerfile-centos7 
+            dockerfile: docker/Dockerfile 
         volumes:
          - .:/var/www/html
          - nagios-plugins-bin:/var/www/plugins
@@ -19,7 +19,6 @@ services:
          - nagios-plugins-bin:/var/www/plugins
         depends_on:
          - nagioscore
-         - plugins-bin:/var/www/plugins
     apache:
         container_name: apache
         image: httpd:latest

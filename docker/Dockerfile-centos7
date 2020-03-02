@@ -2,30 +2,30 @@ FROM centos:7.7.1908
 LABEL author="Isaac A. White <iwhite@nagios.com>"
 
 RUN yum update -y && yum install -y \
-	gcc \
-	glibc \
-	glibc-common \
-	wget \
-	unzip \
-	php \
-	gd \
-	gd-devel \
-	perl \
-	postfix \
-	vim \
+    gcc \
+    glibc \
+    glibc-common \
+    wget \
+    unzip \
+    php \
+    gd \
+    gd-devel \
+    perl \
+    postfix \
+    vim \
     ctags \
-	git \
-	make \
-	ntp \
-	man \
-	gettext \
-	automake \
-	autoconf \
-	openssl-devel \
-	net-snmp \
-	net-snmp-utils \
-	epel-release \
-	perl-Net-SNMPd
+    git \
+    make \
+    ntp \
+    man \
+    gettext \
+    automake \
+    autoconf \
+    openssl-devel \
+    net-snmp \
+    net-snmp-utils \
+    epel-release \
+    perl-Net-SNMPd 
 
 RUN mkdir -p /var/www/html
 RUN mkdir -p /var/www/plugins
@@ -33,48 +33,4 @@ COPY . /var/www/html
 #COPY ./nagioscore /var/www/html
 #COPY ./plugins /var/www/plugins
 WORKDIR /var/www/html
-RUN ls -al
-RUN ./configure
-RUN make all
-RUN make install-groups-users
-RUN usermod -a -G nagios apache
-RUN make install
-RUN make install-daemoninit
-RUN systemctl enable httpd.service
-RUN make install-commandmode
-RUN make install-config
-RUN make install-webconf
 
-RUN htpasswd -bc /usr/local/nagios/etc/htpasswd.users nagiosadmin admin
-RUN echo "ServerName localhost" >> /etc/httpd/conf/httpd.conf
-
-RUN /usr/sbin/httpd -k start
-RUN /etc/init.d/nagios start
-
-RUN mkdir -p /root/.vim/bundle
-RUN mkdir -p /root/.vim/colors
-RUN mkdir -p /root/.vim/plugins
-RUN ln -s /var/www/html/.vim/plugins /root/.vim/plugins
-CMD [ "/bin/bash" , "-c", "vim +PluginInstall +qall" ]
-# Make sure plugins directory is available (Commented for troubleshooting with search)
-WORKDIR /var/www/html
-RUN git config --global core.editor "/usr/bin/vim"
-RUN git config --global user.email "iwhite@nagios.com"
-RUN git config --global user.name  "Isaac A. White"
-
-#WORKDIR /var/www/plugins/
-#RUN git config --global core.editor "/usr/bin/vim"
-#RUN git config --global user.email "iwhite@nagios.com"
-#RUN git config --global user.name  "Isaac A. White"
-#RUN ./tools/setup
-#RUN ./configure
-#RUN make
-#RUN make install
-
-#WORKDIR /var/www/html
-
-EXPOSE 80 8080 3306 5555 22 2222 5693 5666
-RUN yum update -y && yum install -y supervisor
-RUN mkdir -p /etc/nagios
-COPY ./docker/supervisord.conf /etc/nagios/supervisord.conf
-CMD /usr/bin/supervisord -c /etc/nagios/supervisord.conf

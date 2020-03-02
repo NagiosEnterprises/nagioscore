@@ -53,6 +53,7 @@ extern char *nagios_user;
 extern char *nagios_group;
 
 extern char *macro_user[MAX_USER_MACROS];
+extern dictionaryrecord *nagios_resource_dictionary[DICTIONARY_HASHSIZE];
 
 extern char *ocsp_command;
 extern char *ochp_command;

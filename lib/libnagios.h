@@ -15,6 +15,7 @@
 #include "iobroker.h"
 #include "iocache.h"
 #include "runcmd.h"
+#include "dictionary.h"
 #include "bitmap.h"
 #include "dkhash.h"
 #include "worker.h"

@@ -2456,7 +2456,9 @@ int process_check_result_file(char *fname)
 
 				v2 = strtok(NULL, "\n");
 				if (v2 == NULL) {
-					continue;
+					/* val never had a "." */
+					v1 = strtok(val, "\n");
+					v2 = "0";
 				}
 
 				if (!strcmp(var, "start_time")) {

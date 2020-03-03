@@ -343,6 +343,7 @@ th.data       { font-size: 9pt; text-align: left; padding: 0 3px 0 3px; border-b
 
 .NavBarSearchItem {
   font-size: 9pt;
+  margin-bottom: 2px;
 }
 
 

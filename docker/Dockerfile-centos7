@@ -48,7 +48,6 @@ RUN htpasswd -bc /usr/local/nagios/etc/htpasswd.users nagiosadmin admin
 RUN echo "ServerName localhost" >> /etc/httpd/conf/httpd.conf
 
 RUN /usr/sbin/httpd -k start
-RUN /etc/init.d/nagios start
 
 RUN mkdir -p /root/.vim/bundle
 RUN mkdir -p /root/.vim/colors

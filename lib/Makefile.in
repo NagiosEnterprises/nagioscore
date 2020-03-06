@@ -12,7 +12,7 @@ SNPRINTF_O=@SNPRINTF_O@
 TESTED_SRC_C := squeue.c kvvec.c iocache.c iobroker.c bitmap.c dkhash.c runcmd.c
 TESTED_SRC_C += nsutils.c fanout.c
 SRC_C := $(TESTED_SRC_C) pqueue.c worker.c skiplist.c nsock.c
-SRC_C += nspath.c
+SRC_C += nspath.c signal_handler.c
 SRC_O := $(patsubst %.c,%.o,$(SRC_C)) $(SNPRINTF_O)
 TESTS := $(patsubst %.c,test-%,$(TESTED_SRC_C))
 

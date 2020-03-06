@@ -240,9 +240,6 @@ static int command_file_worker(int sd) {
 int launch_command_file_worker(void) {
     int ret, sv[2];
     char *str;
-#ifdef HAVE_SIGACTION
-    struct sigaction sig_action;
-#endif
 
     /*
      * if we're restarting, we may well already have a command
@@ -297,15 +294,8 @@ int launch_command_file_worker(void) {
     str = strdup(command_file);
     free_memory(get_global_macros());
     command_file = str;
-#ifdef HAVE_SIGACTION
-    sig_action.sa_sigaction = NULL;
-    sig_action.sa_handler = SIG_IGN;
-    sigemptyset(&sig_action.sa_mask);
-    sig_action.sa_flags = 0;
-    sigaction(SIGPIPE, &sig_action, NULL);
-#else
-    signal(SIGPIPE, SIG_IGN);
-#endif
+    
+    catch_signal(SIGPIPE, SIG_IGN, 0, 0);
     exit(command_file_worker(sv[1]));
 
     /* error conditions for parent */

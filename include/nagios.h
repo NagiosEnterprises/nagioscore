@@ -32,7 +32,7 @@
 #include "macros.h"
 
 /*
- * global variables only used in the core. Reducing this list would be
+ * TODO: global variables only used in the core. Reducing this list would be
  * a Good Thing(tm).
  */
 extern char *nagios_binary_path;
@@ -628,6 +628,7 @@ void free_notification_list(void);		     	/* frees all memory allocated to the n
 
 
 /**** Miscellaneous Functions ****/
+int catch_signal(int signal, void (*signal_handler)(int), int fillset, int bit_flags); 
 void sighandler(int);                                	/* handles signals */
 void my_system_sighandler(int);				/* handles timeouts when executing commands via my_system() */
 char *get_next_string_from_buf(char *buf, int *start_index, int bufsize);

@@ -23,4 +23,5 @@
 #include "nspath.h"
 #include "snprintf.h"
 #include "nwrite.h"
+#include "signal_handler.h"
 #endif /* LIB_libnagios_h__ */

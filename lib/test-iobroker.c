@@ -1,4 +1,3 @@
-#include <signal.h>
 #include <stdio.h>
 #include <malloc.h>
 #include <netdb.h>
@@ -11,6 +10,7 @@
 
 #include "iobroker.c"
 #include "t-utils.h"
+#include "libnagios.h"
 
 static iobroker_set *iobs;
 
@@ -119,24 +119,10 @@ static int proc_counter[NUM_PROCS];
 static int conn_spam(struct sockaddr_in *sain)
 {
 	int i;
-#ifdef HAVE_SIGACTION
-	struct sigaction sig_action;
-
-	sig_action.sa_sigaction = NULL;
-	sig_action.sa_handler = SIG_IGN;
-	sigemptyset(&sig_action.sa_mask);
-	sig_action.sa_flags = 0;
-	sigaction(SIGPIPE, &sig_action, NULL);
-	sig_action.sa_handler = sighandler;
-	sigfillset(&sig_action.sa_mask);
-	sig_action.sa_flags = SA_NODEFER|SA_RESTART;
-	sigaction(SIGQUIT, &sig_action, NULL);
-	sigaction(SIGINT, &sig_action, NULL);
-#else /* HAVE_SIGACTION */
-	signal(SIGALRM, sighandler);
-	signal(SIGINT, sighandler);
-	signal(SIGPIPE, SIG_IGN);
-#endif /* HAVE_SIGACTION */
+	catch_signal(SIGPIPE, SIG_IGN,    0, 0);
+	catch_signal(SIGALRM, sighandler, 0, 0);
+	catch_signal(SIGQUIT, sighandler, 1, SA_NODEFER|SA_RESTART);
+	catch_signal(SIGINT,  sighandler, 1, SA_NODEFER|SA_RESTART);
 
 	alarm(20);
 

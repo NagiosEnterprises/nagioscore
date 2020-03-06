@@ -1,7 +1,6 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdarg.h>
-#include <signal.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <string.h>
@@ -38,9 +37,6 @@ static void exit_worker(int code, const char *msg)
 {
 	child_process *cp;
 	int discard;
-#ifdef HAVE_SIGACTION
-	struct sigaction sig_action;
-#endif
 
 	if (msg) {
 		perror(msg);
@@ -52,18 +48,10 @@ static void exit_worker(int code, const char *msg)
 	 * process group of its own, so we can signal not only
 	 * the plugin but also all of its children.
 	 */
-#ifdef HAVE_SIGACTION
-	sig_action.sa_sigaction = NULL;
-	sig_action.sa_handler = SIG_IGN;
-	sigemptyset(&sig_action.sa_mask);
-	sig_action.sa_flags = 0;
-	sigaction(SIGTERM, &sig_action, NULL);
-	sigaction(SIGSEGV, &sig_action, NULL);
-#else
-	signal(SIGTERM, SIG_IGN);
-	signal(SIGSEGV, SIG_IGN);
-#endif
-	kill(0, SIGTERM);
+    catch_signal(SIGTERM, SIG_IGN, 0, 0);
+    catch_signal(SIGSEGV, SIG_IGN, 0, 0);
+
+    kill(0, SIGTERM);
 	while (waitpid(-1, &discard, WNOHANG) > 0)
 		; /* do nothing */
 	sleep(1);
@@ -748,10 +736,6 @@ int set_socket_options(int sd, int bufsize)
 
 void enter_worker(int sd, int (*cb)(child_process*))
 {
-#ifdef HAVE_SIGACTION
-	struct sigaction sig_action;
-#endif
-
 	/* created with socketpair(), usually */
 	master_sd = sd;
 	parent_pid = getppid();
@@ -765,15 +749,7 @@ void enter_worker(int sd, int (*cb)(child_process*))
 	}
 
 	/* we need to catch child signals to mark jobs as reapable */
-#ifdef HAVE_SIGACTION
-	sig_action.sa_sigaction = NULL;
-	sig_action.sa_handler = sigchld_handler;
-	sigfillset(&sig_action.sa_mask);
-	sig_action.sa_flags=SA_NOCLDSTOP;
-	sigaction(SIGCHLD, &sig_action, NULL);
-#else
-	signal(SIGCHLD, sigchld_handler);
-#endif
+	catch_signal(SIGCHLD, sigchld_handler, 1, SA_NOCLDSTOP);
 
 	fcntl(fileno(stdout), F_SETFD, FD_CLOEXEC);
 	fcntl(fileno(stderr), F_SETFD, FD_CLOEXEC);

@@ -25,7 +25,8 @@ RUN yum update -y && yum install -y \
     net-snmp \
     net-snmp-utils \
     epel-release \
-    perl-Net-SNMPd 
+    perl-Net-SNMPd \
+    gdb
 
 RUN mkdir -p /var/www/html
 RUN mkdir -p /var/www/plugins

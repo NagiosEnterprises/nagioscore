@@ -19,10 +19,9 @@ RUN echo "ServerName localhost" >> /etc/httpd/conf/httpd.conf
 RUN /usr/sbin/httpd -k start
 RUN /etc/init.d/nagios start
 
-RUN mkdir -p /root/.vim/bundle
-RUN mkdir -p /root/.vim/colors
-RUN mkdir -p /root/.vim/plugins
-RUN ln -s /var/www/html/.vim/plugins /root/.vim/plugins
+RUN ln -s /var/www/vim/.vim/ /root/.vim
+RUN ln -s /var/www/vim/.vimrc /root/.vimrc
+
 CMD [ "/bin/bash" , "-c", "vim +PluginInstall +qall" ]
 # Make sure plugins directory is available (Commented for troubleshooting with search)
 WORKDIR /var/www/html

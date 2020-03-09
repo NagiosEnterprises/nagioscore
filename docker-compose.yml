@@ -8,6 +8,7 @@ services:
         volumes:
          - .:/var/www/html
          - nagios-plugins-bin:/var/www/plugins
+         - vim-scripts:/var/www/vim
         ports:
          - "8080:80"
         depends_on:
@@ -22,7 +23,13 @@ services:
     apache:
         container_name: apache
         image: httpd:latest
+    vim:
+        container_name: vim
+        image: iwhite5/vim:latest
+        volumes: 
+         - vim-scripts:/var/www/vim
 volumes:
     nagios-plugins-bin:
+    vim-scripts:
 
 

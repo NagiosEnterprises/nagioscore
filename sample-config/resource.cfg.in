@@ -18,6 +18,9 @@
 #
 # Resource files may also be used to store configuration directives for
 # external data sources like MySQL...
+# 
+# Nagios supports a broader macro sytax past $USERx$. A user can specify a
+# macro using $G_[macro]$ and get the same result as $USERx$. 
 #
 ###########################################################################
 
@@ -31,3 +34,6 @@ $USER1$=@libexecdir@
 #$USER3$=someuser
 #$USER4$=somepassword
 
+# Expanded macro definitions.
+#$G_USERNAME$ = secret_user 
+#$G_PASSWORD$ = secret_user_secret_password_or_hash

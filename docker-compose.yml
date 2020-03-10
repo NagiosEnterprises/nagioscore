@@ -1,7 +1,35 @@
-cen:
-    container_name: ncen
-    image: cen
-    volumes:
-     - .:/var/www/html
-    ports:
-     - "5555:80"
+version: '3.7'
+services:
+    nagioscore:
+        container_name: nagioscore
+        build: 
+            context: . 
+            dockerfile: docker/Dockerfile 
+        volumes:
+         - .:/var/www/html
+         - nagios-plugins-bin:/var/www/plugins
+         - vim-scripts:/var/www/vim
+        ports:
+         - "8080:80"
+        depends_on:
+         - apache
+    plugins:
+        container_name: nagios-plugins
+        image: iwhite5/nagios-plugins:latest
+        volumes:
+         - nagios-plugins-bin:/var/www/plugins
+        depends_on:
+         - nagioscore
+    apache:
+        container_name: apache
+        image: httpd:latest
+    vim:
+        container_name: vim
+        image: iwhite5/vim:latest
+        volumes: 
+         - vim-scripts:/var/www/vim
+volumes:
+    nagios-plugins-bin:
+    vim-scripts:
+
+

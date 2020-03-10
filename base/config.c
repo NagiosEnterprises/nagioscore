@@ -29,7 +29,6 @@
 #include "../include/nebmods.h"
 #include "../include/nebmodules.h"
 
-
 /*** helpers ****/
 /*
  * find a command with arguments still attached
@@ -1385,32 +1384,35 @@ int read_resource_file(char *resource_file) {
 		if(variable[0] == '$' && variable[strlen(variable) - 1] == '$') {
 
 			/* $USERx$ macro declarations */
+            // TODO: figure out when and how to remove this. A dictionary 
+            //       is more comprehensive and comprehensible.
 			if(strstr(variable, "$USER") == variable  && strlen(variable) > 5) {
 				user_index = atoi(variable + 5) - 1;
 				if(user_index >= 0 && user_index < MAX_USER_MACROS) {
 					my_free(macro_user[user_index]);
 					macro_user[user_index] = (char *)strdup(value);
-					}
 				}
-			}
-		}
+		    }
+            
+            // Make a dictionary of NAGIOS resource variables. $G_[VARIABLE]
+            // Access using findDictionaryRecordByKey()
+            if (strstr(variable, "$G_") != NULL) { 
+                char *key = strtok(variable, "$");
+                dictionaryrecord_write(nagios_resource_dictionary, key, value);
+            }
+        }
+    } 
+    /* free leftover memory and close the file */
+    my_free(input);
+    mmap_fclose(thefile);
 
-	/* free leftover memory and close the file */
-	my_free(input);
-	mmap_fclose(thefile);
-
-	/* free memory */
-	my_free(variable);
-	my_free(value);
-
-	if(error == TRUE)
-		return ERROR;
-
-	return OK;
-	}
-
-
-
+    /* free memory */
+    my_free(variable);
+    my_free(value);
+    if(error == TRUE)
+        return ERROR;
+    return OK;
+}
 
 
 

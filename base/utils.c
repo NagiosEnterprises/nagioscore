@@ -3530,6 +3530,14 @@ void free_memory(nagios_macros *mac) {
 		my_free(macro_user[i]);
 	}
 
+    for (i = 0; i < DICTIONARY_HASHSIZE; i++) {
+        if (nagios_resource_dictionary[i]) {
+            my_free(nagios_resource_dictionary[i]->key);
+            my_free(nagios_resource_dictionary[i]->value);
+            my_free(nagios_resource_dictionary[i]);
+        }
+    }
+
 	/* these have no other reference */
 	my_free(mac->x[MACRO_PROCESSSTARTTIME]);
 	my_free(mac->x[MACRO_EVENTSTARTTIME]);

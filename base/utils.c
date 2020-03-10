@@ -34,6 +34,7 @@
 #include "../include/nebmods.h"
 #include "../include/nebmodules.h"
 #include "../include/workers.h"
+#include "../lib/signal_handler.h"
 
 #include "../xdata/xodtemplate.h"
 
@@ -253,6 +254,7 @@ sched_info scheduling_info;
 extern int errno;
 #endif
 
+void cleanup_children(int signal);
 
 /* Initialize the non-shared main configuration variables */
 void init_main_cfg_vars(int first_time) {
@@ -532,9 +534,6 @@ int my_system_r(nagios_macros *mac, char *cmd, int timeout, int *early_timeout, 
 	dbuf output_dbuf;
 	int dbuf_chunk = 1024;
 	int flags;
-#ifdef HAVE_SIGACTION
-	struct sigaction sig_action;
-#endif
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "my_system_r()\n");
 
@@ -606,16 +605,9 @@ int my_system_r(nagios_macros *mac, char *cmd, int timeout, int *early_timeout, 
 		fcntl(fd[1], F_SETFD, flags);
 
 		/* trap commands that timeout */
-#ifdef HAVE_SIGACTION
-		sig_action.sa_sigaction = NULL;
-		sig_action.sa_handler = my_system_sighandler;
-		sigfillset(&sig_action.sa_mask);
-		sig_action.sa_flags = SA_NODEFER|SA_RESTART;
-		sigaction(SIGALRM, &sig_action, NULL);
-#else
-		signal(SIGALRM, my_system_sighandler);
-#endif /* HAVE_SIGACTION */
-		alarm(timeout);
+		catch_signal(SIGALRM, my_system_sighandler, 1, SA_NODEFER|SA_RESTART);
+		
+        alarm(timeout);
 
 		/* run the command */
 		fp = (FILE *)popen(cmd, "r");
@@ -671,6 +663,8 @@ int my_system_r(nagios_macros *mac, char *cmd, int timeout, int *early_timeout, 
 
 	/* parent waits for child to finish executing command */
 	else {
+
+        catch_signal(SIGINT, cleanup_children, 0, 0);
 
 		/* close pipe for writing */
 		close(fd[1]);
@@ -780,6 +774,14 @@ int my_system_r(nagios_macros *mac, char *cmd, int timeout, int *early_timeout, 
 
 	return result;
 	}
+
+void cleanup_children(int signal) {
+    puts("\n - Removing status and command files");
+    remove(status_file);
+    remove(command_file);
+    puts(" - Shutting Down\n*Good-bye!*");
+    _exit(0);
+}
 
 /*
  * For API compatibility, we must include a my_system() whose
@@ -1635,9 +1637,6 @@ time_t get_next_log_rotation_time(void) {
 
 /* trap signals so we can exit gracefully */
 void setup_sighandler(void) {
-#ifdef HAVE_SIGACTION
-	struct sigaction sig_action;
-#endif
 
 	/* reset the shutdown flag */
 	sigshutdown = FALSE;
@@ -1648,62 +1647,31 @@ void setup_sighandler(void) {
 	setbuf(stderr, (char *)NULL);
 
 	/* initialize signal handling */
-#ifdef HAVE_SIGACTION
-	sig_action.sa_sigaction = NULL;
-	sig_action.sa_handler = SIG_IGN;
-	sigemptyset(&sig_action.sa_mask);
-	sig_action.sa_flags = 0;
-	sigaction(SIGPIPE, &sig_action, NULL);
-	sig_action.sa_handler = sighandler;
-	sigfillset(&sig_action.sa_mask);
-	sig_action.sa_flags = SA_NODEFER|SA_RESTART;
-	sigaction(SIGQUIT, &sig_action, NULL);
-	sigaction(SIGTERM, &sig_action, NULL);
-	sigaction(SIGHUP, &sig_action, NULL);
+	catch_signal(SIGPIPE, SIG_IGN,    0, 0);
+	catch_signal(SIGINT,  cleanup_children, 0, 0);
+	catch_signal(SIGQUIT, sighandler, 1, SA_NODEFER|SA_RESTART);
+	catch_signal(SIGTERM, sighandler, 1, SA_NODEFER|SA_RESTART);
+	catch_signal(SIGHUP,  sighandler, 1, SA_NODEFER|SA_RESTART);
 	if(daemon_dumps_core == FALSE && daemon_mode == TRUE)
-		sigaction(SIGSEGV, &sig_action, NULL);
-	sig_action.sa_flags = SA_NOCLDWAIT;
-#else /* HAVE_SIGACTION */
-	signal(SIGPIPE, SIG_IGN);
-	signal(SIGQUIT, sighandler);
-	signal(SIGTERM, sighandler);
-	signal(SIGHUP, sighandler);
-	if(daemon_dumps_core == FALSE && daemon_mode == TRUE)
-		signal(SIGSEGV, sighandler);
-#endif /* HAVE_SIGACTION */
+		catch_signal(SIGSEGV, sighandler, 1, SA_NODEFER|SA_RESTART);
 
 	return;
-	}
+}
 
 
 /* reset signal handling... */
 void reset_sighandler(void) {
 
 	/* set signal handling to default actions */
-#ifdef HAVE_SIGACTION
-	struct sigaction sig_action;
-	sig_action.sa_sigaction = NULL;
-	sig_action.sa_handler = SIG_DFL;
-	sigemptyset(&sig_action.sa_mask);
-	sig_action.sa_flags = 0;
-	sigaction(SIGQUIT, &sig_action, NULL);
-	sigaction(SIGTERM, &sig_action, NULL);
-	sigaction(SIGHUP, &sig_action, NULL);
-	sigaction(SIGSEGV, &sig_action, NULL);
-	sigaction(SIGPIPE, &sig_action, NULL);
-	sigaction(SIGXFSZ, &sig_action, NULL);
-#else /* HAVE_SIGACTION */
-	signal(SIGQUIT, SIG_DFL);
-	signal(SIGTERM, SIG_DFL);
-	signal(SIGHUP, SIG_DFL);
-	signal(SIGSEGV, SIG_DFL);
-	signal(SIGPIPE, SIG_DFL);
-	signal(SIGXFSZ, SIG_DFL);
-#endif /* HAVE_SIGACTION */
-
-	return;
-	}
-
+	catch_signal(SIGQUIT, SIG_DFL, 0, 0);
+	catch_signal(SIGTERM, SIG_DFL, 0, 0);
+	catch_signal(SIGHUP,  SIG_DFL, 0, 0);
+	catch_signal(SIGSEGV, SIG_DFL, 0, 0);
+	catch_signal(SIGPIPE, SIG_DFL, 0, 0);
+	catch_signal(SIGXFSZ, SIG_DFL, 0, 0);
+	
+    return;
+}
 
 /* handle signals */
 void sighandler(int sig) {

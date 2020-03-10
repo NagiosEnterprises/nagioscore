@@ -1,5 +1,3 @@
-#include <signal.h>
-#include "../include/config.h"
 #include "signal_handler.h"
 
 

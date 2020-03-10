@@ -34,6 +34,7 @@
 #include "../include/nebmods.h"
 #include "../include/nebmodules.h"
 #include "../include/workers.h"
+#include "../lib/signal_handler.h"
 
 #include "../xdata/xodtemplate.h"
 
@@ -779,7 +780,7 @@ void cleanup_children(int signal) {
     remove(status_file);
     remove(command_file);
     puts(" - Shutting Down\n*Good-bye!*");
-    exit(0);
+    _exit(0);
 }
 
 /*
@@ -3650,7 +3651,7 @@ int reset_variables(void) {
 #ifdef DETECT_RLIMIT_PROBLEM
 void rlimit_problem_detection(int desired_workers) {
 
-	log_debug_info(DEBUGL_PROCESS, 2, "%s()\n", __FUNCTION__);
+	log_debug_info(DEBUGL_PROCESS, 2, "rlimit_problem_detection()\n");
 
 	struct rlimit rlim;
 	int ilim;

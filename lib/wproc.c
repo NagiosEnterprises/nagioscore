@@ -14,7 +14,7 @@
 #include <sys/un.h>
 #include <netinet/in.h>
 #include "worker.h"
-#include "libnagios.h"
+#include "signal_handler.h"
 
 typedef struct simple_worker {
 	int pid, sd;

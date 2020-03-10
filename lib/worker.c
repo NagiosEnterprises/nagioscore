@@ -6,7 +6,8 @@
 #include <string.h>
 #include <time.h>
 #include <syslog.h>
-#include "libnagios.h"
+#include "worker.h"
+#include "signal_handler.h"
 #include "../include/config.h"
 
 #define MSG_DELIM "\1\0\0" /**< message limiter - note this ends up being

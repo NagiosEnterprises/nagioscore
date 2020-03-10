@@ -25,7 +25,7 @@ test-squeue: pqueue.o test-squeue.o t-utils.o
 test-iocache: t-utils.o test-iocache.o
 	$(CC) $(ALL_CFLAGS) $(SOCKETLIBS) $^ -o $@
 
-test-iobroker: t-utils.o test-iobroker.o
+test-iobroker: t-utils.o signal_handler.o test-iobroker.o
 	$(CC) $(ALL_CFLAGS) $(SOCKETLIBS) $^ -o $@
 
 %.o: %.c %.h Makefile lnag-utils.h

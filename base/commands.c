@@ -30,6 +30,7 @@
 #include "../include/broker.h"
 #include "../include/nagios.h"
 #include "../include/workers.h"
+#include "../lib/signal_handler.h"
 
 
 extern int sigrestart;

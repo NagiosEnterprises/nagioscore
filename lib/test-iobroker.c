@@ -10,7 +10,7 @@
 
 #include "iobroker.c"
 #include "t-utils.h"
-#include "libnagios.h"
+#include "signal_handler.h"
 
 static iobroker_set *iobs;
 

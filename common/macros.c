@@ -34,6 +34,7 @@
 
 static char *macro_x_names[MACRO_X_COUNT]; /* the macro names */
 char *macro_user[MAX_USER_MACROS]; /* $USERx$ macros */
+dictionaryrecord *nagios_resource_dictionary[DICTIONARY_HASHSIZE];
 
 struct macro_key_code {
     char *name;  /* macro key name */
@@ -95,8 +96,6 @@ static const struct macro_key_code *find_macro_key(const char *name) {
         }
     return NULL;
     }
-
-static unsigned int hash(char *key);
 
 /*
  * replace macros in notification commands with their values,
@@ -463,7 +462,7 @@ int grab_macro_value_r(nagios_macros *mac, char *macro_buffer, char **output, in
     int delimiter_len = 0;
     int x, result = OK;
     const struct macro_key_code *mkey;
-    DictionaryRecord *record = findDictionaryRecordByKey(nagiosResourceLibrary, macro_buffer);
+    dictionaryrecord *record = dictionaryrecord_find_by_key(nagios_resource_dictionary, macro_buffer);
     /* for the early cases, this is the default */
     *free_macro = FALSE;
 
@@ -3117,47 +3116,6 @@ int clear_summary_macros(void) {
 /******************************************************************/
 /****************** ENVIRONMENT MACRO FUNCTIONS *******************/
 /******************************************************************/
-
-static unsigned int hash(char *key) {
-    unsigned int keyHash;
-    for (keyHash = 0; *key != '\0'; key++) {
-        keyHash = *key + 997 * keyHash;
-    }
-
-    return keyHash % DICTIONARY_HASHSIZE;
-}
-
-DictionaryRecord *findDictionaryRecordByKey(DictionaryRecord *library[], char *key) {
-    DictionaryRecord *record = NULL;
-    for (record = library[hash(key)]; record != NULL; record = record->next) {
-        if (strcmp(key, record->key) == 0) return record; 
-    }
-    return record; 
-}
-
-DictionaryRecord *writeDictionaryRecord(DictionaryRecord *library[], char *key, char *value) {
-    DictionaryRecord *record = NULL;
-    unsigned keyHash;
-    
-    record = findDictionaryRecordByKey(library, key);
-
-    if (record == NULL) {
-        record = (DictionaryRecord *) malloc(sizeof(record));
-        if ((record == NULL || (record->key = strdup(key)) == NULL)) {
-            return record;
-        }
-        keyHash = hash(key);
-        record->next = library[keyHash];
-        library[keyHash] = record;
-    }
-    
-    if ((record->value = strdup(value)) == NULL) {
-        return record;
-    }
-
-    return record;
-}
-
 
 #ifdef NSCORE
 

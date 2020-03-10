@@ -1398,7 +1398,7 @@ int read_resource_file(char *resource_file) {
             // Access using findDictionaryRecordByKey()
             if (strstr(variable, "$G_") != NULL) { 
                 char *key = strtok(variable, "$");
-                writeDictionaryRecord(nagiosResourceLibrary, key, value);
+                dictionaryrecord_write(nagios_resource_dictionary, key, value);
             }
         }
     } 

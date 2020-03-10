@@ -40,10 +40,9 @@
 
 #define MACRO_X_COUNT                    163    /* size of macro_x[] array */
 
-#define DICTIONARY_HASHSIZE              16384  /* Make it big enough so searches are super fast */
-
-
 NAGIOS_BEGIN_DECL
+
+dictionaryrecord *nagios_resource_dictionary[DICTIONARY_HASHSIZE];
 
 struct nagios_macros {
     char *x[MACRO_X_COUNT];
@@ -61,16 +60,6 @@ struct nagios_macros {
     customvariablesmember *custom_contact_vars;
     };
 typedef struct nagios_macros nagios_macros;
-
-typedef struct DictionaryRecord {
-    struct DictionaryRecord *next;
-    char *key;
-    char *value;
-} DictionaryRecord;
-
-DictionaryRecord *nagiosResourceLibrary[DICTIONARY_HASHSIZE];
-DictionaryRecord *findDictionaryRecordByKey(DictionaryRecord *library[], char *key);
-DictionaryRecord *writeDictionaryRecord(DictionaryRecord *library[], char *key, char *value);
 
 #define MACRO_HOSTNAME                          0
 #define MACRO_HOSTALIAS                         1

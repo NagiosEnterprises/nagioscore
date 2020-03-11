@@ -60,7 +60,7 @@ static void add_vars(struct kvvec *kvv, const char **ary, int len)
 	int i;
 
 	for (i = 0; i < len && ary[i]; i++) {
-		char *arg = strdup(test_data[i]);
+		char *arg = strdup(ary[i]);
 		char *eq = strchr(arg, '=');
 		if (eq) {
 			*eq++ = 0;
@@ -85,6 +85,7 @@ int main(int argc, char **argv)
 	kvv2 = kvvec_create(1);
 	kvv3 = kvvec_create(1);
 	add_vars(kvv, test_data, 1239819);
+    // Add key=value pairs from the commandline
 	add_vars(kvv, (const char **)argv + 1, argc - 1);
 
 	kvvec_sort(kvv);

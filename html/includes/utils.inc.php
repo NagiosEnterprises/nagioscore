@@ -150,6 +150,9 @@ function read_main_config_file($thefile=""){
 			while(!feof($fh)){
 				$s=fgets($fh);
 				
+				// ensure that $s is a string
+				if (is_string($s) === false) continue;
+
 				// skip comments
 				if($s[0]=='#')
 					continue;
@@ -212,6 +215,9 @@ function read_cgi_config_file($thefile=""){
 			// read all lines in the config file
 			while(!feof($fh)){
 				$s=fgets($fh);
+
+				// ensure that $s is a string
+				if (is_string($s) === false) continue;
 				
 				// skip comments
 				if($s[0]=='#')

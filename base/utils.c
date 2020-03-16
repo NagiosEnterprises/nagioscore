@@ -3531,11 +3531,7 @@ void free_memory(nagios_macros *mac) {
 	}
 
     for (i = 0; i < DICTIONARY_HASHSIZE; i++) {
-        if (nagios_resource_dictionary[i]) {
-            my_free(nagios_resource_dictionary[i]->key);
-            my_free(nagios_resource_dictionary[i]->value);
-            my_free(nagios_resource_dictionary[i]);
-        }
+        dictionaryrecord_free(nagios_resource_dictionary, i);
     }
 
 	/* these have no other reference */

@@ -21,6 +21,8 @@ typedef struct dictionaryrecord {
 
 extern dictionaryrecord *dictionaryrecord_find_by_key(dictionaryrecord *dictionary[], char *key);
 extern dictionaryrecord *dictionaryrecord_write(dictionaryrecord *dictionary[], char *key, char *value);
+extern void dictionaryrecord_erase(dictionaryrecord *dictionary[], char *key);
+extern void dictionaryrecord_free(dictionaryrecord *dictionary[], int keyhash);
 
 
 /* @}

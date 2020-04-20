@@ -20,11 +20,12 @@ angular.module("histogramApp", ["ui.bootstrap", "ui.utils",
 
 		// Parameters found in the URL
 		$scope.search = $location.search();
-
+		console.log('aiya');
 		// URL parameters
 		$scope.params = {
-			cgiurl: $scope.search.cgiurl ? $scope.search.cgiurl : 
-					$location.absUrl().replace(/histogram\.html.*$/, "cgi-bin/"),
+
+			// %CGIURL%
+			cgiurl: '@cgiurl@',
 			reporttype: $scope.search.reporttype ?
 					$scope.search.reporttype : "",
 			host: $scope.search.host ? $scope.search.host : "",

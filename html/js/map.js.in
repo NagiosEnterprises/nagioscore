@@ -97,8 +97,7 @@ angular.module("mapApp", ["ui.bootstrap", "ui.utils", "nagiosDecorations",
 
 		// URL parameters
 		$scope.params = {
-			cgiurl: $scope.search.cgiurl ? $scope.search.cgiurl :
-					$location.absUrl().replace(/map\.php.*$/, "cgi-bin/"),
+			cgiurl: '@cgiurl@',
 			layout: map_layout,
 			dimensions: $scope.search.dimensions ?
 					$scope.search.dimensions : "",

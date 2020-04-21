@@ -24,7 +24,6 @@ angular.module("histogramApp", ["ui.bootstrap", "ui.utils",
 		// URL parameters
 		$scope.params = {
 
-			// %CGIURL%
 			cgiurl: '@cgiurl@',
 			reporttype: $scope.search.reporttype ?
 					$scope.search.reporttype : "",

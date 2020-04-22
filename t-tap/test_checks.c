@@ -66,7 +66,7 @@
 
 #define NO_SERVICE      0,0,NULL
 
-int date_format;
+extern int date_format;
 int test_check_debugging = FALSE;
 
 service         * svc1          = NULL;

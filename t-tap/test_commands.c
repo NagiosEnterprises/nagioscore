@@ -60,25 +60,23 @@
 #include "tap.h"
 
 char *temp_path;
-int date_format;
+extern int date_format;
 host *host_list;
 service *service_list;
-int accept_passive_service_checks;
 int check_host_freshness;
 int check_service_freshness;
-int check_external_commands;
+extern int check_external_commands;
 unsigned long modified_host_process_attributes;
 unsigned long modified_service_process_attributes;
-int enable_notifications;
-int obsess_over_hosts;
-int obsess_over_services;
-int execute_service_checks;
-int enable_event_handlers;
-int accept_passive_host_checks;
-int accept_passive_service_checks;
-int process_performance_data;
-int execute_host_checks;
-int execute_service_checks;
+extern int enable_notifications;
+extern int obsess_over_hosts;
+extern int obsess_over_services;
+extern int execute_service_checks;
+extern int enable_event_handlers;
+extern int accept_passive_host_checks;
+extern int accept_passive_service_checks;
+extern int process_performance_data;
+extern int execute_host_checks;
 char *global_service_event_handler;
 command *global_service_event_handler_ptr;
 char *global_host_event_handler;

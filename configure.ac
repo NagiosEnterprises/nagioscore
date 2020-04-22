@@ -459,7 +459,7 @@ AC_ARG_ENABLE(nerd,
 	NERD=yes
 )
 if test "x$NERD" = "xyes"; then
-	AC_DEFINE_UNQUOTED(ENABLE_NERD,,[defined if user enabled NERD (radio dispatcher)])
+	AC_DEFINE(ENABLE_NERD,1,[defined if user enabled NERD (radio dispatcher)])
 	NERD_O="nerd.o"
 fi
 AC_SUBST(NERD_O)

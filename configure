@@ -2444,9 +2444,9 @@ ac_config_headers="$ac_config_headers include/config.h lib/snprintf.h lib/iobrok
 
 PKG_NAME=nagios
 
-PKG_VERSION="4.4.5"
+PKG_VERSION="4.4.6-dev"
 PKG_HOME_URL="https://www.nagios.org/"
-PKG_REL_DATE="2019-08-20"
+PKG_REL_DATE="2020-04-23"
 
 ac_aux_dir=
 for ac_dir in "$srcdir" "$srcdir/.." "$srcdir/../.."; do

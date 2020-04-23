@@ -20,7 +20,7 @@ angular.module("histogramApp", ["ui.bootstrap", "ui.utils",
 
 		// Parameters found in the URL
 		$scope.search = $location.search();
-		console.log('aiya');
+
 		// URL parameters
 		$scope.params = {
 

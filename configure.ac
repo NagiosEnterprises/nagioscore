@@ -923,6 +923,9 @@ AC_OUTPUT([
 
 perl subst include/locations.h
 perl subst html/config.inc.php
+perl subst html/js/histogram.js
+perl subst html/js/map.js
+perl subst html/js/trends.js
 dnl perl subst daemon-service
 
 

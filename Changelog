@@ -9,6 +9,7 @@ FIXES
 * Fixed duplicate properties appearing in statusjson.cgi (#718) (Sebastian Wolf)
 * Fixed NERD not building when enabled in ./configure (#723) (Sebastian Wolf)
 * Fixed build process when using GCC 10 (#721) (Michael Orlitzky)
+* Fixed postauth vulnerabilities in histogram.js, map.js, trends.js (CVE-2020-1408) (Thanks UraSec Team) (Sebastian Wolf)
 
 4.4.5 - 2019-08-20
 ------------------

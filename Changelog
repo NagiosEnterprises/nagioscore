@@ -2,6 +2,14 @@
 Nagios Core 4 Change Log
 ########################
 
+4.4.6 - 2020-??-??
+------------------
+FIXES
+* Fixed Map display in Internet Explorer 11 (#714) (Scott Wilkerson)
+* Fixed duplicate properties appearing in statusjson.cgi (#718) (Sebastian Wolf)
+* Fixed NERD not building when enabled in ./configure (#723) (Sebastian Wolf)
+* Fixed build process when using GCC 10 (#721) (Michael Orlitzky)
+
 4.4.5 - 2019-08-20
 ------------------
 FIXES

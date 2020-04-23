@@ -2,6 +2,11 @@
 Nagios Core 4 Change Log
 ########################
 
+4.4.6 - 2020-??-??
+------------------
+FIXES
+* Fixed postauth vulnerabilities in histogram.js, map.js, trends.js (CVE-2020-1408) (Thanks UraSec Team) (Sebastian Wolf)
+
 4.4.5 - 2019-08-20
 ------------------
 FIXES

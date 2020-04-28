@@ -2,7 +2,7 @@
 Nagios Core 4 Change Log
 ########################
 
-4.4.6 - 2020-??-??
+4.4.6 - 2020-04-28
 ------------------
 FIXES
 * Fixed Map display in Internet Explorer 11 (#714) (Scott Wilkerson)

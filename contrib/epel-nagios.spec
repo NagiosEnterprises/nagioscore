@@ -1,7 +1,7 @@
 %global _hardened_build 1
 
 Name:           nagios
-Version: 4.4.6-dev
+Version: 4.4.6
 Release:        1%{?dist}
 
 Summary: Host/service/network monitoring program

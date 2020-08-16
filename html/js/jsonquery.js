@@ -337,7 +337,7 @@ $( document).ready( function() {
 				else if( option.valid_values instanceof Object) {
 					for( var key in option.valid_values) {
 						if( $( '#' + name + 'row input[value=' + key + 
-								']').attr( 'checked') == 'checked') {
+								']').is(":checked")) {
 							output.push( key);
 						};
 					}

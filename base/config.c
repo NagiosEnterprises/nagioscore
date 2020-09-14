@@ -2037,7 +2037,7 @@ int pre_flight_object_check(int *w, int *e) {
  * parents.
  */
 /*
- * same as dfs_host_path, but we flip the the tree and traverse it
+ * same as dfs_host_path, but we flip the tree and traverse it
  * backwards, since core Nagios doesn't need the child pointer at
  * later stages.
  */

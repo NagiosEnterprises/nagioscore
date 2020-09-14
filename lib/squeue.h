@@ -62,7 +62,7 @@ extern squeue_t *squeue_create(unsigned int size);
 /**
  * Destroys a scheduling queue completely
  * @param[in] q The doomed queue
- * @param[in] flags Flags determining the the level of destruction
+ * @param[in] flags Flags determining the level of destruction
  */
 extern void squeue_destroy(squeue_t *q, int flags);
 

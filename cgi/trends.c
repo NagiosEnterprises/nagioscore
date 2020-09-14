@@ -2217,7 +2217,7 @@ void graph_trend_data(int first_state, int last_state, time_t real_start_time, t
 	else {
 
 
-		/* figure out the the state string to use */
+		/* figure out the state string to use */
 		switch(start_state) {
 			case AS_HOST_UP:
 				strcpy(state_string, "UP");

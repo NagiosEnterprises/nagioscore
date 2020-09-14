@@ -266,7 +266,7 @@ int read_archived_data(time_t start_time, time_t end_time,
 		printf("Archive name: '%s'\n", filename);
 #endif
 
-		/* Record the last modification time of the the archive file */
+		/* Record the last modification time of the archive file */
 		if(stat(filename, &adstat) < 0) {
 			/* ENOENT is OK because Nagios may have been down when the 
 				logs were being rotated */

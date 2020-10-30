@@ -3358,6 +3358,7 @@ json_object *json_status_servicelist(unsigned format_options, int start,
 	json_object *json_service_details;
 	host *temp_host;
 	service *temp_service;
+        hoststatus *temp_hoststatus;
 	servicestatus *temp_servicestatus;
 	int current = 0;
 	int counted = 0;
@@ -3444,6 +3445,8 @@ json_object *json_status_servicelist(unsigned format_options, int start,
 			}
 
 		if( service_count > 0) {
+                        temp_hoststatus = find_hoststatus(temp_host->name);
+                        json_object_append_integer(json_servicelist, "__HOST__", temp_hoststatus->status);
 			json_object_append_object(json_hostlist, temp_host->name, 
 					json_servicelist);
 			}

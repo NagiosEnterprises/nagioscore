@@ -1,0 +1,26 @@
+#!/usr/bin/make -f
+#export DH_VERBOSE = 1
+
+%:
+	dh $@
+
+override_dh_auto_configure:
+	./configure --with-nagios-group=nagios --with-command-group=nagcmd --with-httpd_conf=/etc/apache2/sites-enabled/
+
+override_dh_auto_build:
+	make all -j $(getconf _NPROCESSORS_ONLN)
+
+override_dh_auto_test:
+
+override_dh_auto_install:
+	dh_auto_install -- install
+	dh_auto_install -- install-init
+	dh_auto_install -- install-config
+	dh_auto_install -- install-commandmode
+	mkdir -p debian/nagios/etc/apache2/sites-enabled
+	dh_auto_install -- install-webconf
+
+override_dh_fixperms:
+
+override_dh_usrlocal:
+

@@ -1,0 +1,37 @@
+Source: nagios
+Section: nagios
+Priority: optional
+Maintainer: local <local@localhost>
+Uploaders: local <local@localhost>
+Build-Depends: 
+  autotools-dev,
+  file,
+  gawk,
+  mime-support,
+  libfakeroot,
+  libltdl-dev,
+  libltdl7,
+  libmagic-mgc,
+  libmagic1,
+  libperl5.28,
+  libsigsegv2,
+  perl-modules-5.28
+Standards-Version: 4.4.6
+
+Package: nagios
+Architecture: all
+Depends: 
+  apache2,
+  apache2-utils,
+  daemon,
+  libapache2-mod-php,
+  openssl,
+  perl,
+  php,
+  php-gd
+Recommends: 
+Suggests: 
+Provides: 
+Conflicts: 
+Replaces: 
+Description: nagios

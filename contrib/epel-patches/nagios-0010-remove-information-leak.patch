@@ -1,6 +1,6 @@
-diff -up ./cgi/extinfo.c.rm_youtube ./cgi/extinfo.c
---- ./cgi/extinfo.c.rm_youtube	2018-11-28 14:23:47.609805066 -0600
-+++ ./cgi/extinfo.c	2018-11-28 14:28:35.513997180 -0600
+diff -up ./cgi/extinfo.c.remove_3rdparty_links ./cgi/extinfo.c
+--- ./cgi/extinfo.c.remove_3rdparty_links	2019-08-20 15:29:34.000000000 +0000
++++ ./cgi/extinfo.c	2019-08-29 18:17:32.321544245 +0000
 @@ -557,27 +557,6 @@ void document_header(int use_stylesheet)
  		printf("<LINK REL='stylesheet' TYPE='text/css' HREF='%s%s'>\n", url_stylesheets_path, NAGFUNCS_CSS);
  		}
@@ -29,10 +29,10 @@ diff -up ./cgi/extinfo.c.rm_youtube ./cgi/extinfo.c
  	printf("</head>\n");
  
  	printf("<body CLASS='extinfo'>\n");
-diff -up ./cgi/status.c.rm_youtube ./cgi/status.c
---- ./cgi/status.c.rm_youtube	2018-11-28 14:28:56.072653859 -0600
-+++ ./cgi/status.c	2018-11-28 14:32:05.038498204 -0600
-@@ -537,31 +537,8 @@ void document_header(int use_stylesheet)
+diff -up ./cgi/status.c.remove_3rdparty_links ./cgi/status.c
+--- ./cgi/status.c.remove_3rdparty_links	2019-08-20 15:29:34.000000000 +0000
++++ ./cgi/status.c	2019-08-29 18:17:32.322544264 +0000
+@@ -555,31 +555,8 @@ void document_header(int use_stylesheet)
  	/* JS function to append content to elements on page */
  	printf("<script type='text/javascript'>\n");
  	if (enable_page_tour == TRUE) {
@@ -64,9 +64,9 @@ diff -up ./cgi/status.c.rm_youtube ./cgi/status.c
  		printf("});\n");
  		}
  	printf("function set_limit(url) { \nthis.location = url+'&limit='+$('#limit').val();\n  }\n");
-diff -up ./cgi/tac.c.rm_youtube ./cgi/tac.c
---- ./cgi/tac.c.rm_youtube	2018-11-28 14:32:21.595221714 -0600
-+++ ./cgi/tac.c	2018-11-28 14:34:38.960927761 -0600
+diff -up ./cgi/tac.c.remove_3rdparty_links ./cgi/tac.c
+--- ./cgi/tac.c.remove_3rdparty_links	2019-08-20 15:29:34.000000000 +0000
++++ ./cgi/tac.c	2019-08-29 18:17:32.323544284 +0000
 @@ -308,17 +308,7 @@ void document_header(int use_stylesheet)
  
  	if (enable_page_tour == TRUE) {
@@ -86,10 +86,10 @@ diff -up ./cgi/tac.c.rm_youtube ./cgi/tac.c
  
  
  
-diff -up ./html/main.php.rm_youtube ./html/main.php
---- ./html/main.php.rm_youtube	2018-11-28 14:34:59.249588949 -0600
-+++ ./html/main.php	2018-11-28 14:39:03.703506666 -0600
-@@ -19,20 +19,7 @@ $this_year = '2018';
+diff -up ./html/main.php.remove_3rdparty_links ./html/main.php
+--- ./html/main.php.remove_3rdparty_links	2019-08-20 15:29:34.000000000 +0000
++++ ./html/main.php	2019-08-29 18:20:16.216716704 +0000
+@@ -19,20 +19,7 @@ $this_year = '2019';
  
  <script type='text/javascript'>
  	var cookie;
@@ -100,7 +100,7 @@ diff -up ./html/main.php.rm_youtube ./html/main.php
 -						"Click here to watch the entire Nagios Core 4 Tour!</a>";
 -	<?php } ?>
  	$(document).ready(function() {
--		var user = "<?php echo $_SERVER['REMOTE_USER']; ?>";
+-		var user = "<?php echo htmlspecialchars($_SERVER['REMOTE_USER']); ?>";
 -
 -		<?php if ($cfg["enable_page_tour"]) { ?>
 -			vBoxId += ";" + user;
@@ -110,7 +110,7 @@ diff -up ./html/main.php.rm_youtube ./html/main.php
  		loadRemoteFeed( // Our top banner splash.
  			'#splashbox0-contents', 'corebanner', 1,
  			'', processBannerItem, ''
-@@ -59,7 +46,6 @@ $this_year = '2018';
+@@ -59,7 +46,6 @@ $this_year = '2019';
  			crossDomain: true,
  			success: function(d, status, jqXHR) {
  				// We should have Internet access, set the playlist HTML.
@@ -118,7 +118,7 @@ diff -up ./html/main.php.rm_youtube ./html/main.php
  
  				var text = ''; // Start with empty text by default.
  
-@@ -94,19 +80,6 @@ $this_year = '2018';
+@@ -94,19 +80,6 @@ $this_year = '2019';
  			: '';
  	}
  
@@ -138,9 +138,9 @@ diff -up ./html/main.php.rm_youtube ./html/main.php
  	// Get the daemon status JSON.
  	function getCoreStatus() {
  		setCoreStatusHTML('passiveonly', 'Checking process status...');
-diff -up ./html/map.php.rm_youtube ./html/map.php
---- ./html/map.php.rm_youtube	2018-11-28 14:39:16.895286368 -0600
-+++ ./html/map.php	2018-11-28 14:40:05.311477837 -0600
+diff -up ./html/map.php.remove_3rdparty_links ./html/map.php
+--- ./html/map.php.remove_3rdparty_links	2019-08-29 18:17:32.324544303 +0000
++++ ./html/map.php	2019-08-29 18:20:48.488341376 +0000
 @@ -71,22 +71,6 @@
  		<script type="text/javascript" src="js/jquery-1.12.4.min.js"></script>
  		<script type="text/javascript" src="js/nag_funcs.js"></script>
@@ -152,7 +152,7 @@ diff -up ./html/map.php.rm_youtube ./html/map.php
 -				var vboxText = "<a href=https://www.nagios.com/tours target=_blank>" +
 -							"Click here to watch the entire Nagios Core 4 Tour!</a>";
 -				$(document).ready(function() {
--					var user = "<?php echo $_SERVER['REMOTE_USER']; ?>";
+-					var user = "<?php echo htmlspecialchars($_SERVER['REMOTE_USER']); ?>";
 -
 -					vBoxId += ";" + user;
 -					vbox = new vidbox({pos:'lr',vidurl:'https://www.youtube.com/embed/leaRdb3BElI',

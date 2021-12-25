@@ -264,9 +264,9 @@ diff -up ./startup/default-service.in.fix_localstatedir ./startup/default-servic
  ExecStop=@BIN_KILL@ -s TERM ${MAINPID}
 -ExecStopPost=@BIN_RM@ -f @localstatedir@/rw/nagios.cmd
 +ExecStopPost=@BIN_RM@ -f @localstatedir@/spool/nagios/cmd/nagios.cmd
+ ExecReload=@bindir@/nagios -v @sysconfdir@/nagios.cfg
  ExecReload=@BIN_KILL@ -s HUP ${MAINPID}
  
- [Install]
 diff -up ./t-tap/Makefile.in.fix_localstatedir ./t-tap/Makefile.in
 --- ./t-tap/Makefile.in.fix_localstatedir	2019-01-16 14:24:14.944312569 -0600
 +++ ./t-tap/Makefile.in	2019-01-16 14:24:42.359858604 -0600

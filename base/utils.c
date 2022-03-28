@@ -3378,6 +3378,7 @@ int query_update_api(void) {
 	  abort();
 	}
 
+#ifdef HAVE_SSL
 	my_tcp_connect(api_server, 80, &sd, 2);
 	if(sd > 0) {
 		/* send request */
@@ -3391,7 +3392,21 @@ int query_update_api(void) {
 
 		/* close connection */
 		close(sd);
+#else 
+	my_tcp_connect(api_server, 80, &sd, 2);
+	if(sd > 0) {
+		/* send request */
+		send_len = strlen(buf);
+		my_sendall(sd, buf, &send_len, 2);
 
+		/* get response */
+		recv_len = sizeof(recv_buf);
+		my_recvall(sd, recv_buf, &recv_len, 2);
+		recv_buf[sizeof(recv_buf) - 1] = '\x0';
+
+		/* close connection */
+		close(sd);
+#endif
 		/* parse the result */
 		in_header = TRUE;
 		while((ptr = get_next_string_from_buf(recv_buf, &buf_index, sizeof(recv_buf)))) {

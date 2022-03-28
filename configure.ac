@@ -177,6 +177,25 @@ AC_TRY_COMPILE([#include <stdlib.h>
 [AC_DEFINE(SOCKET_SIZE_TYPE, int, [typedef for socket size]) AC_MSG_RESULT(int)])
 
 
+dnl Does user want to check for SSL?
+AC_ARG_ENABLE([ssl],
+	AS_HELP_STRING([--disable-ssl],[disables native SSL support @<:@default=check@:>@]),[
+	if test x$enableval = xyes; then
+		check_for_ssl=yes
+	else
+		check_for_ssl=no
+	fi
+	],check_for_ssl=yes)
+
+need_dh=no
+
+dnl Optional SSL library and include paths
+if test x$check_for_ssl = xyes; then
+	# need_dh should only be set for NRPE
+	#need_dh=yes
+	AC_NAGIOS_GET_SSL
+fi
+
 dnl Solaris needs rt or posix4 libraries for nanosleep()
 AC_SEARCH_LIBS(nanosleep,[rt posix4],,[
 	echo "Error: nanosleep() needed for timing operations."

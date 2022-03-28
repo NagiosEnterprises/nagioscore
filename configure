@@ -663,6 +663,14 @@ nagios_grp
 nagios_user
 INIT_OPTS
 root_grp
+sslbin
+PKG_CONFIG
+SSL_LIB_DIR
+SSL_INC_PREFIX
+SSL_HDR
+SSL_INC_DIR
+SSL_TYPE
+HAVE_SSL
 SOCKETLIBS
 SNPRINTF_O
 bsd_enable
@@ -779,6 +787,11 @@ with_piddir
 with_pipedir
 with_initdir
 with_lockfile
+enable_ssl
+with_ssl
+with_ssl_inc
+with_ssl_lib
+with_kerberos_inc
 with_root_group
 enable_testing
 with_this_user
@@ -1438,6 +1451,7 @@ Optional Features:
                           '--enable-install-method', so you can see the
                           destinations before a full './configure', 'make',
                           'make install' process.
+  --disable-ssl           disables native SSL support [default=check]
   --enable-testing        DEBUGGING ONLY - Enable testing options
   --enable-nerd           enables Nagios Event Radio Dispatch (NERD)
   --enable-corewindow     enables the 'corewindow' URL argument
@@ -1479,6 +1493,10 @@ Optional Packages:
   --with-pipedir=DIR      where socket and pipe files should be placed
   --with-initdir=<path>   overrides path for initdir
   --with-lockfile=<path>  sets path for lockfile
+  --with-ssl=DIR          sets location of the SSL installation
+  --with-ssl-inc=DIR      sets location of the SSL include files
+  --with-ssl-lib=DIR      sets location of the SSL libraries
+  --with-kerberos-inc=DIR sets location of the Kerberos include files
   --with-root-group=<grp> sets group name for installing init
   --with-this-user        sets all user/group info for current user running
                           ./configure
@@ -6105,6 +6123,464 @@ fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
 
+# Check whether --enable-ssl was given.
+if test "${enable_ssl+set}" = set; then :
+  enableval=$enable_ssl;
+	if test x$enableval = xyes; then
+		check_for_ssl=yes
+	else
+		check_for_ssl=no
+	fi
+
+else
+  check_for_ssl=yes
+fi
+
+
+need_dh=no
+
+if test x$check_for_ssl = xyes; then
+	# need_dh should only be set for NRPE
+	#need_dh=yes
+
+
+# -------------------------------
+#  SSL library and include paths
+# -------------------------------
+
+SSL_TYPE=openssl
+try_pkg_config=1
+ssl_dir=
+ssl_inc_dir=
+ssl_lib_dir=
+SSL_INC_DIR=
+SSL_INC_PREFIX=
+SSL_HDR=
+SSL_LIB_DIR=
+
+
+
+
+
+
+
+
+
+# gnutls/openssl.h
+# nss_compat_ossl/nss_compat_ossl.h
+
+
+
+# Check whether --with-ssl was given.
+if test "${with_ssl+set}" = set; then :
+  withval=$with_ssl; ssl_dir=$withval
+fi
+
+
+# Check whether --with-ssl-inc was given.
+if test "${with_ssl_inc+set}" = set; then :
+  withval=$with_ssl_inc; ssl_inc_dir=$withval
+fi
+
+
+# Check whether --with-ssl-lib was given.
+if test "${with_ssl_lib+set}" = set; then :
+  withval=$with_ssl_lib; ssl_lib_dir=$withval
+fi
+
+
+if test x$ssl_inc_dir != x -o x$ssl_lib_dir != x; then
+	try_pkg_config=0
+fi
+
+
+# Check whether --with-kerberos-inc was given.
+if test "${with_kerberos_inc+set}" = set; then :
+  withval=$with_kerberos_inc; kerberos_inc_dir=$withval
+fi
+
+
+if test x$SSL_TYPE = xyes; then
+    SSL_TYPE=openssl
+fi
+
+
+dflt_hdrs="$ssl_inc_dir $ssl_dir $ssl_inc_dir/include $ssl_dir/include \
+			/usr/local/opt/{BBB} /usr/include/{BBB} /usr/local/include/{BBB} \
+			/usr/local/{AAA} /usr/local/{BBB} /usr/lib/{AAA} /usr/lib/{BBB} \
+			/usr/{AAA} /usr/pkg /usr/local /usr /usr/freeware/lib/{BBB} \
+			/usr/sfw /usr/sfw/include /opt/{BBB}"
+
+dflt_libs="$ssl_lib_dir {ssldir} {ssldir}/lib {ssldir}/lib64 /usr/lib64 \
+			/usr/lib /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu \
+			/usr/local/lib /usr/lib/{AAA} /usr/{AAA}/lib /usr/{BBB}/lib \
+			/usr/pkg/lib /usr/freeware/lib/{BBB} /usr/sfw/lib /opt/freeware/lib \
+			/opt/{BBB}/lib/hpux64 /opt/{BBB}/lib/pa20_64 /opt/{BBB}/lib/hpux32 \
+			/opt/{BBB}/lib /opt/{BBB}";
+
+
+case $SSL_TYPE in #(
+  no) :
+    SSL_TYPE=NONE ;; #(
+  yes|openssl) :
+    ssl_hdr_dirs=`echo "$dflt_hdrs" | sed -e 's/{AAA}/ssl/g' | sed -e 's/{BBB}/openssl/g'`
+		 ssl_lib_dirs=`echo "$dflt_libs" | sed -e 's/{AAA}/ssl/g' | sed -e 's/{BBB}/openssl/g'`
+		 SSL_INC_PREFIX=openssl
+		 SSL_HDR=ssl.h
+		 ssl_lib=libssl ;; #(
+  gnutls) :
+    ssl_hdr_dirs=`echo "$dflt_hdrs" | sed -e 's/{AAA}/gnutls/g' | sed -e 's/{BBB}/gnutls/g'`
+		 ssl_lib_dirs=`echo "$dflt_libs" | sed -e 's/{AAA}/gnutls/g' | sed -e 's/{BBB}/gnutls/g'`
+		 SSL_INC_PREFIX=gnutls
+		 SSL_TYPE=gnutls_compat
+		 SSL_HDR=compat.h
+		 ssl_lib=libgnutls ;; #(
+  nss) :
+    ssl_hdr_dirs=`echo "$dflt_hdrs" | sed -e 's/{AAA}/nss_compat_ossl/g' | sed -e 's/{BBB}/nss_compat_ossl/g'`
+		 ssl_lib_dirs=`echo "$dflt_libs" | sed -e 's/{AAA}/nss_compat_ossl/g' | sed -e 's/{BBB}/nss_compat_ossl/g'`
+		 SSL_HDR=nss_compat_ossl.h
+		 ssl_lib=libnss_compat ;; #(
+  *) :
+    echo >&6; as_fn_error $? "'--with-ssl-type=$SSL_TYPE' is invalid" "$LINENO" 5
+ ;; #(
+  *) :
+     ;;
+esac
+
+
+# Check for SSL support
+
+if test x$SSL_TYPE != xNONE; then
+
+	found_ssl=no
+
+	# RedHat 8.0 and 9.0 include openssl compiled with kerberos,
+	# so we must include header file
+	# Must come before openssl checks for Redhat EL 3
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for Kerberos include files" >&5
+$as_echo_n "checking for Kerberos include files... " >&6; }
+	found_kerberos=no
+	for dir in $kerberos_inc_dir /usr/kerberos/include /usr/include/krb5 \
+				/usr/include; do
+		kerbdir="$dir"
+		if test -f "$dir/krb5.h"; then
+			found_kerberos=yes
+			CFLAGS="$CFLAGS -I$kerbdir"
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_KRB5_H 1
+_ACEOF
+
+			break
+		fi
+	done
+
+	if test x_$found_kerberos != x_yes; then
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: could not find include files" >&5
+$as_echo "$as_me: WARNING: could not find include files" >&2;}
+	else
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: found Kerberos include files in $kerbdir" >&5
+$as_echo "found Kerberos include files in $kerbdir" >&6; }
+	fi
+
+	# First, try using pkg_config
+	if test -n "$ac_tool_prefix"; then
+  # Extract the first word of "${ac_tool_prefix}pkg-config", so it can be a program name with args.
+set dummy ${ac_tool_prefix}pkg-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_prog_PKG_CONFIG+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$PKG_CONFIG"; then
+  ac_cv_prog_PKG_CONFIG="$PKG_CONFIG" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_prog_PKG_CONFIG="${ac_tool_prefix}pkg-config"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+fi
+fi
+PKG_CONFIG=$ac_cv_prog_PKG_CONFIG
+if test -n "$PKG_CONFIG"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $PKG_CONFIG" >&5
+$as_echo "$PKG_CONFIG" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+fi
+if test -z "$ac_cv_prog_PKG_CONFIG"; then
+  ac_ct_PKG_CONFIG=$PKG_CONFIG
+  # Extract the first word of "pkg-config", so it can be a program name with args.
+set dummy pkg-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_prog_ac_ct_PKG_CONFIG+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$ac_ct_PKG_CONFIG"; then
+  ac_cv_prog_ac_ct_PKG_CONFIG="$ac_ct_PKG_CONFIG" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_prog_ac_ct_PKG_CONFIG="pkg-config"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+fi
+fi
+ac_ct_PKG_CONFIG=$ac_cv_prog_ac_ct_PKG_CONFIG
+if test -n "$ac_ct_PKG_CONFIG"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_ct_PKG_CONFIG" >&5
+$as_echo "$ac_ct_PKG_CONFIG" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+  if test "x$ac_ct_PKG_CONFIG" = x; then
+    PKG_CONFIG=""
+  else
+    case $cross_compiling:$ac_tool_warned in
+yes:)
+{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: using cross tools not prefixed with host triplet" >&5
+$as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
+ac_tool_warned=yes ;;
+esac
+    PKG_CONFIG=$ac_ct_PKG_CONFIG
+  fi
+else
+  PKG_CONFIG="$ac_cv_prog_PKG_CONFIG"
+fi
+
+	if test x"$PKG_CONFIG" != x -a $try_pkg_config -ne 0 ; then
+		cflags=`$PKG_CONFIG $SSL_TYPE --cflags-only-I 2>/dev/null`
+		if test $? -eq 0; then
+			CFLAGS="$CFLAGS $cflags"
+			LDFLAGS="$LDFLAGS `$PKG_CONFIG $SSL_TYPE --libs-only-L 2>/dev/null`"
+			LIBS="$LIBS `$PKG_CONFIG $SSL_TYPE --libs-only-l 2>/dev/null`"
+			found_ssl=yes
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_SSL 1
+_ACEOF
+
+		fi
+	fi
+
+	if test x_$found_ssl != x_yes; then
+
+		# Find the SSL Headers
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for SSL headers" >&5
+$as_echo_n "checking for SSL headers... " >&6; }
+		for dir in $ssl_hdr_dirs; do
+			if test "$dir" = "/include"; then
+				continue
+			fi
+			ssldir="$dir"
+			if test -f "$dir/include/$SSL_INC_PREFIX/$SSL_HDR"; then
+				found_ssl=yes
+				CFLAGS="$CFLAGS -I$dir/include/$SSL_INC_PREFIX -I$ssldir/include"
+				SSL_INC_DIR="$dir/include/$SSL_INC_PREFIX"
+				break
+			fi
+			if test -f "$dir/include/$SSL_HDR"; then
+				found_ssl=yes
+				if test "$SSL_HDR" != compat.h ; then
+					SSL_INC_PREFIX=""
+				fi
+				CFLAGS="$CFLAGS -I$dir/include"
+				SSL_INC_DIR="$dir/include"
+				break
+			fi
+			if test -f "$dir/$SSL_HDR"; then
+				found_ssl=yes
+				SSL_INC_PREFIX=""
+				CFLAGS="$CFLAGS -I$dir"
+				SSL_INC_DIR="$dir"
+				break
+			fi
+			if test -f "$dir/$SSL_INC_PREFIX/$SSL_HDR"; then
+				found_ssl=yes
+				CFLAGS="$CFLAGS -I$dir/$SSL_INC_PREFIX"
+				SSL_INC_DIR="$dir/$SSL_INC_PREFIX"
+				ssldir="$dir/.."
+				break
+			fi
+		done
+
+		if test x_$found_ssl != x_yes; then
+			as_fn_error $? "Cannot find ssl headers" "$LINENO" 5
+		else
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: found in $ssldir" >&5
+$as_echo "found in $ssldir" >&6; }
+
+			# Now try and find SSL libraries
+
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for SSL libraries" >&5
+$as_echo_n "checking for SSL libraries... " >&6; }
+			found_ssl=no
+			ssl_lib_dirs=`echo "$ssl_lib_dirs" | sed -e "s|{ssldir}|$ssldir|g"`
+
+			if test "`uname -s`" = "Darwin" ; then
+				soext="dylib"
+			elif test "`uname -s`" = "HP-UX" ; then
+				if test x$arch = "xia64"; then
+					soext="so"
+				else
+					soext="sl"
+				fi
+			elif test "`uname -s`" = "AIX" ; then
+				soext="a"
+			else
+				soext="so"
+			fi
+
+			for dir in $ssl_lib_dirs; do
+				if test -f "$dir/$ssl_lib.$soext"; then
+					found_ssl=yes
+					SSL_LIB_DIR="$dir"
+					break
+				fi
+			done
+
+			if test x_$found_ssl != x_yes; then
+				as_fn_error $? "Cannot find ssl libraries" "$LINENO" 5
+			else
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: found in $SSL_LIB_DIR" >&5
+$as_echo "found in $SSL_LIB_DIR" >&6; }
+
+				LDFLAGS="$LDFLAGS -L$SSL_LIB_DIR";
+				LIBS="$LIBS -l`echo $ssl_lib | sed -e 's/^lib//'` -lcrypto";
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_SSL 1
+_ACEOF
+
+			fi
+		fi
+	fi
+
+	if test x$found_ssl = xyes ; then
+		if test -n "$SSL_INC_PREFIX" ; then
+			SSL_INC_PREFIX="${SSL_INC_PREFIX}/"
+		fi
+
+		# try to compile and link to see if SSL is set up properly
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether compiling and linking against SSL works" >&5
+$as_echo_n "checking whether compiling and linking against SSL works... " >&6; }
+
+		cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <${SSL_INC_PREFIX}${SSL_HDR}>
+int
+main ()
+{
+SSL_new(NULL)
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+
+else
+
+				as_fn_error $? "no" "$LINENO" 5
+
+
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+	fi
+
+	if test x$found_ssl = xyes -a x$need_dh = xyes; then
+
+		# Find the openssl program
+
+		if test x$need_dh = xyes; then
+			# Extract the first word of "openssl", so it can be a program name with args.
+set dummy openssl; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_sslbin+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $sslbin in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_sslbin="$sslbin" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $ssl_dir/sbin$PATH_SEPARATOR$ssl_dir/bin$PATH_SEPARATOR$PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_sslbin="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_sslbin" && ac_cv_path_sslbin="value-if-not-found"
+  ;;
+esac
+fi
+sslbin=$ac_cv_path_sslbin
+if test -n "$sslbin"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $sslbin" >&5
+$as_echo "$sslbin" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+			$as_echo "#define USE_SSL_DH 1" >>confdefs.h
+
+			# Generate DH parameters
+			if test -f "$sslbin"; then
+				echo ""
+				echo "*** Generating DH Parameters for SSL/TLS ***"
+				# awk to strip off meta data at bottom of dhparam output
+				$sslbin dhparam -C 2048 | awk '/^-----/ {exit} {print}' > include/dh.h
+			fi
+		fi
+	fi
+fi
+
+fi
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing nanosleep" >&5
 $as_echo_n "checking for library containing nanosleep... " >&6; }
 if ${ac_cv_search_nanosleep+:} false; then :
@@ -6578,9 +7054,7 @@ fi
 
 if test "x$NERD" = "xyes"; then
 
-cat >>confdefs.h <<_ACEOF
-#define ENABLE_NERD /**/
-_ACEOF
+$as_echo "#define ENABLE_NERD 1" >>confdefs.h
 
 	NERD_O="nerd.o"
 fi

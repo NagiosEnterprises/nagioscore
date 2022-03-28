@@ -11,7 +11,7 @@ SOCKETLIBS=@SOCKETLIBS@
 SNPRINTF_O=@SNPRINTF_O@
 TESTED_SRC_C := squeue.c kvvec.c iocache.c iobroker.c bitmap.c dkhash.c runcmd.c
 TESTED_SRC_C += nsutils.c fanout.c
-SRC_C := $(TESTED_SRC_C) pqueue.c worker.c skiplist.c nsock.c
+SRC_C := $(TESTED_SRC_C) prqueue.c worker.c skiplist.c nsock.c
 SRC_C += nspath.c
 SRC_O := $(patsubst %.c,%.o,$(SRC_C)) $(SNPRINTF_O)
 TESTS := $(patsubst %.c,test-%,$(TESTED_SRC_C))
@@ -19,7 +19,7 @@ TESTS := $(patsubst %.c,test-%,$(TESTED_SRC_C))
 test: $(TESTS)
 	@for t in $(TESTS); do echo $$t:; ./$$t || exit 1; echo; done
 
-test-squeue: pqueue.o test-squeue.o t-utils.o
+test-squeue: prqueue.o test-squeue.o t-utils.o
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) $^ -o $@
 
 test-iocache: t-utils.o test-iocache.o
@@ -52,7 +52,7 @@ cov-build:
 	$(MAKE) CFLAGS='$(COV_CFLAGS)' LDFLAGS='$(COV_CFLAGS)' test
 
 cov-report:
-	@{ for f in $(TESTS) pqueue; do \
+	@{ for f in $(TESTS) prqueue; do \
 		gcov -b -p $$f.c >/dev/null; \
 	done; }
 

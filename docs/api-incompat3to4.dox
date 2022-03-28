@@ -28,7 +28,7 @@ arrays.
 @li next and prev have been removed from timed_event. It's no longer
 possible to sanely loop over all queued elements, since the squeue
 library keeps its types opaque. Adding an "squeue_foreach()" thing
-would be as simple as running a breadth-first search in the pqueue
+would be as simple as running a breadth-first search in the prqueue
 library that drives the squeue implementation.
 @li The scheduled_downtime data type now has start_event and
 stop_event.

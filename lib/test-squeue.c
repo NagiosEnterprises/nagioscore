@@ -23,7 +23,7 @@ static void squeue_foreach(squeue_t *q, int (*walker)(squeue_event *, void *), v
 	dup->d = dup_d;
 	memcpy(dup->d, q->d, (q->size * sizeof(void *)));
 
-	while ((e = pqueue_pop(dup))) {
+	while ((e = prqueue_pop(dup))) {
 		walker(e, arg);
 	}
 	squeue_destroy(dup, 0);
@@ -73,7 +73,7 @@ static int sq_test_random(squeue_t *sq)
 		t(squeue_size(sq) == i + 1 + size);
 	}
 
-	t(pqueue_is_valid(sq));
+	t(prqueue_is_valid(sq));
 
 	/*
 	 * make sure we pop events in increasing "priority",
@@ -87,7 +87,7 @@ static int sq_test_random(squeue_t *sq)
 		max = *d;
 		t(squeue_size(sq) == size + (EVT_ARY - i - 1));
 	}
-	t(pqueue_is_valid(sq));
+	t(prqueue_is_valid(sq));
 
 	return 0;
 }

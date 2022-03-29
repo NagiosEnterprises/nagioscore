@@ -3379,18 +3379,23 @@ int query_update_api(void) {
 	}
 
 #ifdef HAVE_SSL
-	my_tcp_connect(api_server, 80, &sd, 2);
-	if(sd > 0) {
+	SSL *ssl;
+	SSL_CTX *ctx;
+
+	int result = my_ssl_connect(api_server, 443, &sd, &ssl, &ctx, 2);
+	if(sd > 0 && result != ERROR) {
 		/* send request */
 		send_len = strlen(buf);
-		my_sendall(sd, buf, &send_len, 2);
+		my_ssl_sendall(sd, ssl, buf, &send_len, 2);
 
 		/* get response */
 		recv_len = sizeof(recv_buf);
-		my_recvall(sd, recv_buf, &recv_len, 2);
+		my_ssl_recvall(sd, ssl, recv_buf, &recv_len, 2);
 		recv_buf[sizeof(recv_buf) - 1] = '\x0';
 
 		/* close connection */
+		SSL_free(ssl);
+		SSL_CTX_free(ctx);
 		close(sd);
 #else 
 	my_tcp_connect(api_server, 80, &sd, 2);

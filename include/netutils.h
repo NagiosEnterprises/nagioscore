@@ -9,7 +9,9 @@
 NAGIOS_BEGIN_DECL
 
 #ifdef HAVE_SSL
-int my_ssl_connect(const char *host_name, int port, int *sd, SSL *ssl, SSL_CTX *ctx, int timeout);
+int my_ssl_connect(const char *host_name, int port, int *sd, SSL **ssl, SSL_CTX **ctx, int timeout);
+int my_ssl_sendall(int sd, SSL *ssl, const char *buf, int *len, int timeout);
+int my_ssl_recvall(int s, SSL *ssl, char *buf, int *len, int timeout);
 #endif
 
 int my_tcp_connect(const char *host_name, int port, int *sd, int timeout);

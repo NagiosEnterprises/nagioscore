@@ -37,28 +37,33 @@ Miscellaneous Goodies:
   Apache to require password authentication for access to the web
   interface.
 
-- epel-nagios.spec and epel-patches directory are added for creating EPEL like rpms
+- Notes about "make rpm" addition, tested on RockyLinux 8
+  0. We need more people to learn how nagioscore rpm on epel was made.
+  1. Preparre epel-nagios.spec and epel-patches/* files.
+    wget https://download-ib01.fedoraproject.org/pub/epel/8/Everything/SRPMS/Packages/n/nagios-4.4.6-4.el8.src.rpm
+    rpm -ivh nagios-4.4.6-4.el8.src.rpm # Install patches into ~/RPMBUILD/SOURCES and nagios into ~/RPMBUILD/SPECS
+    cp ~/RPMBUILD/SOURCES/* epel-patches
+    cp ~/RPMBUILD/SPECS/nagios ./epel-nagios.spec
 
-  1. Prepare your rpmbuild environment for CentOS/RHEL
+  2. Prepare your rpmbuild environment for CentOS/RHEL.
 
-  sudo yum instatll -y rpmdevtools gcc libtool rpmbuild
-
-  sudo yum instatll -y policycoreutils-devel selinux-policy-devel \
+  sudo yum instatll -y rpmdevtools gcc libtool rpmbuild \
+  policycoreutils-devel selinux-policy-devel \
   perl-generators gdbm-devel pyparsing systemtap perl-ExtUtils-Manifest \
   libdb perl-ExtUtils-MakeMaker  perl-ExtUtils-Install perl-devel  \
   perl-ExtUtils-ParseXS perl-local-lib  perl-CPAN perl-ExtUtils-AutoInstall \
   perl-Test-Simple perl-ExtUtils-Embed  perl-HTML-Lint
 
-  2. Generate contrib/Makefile from contrib/Makefile.in
+  3. Generate contrib/Makefile from contrib/Makefile.in.
 
-     ../configure      # to generate contrib/Makefile
-     make rpm          # get nagioscore released tar ball
+     ../configure      # To generate contrib/Makefile from Makefile.in
+     make rpm          # Do the rpm build under ./rpmbuild directory
      make localsrc-rpm # tar up existing src code to create rpm
 
-  3. To Upgrade for local EPEL RRPMs
+  4. Testing upgrade Nagioscore 4.4.5 on this build host using RPMs created here.
 
-  sudo rpm -Uvh nagios-common-4.4.5-1.el7.x86_64.rpm \
-  nagios-contrib-4.4.5-1.el7.x86_64.rpm nagios-devel-4.4.5-1.el7.x86_64.rpm  nagios-4.4.5-1.el7.x86_64.rpm
+  sudo rpm -Uvh nagios-common-4.4.6-1el8.x86_64.rpm nagios-contrib-4.4.6-1el8.x86_64.rpm \
+       nagios-devel-4.4.6-1el8.x86_64.rpm  nagios-4.4.6-1el8.x86_64.rpm
   sudo systemctl daemon-reload
   sudo systemctl restart nagios
 

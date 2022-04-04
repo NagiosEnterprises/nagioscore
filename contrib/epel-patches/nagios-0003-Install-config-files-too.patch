@@ -1,7 +1,8 @@
-diff -up ./Makefile.in.install_config ./Makefile.in
---- ./Makefile.in.install_config	2017-04-19 19:11:47.783707415 -0400
-+++ ./Makefile.in	2017-04-19 19:11:47.785707384 -0400
-@@ -377,7 +377,7 @@ dox:
+diff --git a/Makefile.in b/Makefile.in
+index b992ab1e..ef2a797f 100644
+--- a/Makefile.in
++++ b/Makefile.in
+@@ -439,7 +439,7 @@ dox:
  	doxygen doxy.conf
  
  

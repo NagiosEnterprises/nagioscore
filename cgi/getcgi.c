@@ -245,7 +245,9 @@ char **getcgivars(void) {
 		formid = strstr(cookies, "NagFormId=");
 		if (formid) {
 			if(!(paircount % 256)) {
-				pairlist = (char **)realloc(pairlist, (paircount + 1) * sizeof(char *));
+				/* if no query parameters were provided, paircount can begin as zero, resulting in */
+				/* truncation of the pairlist array if we do not reserve at least two elements. */
+				pairlist = (char **)realloc(pairlist, (paircount + 2) * sizeof(char *));
 				if(pairlist == NULL) {
 					printf("getcgivars(): Could not re-allocate memory for name-value pairlist.\n");
 					exit(1);

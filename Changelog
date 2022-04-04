@@ -11,6 +11,7 @@ FIXES
 * Fixed XSS in homepage when displaying update check results (Sebastian Wolf)
 * Fixed allocation error in getcgi.c (#820) (Ariadne Conill)
 * Fixed Error: NULL variable for lines of spaces in resource.cfg (#814) (Ralf Herrmann)
+* Fixed crash when handling large check output (#825, #828) (Kilvador)
 
 4.4.6 - 2020-04-28
 ------------------

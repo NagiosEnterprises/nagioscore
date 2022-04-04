@@ -84,7 +84,6 @@ define host {
 
 
 
-
 # Windows host definition template
 # This is NOT a real host, just a template!
 
@@ -194,5 +193,5 @@ define service {
     max_check_attempts              4                       ; Re-check the service up to 4 times in order to determine its final (hard) state
     check_interval                  5                       ; Check the service every 5 minutes under normal conditions
     retry_interval                  1                       ; Re-check the service every minute until a hard state can be determined
-    register                        0                       ; DONT REGISTER THIS DEFINITION - ITS NOT A REAL SERVICE, JUST A TEMPLATE!
+    register                        0                       ; DON'T REGISTER THIS DEFINITION - ITS NOT A REAL SERVICE, JUST A TEMPLATE!
 }

@@ -2,13 +2,14 @@
 Nagios Core 4 Change Log
 ########################
 
-4.4.7 - 2021-04-11
+4.4.7 - 2022-04-11
 ------------------
 FIXES 
 * Fixed checkboxes in jsonquery.html (#778) (Rfferrao87)
 * Added SSL support for version update check (Sebastian Wolf)
 * Note: NEB modules using the priority/scheduling queues in libnagios may need to update headers due to symbol conflicts with OpenSSL.
 * Fixed XSS in homepage when displaying update check results (Sebastian Wolf)
+* Fixed Error: NULL variable for lines of spaces in resource.cfg (#814) (Ralf Herrmann)
 
 4.4.6 - 2020-04-28
 ------------------

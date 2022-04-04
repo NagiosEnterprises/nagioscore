@@ -12,6 +12,7 @@ FIXES
 * Fixed allocation error in getcgi.c (#820) (Ariadne Conill)
 * Fixed Error: NULL variable for lines of spaces in resource.cfg (#814) (Ralf Herrmann)
 * Fixed crash when handling large check output (#825, #828) (Kilvador)
+* Update packaging instructions for RPM/EPEL (#850) (T.J. Yang)
 
 4.4.6 - 2020-04-28
 ------------------

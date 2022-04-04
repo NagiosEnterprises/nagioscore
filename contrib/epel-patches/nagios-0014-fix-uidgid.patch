@@ -1,0 +1,12 @@
+diff -up ./startup/default-service.in.fix_uidgid ./startup/default-service.in
+--- ./startup/default-service.in.fix_uidgid	2019-02-22 11:57:38.432525592 -0500
++++ ./startup/default-service.in	2019-02-22 11:58:03.823003073 -0500
+@@ -5,6 +5,8 @@ After=network.target local-fs.target
+ 
+ [Service]
+ Type=forking
++User=nagios
++Group=nagios
+ ExecStartPre=@bindir@/nagios -v @sysconfdir@/nagios.cfg
+ ExecStart=@bindir@/nagios -d @sysconfdir@/nagios.cfg
+ ExecStop=@BIN_KILL@ -s TERM ${MAINPID}

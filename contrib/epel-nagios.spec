@@ -1,16 +1,16 @@
 %global _hardened_build 1
+# Set bootstrap = 1 to build without depending on plugins for localhost monitoring
+%global bootstrap 0
 
 Name:           nagios
-Version: 4.4.6
-Release:        1%{?dist}
+Version:        4.4.6
+Release:        4%{?dist}
 
 Summary: Host/service/network monitoring program
 
-Group:          Applications/System
 License:        GPLv2
 URL:            https://www.nagios.org/projects/nagios-core/
-#Source0:        https://github.com/NagiosEnterprises/nagioscore/archive/nagios-%{version}.tar.gz#/nagioscore-nagios-%{version}.tar.gz
-Source0:        https://github.com/NagiosEnterprises/nagioscore/releases/download/nagios-%{version}/nagios-%{version}.tar.gz
+Source0:        https://github.com/NagiosEnterprises/nagioscore/archive/nagios-%{version}.tar.gz#/nagioscore-nagios-%{version}.tar.gz
 Source1: nagios.logrotate
 Source2: nagios.htaccess
 Source3: nagios.internet.cfg
@@ -27,9 +27,6 @@ Source14: nagios_epel7.te
 Source15: nagios_epel.fc
 Source16: nagios_epel6.te
 
-# Patch 0 should be a patch that we get from the maint git tree in
-# order to fix any items upstream wanted.
-#Patch0: nagios-0000-git201706.patch
 Patch1: nagios-0001-default-init.patch
 # Sent upstream
 Patch2: nagios-0002-Fix-installation-of-httpd-conf.d-config-file.patch
@@ -37,8 +34,6 @@ Patch3: nagios-0003-Install-config-files-too.patch
 Patch4: nagios-0004-Fix-path-to-CGI-executables.patch
 Patch5: nagios-0005-Fixed-path-to-passwd-file-in-Apache-s-config-file.patch
 Patch6: nagios-0006-Added-several-images-to-the-sample-config-revb.patch
-#Patch7: nagios-0007-Apache-2.4-configuration-fix-for-Fedora-18.patch
-Patch8: nagios-0008-Add-cfg_dir-etc-nagios-conf.d-to-the-main-nagios-con.patch
 Patch9: nagios-0009-fix-localstatedir-for-linux.patch
 ## This has been requested for security groups not wanting to leak
 ## their nagios location.
@@ -47,7 +42,10 @@ Patch10: nagios-0010-remove-information-leak.patch
 Patch11: nagios-0011-remove-rpmbuild.patch
 Patch12: nagios-0012-fix-spool.patch
 Patch13: nagios-0013-fix-plugin.patch
+Patch14: nagios-0014-fix-uidgid.patch
+Patch15: %{name}-0015-Changelog.patch
 
+BuildRequires:  make
 BuildRequires:  doxygen
 BuildRequires:  gcc
 BuildRequires:  gd-devel > 1.8
@@ -72,7 +70,7 @@ BuildRequires:  libtool
 # For selinux tools
 BuildRequires: checkpolicy, selinux-policy-devel
 
-%if 0%{?el7} || 0%{?fedora} > 20
+%if 0%{?rhel} > 6 || 0%{?fedora} > 20
 # For necessary macros
 BuildRequires:  systemd
 %endif
@@ -85,9 +83,21 @@ Requires:       nagios-common
 Requires:       user(nagios)
 Requires:       group(nagios)
 
+# This plugins are required for localhost monitoring
+%if ! 0%{?bootstrap}
+Requires:       nagios-plugins-ping
+Requires:       nagios-plugins-load
+Requires:       nagios-plugins-users
+Requires:       nagios-plugins-http
+Requires:       nagios-plugins-disk
+Requires:       nagios-plugins-ssh
+Requires:       nagios-plugins-swap
+Requires:       nagios-plugins-procs
+%endif
+
 Requires(pre):    group(nagios)
 Requires(pre):    user(nagios)
-%if 0%{?el7} || 0%{?fedora} > 20
+%if 0%{?rhel} > 6 || 0%{?fedora} > 20
 # For necessary macros
 BuildRequires:  systemd
 %else
@@ -112,7 +122,6 @@ This package provides the core program, web interface, and documentation
 files for Nagios. Development files are built as a separate package.
 
 %package common
-Group:          Applications/System
 Summary:        Provides common directories, uid and gid among nagios-related packages
 Requires(pre):  shadow-utils
 Requires(post): shadow-utils
@@ -125,7 +134,6 @@ Provides common directories, uid and gid among nagios-related packages.
 
 
 %package devel
-Group:          Applications/System
 Summary:        Provides include files that Nagios-related applications may compile against
 Requires:       %{name} = %{version}-%{release}
 
@@ -144,7 +152,6 @@ may compile against.
 %if 0%{?rhel} > 5
 %package selinux
 Summary:          SELinux context for %{name}
-Group:            Applications/System
 Requires:         %name = %version-%release
 Requires(post):   policycoreutils
 Requires(postun): policycoreutils
@@ -156,30 +163,13 @@ SElinux context for %{name}.
 
 %package contrib
 Summary:          Eventhandlers contributed to nagios
-Group:            Applications/System
 Requires:         %name = %version-%release
 
 %description contrib
 Various contributed items used by plugins and other tools.
 
 %prep
-#%setup -q -n nagioscore-nagios-%{version}
-%setup -q -n nagios-%{version}
-
-# patch0 would go here
-%patch1 -p1 -b .fix_el6_init
-%patch2 -p1 -b .fix_httpd_conf_d
-%patch3 -p0 -b .install_config
-%patch4 -p1 -b .fix_path_to_cgi
-%patch5 -p1 -b .fix_path_to_passwd
-%patch6 -p1 -b .more_images
-
-#%patch8 -p1 -b .conf_d
-%patch9 -p1 -b .fix_localstatedir
-#%patch10 -p1 -b .remove_3rdparty_links
-#%patch11 -p1 -b .remove_rpmbuild
-%patch12 -p1 -b .fix_spool
-%patch13 -p1 -b .fix_plugin
+%autosetup -p1 -n nagioscore-nagios-%{version}
 
 install -p -m 0644 %{SOURCE10} %{SOURCE11} %{SOURCE12} html/images/logos/
 
@@ -218,13 +208,14 @@ install -p -m 0644 %{SOURCE10} %{SOURCE11} %{SOURCE12} html/images/logos/
     --with-template-extinfo \
     --enable-event-broker \
     STRIP=/bin/true
-make %{?_smp_mflags} all
+
+%make_build all
 
 ### Build our documentation
-%{__make} dox
+%make_build dox
 
 ### Apparently contrib does not obey configure !
-%{__make} %{?_smp_mflags} -C contrib
+%make_build -C contrib
 
 
 sed -e "s|/usr/lib/|%{_libdir}/|" %{SOURCE2} > %{name}.htaccess
@@ -244,14 +235,12 @@ cp -p %{SOURCE14} selinux/%{name}_epel.te
 %endif
 cp -p %{SOURCE15} selinux/%{name}_epel.fc
 touch selinux/%{name}_epel.if
-make -f %{_datadir}/selinux/devel/Makefile
+%make_build -f %{_datadir}/selinux/devel/Makefile
 %endif
 
 
 %install
-rm -rf $RPM_BUILD_ROOT
-
-make DESTDIR=%{buildroot} INIT_OPTS="" INSTALL_OPTS="" COMMAND_OPTS="" CGIDIR="%{_libdir}/%{name}/cgi-bin" CFGDIR="%{_sysconfdir}/%{name}" fullinstall
+%make_install INIT_OPTS="" INSTALL_OPTS="" COMMAND_OPTS="" CGIDIR="%{_libdir}/%{name}/cgi-bin" CFGDIR="%{_sysconfdir}/%{name}" fullinstall
 
 # relocated to sbin (Fedora-specific)
 install -d -m 0755 %{buildroot}%{_bindir}
@@ -285,12 +274,15 @@ install -d -m 0775 %{buildroot}/%{_localstatedir}/log/%{name}/
 install -d -m 0775 %{buildroot}/%{_localstatedir}/log/%{name}/archives
 
 # Use systemd unit on rhel7 or any supported Fedora
-%if 0%{?el7} || 0%{?fedora} > 20
+%if 0%{?rhel} > 6 || 0%{?fedora} > 20
 # Install systemd entry
 install -D -m 0644 -p %{SOURCE8} %{buildroot}%{_tmpfilesdir}/%{name}.conf
 
 # Remove SystemV init-script
 rm -f %{buildroot}%{_initrddir}/nagios
+
+# Fix systemd unit file permissions #1676334
+chmod -x %{buildroot}%{_unitdir}/%{name}.service
 %endif
 
 # Fix permissions - FIXME remove this when unneeded
@@ -306,7 +298,7 @@ install -p -m 644 -D %{name}_epel.pp $RPM_BUILD_ROOT%{_datadir}/selinux/packages
 %endif
 
 ### CONTRIB ITEMS TAKEN FROM UPSTREAM NAGIOS SPEC
-make install -C contrib DESTDIR="%{buildroot}" INSTALL_OPTS=""
+%make_install -C contrib INSTALL_OPTS=""
 install -p -m 644 contrib/eventhandlers/disable_active_service_checks %{buildroot}%{_libdir}/nagios/plugins/eventhandlers/
 install -p -m 644 contrib/eventhandlers/disable_notifications %{buildroot}%{_libdir}/nagios/plugins/eventhandlers/
 install -p -m 644 contrib/eventhandlers/enable_active_service_checks %{buildroot}%{_libdir}/nagios/plugins/eventhandlers/
@@ -329,7 +321,7 @@ exit 0
 %post
 %{_sbindir}/usermod -a -G %{name} apache || :
 
-%if 0%{?el7} || 0%{?fedora} > 20
+%if 0%{?rhel} > 6 || 0%{?fedora} > 20
 %systemd_post %{name}.service  > /dev/null 2>&1 || :
 %else
 if [ $1 -eq 1 ]; then
@@ -352,7 +344,7 @@ fi
 %endif
 
 %preun
-%if 0%{?el7} || 0%{?fedora} > 20
+%if 0%{?rhel} > 6 || 0%{?fedora} > 20
 %systemd_preun %{name}.service
 %else
 if [ $1 -eq 0 ]; then
@@ -433,8 +425,9 @@ fi
 %dir %{_datadir}/%{name}
 %dir %{_datadir}/%{name}/html
 %doc %{_datadir}/%{name}/html/docs
-%doc Changelog INSTALLING LICENSE README.md UPGRADING UpgradeToVersion4.ReadMe UpgradeToVersion4.sh
+%doc Changelog INSTALLING README.md UPGRADING UpgradeToVersion4.ReadMe UpgradeToVersion4.sh
 %doc internet.cfg
+%license LICENSE
 %{_datadir}/%{name}/html/[^cd]*
 %{_datadir}/%{name}/html/contexthelp/
 %{_datadir}/%{name}/html/d3/
@@ -442,7 +435,7 @@ fi
 %{_sbindir}/*
 %{_bindir}/*
 %{_libdir}/%{name}/cgi-bin/*cgi
-%if 0%{?el7} || 0%{?fedora} > 20
+%if 0%{?rhel} > 6 || 0%{?fedora} > 20
 %{_unitdir}/%{name}.service
 %{_tmpfilesdir}/%{name}.conf
 %else
@@ -488,6 +481,52 @@ fi
 %{_libdir}/%{name}/cgi/
 
 %changelog
+* Wed Mar 03 2021 Guido Aulisi <guido.aulisi@gmail.com> - 4.4.6-4
+- Add missing require for nagios-plugins-ping
+- Fix run path
+
+* Sat Feb 27 2021 Guido Aulisi <guido.aulisi@gmail.com> - 4.4.6-3
+- Require plugins needed for localhost monitoring (#1932297)
+
+* Tue Feb 23 2021 Guido Aulisi <guido.aulisi@gmail.com> - 4.4.6-2
+- Fix systemd unit file permissions #1676334
+
+* Sat Feb 20 2021 Guido Aulisi <guido.aulisi@gmail.com> - 4.4.6-1
+- Update to 4.4.6
+- Fix for CVE-2020-13977 #BZ1849087
+- Some spec cleanup
+
+* Tue Feb 18 2020 Stephen Smoogen <smooge@fedoraproject.org> - 4.4.5-3
+- Add change to allow for problems found in mass rebuild and gcc10.
+- Fix BZ#1793909
+
+* Wed Jan 29 2020 Fedora Release Engineering <releng@fedoraproject.org> - 4.4.5-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_32_Mass_Rebuild
+
+* Thu Aug 29 2019 Stephen Smoogen <smooge@fedoraproject.org> - 4.4.5-1
+- Move to 4.4.5
+- Updated patches to cleanly patch
+
+* Fri Jul 26 2019 Stephen Smoogen <smooge@fedoraproject.org> - 4.4.3-7
+- Try to put in fixes to allow this to work on EL8
+
+* Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 4.4.3-6
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
+
+* Fri May 31 2019 Jitka Plesnikova <jplesnik@redhat.com> - 4.4.3-5
+- Perl 5.30 rebuild
+
+* Fri Feb 22 2019 Stephen Smoogen <smooge@fedoraproject.org> - 4.4.3-4
+- Fix BZ#1674258 add explicite User and Group to systemctl startup.
+- Problem was missed because some config files had this set in them
+
+* Tue Feb  5 2019 Stephen Smoogen <smooge@fedoraproject.org> - 4.4.3-3
+- Fix BZ#1672027
+- Patch for daemon did not have enough endif in them. However test looks superfluous
+
+* Fri Feb 01 2019 Fedora Release Engineering <releng@fedoraproject.org> - 4.4.3-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_30_Mass_Rebuild
+
 * Wed Jan 16 2019 Stephen Smoogen <smooge@fedoraproject.org> - 4.4.3-1
 - Incorporate many fixes from Justin Paulsen <petaris@gmail.com> THANKS!!!
 - Update to 4.4.3 for CVE fixes

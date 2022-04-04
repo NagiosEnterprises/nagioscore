@@ -1,0 +1,13 @@
+diff --git a/Changelog b/Changelog
+index a5fd04c6..51394645 100644
+--- a/Changelog
++++ b/Changelog
+@@ -9,7 +9,7 @@ FIXES
+ * Fixed duplicate properties appearing in statusjson.cgi (#718) (Sebastian Wolf)
+ * Fixed NERD not building when enabled in ./configure (#723) (Sebastian Wolf)
+ * Fixed build process when using GCC 10 (#721) (Michael Orlitzky)
+-* Fixed postauth vulnerabilities in histogram.js, map.js, trends.js (CVE-2020-1408) (Thanks UraSec Team) (Sebastian Wolf)
++* Fixed postauth vulnerabilities in histogram.js, map.js, trends.js (CVE-2020-13977) (Thanks UraSec Team) (Sebastian Wolf)
+ * When using systemd, configuration will be verified before reloading (#715) (tatref)
+ * Fixed HARD OK states triggering on the maximum check attempt (#757) (Sebastian Wolf)
+ 

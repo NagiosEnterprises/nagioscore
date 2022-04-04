@@ -1,13 +1,16 @@
-diff -up ./contrib/Makefile.in.remove_rpmbuild ./contrib/Makefile.in
---- ./contrib/Makefile.in.remove_rpmbuild	2019-01-16 15:00:18.627548108 -0600
-+++ ./contrib/Makefile.in	2019-01-16 15:00:38.756215308 -0600
-@@ -84,35 +84,3 @@ $(CGI_O): $(CGI_C)
+diff --git a/contrib/Makefile.in b/contrib/Makefile.in
+index 72e4d4a9..62415152 100644
+--- a/contrib/Makefile.in
++++ b/contrib/Makefile.in
+@@ -84,52 +84,3 @@ $(CGI_O): $(CGI_C)
  
  %.cgi : %.c
  	$(CC) $(CFLAGS) $(LDFLAGS) $< $(CGI_O) -o $@
 -
 -##############################################################################
--# rpm making automation for CentOS/RHEL.
+-# making similiar EPEL rpm for Fedora/RHEL/CentOS 
+-
+-ifneq ("$(wildcard /etc/redhat-release)","")
 -
 -ARCH ?= $(shell uname -m)
 -ifeq ($(ARCH),x86_64)
@@ -24,16 +27,31 @@ diff -up ./contrib/Makefile.in.remove_rpmbuild ./contrib/Makefile.in
 -    endif
 -endif
 -
--rpm:
+-# Create our own tarball and put ino rpmbuild/SOURCES
+-localsrc-rpm:
 -	# create nagios tar ball.
 -	@(cd ..;rm -f nagios-@VERSION@)
 -	@(cd ..;ln -s . nagios-@VERSION@)
 -	@(cd ..;tar zhcf nagios-@VERSION@.tar.gz --exclude nagios-@VERSION@/nagios-@VERSION@.tar.gz --exclude nagios-@VERSION@/nagios-@VERSION@ --exclude RCS --exclude CVS --exclude build-* --exclude *~ --exclude .git* nagios-@VERSION@/)
 -	@(cd ..;rm -f nagios-@VERSION@)
 -	# build the rpm using rpmbuild from ./rmbuild as topdir
--	@rm -rf rpmbuild && mkdir -p rpmbuild/SOURCES
+-	@rm -rf rpmbuild && mkdir -p ./rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
 -	@cp  ../nagios-@VERSION@.tar.gz rpmbuild/SOURCES/nagios-@VERSION@.tar.gz
--	@rpmbuild -ba --define "_topdir ${PWD}/rpmbuild"   ../nagios.spec
--	@mv rpmbuild/RPMS/$(RPM_ARCH)/*.rpm .
+-	@cp epel-patches/* ./rpmbuild/SOURCES
+-	@rpmbuild -ba --define "_topdir ${PWD}/rpmbuild"   epel-nagios.spec
+-	@cp  rpmbuild/RPMS/$(RPM_ARCH)/*.rpm .
+-	@cp rpmbuild/SRPMS/*.src.rpm .
 -	@ls -l *.rpm
 -
+-# tarball from https://github.com/NagiosEnterprises/nagioscore/releases/download/nagios-%{version}/nagios-%{version}.tar.gz
+-rpm: init-epelrpm  build-epelrpm
+-	@mv rpmbuild/RPMS/$(RPM_ARCH)/*.rpm .
+-	@ls -l *.rpm
+-init-epelrpm: 
+-	# build the rpm using rpmbuild from ./rmbuild as topdir
+-	@rm -rf ./rpmbuild && mkdir -p ./rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
+-	@spectool -C ./rpmbuild/SOURCES -g epel-nagios.spec
+-	@cp epel-patches/* ./rpmbuild/SOURCES
+-build-epelrpm:
+-	@rpmbuild -ba --define "_topdir ${PWD}/rpmbuild"  epel-nagios.spec
+-endif

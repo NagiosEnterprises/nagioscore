@@ -77,7 +77,7 @@ all: $(TESTS)
 test_logging: test_logging.o $(SRC_BASE)/logging.o $(TAPOBJ) $(SRC_COMMON)/shared.o $(SRC_BASE)/objects-base.o
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS) $(LIBS)
 
-test_events: test_events.o $(SRC_BASE)/events.o $(TAPOBJ) $(SRC_BASE)/utils.o $(SRC_COMMON)/shared.o $(SRC_BASE)/objects-base.o $(SRC_BASE)/checks.o $(SRC_LIB)/squeue.o $(SRC_LIB)/nsutils.o $(SRC_LIB)/kvvec.o $(SRC_LIB)/dkhash.o $(SRC_LIB)/pqueue.o $(SRC_BASE)/config.o $(SRC_LIB)/nspath.o $(SRC_BASE)/macros-base.o $(SRC_XDATA)/xodtemplate.o $(SRC_LIB)/bitmap.o $(SRC_LIB)/skiplist.o
+test_events: test_events.o $(SRC_BASE)/events.o $(TAPOBJ) $(SRC_BASE)/utils.o $(SRC_COMMON)/shared.o $(SRC_BASE)/objects-base.o $(SRC_BASE)/checks.o $(SRC_LIB)/squeue.o $(SRC_LIB)/nsutils.o $(SRC_LIB)/kvvec.o $(SRC_LIB)/dkhash.o $(SRC_LIB)/prqueue.o $(SRC_BASE)/config.o $(SRC_LIB)/nspath.o $(SRC_BASE)/macros-base.o $(SRC_XDATA)/xodtemplate.o $(SRC_LIB)/bitmap.o $(SRC_LIB)/skiplist.o
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS) $(MATHLIBS)
 
 test_checks: test_checks.o $(SRC_BASE)/checks.o $(TAPOBJ) $(SRC_BASE)/utils.o $(SRC_COMMON)/shared.o $(SRC_BASE)/objects-base.o

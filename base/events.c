@@ -1395,7 +1395,7 @@ int handle_timed_event(timed_event *event) {
  * data structure. */
 struct squeue_event {
 	unsigned int pos;
-	pqueue_pri_t pri;
+	prqueue_pri_t pri;
 	struct timeval when;
 	void *data;
 	};
@@ -1404,7 +1404,7 @@ struct squeue_event {
  * Adjusts scheduling of active, non-forced host and service checks.
  */
 void adjust_check_scheduling(void) {
-	pqueue_t *temp_pqueue; /* squeue_t is a typedef of pqueue_t. */
+	prqueue_t *temp_prqueue; /* squeue_t is a typedef of prqueue_t. */
 	struct squeue_event *sq_event;
 	struct squeue_event **events_to_reschedule;
 
@@ -1434,7 +1434,7 @@ void adjust_check_scheduling(void) {
 	last_window_time = first_window_time + auto_rescheduling_window;
 
 	/* Nothing to do if the first event is after the reschedule window. */
-	sq_event = pqueue_peek(nagios_squeue);
+	sq_event = prqueue_peek(nagios_squeue);
 	temp_event = sq_event ? sq_event->data : NULL;
 	if (!temp_event || temp_event->run_time > last_window_time)
 		return;
@@ -1443,40 +1443,40 @@ void adjust_check_scheduling(void) {
 	/* Get a sorted array of all check events to reschedule. First we need a
 	 * duplicate of nagios_squeue so we can get the events in-order without
 	 * having to remove them from the original queue. We will use
-	 * pqueue_change_priority() to move the check events in the original queue.
+	 * prqueue_change_priority() to move the check events in the original queue.
 	 * @note: This is horribly dependent on implementation details of squeue
-	 * and pqueue, but we don't have much choice to avoid a free/malloc of each
+	 * and prqueue, but we don't have much choice to avoid a free/malloc of each
 	 * squeue_event from the head to last_window_time, or avoid paying the full
 	 * O(n lg n) penalty twice to drain and rebuild the queue. */
-	temp_pqueue = malloc(sizeof(*temp_pqueue));
-	if (!temp_pqueue) {
+	temp_prqueue = malloc(sizeof(*temp_prqueue));
+	if (!temp_prqueue) {
 		logit(NSLOG_RUNTIME_ERROR, TRUE, "Failed to allocate queue needed to adjust check scheduling.\n");
 		return;
 		}
-	*temp_pqueue = *nagios_squeue;
+	*temp_prqueue = *nagios_squeue;
 
 	/* We need a separate copy of the underlying queue array. */
-	temp_pqueue->d = malloc(temp_pqueue->size * sizeof(void*));
-	if (!temp_pqueue->d) {
+	temp_prqueue->d = malloc(temp_prqueue->size * sizeof(void*));
+	if (!temp_prqueue->d) {
 		logit(NSLOG_RUNTIME_ERROR, TRUE, "Failed to allocate queue data needed to adjust check scheduling.\n");
-		free(temp_pqueue);
+		free(temp_prqueue);
 		return;
 		}
-	memcpy(temp_pqueue->d, nagios_squeue->d, temp_pqueue->size * sizeof(void*));
-	temp_pqueue->avail = temp_pqueue->size;
+	memcpy(temp_prqueue->d, nagios_squeue->d, temp_prqueue->size * sizeof(void*));
+	temp_prqueue->avail = temp_prqueue->size;
 
 	/* Now allocate space for a sorted array of check events. We shouldn't need
 	 * space for all events, but we can't really calculate how many we'll need
 	 * without looking at all events. */
-	events_to_reschedule = malloc((temp_pqueue->size - 1) * sizeof(void*));
+	events_to_reschedule = malloc((temp_prqueue->size - 1) * sizeof(void*));
 	if (!events_to_reschedule) {
 		logit(NSLOG_RUNTIME_ERROR, TRUE, "Failed to allocate memory needed to adjust check scheduling.\n");
-		pqueue_free(temp_pqueue); /* pqueue_free() to keep the events. */
+		prqueue_free(temp_prqueue); /* prqueue_free() to keep the events. */
 		return;
 		}
 
 	/* Now we get the events to reschedule and collect some scheduling info. */
-	while ((sq_event = pqueue_pop(temp_pqueue))) {
+	while ((sq_event = prqueue_pop(temp_prqueue))) {
 
 		/* We need a timed_event and event data. */
 		temp_event = sq_event->data;
@@ -1519,7 +1519,7 @@ void adjust_check_scheduling(void) {
 		events_to_reschedule[total_checks++] = sq_event;
 		}
 
-	/* Removing squeue_events from temp_pqueue invalidates the positions of
+	/* Removing squeue_events from temp_prqueue invalidates the positions of
 	 * those events in nagios_squeue, so we need to fix that up before we
 	 * return or change their priorities. Start at i=1 since i=0 is unused. */
 	for (i = 1; i < (int)nagios_squeue->size; ++i) {
@@ -1531,7 +1531,7 @@ void adjust_check_scheduling(void) {
 	if (total_checks < 2 || !adjust_scheduling) {
 		log_debug_info(DEBUGL_SCHEDULING, 0, "No events need to be rescheduled (%d checks in %ds window).\n", total_checks, auto_rescheduling_window);
 
-		pqueue_free(temp_pqueue);
+		prqueue_free(temp_prqueue);
 		free(events_to_reschedule);
 		return;
 		}
@@ -1599,7 +1599,7 @@ void adjust_check_scheduling(void) {
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "adjust_check_scheduling() end\n");
 
-	pqueue_free(temp_pqueue);
+	prqueue_free(temp_prqueue);
 	free(events_to_reschedule);
 	return;
 	}

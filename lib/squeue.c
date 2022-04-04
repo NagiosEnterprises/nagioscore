@@ -2,9 +2,9 @@
  * @file squeue.c
  * @brief pqeue wrapper library
  *
- * This library wraps the libpqueue library and handles the boring
+ * This library wraps the libprqueue library and handles the boring
  * parts for all manner of events that want to use it, while hiding
- * the implementation details of the pqueue's binary heap from the
+ * the implementation details of the prqueue's binary heap from the
  * callers.
  *
  * peek() is O(1)
@@ -19,11 +19,11 @@
 #include <string.h>
 #include <assert.h>
 #include "squeue.h"
-#include "pqueue.h"
+#include "prqueue.h"
 
 struct squeue_event {
 	unsigned int pos;
-	pqueue_pri_t pri;
+	prqueue_pri_t pri;
 	struct timeval when;
 	void *data;
 };
@@ -38,12 +38,12 @@ struct squeue_event {
  * comparisons.
  */
 #define SQ_BITS 21
-static pqueue_pri_t evt_compute_pri(struct timeval *tv)
+static prqueue_pri_t evt_compute_pri(struct timeval *tv)
 {
-	pqueue_pri_t ret;
+	prqueue_pri_t ret;
 
 	/* keep weird compilers on 32-bit systems from doing wrong */
-	if(sizeof(pqueue_pri_t) < 8) {
+	if(sizeof(prqueue_pri_t) < 8) {
 		ret = tv->tv_sec;
 		ret += !!tv->tv_usec;
 	} else {
@@ -55,7 +55,7 @@ static pqueue_pri_t evt_compute_pri(struct timeval *tv)
 	return ret;
 }
 
-static int sq_cmp_pri(pqueue_pri_t next, pqueue_pri_t cur)
+static int sq_cmp_pri(prqueue_pri_t next, prqueue_pri_t cur)
 {
 	return next > cur;
 }
@@ -65,7 +65,7 @@ static unsigned long long sq_get_pri(void *a)
 	return ((squeue_event *)a)->pri;
 }
 
-static void sq_set_pri(void *a, pqueue_pri_t pri)
+static void sq_set_pri(void *a, prqueue_pri_t pri)
 {
 	((squeue_event *)a)->pri = pri;
 }
@@ -97,9 +97,9 @@ void *squeue_event_data(squeue_event *evt)
 squeue_t *squeue_create(unsigned int horizon)
 {
 	if (!horizon)
-		horizon = 127; /* makes pqueue allocate 128 elements */
+		horizon = 127; /* makes prqueue allocate 128 elements */
 
-	return pqueue_init(horizon, sq_cmp_pri, sq_get_pri, sq_set_pri, sq_get_pos, sq_set_pos);
+	return prqueue_init(horizon, sq_cmp_pri, sq_get_pri, sq_set_pri, sq_get_pos, sq_set_pos);
 }
 
 squeue_event *squeue_add_tv(squeue_t *q, struct timeval *tv, void *data)
@@ -119,19 +119,19 @@ squeue_event *squeue_add_tv(squeue_t *q, struct timeval *tv, void *data)
 	evt->when.tv_sec = tv->tv_sec;
 	if (sizeof(evt->when.tv_sec) > 4) {
 		/*
-		 * Only use bottom sizeof(pqueue_pri_t)-SQ_BITS bits on
+		 * Only use bottom sizeof(prqueue_pri_t)-SQ_BITS bits on
 		 * 64-bit systems, or we may get entries at the head
 		 * of the queue are actually scheduled to run several
 		 * hundred thousand years from now.
 		 */
-		evt->when.tv_sec &= (1ULL << ((sizeof(pqueue_pri_t) * 8) - SQ_BITS)) - 1;
+		evt->when.tv_sec &= (1ULL << ((sizeof(prqueue_pri_t) * 8) - SQ_BITS)) - 1;
 	}
 	evt->when.tv_usec = tv->tv_usec;
 	evt->data = data;
 
 	evt->pri = evt_compute_pri(&evt->when);
 
-	if (!pqueue_insert(q, evt))
+	if (!prqueue_insert(q, evt))
 		return evt;
 
 	free(evt);
@@ -172,19 +172,19 @@ void squeue_change_priority_tv(squeue_t *q, squeue_event *evt, struct timeval *t
 
 	evt->when.tv_sec = tv->tv_sec;
 	if (sizeof(evt->when.tv_sec) > 4) {
-		/* Only use bottom sizeof(pqueue_pri_t)-SQ_BITS bits on 64-bit systems,
+		/* Only use bottom sizeof(prqueue_pri_t)-SQ_BITS bits on 64-bit systems,
 		 * or we may get entries at the head of the queue are actually
 		 * scheduled to run several hundred thousand years from now. */
-		evt->when.tv_sec &= (1ULL << ((sizeof(pqueue_pri_t) * 8) - SQ_BITS)) - 1;
+		evt->when.tv_sec &= (1ULL << ((sizeof(prqueue_pri_t) * 8) - SQ_BITS)) - 1;
 	}
 	evt->when.tv_usec = tv->tv_usec;
 
-	pqueue_change_priority(q, evt_compute_pri(&evt->when), evt);
+	prqueue_change_priority(q, evt_compute_pri(&evt->when), evt);
 }
 
 void *squeue_peek(squeue_t *q)
 {
-	squeue_event *evt = pqueue_peek(q);
+	squeue_event *evt = prqueue_peek(q);
 	if (evt)
 		return evt->data;
 	return NULL;
@@ -195,7 +195,7 @@ void *squeue_pop(squeue_t *q)
 	squeue_event *evt;
 	void *ptr = NULL;
 
-	evt = pqueue_pop(q);
+	evt = prqueue_pop(q);
 	if (evt) {
 		ptr = evt->data;
 		free(evt);
@@ -209,7 +209,7 @@ int squeue_remove(squeue_t *q, squeue_event *evt)
 
 	if (!q || !evt)
 		return -1;
-	ret = pqueue_remove(q, evt);
+	ret = prqueue_remove(q, evt);
 	if (evt)
 		free(evt);
 
@@ -220,7 +220,7 @@ void squeue_destroy(squeue_t *q, int flags)
 {
 	unsigned int i;
 
-	if (!q || pqueue_size(q) < 1)
+	if (!q || prqueue_size(q) < 1)
 		return;
 
 	/*
@@ -228,23 +228,23 @@ void squeue_destroy(squeue_t *q, int flags)
 	 * doing 1 cmp+branch for every queued item
 	 */
 	if (flags & SQUEUE_FREE_DATA) {
-		for (i = 0; i < pqueue_size(q); i++) {
+		for (i = 0; i < prqueue_size(q); i++) {
 			free(((squeue_event *)q->d[i + 1])->data);
 			free(q->d[i + 1]);
 		}
 	} else {
-		for (i = 0; i < pqueue_size(q); i++) {
+		for (i = 0; i < prqueue_size(q); i++) {
 			free(q->d[i + 1]);
 		}
 	}
-	pqueue_free(q);
+	prqueue_free(q);
 }
 
 unsigned int squeue_size(squeue_t *q)
 {
 	if (!q)
 		return 0;
-	return pqueue_size(q);
+	return prqueue_size(q);
 }
 
 int squeue_evt_when_is_after(squeue_event *evt, struct timeval *reftime) {

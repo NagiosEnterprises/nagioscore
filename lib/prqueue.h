@@ -19,13 +19,13 @@
 #include <stdio.h>
 
 /**
- * @file  pqueue.h
+ * @file  prqueue.h
  * @brief Priority Queue function declarations
  *
  * This priority queue library was originally written by Volkan Yazici
  * <volkan.yazici@gmail.com>. It was lated adapted for Nagios by
  * Andreas Ericsson <ae@op5.se>. Changes compared to the original
- * version are pretty much limited to changing pqueue_pri_t to be
+ * version are pretty much limited to changing prqueue_pri_t to be
  * an unsigned long long instead of a double, since ULL comparisons
  * are 107 times faster on my 64-bit laptop.
  *
@@ -34,36 +34,36 @@
 
 
 /** priority data type (used to be double, but ull is 107 times faster) */
-typedef unsigned long long pqueue_pri_t;
+typedef unsigned long long prqueue_pri_t;
 
 /** callback functions to get/set/compare the priority of an element */
-typedef pqueue_pri_t (*pqueue_get_pri_f)(void *a);
-typedef void (*pqueue_set_pri_f)(void *a, pqueue_pri_t pri);
-typedef int (*pqueue_cmp_pri_f)(pqueue_pri_t next, pqueue_pri_t curr);
+typedef prqueue_pri_t (*prqueue_get_pri_f)(void *a);
+typedef void (*prqueue_set_pri_f)(void *a, prqueue_pri_t pri);
+typedef int (*prqueue_cmp_pri_f)(prqueue_pri_t next, prqueue_pri_t curr);
 
 
 /** callback functions to get/set the position of an element */
-typedef unsigned int (*pqueue_get_pos_f)(void *a);
-typedef void (*pqueue_set_pos_f)(void *a, unsigned int pos);
+typedef unsigned int (*prqueue_get_pos_f)(void *a);
+typedef void (*prqueue_set_pos_f)(void *a, unsigned int pos);
 
 
 /** debug callback function to print a entry */
-typedef void (*pqueue_print_entry_f)(FILE *out, void *a);
+typedef void (*prqueue_print_entry_f)(FILE *out, void *a);
 
 
 /** the priority queue handle */
-typedef struct pqueue_t
+typedef struct prqueue_t
 {
     unsigned int size;       /**< number of elements in this queue */
     unsigned int avail;      /**< slots available in this queue */
     unsigned int step;       /**< growth stepping setting */
-    pqueue_cmp_pri_f cmppri; /**< callback to compare nodes */
-    pqueue_get_pri_f getpri; /**< callback to get priority of a node */
-    pqueue_set_pri_f setpri; /**< callback to set priority of a node */
-    pqueue_get_pos_f getpos; /**< callback to get position of a node */
-    pqueue_set_pos_f setpos; /**< callback to set position of a node */
+    prqueue_cmp_pri_f cmppri; /**< callback to compare nodes */
+    prqueue_get_pri_f getpri; /**< callback to get priority of a node */
+    prqueue_set_pri_f setpri; /**< callback to set priority of a node */
+    prqueue_get_pos_f getpos; /**< callback to get position of a node */
+    prqueue_set_pos_f setpos; /**< callback to set position of a node */
     void **d;                /**< The actual queue in binary heap form */
-} pqueue_t;
+} prqueue_t;
 
 
 /**
@@ -81,27 +81,27 @@ typedef struct pqueue_t
  *
  * @return the handle or NULL for insufficient memory
  */
-pqueue_t *
-pqueue_init(unsigned int n,
-            pqueue_cmp_pri_f cmppri,
-            pqueue_get_pri_f getpri,
-            pqueue_set_pri_f setpri,
-            pqueue_get_pos_f getpos,
-            pqueue_set_pos_f setpos);
+prqueue_t *
+prqueue_init(unsigned int n,
+            prqueue_cmp_pri_f cmppri,
+            prqueue_get_pri_f getpri,
+            prqueue_set_pri_f setpri,
+            prqueue_get_pos_f getpos,
+            prqueue_set_pos_f setpos);
 
 
 /**
  * free all memory used by the queue
  * @param q the queue
  */
-void pqueue_free(pqueue_t *q);
+void prqueue_free(prqueue_t *q);
 
 
 /**
  * return the size of the queue.
  * @param q the queue
  */
-unsigned int pqueue_size(pqueue_t *q);
+unsigned int prqueue_size(prqueue_t *q);
 
 
 /**
@@ -110,7 +110,7 @@ unsigned int pqueue_size(pqueue_t *q);
  * @param d the item
  * @return 0 on success
  */
-int pqueue_insert(pqueue_t *q, void *d);
+int prqueue_insert(prqueue_t *q, void *d);
 
 
 /**
@@ -120,8 +120,8 @@ int pqueue_insert(pqueue_t *q, void *d);
  * @param d the entry
  */
 void
-pqueue_change_priority(pqueue_t *q,
-                       pqueue_pri_t new_pri,
+prqueue_change_priority(prqueue_t *q,
+                       prqueue_pri_t new_pri,
                        void *d);
 
 
@@ -130,7 +130,7 @@ pqueue_change_priority(pqueue_t *q,
  * @param q the queue
  * @return NULL on error, otherwise the entry
  */
-void *pqueue_pop(pqueue_t *q);
+void *prqueue_pop(prqueue_t *q);
 
 
 /**
@@ -139,7 +139,7 @@ void *pqueue_pop(pqueue_t *q);
  * @param d the entry
  * @return 0 on success
  */
-int pqueue_remove(pqueue_t *q, void *d);
+int prqueue_remove(prqueue_t *q, void *d);
 
 
 /**
@@ -147,7 +147,7 @@ int pqueue_remove(pqueue_t *q, void *d);
  * @param q the queue
  * @return NULL on error, otherwise the entry
  */
-void *pqueue_peek(pqueue_t *q);
+void *prqueue_peek(prqueue_t *q);
 
 
 /**
@@ -159,7 +159,7 @@ void *pqueue_peek(pqueue_t *q);
  * @param the callback function to print the entry
  */
 void
-pqueue_print(pqueue_t *q, FILE *out, pqueue_print_entry_f print);
+prqueue_print(prqueue_t *q, FILE *out, prqueue_print_entry_f print);
 
 
 /**
@@ -170,7 +170,7 @@ pqueue_print(pqueue_t *q, FILE *out, pqueue_print_entry_f print);
  * @param out the output handle
  * @param the callback function to print the entry
  */
-void pqueue_dump(pqueue_t *q, FILE *out, pqueue_print_entry_f print);
+void prqueue_dump(prqueue_t *q, FILE *out, prqueue_print_entry_f print);
 
 
 /**
@@ -179,7 +179,7 @@ void pqueue_dump(pqueue_t *q, FILE *out, pqueue_print_entry_f print);
  * debug function only
  * @param q the queue
  */
-int pqueue_is_valid(pqueue_t *q);
+int prqueue_is_valid(prqueue_t *q);
 
 #endif
 /** @} */

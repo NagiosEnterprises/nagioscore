@@ -2,6 +2,11 @@
 Nagios Core 4 Change Log
 ########################
 
+4.4.7 - 2021-04-11
+------------------
+FIXES
+* Fixed checkboxes in jsonquery.html (#778) (Rfferrao87)
+
 4.4.6 - 2020-04-28
 ------------------
 FIXES

@@ -6,6 +6,9 @@ Nagios Core 4 Change Log
 ------------------
 FIXES
 * Fixed checkboxes in jsonquery.html (#778) (Rfferrao87)
+* Added SSL support for version update check (Sebastian Wolf)
+* Note: NEB modules using the priority/scheduling queues in libnagios may need to update headers due to symbol conflicts with OpenSSL.
+* Fixed XSS in homepage when displaying update check results (Sebastian Wolf)
 
 4.4.6 - 2020-04-28
 ------------------

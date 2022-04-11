@@ -65,8 +65,7 @@ Contributing
 The Nagios source code is hosted on GitHub:
 https://github.com/NagiosEnterprises/nagioscore
 
-Do you have an idea or feature request to make Nagios better? Join or start a
-discussion on the [Nagios Core Development forum](https://support.nagios.com/forum/viewforum.php?f=34).
+Do you have an idea or feature request to make Nagios better? 
 Bugs can be reported by [opening an issue on GitHub](https://github.com/NagiosEnterprises/nagioscore/issues/new).
 If you have identified a security related issue in Nagios, please contact
 security@nagios.com.

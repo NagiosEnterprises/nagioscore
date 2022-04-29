@@ -8967,6 +8967,7 @@ int xodtemplate_free_memory(void) {
 			my_free(this_service->icon_image_alt);
 			my_free(this_service->hostgroup_name);
 			my_free(this_service->service_description);
+			my_free(this_service->host_name);
 			}
 		my_free(this_service);
 		}

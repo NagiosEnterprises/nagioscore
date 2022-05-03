@@ -3395,7 +3395,9 @@ int query_update_api(void) {
 
 		/* close connection */
 		SSL_free(ssl);
+#if OPENSSL_VERSION_NUMBER < 0x10100000
 		SSL_CTX_free(ctx);
+#endif
 		close(sd);
 #else 
 	my_tcp_connect(api_server, 80, &sd, 2);

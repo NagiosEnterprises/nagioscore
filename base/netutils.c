@@ -46,7 +46,7 @@ int my_ssl_connect(const char *host_name, int port, int *sd, SSL **ssl, SSL_CTX 
 	hints.ai_socktype = SOCK_STREAM;
 
 	/* make sure our static port_str is long enough */
-	if(port > 65535)
+	if(port < 0 || port > 65535)
 		return ERROR;
 
 	snprintf(port_str, sizeof(port_str), "%d", port);
@@ -385,7 +385,7 @@ int my_tcp_connect(const char *host_name, int port, int *sd, int timeout) {
 	hints.ai_socktype = SOCK_STREAM;
 
 	/* make sure our static port_str is long enough */
-	if(port > 65535)
+	if(port < 0 || port > 65535)
 		return ERROR;
 
 	snprintf(port_str, sizeof(port_str), "%d", port);

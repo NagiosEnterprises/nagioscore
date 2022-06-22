@@ -3379,8 +3379,8 @@ int query_update_api(void) {
 	}
 
 #ifdef HAVE_SSL
-	SSL *ssl;
-	SSL_CTX *ctx;
+	SSL *ssl = NULL;
+	SSL_CTX *ctx = NULL;
 
 	int result = my_ssl_connect(api_server, 443, &sd, &ssl, &ctx, 2);
 	if(sd > 0 && result != ERROR) {

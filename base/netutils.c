@@ -154,7 +154,7 @@ int my_ssl_connect(const char *host_name, int port, int *sd, SSL **ssl, SSL_CTX 
 
 #if OPENSSL_VERSION_NUMBER >= 0x10100000
 
-	method = TLS_method();
+	method = TLS_client_method();
 
 #else		/* OPENSSL_VERSION_NUMBER >= 0x10100000 */
 
@@ -268,10 +268,10 @@ int my_ssl_sendall(int s, SSL *ssl, const char *buf, int *len, int timeout) {
 				/* If we hit one of these two errors, we just want to select() the socket again */
 				break;
 			}
+		} else {
+			total_sent += n;
+			bytes_left -= n;
 		}
-
-		total_sent += n;
-		bytes_left -= n;
 
 		/* make sure we haven't overrun the timeout */
 		time(&current_time);
@@ -337,16 +337,18 @@ int my_ssl_recvall(int s, SSL *ssl, char *buf, int *len, int timeout) {
 		n = SSL_read(ssl, buf + total_received, bytes_left);
 		if(n <= 0) {
 			int error = SSL_get_error(ssl, n);
+			/* If we hit one of these two errors, we just want to select() the socket again */
 			if (error != SSL_ERROR_WANT_READ && error != SSL_ERROR_WANT_WRITE) {
-				/* An actual error happened */
-				/* If we hit one of these two errors, we just want to select() the socket again */
+				/* EOF or an actual error happened */
+				if (error == SSL_ERROR_ZERO_RETURN)
+					SSL_shutdown(ssl);
 				break;
 			}
+		} else {
+			/* apply bytes we received */
+			total_received += n;
+			bytes_left -= n;
 		}
-
-		/* apply bytes we received */
-		total_received += n;
-		bytes_left -= n;
 
 		/* make sure we haven't overrun the timeout */
 		time(&current_time);

@@ -1154,7 +1154,7 @@ char * html_encode(char *input, int escape_newlines) {
 	/* we need up to six times the space to do the conversion */
 	len = (int)strlen(input);
 	output_max = len * 6;
-	if(( outcp = encoded_html_string = (char *)malloc(output_max + 1)) == NULL)
+	if(len == 0 || ( outcp = encoded_html_string = (char *)malloc(output_max + 1)) == NULL)
 		return "";
 
 	strcpy(encoded_html_string, "");
@@ -1390,7 +1390,7 @@ char *escape_string(const char *input) {
 	/* We need up to six times the space to do the conversion */
 	len = (int)strlen(input);
 	output_max = len * 6;
-	if(( stp = encoded_html_string = (char *)malloc(output_max + 1)) == NULL)
+	if(len == 0 || ( stp = encoded_html_string = (char *)malloc(output_max + 1)) == NULL)
 		return "";
 
 	strcpy(encoded_html_string, "");

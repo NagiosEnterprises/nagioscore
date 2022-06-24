@@ -268,7 +268,7 @@ int qh_deregister_handler(const char *name)
 	struct query_handler *prev = NULL;
 
 	qh = dkhash_remove(qh_table, name, NULL);
-	if (qh != NULL) {
+	if (qh == NULL) {
 		return 0;
 	}
 
@@ -282,7 +282,8 @@ int qh_deregister_handler(const char *name)
 	if (prev != NULL) {
 		prev->next_qh = next;
 	}
-	else {
+
+	if (qh == qhandlers) {
 		qhandlers = next;
 	}
 
@@ -349,11 +350,8 @@ int qh_register_handler(const char *name, const char *description, unsigned int 
 
 void qh_deinit(const char *path)
 {
-	struct query_handler *qh   = NULL;
-
-	for (qh = qhandlers; qh != NULL; qh = qh->next_qh) {
-
-		qh_deregister_handler(qh->name);
+	while (qhandlers) {
+		qh_deregister_handler(qhandlers->name);
 	}
 
 	dkhash_destroy(qh_table);

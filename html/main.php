@@ -103,7 +103,7 @@ $this_year = '2022';
 			$('#splashbox3')
 				.addClass('splashbox3-full')
 				.removeClass('splashbox3-empty')
-				.html('<iframe width="100%" height="100%" src="//www.youtube.com/embed/videoseries?list=PLN-ryIrpC_mCUW1DFwZpxpAk00i60lSkE&iv_load_policy=3&rel=0" frameborder="0" allowfullscreen></iframe>');
+				.html('<iframe width="100%" height="100%" src="//www.youtube.com/embed/2hVBAet-XpY&iv_load_policy=3&rel=0" frameborder="0" allowfullscreen></iframe>');
 		}
 	}
 

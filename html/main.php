@@ -1,7 +1,7 @@
 <?php
 include_once(dirname(__FILE__).'/includes/utils.inc.php');
 
-$this_version = '4.4.7';
+$this_version = '4.4.8';
 $this_year = '2022';
 ?>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
@@ -103,7 +103,7 @@ $this_year = '2022';
 			$('#splashbox3')
 				.addClass('splashbox3-full')
 				.removeClass('splashbox3-empty')
-				.html('<iframe width="100%" height="100%" src="//www.youtube.com/embed/2hVBAet-XpY&iv_load_policy=3&rel=0" frameborder="0" allowfullscreen></iframe>');
+				.html('<iframe width="100%" height="100%" src="//www.youtube.com/embed/videoseries?list=PLN-ryIrpC_mCUW1DFwZpxpAk00i60lSkE&iv_load_policy=3&rel=0" frameborder="0" allowfullscreen></iframe>');
 		}
 	}
 
@@ -145,7 +145,7 @@ $this_year = '2022';
 <div id="currentversioninfo">
 	<div class="product">Nagios<sup><span style="font-size: small;">&reg;</span></sup> Core<sup><span style="font-size: small;">&trade;</span></sup></div>
 	<div class="version">Version <?php echo $this_version; ?></div>
-	<div class="releasedate">April 14, 2022</div>
+	<div class="releasedate">October 04, 2022</div>
 	<div class="checkforupdates"><a href="https://www.nagios.org/checkforupdates/?version=<?php echo $this_version; ?>&amp;product=nagioscore" target="_blank">Check for updates</a></div>
 </div>
 
@@ -198,6 +198,10 @@ $this_year = '2022';
 			</ul>
 		</div>
 
+
+		<div id="splashbox3" class="splashbox3-empty"><!-- youtube playlist -->
+		</div>
+
 		<div id="splashbox2" class="splashbox">
 			<h2>Quick Links</h2>
 			<ul>
@@ -210,8 +214,7 @@ $this_year = '2022';
 			</ul>
 		</div>
 
-		<div id="splashbox3" class="splashbox3-empty"><!-- youtube playlist -->
-		</div>
+	
 
 	</div><!-- end splashrow1 -->
 

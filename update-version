@@ -12,7 +12,7 @@ else
 fi
 
 # Current version number
-CURRENTVERSION=4.4.8
+CURRENTVERSION=4.4.9
 
 # Last date
 LASTDATE=2022-10-04

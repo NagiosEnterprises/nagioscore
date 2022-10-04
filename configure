@@ -2462,7 +2462,7 @@ ac_config_headers="$ac_config_headers include/config.h lib/snprintf.h lib/iobrok
 
 PKG_NAME=nagios
 
-PKG_VERSION="4.4.8"
+PKG_VERSION="4.4.9"
 PKG_HOME_URL="https://www.nagios.org/"
 PKG_REL_DATE="2022-10-04"
 

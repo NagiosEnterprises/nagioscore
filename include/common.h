@@ -24,7 +24,7 @@
 
 #include "shared.h"
 
-#define PROGRAM_VERSION "4.4.9"
+#define PROGRAM_VERSION "4.4.8"
 #define PROGRAM_MODIFICATION_DATE "2022-10-04"
 
 NAGIOS_BEGIN_DECL

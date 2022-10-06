@@ -10,7 +10,7 @@ AC_PREFIX_DEFAULT(/usr/local/nagios)
 
 PKG_NAME=nagios
 
-PKG_VERSION="4.4.9"
+PKG_VERSION="4.4.8"
 PKG_HOME_URL="https://www.nagios.org/"
 PKG_REL_DATE="2022-10-04"
 

@@ -181,7 +181,7 @@ int services_critical_unacknowledged = 0;
 int services_critical = 0;
 
 
-/*efine DEBUG 1*/
+/*define DEBUG 1*/
 
 int main(void) {
 	char *sound = NULL;

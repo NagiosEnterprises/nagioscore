@@ -1412,6 +1412,9 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 				log_debug_info(DEBUGL_CHECKS, 1, "Service experienced a HARD recovery.\n");
 
 				send_notification = TRUE;
+				hard_state_change = TRUE;
+
+				svc->current_attempt = 1;
 			}
 			else {
 

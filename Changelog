@@ -2,6 +2,9 @@
 Nagios Core 4 Change Log
 ########################
 
+4.4.9 - 2022-11-??
+------------------
+* Fixed check_attempts remaining high during a HARD service recovery (#837)
 
 4.4.8 - 2022-10-04
 ------------------

@@ -107,16 +107,32 @@ static int nerd_deregister_channel_callbacks(struct nerd_channel *chan)
 	return 0;
 }
 
-static int subscribe(int sd, struct nerd_channel *chan, char *fmt)
+static struct nerd_subscription *subscribe_create(int sd, struct nerd_channel *chan, const char *fmt)
 {
 	struct nerd_subscription *subscr;
 
 	if(!(subscr = calloc(1, sizeof(*subscr))))
-		return -1;
+		return NULL;
 
 	subscr->sd = sd;
 	subscr->chan = chan;
 	subscr->format = fmt ? strdup(fmt) : NULL;
+
+	return subscr;
+}
+
+static void subscribe_destroy(struct nerd_subscription *subscr)
+{
+	free(subscr->format);
+	free(subscr);
+}
+
+static int subscribe(int sd, struct nerd_channel *chan, char *fmt)
+{
+	struct nerd_subscription *subscr;
+
+	if(!(subscr = subscribe_create(sd, chan, fmt)))
+		return -1;
 
 	if(!chan->subscriptions) {
 		nerd_register_channel_callbacks(chan);
@@ -141,7 +157,7 @@ static int cancel_channel_subscription(struct nerd_channel *chan, int sd)
 		if(subscr->sd == sd) {
 			cancelled++;
 			free(list);
-			free(subscr);
+			subscribe_destroy(subscr);
 			if(prev) {
 				prev->next = next;
 			} else {
@@ -172,7 +188,7 @@ static int unsubscribe(int sd, struct nerd_channel *chan)
 		next = list->next;
 		if(subscr->sd == sd) {
 			/* found it, so remove it */
-			free(subscr);
+			subscribe_destroy(subscr);
 			free(list);
 			if(!prev) {
 				chan->subscriptions = next;
@@ -371,7 +387,7 @@ static int nerd_deinit(void)
 			iobroker_close(nagios_iobs, subscr->sd);
 			next = list->next;
 			free(list);
-			free(subscr);
+			subscribe_destroy(subscr);
 		}
 		chan->subscriptions = NULL;
 		my_free(chan);

@@ -5,12 +5,12 @@ Nagios Core 4 Change Log
 4.4.9 - 2022-11-??
 ------------------
 * Fixed check_attempts remaining high during a HARD service recovery (#837)
+* Fixed memory leak in NERD (#872)
 
 4.4.8 - 2022-10-04
 ------------------
 * Minor interface updates
 * Fixed crash when checking for updates using SSL
-
 
 4.4.7 - 2022-04-14
 ------------------

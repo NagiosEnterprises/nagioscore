@@ -38,7 +38,7 @@
 static char *main_config_file = NULL;
 char *status_file = NULL;
 static char *mrtg_variables = NULL;
-static const char *mrtg_delimiter = "\n";
+static const char *mrtg_delimiter = NULL;
 
 static int mrtg_mode = FALSE;
 
@@ -221,6 +221,7 @@ int main(int argc, char **argv) {
 
 	/* defaults */
 	main_config_file = strdup(DEFAULT_CONFIG_FILE);
+	mrtg_delimiter = strdup("\n");
 
 	/* get all command line arguments */
 	while(1) {
@@ -243,20 +244,22 @@ int main(int argc, char **argv) {
 				display_license = TRUE;
 				break;
 			case 'c':
-				if(main_config_file)
-					free(main_config_file);
+				free(main_config_file);
 				main_config_file = strdup(optarg);
 				break;
 			case 's':
+				free(status_file);
 				status_file = strdup(optarg);
 				break;
 			case 'm':
 				mrtg_mode = TRUE;
 				break;
 			case 'd':
+				free(mrtg_variables);
 				mrtg_variables = strdup(optarg);
 				break;
 			case 'D':
+				free(mrtg_delimiter);
 				mrtg_delimiter = strdup(optarg);
 				break;
 
@@ -423,7 +426,7 @@ static int display_mrtg_values(void) {
 
 	time(&current_time);
 
-	if(mrtg_variables == NULL)
+	if(mrtg_variables == NULL || mrtg_delimiter == NULL)
 		return OK;
 
 	/* process all variables */

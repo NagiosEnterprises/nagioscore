@@ -125,7 +125,10 @@ AC_CACHE_CHECK([for C99 vsnprintf],ac_cv_HAVE_C99_VSNPRINTF,[
 AC_TRY_RUN([
 #include <sys/types.h>
 #include <stdarg.h>
-void foo(const char *format, ...) { 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+void foo(const char *format, ...) {
        va_list ap;
        int len;
        char buf[5];
@@ -144,7 +147,7 @@ void foo(const char *format, ...) {
 
        exit(0);
 }
-main() { foo("hello"); }
+int main(void) { foo("hello"); }
 ],
 ac_cv_HAVE_C99_VSNPRINTF=yes,ac_cv_HAVE_C99_VSNPRINTF=no,ac_cv_HAVE_C99_VSNPRINTF=cross)])
 if test "x$ac_cv_HAVE_C99_VSNPRINTF" = "xyes"; then

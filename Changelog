@@ -2,6 +2,11 @@
 Nagios Core 4 Change Log
 ########################
 
+4.4.10 - 2023-01-??
+-------------------
+FIXES
+* Improve compilation/reduce warnings when using Clang 16 (#889)
+
 4.4.9 - 2022-11-16
 ------------------
 FIXES

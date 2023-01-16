@@ -2,12 +2,13 @@
 Nagios Core 4 Change Log
 ########################
 
-4.4.10 - 2023-01-??
+4.4.10 - 2023-01-17
 -------------------
 FIXES
+* Fix memory leak in nagiostats.c when using -c, -s, -d, or -D multiple times (#888)
+* Improve service scheduling at startup (#887)
 * Improve compilation/reduce warnings when using Clang 16 (#889)
 * Improve compilation on other, stricter C99 compilers (#890)
-* Fix memory leak in nagiostats.c when using -c, -s, -d, or -D multiple times (#888)
 
 4.4.9 - 2022-11-16
 ------------------

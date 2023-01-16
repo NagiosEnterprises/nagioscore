@@ -356,7 +356,7 @@ void init_timing_loop(void) {
 						"  Fixing check time %lu secs too far away\n",
 						check_delay - check_window(temp_service));
 				fixed_services++;
-				check_delay = check_window(temp_service);
+				check_delay = ranged_urand(0, check_window(temp_service));
 				log_debug_info(DEBUGL_EVENTS, 0, "  New check offset: %d\n",
 						check_delay);
 			}

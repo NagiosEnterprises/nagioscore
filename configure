@@ -5920,6 +5920,9 @@ else
 
 #include <sys/types.h>
 #include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 void foo(const char *format, ...) {
        va_list ap;
        int len;
@@ -5939,7 +5942,7 @@ void foo(const char *format, ...) {
 
        exit(0);
 }
-main() { foo("hello"); }
+int main() { foo("hello"); }
 
 _ACEOF
 if ac_fn_c_try_run "$LINENO"; then :

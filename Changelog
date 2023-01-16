@@ -6,6 +6,7 @@ Nagios Core 4 Change Log
 -------------------
 FIXES
 * Improve compilation/reduce warnings when using Clang 16 (#889)
+* Improve compilation on other, stricter C99 compilers (#890)
 * Fix memory leak in nagiostats.c when using -c, -s, -d, or -D multiple times (#888)
 
 4.4.9 - 2022-11-16

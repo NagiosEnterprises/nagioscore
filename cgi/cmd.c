@@ -1846,7 +1846,7 @@ void commit_command_data(int cmd) {
 			printf("<DIV CLASS='errorMessage'>Sorry Dave, I can't let you do that...</DIV><br>");
 			printf("<DIV CLASS='errorDescription'>");
 			printf("It seems that you have chosen to not use the authentication functionality of the CGIs.<br><br>");
-			printf("I don't want to be personally responsible for what may happen as a result of allowing unauthorized users to issue commands to Nagios,");
+			printf("I don't want to be personally responsible for what may happen as a result of allowing unauthorized users to issue commands to Nagios, ");
 			printf("so you'll have to disable this safeguard if you are really stubborn and want to invite trouble.<br><br>");
 			printf("<strong>Read the section on CGI authentication in the HTML documentation to learn how you can enable authentication and why you should want to.</strong>\n");
 			printf("</DIV>\n");

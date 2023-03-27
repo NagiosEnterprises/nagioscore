@@ -1154,7 +1154,7 @@ char * html_encode(char *input, int escape_newlines) {
 	/* we need up to six times the space to do the conversion */
 	len = (int)strlen(input);
 	output_max = len * 6;
-	if(( outcp = encoded_html_string = (char *)malloc(output_max + 1)) == NULL)
+	if(len == 0 || ( outcp = encoded_html_string = (char *)malloc(output_max + 1)) == NULL)
 		return "";
 
 	strcpy(encoded_html_string, "");
@@ -1254,12 +1254,12 @@ char * html_encode(char *input, int escape_newlines) {
 
 		/* newlines turn to <BR> tags */
 		else if(escape_newlines == TRUE && *incp == '\n') {
-			strncpy( outcp, "<BR>", 4);
+			memcpy( outcp, "<BR>", 4);
 			outcp += 4;
 		}
 
 		else if(escape_newlines == TRUE && *incp == '\\' && *(incp + 1) == '\n') {
-			strncpy( outcp, "<BR>", 4);
+			memcpy( outcp, "<BR>", 4);
 			outcp += 4;
 			incp++; /* needed so loop skips two characters */
 		}
@@ -1390,7 +1390,7 @@ char *escape_string(const char *input) {
 	/* We need up to six times the space to do the conversion */
 	len = (int)strlen(input);
 	output_max = len * 6;
-	if(( stp = encoded_html_string = (char *)malloc(output_max + 1)) == NULL)
+	if(len == 0 || ( stp = encoded_html_string = (char *)malloc(output_max + 1)) == NULL)
 		return "";
 
 	strcpy(encoded_html_string, "");
@@ -1430,11 +1430,12 @@ char *escape_string(const char *input) {
 
 		/* Encode everything else (this may be excessive) */
 		else {
+			len = strlen( temp_expansion);
 			sprintf( temp_expansion, "&#%u;", ( unsigned int)wctemp[ 0]);
-			if((( stp - encoded_html_string) + strlen( temp_expansion)) <
+			if((( stp - encoded_html_string) + len) <
 					(unsigned int)output_max) {
-				strncpy( stp, temp_expansion, strlen( temp_expansion));
-				stp += strlen( temp_expansion);
+				memcpy( stp, temp_expansion, len);
+				stp += len;
 				}
 			input += mbtowc_result;
 			}

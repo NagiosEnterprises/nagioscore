@@ -1659,8 +1659,8 @@ int pre_flight_object_check(int *w, int *e) {
 			sm->service_ptr = find_service(sm->host_name, sm->service_description);
 			if(sm->service_ptr == NULL) {
 				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Service '%s' on host '%s' is not a valid parent for service '%s' on host '%s'\n",
-					  sm->host_name, sm->service_description,
-					  temp_service->host_name, temp_service->description);
+					  sm->service_description, sm->host_name,
+					  temp_service->description, temp_service->host_name);
 				errors++;
 				}
 

@@ -109,6 +109,7 @@ lifo            *lifo_list = NULL;
 
 char encoded_url_string[2][MAX_INPUT_BUFFER]; // 2 to be able use url_encode twice
 char *encoded_html_string = NULL;
+size_t encoded_html_string_len = 0;
 
 
 /*
@@ -1096,10 +1097,10 @@ const char *url_encode(const char *input) {
 	return str;
 	}
 
-static inline char* encode_character(char in, char *outcp, int output_max)
+static inline char* encode_character(char in, char *outcp, int outcp_len, char *output)
 {
 	char	*entity = NULL;
-	int		rep_lth, out_len = outcp - encoded_html_string;
+	int		rep_lth, out_len = outcp - output;
 
 	switch(in) {
 	case '&':	entity = "&amp;";	break;
@@ -1111,14 +1112,14 @@ static inline char* encode_character(char in, char *outcp, int output_max)
 
 	if (entity) {
 		rep_lth = strlen(entity);
-		if (out_len + rep_lth < output_max) {
+		if (out_len + rep_lth < outcp_len - 1) {
 			strcpy(outcp, entity);
 			outcp += rep_lth;
 		}
 		return outcp;
 	}
 
-	if (out_len + 6 >= output_max)
+	if (out_len + 6 >= outcp_len - 1)
 		return outcp;
 
 	sprintf(outcp, "&#%u", (unsigned int)in);
@@ -1140,7 +1141,7 @@ static inline char* encode_character(char in, char *outcp, int output_max)
 #define WHERE_IN_COMMENT				6	/* In an HTML comment */
 
 /* escapes a string used in HTML */
-char * html_encode(char *input, int escape_newlines) {
+char * html_encode_with_buffer(char *input, int escape_newlines, char **output, size_t *output_len) {
 	int 		len;
 	int			output_max;
 	char		*incp, *outcp;
@@ -1153,11 +1154,22 @@ char * html_encode(char *input, int escape_newlines) {
 
 	/* we need up to six times the space to do the conversion */
 	len = (int)strlen(input);
-	output_max = len * 6;
-	if(len == 0 || ( outcp = encoded_html_string = (char *)malloc(output_max + 1)) == NULL)
+	if (len == 0) {
 		return "";
+	}
 
-	strcpy(encoded_html_string, "");
+	output_max = len * 6 + 1;
+	outcp = *output;
+	if (output_max > *output_len) {
+		outcp = *output = realloc(*output, output_max);
+		if (outcp == NULL) {
+			// Old pointer is valid, so output_len shouldn't be rewritten.
+			return "";
+		}
+		*output_len = output_max;
+	}
+
+    outcp[0] = 0;
 
 	/* Process all converted characters */
 	for (x = 0, incp = input; x < len && *incp; x++, incp++) {
@@ -1213,7 +1225,7 @@ char * html_encode(char *input, int escape_newlines) {
 				if (tag_depth > 0)
 					*outcp++ = *incp;
 				else
-					outcp = encode_character(*incp, outcp, output_max);
+					outcp = encode_character(*incp, outcp, output_max, *output);
 				break;
 
 			case WHERE_IN_COMMENT:
@@ -1247,7 +1259,7 @@ char * html_encode(char *input, int escape_newlines) {
 				if (tag_depth > 0 && !strcmp(tagname, "script"))
 					*outcp++ = *incp;
 				else
-					outcp = encode_character(*incp, outcp, output_max);
+					outcp = encode_character(*incp, outcp, output_max, *output);
 				break;
 			}
 		}
@@ -1288,7 +1300,7 @@ char * html_encode(char *input, int escape_newlines) {
 				if (tag_depth > 0 && !strcmp(tagname, "script"))
 					*outcp++ = *incp;
 				else
-					outcp = encode_character(*incp, outcp, output_max);
+					outcp = encode_character(*incp, outcp, output_max, *output);
 				break;
 			}
 		}
@@ -1311,14 +1323,14 @@ char * html_encode(char *input, int escape_newlines) {
 					where_in_tag = WHERE_OUTSIDE_TAG;
 				}
 				else
-					outcp = encode_character(*incp, outcp, output_max);
+					outcp = encode_character(*incp, outcp, output_max, *output);
 				break;
 
 			default:
 				if (tag_depth > 0 && !strcmp(tagname, "script"))
 					*outcp++ = *incp;
 				else
-					outcp = encode_character(*incp, outcp, output_max);
+					outcp = encode_character(*incp, outcp, output_max, *output);
 				break;
 			}
 		}
@@ -1328,7 +1340,7 @@ char * html_encode(char *input, int escape_newlines) {
 			if (tag_depth > 0 && !strcmp(incp, "&ndash"))
 				*outcp++ = *incp;
 			else
-				outcp = encode_character(*incp, outcp, output_max);
+				outcp = encode_character(*incp, outcp, output_max, *output);
 		}
 
 		else if ((unsigned char)*incp > 0x7f)
@@ -1337,17 +1349,22 @@ char * html_encode(char *input, int escape_newlines) {
 
 		/* for simplicity, all other chars represented by their numeric value */
 		else
-			outcp = encode_character(*incp, outcp, output_max);
+			outcp = encode_character(*incp, outcp, output_max, *output);
 	}
 
 	/* Null terminate the encoded string */
 	*outcp = '\x0';
-	encoded_html_string[ output_max - 1] = '\x0';
+	(*output)[ output_max - 1] = '\x0';
 
-	return encoded_html_string;
+	return *output;
 }
 
-
+/* Note: html_encode() relies on encoded_html_string - if you want to use multiple html_encode()s in e.g. the same printf call, 
+ * use html_encode_with_buffer() twice with separate buffers
+ */
+char * html_encode(char *input, int escape_newlines) {
+	return html_encode_with_buffer(input, escape_newlines, &encoded_html_string, &encoded_html_string_len);
+}
 
 /* strip > and < from string */
 void strip_html_brackets(char *buffer) {
@@ -1372,7 +1389,7 @@ void strip_html_brackets(char *buffer) {
 
 
 /* escape string for html form usage */
-char *escape_string(const char *input) {
+char *escape_string_with_buffer(const char *input, char **output, size_t *output_len) {
 	int			len;
 	int			output_max;
 	wchar_t		wctemp[1];
@@ -1389,11 +1406,20 @@ char *escape_string(const char *input) {
 
 	/* We need up to six times the space to do the conversion */
 	len = (int)strlen(input);
-	output_max = len * 6;
-	if(len == 0 || ( stp = encoded_html_string = (char *)malloc(output_max + 1)) == NULL)
+	if (len == 0) {
 		return "";
+	}
+	output_max = len * 6 + 1;
+	stp = *output;
+	if (output_max > *output_len) {
+		stp = *output = realloc(*output, output_max);
+		if (stp == NULL) {
+			return "";
+		}
+		*output_len = output_max;
+	}
 
-	strcpy(encoded_html_string, "");
+	stp[0] = 0;
 
 	/* Get the first multibyte character in the input string */
 	mbtowc_result = mbtowc( wctemp, input, MB_CUR_MAX);
@@ -1421,7 +1447,7 @@ char *escape_string(const char *input) {
 				'_' == *wctemp || ':' == *wctemp) {
 			wctomb_result = wctomb( mbtemp, wctemp[0]);
 			if(( wctomb_result > 0) &&
-					((( stp - encoded_html_string) + wctomb_result) < output_max)) {
+					((( stp - *output) + wctomb_result) < output_max)) {
 				strncpy( stp, mbtemp, wctomb_result);
 				stp += wctomb_result;
 				}
@@ -1432,7 +1458,7 @@ char *escape_string(const char *input) {
 		else {
 			len = strlen( temp_expansion);
 			sprintf( temp_expansion, "&#%u;", ( unsigned int)wctemp[ 0]);
-			if((( stp - encoded_html_string) + len) <
+			if((( stp - *output) + len) <
 					(unsigned int)output_max) {
 				memcpy( stp, temp_expansion, len);
 				stp += len;
@@ -1446,10 +1472,17 @@ char *escape_string(const char *input) {
 
 	/* Null terminate the encoded string */
 	*stp = '\x0';
-	encoded_html_string[ output_max - 1] = '\x0';
+	(*output)[ output_max - 1] = '\x0';
 
-	return encoded_html_string;
+	return *output;
 	}
+
+/* Note: escape_string() relies on encoded_html_string. If you need to use escape_string() multiple times in one function call,
+ * use escape_string_with_buffer() directly with two or more separate buffers.
+ */
+char *escape_string(const char *input) {
+	return escape_string_with_buffer(input, &encoded_html_string, &encoded_html_string_len);
+}
 
 
 /* determines the log file we should use (from current time) */

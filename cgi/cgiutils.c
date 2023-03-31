@@ -1456,8 +1456,8 @@ char *escape_string_with_buffer(const char *input, char **output, size_t *output
 
 		/* Encode everything else (this may be excessive) */
 		else {
-			len = strlen( temp_expansion);
 			sprintf( temp_expansion, "&#%u;", ( unsigned int)wctemp[ 0]);
+			len = strlen( temp_expansion);
 			if((( stp - *output) + len) <
 					(unsigned int)output_max) {
 				memcpy( stp, temp_expansion, len);

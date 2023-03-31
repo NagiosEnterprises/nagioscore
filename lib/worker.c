@@ -515,7 +515,6 @@ static void sigchld_handler(int sig)
 
 static void reap_jobs(void)
 {
-	int reaped = 0;
 	do {
 		int pid, status;
 		pid = waitpid(-1, &status, WNOHANG);
@@ -528,7 +527,6 @@ static void reap_jobs(void)
 				continue;
 			}
 			cp->ret = status;
-			reaped++;
 			if (cp->ei->state != ESTALE)
 				finish_job(cp, cp->ei->state);
 			destroy_job(cp);

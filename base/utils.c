@@ -2806,7 +2806,7 @@ int my_rename(char *source, char *dest) {
  */
 int my_fdcopy(char *source, char *dest, int dest_fd) {
 	int source_fd, rd_result = 0, wr_result = 0;
-	int tot_written = 0, tot_read = 0, buf_size = 0;
+	int tot_written = 0, buf_size = 0;
 	struct stat st;
 	char *buf;
 
@@ -2853,7 +2853,6 @@ int my_fdcopy(char *source, char *dest, int dest_fd) {
 			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: my_fcopy() failed to read from '%s': %s\n", source, strerror(errno));
 			break;
 			}
-		tot_read += rd_result;
 
 		while(loop_wr < rd_result) {
 			wr_result = write(dest_fd, buf + loop_wr, rd_result - loop_wr);
@@ -3339,7 +3338,6 @@ int query_update_api(void) {
 	char recv_buf[1024];
 	int report_install = FALSE;
 	char *ptr = NULL;
-	int current_line = 0;
 	int buf_index = 0;
 	int in_header = TRUE;
 	char *var = NULL;
@@ -3428,7 +3426,6 @@ int query_update_api(void) {
 		while((ptr = get_next_string_from_buf(recv_buf, &buf_index, sizeof(recv_buf)))) {
 
 			strip(ptr);
-			current_line++;
 
 			if(!strcmp(ptr, "")) {
 				in_header = FALSE;

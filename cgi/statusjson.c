@@ -4380,13 +4380,11 @@ json_object *json_status_performance(void) {
 	int active_service_checks_15min = 0;
 	int active_service_checks_1hour = 0;
 	int active_service_checks_start = 0;
-	int active_service_checks_ever = 0;
 	int passive_service_checks_1min = 0;
 	int passive_service_checks_5min = 0;
 	int passive_service_checks_15min = 0;
 	int passive_service_checks_1hour = 0;
 	int passive_service_checks_start = 0;
-	int passive_service_checks_ever = 0;
 	int total_active_host_checks = 0;
 	int total_passive_host_checks = 0;
 	double min_host_execution_time = 0.0;
@@ -4409,13 +4407,11 @@ json_object *json_status_performance(void) {
 	int active_host_checks_15min = 0;
 	int active_host_checks_1hour = 0;
 	int active_host_checks_start = 0;
-	int active_host_checks_ever = 0;
 	int passive_host_checks_1min = 0;
 	int passive_host_checks_5min = 0;
 	int passive_host_checks_15min = 0;
 	int passive_host_checks_1hour = 0;
 	int passive_host_checks_start = 0;
-	int passive_host_checks_ever = 0;
 	time_t current_time;
 
 	json_object *json_data;
@@ -4507,8 +4503,6 @@ json_object *json_status_performance(void) {
 				active_service_checks_1hour++;
 			if(temp_servicestatus->last_check >= program_start)
 				active_service_checks_start++;
-			if(temp_servicestatus->last_check != (time_t)0)
-				active_service_checks_ever++;
 			}
 
 		else {
@@ -4541,8 +4535,6 @@ json_object *json_status_performance(void) {
 				passive_service_checks_1hour++;
 			if(temp_servicestatus->last_check >= program_start)
 				passive_service_checks_start++;
-			if(temp_servicestatus->last_check != (time_t)0)
-				passive_service_checks_ever++;
 			}
 		}
 
@@ -4617,8 +4609,6 @@ json_object *json_status_performance(void) {
 				active_host_checks_1hour++;
 			if(temp_hoststatus->last_check >= program_start)
 				active_host_checks_start++;
-			if(temp_hoststatus->last_check != (time_t)0)
-				active_host_checks_ever++;
 			}
 
 		else {
@@ -4650,8 +4640,6 @@ json_object *json_status_performance(void) {
 				passive_host_checks_1hour++;
 			if(temp_hoststatus->last_check >= program_start)
 				passive_host_checks_start++;
-			if(temp_hoststatus->last_check != (time_t)0)
-				passive_host_checks_ever++;
 			}
 		}
 

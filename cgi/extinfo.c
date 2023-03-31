@@ -1963,13 +1963,11 @@ void show_performance_data(void) {
 	int active_service_checks_15min = 0;
 	int active_service_checks_1hour = 0;
 	int active_service_checks_start = 0;
-	int active_service_checks_ever = 0;
 	int passive_service_checks_1min = 0;
 	int passive_service_checks_5min = 0;
 	int passive_service_checks_15min = 0;
 	int passive_service_checks_1hour = 0;
 	int passive_service_checks_start = 0;
-	int passive_service_checks_ever = 0;
 	int total_active_host_checks = 0;
 	int total_passive_host_checks = 0;
 	double min_host_execution_time = 0.0;
@@ -1992,13 +1990,11 @@ void show_performance_data(void) {
 	int active_host_checks_15min = 0;
 	int active_host_checks_1hour = 0;
 	int active_host_checks_start = 0;
-	int active_host_checks_ever = 0;
 	int passive_host_checks_1min = 0;
 	int passive_host_checks_5min = 0;
 	int passive_host_checks_15min = 0;
 	int passive_host_checks_1hour = 0;
 	int passive_host_checks_start = 0;
-	int passive_host_checks_ever = 0;
 	time_t current_time;
 
 
@@ -2059,8 +2055,6 @@ void show_performance_data(void) {
 				active_service_checks_1hour++;
 			if(temp_servicestatus->last_check >= program_start)
 				active_service_checks_start++;
-			if(temp_servicestatus->last_check != (time_t)0)
-				active_service_checks_ever++;
 			}
 
 		else {
@@ -2086,8 +2080,6 @@ void show_performance_data(void) {
 				passive_service_checks_1hour++;
 			if(temp_servicestatus->last_check >= program_start)
 				passive_service_checks_start++;
-			if(temp_servicestatus->last_check != (time_t)0)
-				passive_service_checks_ever++;
 			}
 		}
 
@@ -2146,8 +2138,6 @@ void show_performance_data(void) {
 				active_host_checks_1hour++;
 			if(temp_hoststatus->last_check >= program_start)
 				active_host_checks_start++;
-			if(temp_hoststatus->last_check != (time_t)0)
-				active_host_checks_ever++;
 			}
 
 		else {
@@ -2173,8 +2163,6 @@ void show_performance_data(void) {
 				passive_host_checks_1hour++;
 			if(temp_hoststatus->last_check >= program_start)
 				passive_host_checks_start++;
-			if(temp_hoststatus->last_check != (time_t)0)
-				passive_host_checks_ever++;
 			}
 		}
 

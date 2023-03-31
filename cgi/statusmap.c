@@ -1342,7 +1342,6 @@ void calculate_scaling_factor(void) {
 
 /* finds hosts that can be drawn in the canvas area */
 void find_eligible_hosts(void) {
-	int total_eligible_hosts = 0;
 	host *temp_host;
 
 	/* check all extended host information entries... */
@@ -1371,7 +1370,6 @@ void find_eligible_hosts(void) {
 		/* all checks passed, so we can draw the host! */
 		else {
 			temp_host->should_be_drawn = TRUE;
-			total_eligible_hosts++;
 			}
 		}
 

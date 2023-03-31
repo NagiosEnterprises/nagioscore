@@ -2604,12 +2604,12 @@ int xodtemplate_add_object_property(char *input, int options) {
 				}
 			else if(!strcmp(variable, "2d_coords")) {
 				if((temp_ptr = strtok(value, ", ")) == NULL) {
-					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid 2d_coords value '%s' in host definition.\n", temp_ptr);
+					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid 2d_coords value in host definition.\n");
 					return ERROR;
 					}
 				temp_host->x_2d = atoi(temp_ptr);
 				if((temp_ptr = strtok(NULL, ", ")) == NULL) {
-					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid 2d_coords value '%s' in host definition.\n", temp_ptr);
+					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid 2d_coords value in host definition.\n");
 					return ERROR;
 					}
 				temp_host->y_2d = atoi(temp_ptr);
@@ -2617,17 +2617,17 @@ int xodtemplate_add_object_property(char *input, int options) {
 				}
 			else if(!strcmp(variable, "3d_coords")) {
 				if((temp_ptr = strtok(value, ", ")) == NULL) {
-					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid 3d_coords value '%s' in host definition.\n", temp_ptr);
+					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid 3d_coords value in host definition.\n");
 					return ERROR;
 					}
 				temp_host->x_3d = strtod(temp_ptr, NULL);
 				if((temp_ptr = strtok(NULL, ", ")) == NULL) {
-					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid 3d_coords value '%s' in host definition.\n", temp_ptr);
+					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid 3d_coords value in host definition.\n");
 					return ERROR;
 					}
 				temp_host->y_3d = strtod(temp_ptr, NULL);
 				if((temp_ptr = strtok(NULL, ", ")) == NULL) {
-					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid 3d_coords value '%s' in host definition.\n", temp_ptr);
+					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid 3d_coords value in host definition.\n");
 					return ERROR;
 					}
 				temp_host->z_3d = strtod(temp_ptr, NULL);
@@ -3454,13 +3454,13 @@ int xodtemplate_add_object_property(char *input, int options) {
 			else if(!strcmp(variable, "2d_coords")) {
 				temp_ptr = strtok(value, ", ");
 				if(temp_ptr == NULL) {
-					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid 2d_coords value '%s' in extended host info definition.\n", temp_ptr);
+					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid 2d_coords value in extended host info definition.\n");
 					return ERROR;
 					}
 				temp_hostextinfo->x_2d = atoi(temp_ptr);
 				temp_ptr = strtok(NULL, ", ");
 				if(temp_ptr == NULL) {
-					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid 2d_coords value '%s' in extended host info definition.\n", temp_ptr);
+					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid 2d_coords value in extended host info definition.\n");
 					return ERROR;
 					}
 				temp_hostextinfo->y_2d = atoi(temp_ptr);
@@ -3469,19 +3469,19 @@ int xodtemplate_add_object_property(char *input, int options) {
 			else if(!strcmp(variable, "3d_coords")) {
 				temp_ptr = strtok(value, ", ");
 				if(temp_ptr == NULL) {
-					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid 3d_coords value '%s' in extended host info definition.\n", temp_ptr);
+					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid 3d_coords value in extended host info definition.\n");
 					return ERROR;
 					}
 				temp_hostextinfo->x_3d = strtod(temp_ptr, NULL);
 				temp_ptr = strtok(NULL, ", ");
 				if(temp_ptr == NULL) {
-					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid 3d_coords value '%s' in extended host info definition.\n", temp_ptr);
+					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid 3d_coords value in extended host info definition.\n");
 					return ERROR;
 					}
 				temp_hostextinfo->y_3d = strtod(temp_ptr, NULL);
 				temp_ptr = strtok(NULL, ", ");
 				if(temp_ptr == NULL) {
-					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid 3d_coords value '%s' in extended host info definition.\n", temp_ptr);
+					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid 3d_coords value in extended host info definition.\n");
 					return ERROR;
 					}
 				temp_hostextinfo->z_3d = strtod(temp_ptr, NULL);

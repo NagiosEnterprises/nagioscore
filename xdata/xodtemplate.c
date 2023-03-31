@@ -561,13 +561,14 @@ void xodtemplate_handle_semicolons(char* input) {
 
 
 /* process all files in a specific config directory */
-int xodtemplate_process_config_dir(char *dirname, int options) {
+int xodtemplate_process_config_dir(const char *dirname, int options) {
 	char file[MAX_FILENAME_LENGTH];
 	DIR *dirp = NULL;
 	struct dirent *dirfile = NULL;
 	int result = OK;
 	register int x = 0;
 	struct stat stat_buf;
+	int ofs = 0;
 
 #ifdef NSCORE
 	if(verify_config >= 2)
@@ -581,6 +582,11 @@ int xodtemplate_process_config_dir(char *dirname, int options) {
 		return ERROR;
 		}
 
+	strncpy(file, dirname, sizeof(file));
+	file[sizeof(file) - 1] = '\0';
+	ensure_path_separator(file, sizeof(file));
+	ofs = strlen(file);
+
 	/* process all files in the directory... */
 	while((dirfile = readdir(dirp)) != NULL) {
 
@@ -588,9 +594,12 @@ int xodtemplate_process_config_dir(char *dirname, int options) {
 		if(dirfile->d_name[0] == '.')
 			continue;
 
+		/* skip if it's too long */
+		if (ofs + strlen(dirfile->d_name) + 1 > sizeof(file))
+			continue;
+
 		/* create /path/to/file */
-		snprintf(file, sizeof(file), "%s/%s", dirname, dirfile->d_name);
-		file[sizeof(file) - 1] = '\x0';
+		strncpy(file + ofs, dirfile->d_name, sizeof(file) - ofs);
 
 		/* process this if it's a non-hidden config file... */
 		if(stat(file, &stat_buf) == -1) {
@@ -640,7 +649,7 @@ int xodtemplate_process_config_dir(char *dirname, int options) {
 
 
 /* process data in a specific config file */
-int xodtemplate_process_config_file(char *filename, int options) {
+int xodtemplate_process_config_file(const char *filename, int options) {
 	mmapfile *thefile = NULL;
 	char *input = NULL;
 	register int in_definition = FALSE;

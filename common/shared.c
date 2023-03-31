@@ -639,3 +639,17 @@ void get_time_breakdown(unsigned long raw_time, int *days, int *hours,
 	*minutes = temp_minutes;
 	*seconds = temp_seconds;
 	}
+
+/*
+ * ensure last character of path is the path separator '/'
+ */
+void ensure_path_separator(char *path, size_t size)
+{
+	const size_t len = strlen(path);
+	if (len > 0 && len < size - 1) {
+		if (path[len - 1] != '/') {
+			path[len] = '/';
+			path[len + 1] = '\0';
+		}
+	}
+}

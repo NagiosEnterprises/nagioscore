@@ -150,7 +150,21 @@ static command *find_bang_command(char *name)
 	return cmd;
 }
 
+/*
+ * build path with prefix (must already be / terminated) and a subdir
+ */
+void build_subdir_path(char* path, size_t size, const char* prefix, const char* subdir)
+{
+	const size_t prefix_len = strlen(prefix);
+	const size_t subdir_len = strlen(subdir);
 
+	if (prefix_len + subdir_len >= size)
+		return;
+
+	memcpy(path, prefix, prefix_len);
+	memcpy(path + prefix_len, subdir, subdir_len);
+	path[prefix_len + subdir_len] = '\0';
+}
 
 /**********************************************************
  ***************** CLEANUP FUNCTIONS **********************
@@ -329,14 +343,10 @@ int read_cgi_config_file(const char *filename, read_config_callback callback) {
 			strncpy(physical_html_path, val, sizeof(physical_html_path));
 			physical_html_path[sizeof(physical_html_path) - 1] = '\x0';
 			strip(physical_html_path);
-			if(physical_html_path[strlen(physical_html_path) - 1] != '/' && (strlen(physical_html_path) < sizeof(physical_html_path) - 1))
-				strcat(physical_html_path, "/");
+			ensure_path_separator(physical_html_path, sizeof(physical_html_path));
 
-			snprintf(physical_images_path, sizeof(physical_images_path), "%simages/", physical_html_path);
-			physical_images_path[sizeof(physical_images_path) - 1] = '\x0';
-
-			snprintf(physical_ssi_path, sizeof(physical_images_path), "%sssi/", physical_html_path);
-			physical_ssi_path[sizeof(physical_ssi_path) - 1] = '\x0';
+			build_subdir_path(physical_images_path, sizeof(physical_images_path), physical_html_path, "images/");
+			build_subdir_path(physical_ssi_path, sizeof(physical_ssi_path), physical_html_path, "ssi/");
 			}
 
 		else if(!strcmp(var, "url_html_path")) {
@@ -345,31 +355,15 @@ int read_cgi_config_file(const char *filename, read_config_callback callback) {
 			url_html_path[sizeof(url_html_path) - 1] = '\x0';
 
 			strip(url_html_path);
-			if(url_html_path[strlen(url_html_path) - 1] != '/' && (strlen(url_html_path) < sizeof(url_html_path) - 1))
-				strcat(url_html_path, "/");
+			ensure_path_separator(url_html_path, sizeof(url_html_path));
 
-			snprintf(url_docs_path, sizeof(url_docs_path), "%sdocs/", url_html_path);
-			url_docs_path[sizeof(url_docs_path) - 1] = '\x0';
-
-			snprintf(url_context_help_path, sizeof(url_context_help_path), "%scontexthelp/", url_html_path);
-			url_context_help_path[sizeof(url_context_help_path) - 1] = '\x0';
-
-			snprintf(url_images_path, sizeof(url_images_path), "%simages/", url_html_path);
-			url_images_path[sizeof(url_images_path) - 1] = '\x0';
-
-			snprintf(url_logo_images_path, sizeof(url_logo_images_path), "%slogos/", url_images_path);
-			url_logo_images_path[sizeof(url_logo_images_path) - 1] = '\x0';
-
-			snprintf(url_stylesheets_path, sizeof(url_stylesheets_path), "%sstylesheets/", url_html_path);
-			url_stylesheets_path[sizeof(url_stylesheets_path) - 1] = '\x0';
-
-			snprintf(url_media_path, sizeof(url_media_path), "%smedia/", url_html_path);
-			url_media_path[sizeof(url_media_path) - 1] = '\x0';
-
-			/* added JS directory 2/1/2012 -MG */
-			snprintf(url_js_path, sizeof(url_js_path), "%sjs/", url_html_path);
-			url_js_path[sizeof(url_js_path) - 1] = '\x0';
-
+			build_subdir_path(url_docs_path, sizeof(url_docs_path), url_html_path, "docs/");
+			build_subdir_path(url_context_help_path, sizeof(url_context_help_path), url_html_path, "contexthelp/");
+			build_subdir_path(url_images_path, sizeof(url_images_path), url_html_path, "images/");
+			build_subdir_path(url_logo_images_path, sizeof(url_logo_images_path), url_html_path, "logos/");
+			build_subdir_path(url_stylesheets_path, sizeof(url_stylesheets_path), url_html_path, "stylesheets/");
+			build_subdir_path(url_media_path, sizeof(url_media_path), url_html_path, "media/");
+			build_subdir_path(url_js_path, sizeof(url_js_path), url_html_path, "js/");
 			}
 
 		else if(!strcmp(var, "service_critical_sound"))

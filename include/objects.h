@@ -163,7 +163,7 @@ typedef struct check_result {
 	int check_options;
 	int scheduled_check;                            /* was this a scheduled or an on-demand check? */
 	int reschedule_check;                           /* should we reschedule the next check */
-	char *output_file;                              /* what file is the output stored in? */
+	const char *output_file;                        /* what file is the output stored in? */
 	FILE *output_file_fp;
 	double latency;
 	struct timeval start_time;			/* time the service check was initiated */

@@ -2170,8 +2170,7 @@ int initialize_graphics(void) {
 	gdImageInterlace(map_image, 1);
 
 	/* get the path where we will be reading logo images from (GD2 format)... */
-	snprintf(physical_logo_images_path, sizeof(physical_logo_images_path) - 1, "%slogos/", physical_images_path);
-	physical_logo_images_path[sizeof(physical_logo_images_path) - 1] = '\x0';
+	build_subdir_path(physical_logo_images_path, sizeof(physical_logo_images_path), physical_images_path, "logos/");
 
 	/* load the unknown icon to use for hosts that don't have pretty images associated with them... */
 	snprintf(image_input_file, sizeof(image_input_file) - 1, "%s%s", physical_logo_images_path, UNKNOWN_GD2_ICON);

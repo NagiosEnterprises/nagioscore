@@ -2166,7 +2166,7 @@ int drop_privileges(char *user, char *group) {
 /******************************************************************/
 
 /* processes files in the check result queue directory */
-int process_check_result_queue(char *dirname) {
+int process_check_result_queue(const char *dirname) {
 	char file[MAX_FILENAME_LENGTH];
 	DIR *dirp = NULL;
 	struct dirent *dirfile = NULL;
@@ -2176,6 +2176,7 @@ int process_check_result_queue(char *dirname) {
 	char *temp_buffer = NULL;
 	int result = OK, check_result_files = 0;
 	time_t start;
+	int ofs = 0;
 
 	/* make sure we have what we need */
 	if(dirname == NULL) {
@@ -2193,6 +2194,11 @@ int process_check_result_queue(char *dirname) {
 
 	start = time(NULL);
 
+	strncpy(file, dirname, sizeof(file));
+	file[sizeof(file) - 1] = '\0';
+	ensure_path_separator(file, sizeof(file));
+	ofs = strlen(file);
+
 	/* process all files in the directory... */
 	while((dirfile = readdir(dirp)) != NULL) {
 
@@ -2208,9 +2214,12 @@ int process_check_result_queue(char *dirname) {
 			break;
 			}
 
+		/* skip if it's too long */
+		if (ofs + strlen(dirfile->d_name) + 1 > sizeof(file))
+			continue;
+
 		/* create /path/to/file */
-		snprintf(file, sizeof(file), "%s/%s", dirname, dirfile->d_name);
-		file[sizeof(file) - 1] = '\x0';
+		strncpy(file + ofs, dirfile->d_name, sizeof(file) - ofs);
 
 		/* process this if it's a check result file...
 		   remember it needs to be in the format of
@@ -2319,7 +2328,7 @@ int process_check_result(check_result *cr)
 /* static char *unescape_check_result_file_output(char*); */
 
 /* reads check result(s) from a file */
-int process_check_result_file(char *fname)
+int process_check_result_file(const char *fname)
 {
 	mmapfile *thefile    = NULL;
 	char *input          = NULL;
@@ -2522,7 +2531,7 @@ int process_check_result_file(char *fname)
 
 
 /* deletes as check result file, as well as its ok-to-go file */
-int delete_check_result_file(char *fname)
+int delete_check_result_file(const char *fname)
 {
 	char *temp_buffer = NULL;
 	int result        = OK;

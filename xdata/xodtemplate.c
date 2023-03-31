@@ -445,7 +445,7 @@ int xodtemplate_read_config_data(const char *main_config_file, int options) {
 	in this particular case) return an error without printing any error
 	messages, so nothing will say what was wrong. */
 /*	if(result == OK) */
-		result |= xodtemplate_register_objects();
+	result |= xodtemplate_register_objects();
 	if(test_scheduling == TRUE)
 		gettimeofday(&tv[10], NULL);
 

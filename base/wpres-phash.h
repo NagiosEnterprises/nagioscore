@@ -1,4 +1,4 @@
-/* C code produced by gperf version 3.0.3 */
+/* ANSI-C code produced by gperf version 3.1 */
 /* Command-line: gperf -S 1 -t -H wpres_key_phash -N wpres_get_key wpres.gperf  */
 /* Computed positions: -k'4-5,7' */
 
@@ -26,7 +26,7 @@
       && ('w' == 119) && ('x' == 120) && ('y' == 121) && ('z' == 122) \
       && ('{' == 123) && ('|' == 124) && ('}' == 125) && ('~' == 126))
 /* The character set is not based on ISO-646.  */
-error "gperf generated tables don't work with this execution character set. Please report a bug to <bug-gnu-gperf@gnu.org>."
+#error "gperf generated tables don't work with this execution character set. Please report a bug to <bug-gperf@gnu.org>."
 #endif
 
 #line 1 "wpres.gperf"
@@ -84,9 +84,7 @@ inline
 #endif
 #endif
 static unsigned int
-wpres_key_phash (str, len)
-     register const char *str;
-     register unsigned int len;
+wpres_key_phash (register const char *str, register size_t len)
 {
   static unsigned char asso_values[] =
     {
@@ -117,7 +115,7 @@ wpres_key_phash (str, len)
       65, 65, 65, 65, 65, 65, 65, 65, 65, 65,
       65, 65, 65, 65, 65, 65
     };
-  register int hval = len;
+  register unsigned int hval = len;
 
   switch (hval)
     {
@@ -135,16 +133,8 @@ wpres_key_phash (str, len)
   return hval;
 }
 
-#ifdef __GNUC__
-__inline
-#ifdef __GNUC_STDC_INLINE__
-__attribute__ ((__gnu_inline__))
-#endif
-#endif
 struct wpres_key *
-wpres_get_key (str, len)
-     register const char *str;
-     register unsigned int len;
+wpres_get_key (register const char *str, register size_t len)
 {
   static struct wpres_key wordlist[] =
     {
@@ -210,7 +200,7 @@ wpres_get_key (str, len)
 
   if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH)
     {
-      register int key = wpres_key_phash (str, len);
+      register unsigned int key = wpres_key_phash (str, len);
 
       if (key <= MAX_HASH_VALUE && key >= MIN_HASH_VALUE)
         {

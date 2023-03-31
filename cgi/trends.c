@@ -244,8 +244,8 @@ int main(int argc, char **argv) {
 	int result = OK;
 	char temp_buffer[MAX_INPUT_BUFFER];
 	char image_template[MAX_INPUT_BUFFER];
-	char start_time[MAX_INPUT_BUFFER];
-	char end_time[MAX_INPUT_BUFFER];
+	char start_time[32]; // ctime
+	char end_time[32]; // ctime
 	int string_width;
 	int string_height;
 	char start_timestring[MAX_INPUT_BUFFER];
@@ -2075,9 +2075,9 @@ void graph_trend_data(int first_state, int last_state, time_t real_start_time, t
 	double start_pixel_ratio;
 	double end_pixel_ratio;
 	char temp_buffer[MAX_INPUT_BUFFER];
-	char state_string[MAX_INPUT_BUFFER];
-	char end_timestring[MAX_INPUT_BUFFER];
-	char start_timestring[MAX_INPUT_BUFFER];
+	char state_string[32];
+	char end_timestring[32]; // ctime
+	char start_timestring[32]; // ctime
 	time_t center_time;
 	time_t next_start_time;
 	time_t next_end_time;

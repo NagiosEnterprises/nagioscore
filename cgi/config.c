@@ -1476,7 +1476,7 @@ void display_timeperiods(void) {
 	int day = 0;
 	int x = 0;
 	const char *bg_class = "";
-	char timestring[10];
+	char timestring[32];
 	int hours = 0;
 	int minutes = 0;
 	int seconds = 0;

@@ -1548,8 +1548,8 @@ void graph_all_histogram_data(void) {
 	int string_height;
 	char *days[7] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 	char *months[12] = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"};
-	char start_time[MAX_INPUT_BUFFER];
-	char end_time[MAX_INPUT_BUFFER];
+	char start_time[32]; // ctime
+	char end_time[32]; // ctime
 
 	unsigned long state1_max = 0L;
 	unsigned long state1_min = 0L;

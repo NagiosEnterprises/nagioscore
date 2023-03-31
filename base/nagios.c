@@ -103,7 +103,7 @@ static void set_loadctl_defaults(void)
 static int test_path_access(const char *program, int mode)
 {
 	char *envpath, *p, *colon;
-	int ret, our_errno = 1500; /* outside errno range */
+	int ret = 0, our_errno = 1500; /* outside errno range */
 
 	if (program[0] == '/' || !(envpath = getenv("PATH")))
 		return access(program, mode);

@@ -381,7 +381,7 @@ int main(int argc, char **argv) {
 
 		if(timeperiod_type == TIMEPERIOD_NEXTPROBLEM) {
 			archived_state *temp_as;
-			time_t problem_t1, problem_t2 = 0;
+			time_t problem_t1 = 0, problem_t2 = 0;
 
 			t1 = t2;
 			t2 = current_time;

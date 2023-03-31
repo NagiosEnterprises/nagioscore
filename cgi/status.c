@@ -238,7 +238,8 @@ int main(void) {
 				break;
 			}
 		}
-		strcpy(host_name, host_name + i);
+		if (i > 0)
+			memmove(host_name, host_name + i, strlen(host_name + i) + 1);
 
 		if(NULL != strstr(host_name, "*")) {
 			/* allocate for 3 extra chars, ^, $ and \0 */

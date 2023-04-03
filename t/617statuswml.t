@@ -9,12 +9,10 @@ use Test::More;
 # Useful for diagnostics, but not part of a core perl install
 #use Test::LongString;
 
-use FindBin qw($Bin);
+defined($ARGV[0]) or die "Usage: $0 <top build dir>";
 
-chdir $Bin or die "Cannot chdir";
-
-my $topdir = "$Bin/..";
-my $cgi_dir = "$topdir/cgi";
+my $top_builddir = shift @ARGV;
+my $cgi_dir = "$top_builddir/cgi";
 my $statuswml = "$cgi_dir/statuswml.cgi";
 
 my $output;

@@ -5,12 +5,11 @@
 use warnings;
 use strict;
 use Test::More;
-use FindBin qw($Bin);
 
-chdir $Bin or die "Cannot chdir";
+defined($ARGV[0]) or die "Usage: $0 <top build dir>";
 
-my $topdir = "$Bin/..";
-my $cgi_dir = "$topdir/cgi";
+my $top_builddir = shift @ARGV;
+my $cgi_dir = "$top_builddir/cgi";
 
 opendir(DIR, $cgi_dir) or die "Cannot opendir $cgi_dir: $!";
 my %cgis = map { ( $_ => 1 ) } grep /\.cgi$/, readdir DIR;

@@ -5,14 +5,13 @@
 use warnings;
 use strict;
 use Test::More qw(no_plan);
-use FindBin qw($Bin);
 
-chdir $Bin or die "Cannot chdir";
+defined($ARGV[0]) or die "Usage: $0 <top build dir>";
 
-my $topdir = "$Bin/..";
-my $nagios = "$topdir/base/nagios";
-my $etc = "$Bin/etc";
-my $precache = "$Bin/var/objects.precache";
+my $top_builddir = shift @ARGV;
+my $nagios = "$top_builddir/base/nagios";
+my $etc = "etc";
+my $precache = "var/objects.precache";
 
 
 my $output = `$nagios -v "$etc/nagios-no-contactgroup.cfg"`;

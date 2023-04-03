@@ -156,13 +156,15 @@ wpres-phash.h: wpres.gperf
 libnagios:
 	$(MAKE) -C $(BLD_LIB)
 
+$(BLD_LIB)/libnagios.a: libnagios
+
 nagios.o: $(srcdir)/nagios.c $(SRC_INCLUDE)/nagios.h $(BLD_INCLUDE)/locations.h
 	$(CC) $(CFLAGS) -c -o $@ $(srcdir)/nagios.c
 
-nagios: nagios.o $(OBJS) $(OBJDEPS) libnagios
+nagios: nagios.o $(OBJS) $(OBJDEPS) $(BLD_LIB)/libnagios.a
 	$(CC) $(CFLAGS) -o $@ $< $(OBJS) $(BROKER_LDFLAGS) $(LDFLAGS) $(MATHLIBS) $(SOCKETLIBS) $(BROKERLIBS) $(LIBS) $(BLD_LIB)/libnagios.a
 
-nagiostats: $(srcdir)/nagiostats.c $(BLD_INCLUDE)/locations.h libnagios
+nagiostats: $(srcdir)/nagiostats.c $(BLD_INCLUDE)/locations.h $(BLD_LIB)/libnagios.a
 	$(CC) $(CFLAGS) -o $@ $(srcdir)/nagiostats.c $(LDFLAGS) $(MATHLIBS) $(LIBS) $(BLD_LIB)/libnagios.a
 
 $(OBJS): $(BLD_INCLUDE)/locations.h

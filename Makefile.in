@@ -62,6 +62,12 @@ CP=@CP@
 
 @SET_MAKE@
 
+
+ifeq ($(USE_LIBTAP),yes)
+TEST_TAP_DEP = tap/src/tap.o
+endif
+
+
 none:
 		@echo "Please supply a command line argument (i.e. 'make all').  Other targets are:"
 		@echo "   nagios cgis contrib modules workers"
@@ -244,7 +250,7 @@ test: nagios cgis
 	$(MAKE) test-perl
 	$(MAKE) test-tap
 
-test-tap: tap/src/tap.o nagios cgis
+test-tap: nagios cgis $(TEST_TAP_DEP)
 	@if [ x$(USE_LIBTAP) = xyes ]; then \
 		cd $(BLD_TTAP) && $(MAKE) test; \
 	else \

@@ -5,12 +5,17 @@
 
 
 # Source code directories
-SRC_LIB=@srcdir@/lib
-SRC_INCLUDE=@srcdir@/include
+srcdir=@srcdir@
+
+SRC_INCLUDE=@top_srcdir@/include
+
+BLD_INCLUDE=@top_builddir@/include
+BLD_LIB=@top_builddir@/lib
+
 
 CC=@CC@
 WORKER_CFLAGS=@WORKER_CFLAGS@
-CFLAGS=@CFLAGS@ @DEFS@
+CFLAGS=-I@builddir@ -I$(BLD_INCLUDE) -I$(BLD_LIB) -I$(SRC_INCLUDE) -I@top_srcdir@  @CFLAGS@ @DEFS@
 WORKER_LDFLAGS=@WORKER_LDFLAGS@
 LDFLAGS=@LDFLAGS@
 LIBS=@LIBS@
@@ -27,8 +32,8 @@ CP=@CP@
 
 all:	worker-ping
 
-worker-ping: worker-ping.c
-	$(CC) -I.. $(WORKER_CFLAGS) $(CFLAGS) -o worker-ping worker-ping.c $(WORKER_LDFLAGS) $(LDFLAGS) $(LIBS)
+worker-ping: $(srcdir)/worker-ping.c
+	$(CC) -I.. $(WORKER_CFLAGS) $(CFLAGS) -o worker-ping $(srcdir)/worker-ping.c $(WORKER_LDFLAGS) $(LDFLAGS) $(LIBS)
 
 clean:
 	rm -f worker-ping worker-ping.o

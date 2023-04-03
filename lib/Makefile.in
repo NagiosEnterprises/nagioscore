@@ -1,7 +1,10 @@
+srcdir=@srcdir@
+top_srcdir=@top_srcdir@
+
 CC = @CC@
 COV_CFLAGS = -ggdb3 -O0 -ftest-coverage -fprofile-arcs -pg
 LDFLAGS =
-CFLAGS ?= -Wall @CFLAGS@
+CFLAGS ?= -Wall @CFLAGS@ -I. -I$(top_srcdir)/include
 ALL_CFLAGS = $(CFLAGS) @DEFS@
 LIBNAME = libnagios.a
 
@@ -28,10 +31,16 @@ test-iocache: t-utils.o test-iocache.o
 test-iobroker: t-utils.o test-iobroker.o
 	$(CC) $(ALL_CFLAGS) $(SOCKETLIBS) $^ -o $@
 
-%.o: %.c %.h Makefile lnag-utils.h
+%.o: $(srcdir)/%.c $(srcdir)/%.h Makefile $(srcdir)/lnag-utils.h
 	$(CC) $(ALL_CFLAGS) -c $< -o $@
 
-test-%.o: test-%.c %.c %.h Makefile
+%.o: $(srcdir)/%.c %.h Makefile $(srcdir)/lnag-utils.h
+	$(CC) $(ALL_CFLAGS) -c $< -o $@
+
+test-%.o: $(srcdir)/test-%.c $(srcdir)/%.c $(srcdir)/%.h Makefile
+	$(CC) $(ALL_CFLAGS) -c $< -o $@
+
+test-%.o: $(srcdir)/test-%.c $(srcdir)/%.c %.h Makefile
 	$(CC) $(ALL_CFLAGS) -c $< -o $@
 
 test-%: t-utils.o test-%.o

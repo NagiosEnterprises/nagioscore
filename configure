@@ -747,6 +747,7 @@ infodir
 docdir
 oldincludedir
 includedir
+runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -866,6 +867,7 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
+runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE}'
@@ -1118,6 +1120,15 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
+  -runstatedir | --runstatedir | --runstatedi | --runstated \
+  | --runstate | --runstat | --runsta | --runst | --runs \
+  | --run | --ru | --r)
+    ac_prev=runstatedir ;;
+  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
+  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
+  | --run=* | --ru=* | --r=*)
+    runstatedir=$ac_optarg ;;
+
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1255,7 +1266,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir
+		libdir localedir mandir runstatedir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1408,6 +1419,7 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
+  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -7724,7 +7736,7 @@ _ACEOF
 
 	BROKER_O="broker.o nebmods.o"
 
-	BROKER_H="../include/broker.h ../include/nebmods.h ../include/nebmodules.h ../include/nebcallbacks.h ../include/neberrors.h"
+	BROKER_H="\$(SRC_INCLUDE)/broker.h \$(SRC_INCLUDE)/nebmods.h \$(SRC_INCLUDE)/nebmodules.h \$(SRC_INCLUDE)/nebcallbacks.h \$(SRC_INCLUDE)/neberrors.h"
 
 fi
 
@@ -7978,7 +7990,7 @@ fi
 
 eval sbindir=$sbindir
 
-ac_config_files="$ac_config_files Makefile lib/Makefile base/Makefile common/Makefile contrib/Makefile cgi/Makefile html/Makefile module/Makefile worker/Makefile worker/ping/Makefile xdata/Makefile subst pkginfo startup/openrc-init startup/default-init startup/default-service startup/upstart-init t/Makefile t-tap/Makefile"
+ac_config_files="$ac_config_files Makefile lib/Makefile base/Makefile common/Makefile contrib/Makefile cgi/Makefile html/Makefile include/Makefile module/Makefile worker/Makefile worker/ping/Makefile xdata/Makefile subst pkginfo startup/openrc-init startup/default-init startup/default-service startup/upstart-init t/Makefile t-tap/Makefile"
 
 
 
@@ -8597,6 +8609,7 @@ do
     "contrib/Makefile") CONFIG_FILES="$CONFIG_FILES contrib/Makefile" ;;
     "cgi/Makefile") CONFIG_FILES="$CONFIG_FILES cgi/Makefile" ;;
     "html/Makefile") CONFIG_FILES="$CONFIG_FILES html/Makefile" ;;
+    "include/Makefile") CONFIG_FILES="$CONFIG_FILES include/Makefile" ;;
     "module/Makefile") CONFIG_FILES="$CONFIG_FILES module/Makefile" ;;
     "worker/Makefile") CONFIG_FILES="$CONFIG_FILES worker/Makefile" ;;
     "worker/ping/Makefile") CONFIG_FILES="$CONFIG_FILES worker/ping/Makefile" ;;
@@ -9341,6 +9354,10 @@ $as_echo "$as_me: WARNING: unrecognized options: $ac_unrecognized_opts" >&2;}
 fi
 
 
+if test ! -d "html/js"; then
+	mkdir -p "html/js"
+fi
+
 perl subst include/locations.h
 perl subst html/config.inc.php
 perl subst html/js/histogram.js
@@ -9350,6 +9367,10 @@ perl subst html/js/trends.js
 
 echo ""
 echo "Creating sample config files in sample-config/ ..."
+
+if test ! -d "sample-config/template-object"; then
+	mkdir -p "sample-config/template-object"
+fi
 
 perl subst sample-config/nagios.cfg
 perl subst sample-config/cgi.cfg

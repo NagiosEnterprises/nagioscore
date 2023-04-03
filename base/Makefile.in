@@ -5,13 +5,19 @@
 
 
 # Source code directories
-SRC_COMMON=../common
-SRC_INCLUDE=../include
-SRC_XDATA=../xdata
-SRC_LIB=../lib
+srcdir=@srcdir@
+
+SRC_COMMON=@top_srcdir@/common
+SRC_INCLUDE=@top_srcdir@/include
+SRC_XDATA=@top_srcdir@/xdata
+SRC_LIB=@top_srcdir@/lib
+
+BLD_COMMON=@top_builddir@/common
+BLD_INCLUDE=@top_builddir@/include
+BLD_LIB=@top_builddir@/lib
 
 CC=@CC@
-CFLAGS=-Wall -I.. @CFLAGS@ @DEFS@ -DNSCORE
+CFLAGS=-Wall -I.. -I@builddir@ -I@top_builddir@/lib -I@top_builddir@/include  -I$(SRC_INCLUDE) -I@top_srcdir@  @CFLAGS@ @DEFS@ -DNSCORE
 
 # Compiler flags for use with gprof
 #CFLAGS=-pg -I.. -DHAVE_CONFIG_H -DNSCORE
@@ -92,7 +98,7 @@ DDATAHDRS=
 DDATADEPS=$(DDATALIBS)
 
 
-OBJS=$(BROKER_O) $(SRC_COMMON)/shared.o @NERD_O@ query-handler.o workers.o checks.o config.o commands.o events.o flapping.o logging.o macros-base.o netutils.o notifications.o sehandlers.o utils.o $(RDATALIBS) $(CDATALIBS) $(ODATALIBS) $(SDATALIBS) $(PDATALIBS) $(DDATALIBS) $(BASEEXTRALIBS)
+OBJS=$(BROKER_O) $(BLD_COMMON)/shared.o @NERD_O@ query-handler.o workers.o checks.o config.o commands.o events.o flapping.o logging.o macros-base.o netutils.o notifications.o sehandlers.o utils.o $(RDATALIBS) $(CDATALIBS) $(ODATALIBS) $(SDATALIBS) $(PDATALIBS) $(DDATALIBS) $(BASEEXTRALIBS)
 OBJDEPS=$(ODATADEPS) $(ODATADEPS) $(RDATADEPS) $(CDATADEPS) $(SDATADEPS) $(PDATADEPS) $(DDATADEPS) $(BROKER_H)
 
 all: nagios nagiostats
@@ -124,22 +130,22 @@ xcomments-base.o: $(SRC_XDATA)/xcddefault.c $(SRC_XDATA)/xcddefault.h
 downtime-base.o: $(SRC_COMMON)/downtime.c $(SRC_INCLUDE)/downtime.h
 	$(CC) $(CFLAGS) -c -o $@ $(SRC_COMMON)/downtime.c
 
-perfdata-base.o: perfdata.c $(SRC_INCLUDE)/perfdata.h
-	$(CC) $(CFLAGS) -c -o $@ perfdata.c
+perfdata-base.o: $(srcdir)/perfdata.c $(SRC_INCLUDE)/perfdata.h
+	$(CC) $(CFLAGS) -c -o $@ $(srcdir)/perfdata.c
 
 xperfdata-base.o: $(SRC_XDATA)/xpddefault.c $(SRC_XDATA)/xpddefault.h
 	$(CC) $(CFLAGS) -c -o $@ $(SRC_XDATA)/xpddefault.c
 
-retention-base.o: sretention.c $(SRC_INCLUDE)/sretention.h
-	$(CC) $(CFLAGS) -c -o $@ sretention.c
+retention-base.o: $(srcdir)/sretention.c $(SRC_INCLUDE)/sretention.h
+	$(CC) $(CFLAGS) -c -o $@ $(srcdir)/sretention.c
 
 xretention-base.o: $(SRC_XDATA)/xrddefault.c $(SRC_XDATA)/xrddefault.h
 	$(CC) $(CFLAGS) -c -o $@ $(SRC_XDATA)/xrddefault.c
 
-$(SRC_COMMON)/shared.o: $(SRC_COMMON)/shared.c
+$(BLD_COMMON)/shared.o: $(SRC_COMMON)/shared.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-workers.o: workers.c wpres-phash.h
+workers.o: $(srcdir)/workers.c $(srcdir)/wpres-phash.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 wpres-phash.h: wpres.gperf
@@ -148,18 +154,21 @@ wpres-phash.h: wpres.gperf
 ########## NAGIOS ##########
 
 libnagios:
-	$(MAKE) -C $(SRC_LIB)
+	$(MAKE) -C $(BLD_LIB)
 
-nagios.o: nagios.c $(SRC_INCLUDE)/nagios.h $(SRC_INCLUDE)/locations.h
-	$(CC) $(CFLAGS) -c -o $@ nagios.c
+nagios.o: $(srcdir)/nagios.c $(SRC_INCLUDE)/nagios.h $(BLD_INCLUDE)/locations.h
+	$(CC) $(CFLAGS) -c -o $@ $(srcdir)/nagios.c
 
 nagios: nagios.o $(OBJS) $(OBJDEPS) libnagios
-	$(CC) $(CFLAGS) -o $@ $< $(OBJS) $(BROKER_LDFLAGS) $(LDFLAGS) $(MATHLIBS) $(SOCKETLIBS) $(BROKERLIBS) $(LIBS) $(SRC_LIB)/libnagios.a
+	$(CC) $(CFLAGS) -o $@ $< $(OBJS) $(BROKER_LDFLAGS) $(LDFLAGS) $(MATHLIBS) $(SOCKETLIBS) $(BROKERLIBS) $(LIBS) $(BLD_LIB)/libnagios.a
 
-nagiostats: nagiostats.c $(SRC_INCLUDE)/locations.h libnagios
-	$(CC) $(CFLAGS) -o $@ nagiostats.c $(LDFLAGS) $(MATHLIBS) $(LIBS) $(SRC_LIB)/libnagios.a
+nagiostats: $(srcdir)/nagiostats.c $(BLD_INCLUDE)/locations.h libnagios
+	$(CC) $(CFLAGS) -o $@ $(srcdir)/nagiostats.c $(LDFLAGS) $(MATHLIBS) $(LIBS) $(BLD_LIB)/libnagios.a
 
-$(OBJS): $(SRC_INCLUDE)/locations.h
+$(OBJS): $(BLD_INCLUDE)/locations.h
+
+%.o: $(srcdir)/%.c
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 clean:
 	rm -f nagios nagiostats core *.o gmon.out

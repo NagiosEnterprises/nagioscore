@@ -45,10 +45,10 @@
 #include "stub_downtime.c"
 #include "stub_perfdata.c"
 #include "stub_workers.c"
+#include "stub_netutils.c"
 
 /* Dummy functions */
 void logit(int data_type, int display, const char *fmt, ...) {}
-int my_sendall(int s, char *buf, int *len, int timeout) { return 0; }
 void free_comment_data(void) {}
 int write_to_log(char *buffer, unsigned long data_type, time_t *timestamp) { return 0; }
 int log_debug_info(int level, int verbosity, const char *fmt, ...) { return 0; }
@@ -63,8 +63,6 @@ int neb_add_module(char *filename, char *args, int should_be_loaded) { return 0;
 void broker_system_command(int type, int flags, int attr, struct timeval start_time, struct timeval end_time, double exectime, int timeout, int early_timeout, int retcode, char *cmd, char *output, struct timeval *timestamp) {}
 
 timed_event *schedule_new_event(int event_type, int high_priority, time_t run_time, int recurring, unsigned long event_interval, void *timing_func, int compensate_for_time_change, void *event_data, void *event_args, int event_options) { return NULL; }
-int my_tcp_connect(char *host_name, int port, int *sd, int timeout) { return 0; }
-int my_recvall(int s, char *buf, int *len, int timeout) { return 0; }
 int neb_free_module_list(void) { return 0; }
 int close_command_file(void) { return 0; }
 int close_log_file(void) { return 0; }

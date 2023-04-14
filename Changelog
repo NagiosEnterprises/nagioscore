@@ -8,6 +8,7 @@ FIXES
 * Fix incorrect error message in preflight check (#865)
 * Fix use-after-free in qh_deregister_handler (#866)
 * Fix memory leak in qh_deregister_handler (#866)
+* Fix mismatched host/service behavior when changing from SOFT to HARD state (#891)
 * Minor performance improvements in CGI utility functions (#866)
 
 4.4.10 - 2023-01-17

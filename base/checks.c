@@ -983,6 +983,7 @@ static inline void host_state_or_hard_state_type_change(host * hst, int state_ch
 	if (hard_state_change == TRUE) {
 
 		hst->last_hard_state_change = hst->last_check;
+		hst->last_state_change = hst->last_check;
 		hst->last_hard_state = hst->current_state;
 		hst->state_type = HARD_STATE;
 

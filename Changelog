@@ -2,7 +2,7 @@
 Nagios Core 4 Change Log
 ########################
 
-4.4.11 - 2023-03-??
+4.4.11 - 2023-04-14
 -------------------
 FIXES
 * Fix incorrect error message in preflight check (#865)

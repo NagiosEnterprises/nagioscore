@@ -1342,7 +1342,6 @@ void calculate_scaling_factor(void) {
 
 /* finds hosts that can be drawn in the canvas area */
 void find_eligible_hosts(void) {
-	int total_eligible_hosts = 0;
 	host *temp_host;
 
 	/* check all extended host information entries... */
@@ -1371,7 +1370,6 @@ void find_eligible_hosts(void) {
 		/* all checks passed, so we can draw the host! */
 		else {
 			temp_host->should_be_drawn = TRUE;
-			total_eligible_hosts++;
 			}
 		}
 
@@ -2170,8 +2168,7 @@ int initialize_graphics(void) {
 	gdImageInterlace(map_image, 1);
 
 	/* get the path where we will be reading logo images from (GD2 format)... */
-	snprintf(physical_logo_images_path, sizeof(physical_logo_images_path) - 1, "%slogos/", physical_images_path);
-	physical_logo_images_path[sizeof(physical_logo_images_path) - 1] = '\x0';
+	build_subdir_path(physical_logo_images_path, sizeof(physical_logo_images_path), physical_images_path, "logos/");
 
 	/* load the unknown icon to use for hosts that don't have pretty images associated with them... */
 	snprintf(image_input_file, sizeof(image_input_file) - 1, "%s%s", physical_logo_images_path, UNKNOWN_GD2_ICON);

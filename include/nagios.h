@@ -513,10 +513,10 @@ void adjust_timestamp_for_time_change(time_t, time_t, unsigned long, time_t *); 
 
 
 /**** IPC Functions ****/
-int process_check_result_queue(char *);
-int process_check_result_file(char *);
+int process_check_result_queue(const char *);
+int process_check_result_file(const char *);
 int process_check_result(check_result *);
-int delete_check_result_file(char *);
+int delete_check_result_file(const char *);
 int init_check_result(check_result *);
 int free_check_result(check_result *);                  	/* frees memory associated with a host/service check result */
 int parse_check_output(char *, char **, char **, char **, int, int);

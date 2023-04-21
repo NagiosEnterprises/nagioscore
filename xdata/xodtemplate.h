@@ -744,8 +744,8 @@ typedef struct xodtemplate_service_cursor_struct {
 /********* FUNCTION DEFINITIONS **********/
 
 int xodtemplate_read_config_data(const char *, int);    /* top-level routine processes all config files */
-int xodtemplate_process_config_file(char *, int);           /* process data in a specific config file */
-int xodtemplate_process_config_dir(char *, int);            /* process all files in a specific config directory */
+int xodtemplate_process_config_file(const char *, int);           /* process data in a specific config file */
+int xodtemplate_process_config_dir(const char *, int);            /* process all files in a specific config directory */
 
 int xodtemplate_expand_services(objectlist **, bitmap *, char *, char *, int, int);
 int xodtemplate_expand_contactgroups(objectlist **, bitmap *, char *, int, int);

@@ -238,7 +238,8 @@ int main(void) {
 				break;
 			}
 		}
-		strcpy(host_name, host_name + i);
+		if (i > 0)
+			memmove(host_name, host_name + i, strlen(host_name + i) + 1);
 
 		if(NULL != strstr(host_name, "*")) {
 			/* allocate for 3 extra chars, ^, $ and \0 */
@@ -2077,7 +2078,6 @@ void show_host_detail(void) {
 	int seconds;
 	int duration_error = FALSE;
 	int total_entries = 0;
-	int visible_entries = 0;
 	regex_t preg_hostname;
 //	int show_host = FALSE;
 
@@ -2291,9 +2291,6 @@ void show_host_detail(void) {
 		if( (limit_results == TRUE) && ( (total_entries < page_start) || (total_entries > (page_start + result_limit)) )  ) {
 			continue;
 			}
-
-		visible_entries++;
-
 
 		/* grab macros */
 		grab_host_macros_r(mac, temp_host);

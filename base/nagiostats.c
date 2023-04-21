@@ -38,7 +38,7 @@
 static char *main_config_file = NULL;
 char *status_file = NULL;
 static char *mrtg_variables = NULL;
-static const char *mrtg_delimiter = NULL;
+static char *mrtg_delimiter = NULL;
 
 static int mrtg_mode = FALSE;
 

@@ -2166,7 +2166,7 @@ int drop_privileges(char *user, char *group) {
 /******************************************************************/
 
 /* processes files in the check result queue directory */
-int process_check_result_queue(char *dirname) {
+int process_check_result_queue(const char *dirname) {
 	char file[MAX_FILENAME_LENGTH];
 	DIR *dirp = NULL;
 	struct dirent *dirfile = NULL;
@@ -2176,6 +2176,7 @@ int process_check_result_queue(char *dirname) {
 	char *temp_buffer = NULL;
 	int result = OK, check_result_files = 0;
 	time_t start;
+	int ofs = 0;
 
 	/* make sure we have what we need */
 	if(dirname == NULL) {
@@ -2193,6 +2194,11 @@ int process_check_result_queue(char *dirname) {
 
 	start = time(NULL);
 
+	strncpy(file, dirname, sizeof(file));
+	file[sizeof(file) - 1] = '\0';
+	ensure_path_separator(file, sizeof(file));
+	ofs = strlen(file);
+
 	/* process all files in the directory... */
 	while((dirfile = readdir(dirp)) != NULL) {
 
@@ -2208,9 +2214,12 @@ int process_check_result_queue(char *dirname) {
 			break;
 			}
 
+		/* skip if it's too long */
+		if (ofs + strlen(dirfile->d_name) + 1 > sizeof(file))
+			continue;
+
 		/* create /path/to/file */
-		snprintf(file, sizeof(file), "%s/%s", dirname, dirfile->d_name);
-		file[sizeof(file) - 1] = '\x0';
+		strncpy(file + ofs, dirfile->d_name, sizeof(file) - ofs);
 
 		/* process this if it's a check result file...
 		   remember it needs to be in the format of
@@ -2319,7 +2328,7 @@ int process_check_result(check_result *cr)
 /* static char *unescape_check_result_file_output(char*); */
 
 /* reads check result(s) from a file */
-int process_check_result_file(char *fname)
+int process_check_result_file(const char *fname)
 {
 	mmapfile *thefile    = NULL;
 	char *input          = NULL;
@@ -2522,7 +2531,7 @@ int process_check_result_file(char *fname)
 
 
 /* deletes as check result file, as well as its ok-to-go file */
-int delete_check_result_file(char *fname)
+int delete_check_result_file(const char *fname)
 {
 	char *temp_buffer = NULL;
 	int result        = OK;
@@ -2797,7 +2806,7 @@ int my_rename(char *source, char *dest) {
  */
 int my_fdcopy(char *source, char *dest, int dest_fd) {
 	int source_fd, rd_result = 0, wr_result = 0;
-	int tot_written = 0, tot_read = 0, buf_size = 0;
+	int tot_written = 0, buf_size = 0;
 	struct stat st;
 	char *buf;
 
@@ -2844,7 +2853,6 @@ int my_fdcopy(char *source, char *dest, int dest_fd) {
 			logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: my_fcopy() failed to read from '%s': %s\n", source, strerror(errno));
 			break;
 			}
-		tot_read += rd_result;
 
 		while(loop_wr < rd_result) {
 			wr_result = write(dest_fd, buf + loop_wr, rd_result - loop_wr);
@@ -3286,7 +3294,7 @@ int check_for_nagios_updates(int force, int reschedule) {
 		/* we didn't do an update, so calculate next possible update time */
 		if(do_check == FALSE) {
 			next_check = last_update_check + BASE_UPDATE_CHECK_INTERVAL;
-			next_check = next_check + (unsigned long)(((float)randnum / RAND_MAX) * UPDATE_CHECK_INTERVAL_WOBBLE);
+			next_check = next_check + (unsigned long)(((float)randnum / (float)RAND_MAX) * UPDATE_CHECK_INTERVAL_WOBBLE);
 			}
 
 		/* we tried to check for an update */
@@ -3295,13 +3303,13 @@ int check_for_nagios_updates(int force, int reschedule) {
 			/* api query was okay */
 			if(api_result == OK) {
 				next_check = current_time + BASE_UPDATE_CHECK_INTERVAL;
-				next_check += (unsigned long)(((float)randnum / RAND_MAX) * UPDATE_CHECK_INTERVAL_WOBBLE);
+				next_check += (unsigned long)(((float)randnum / (float)RAND_MAX) * UPDATE_CHECK_INTERVAL_WOBBLE);
 				}
 
 			/* query resulted in an error - retry at a shorter interval */
 			else {
 				next_check = current_time + BASE_UPDATE_CHECK_RETRY_INTERVAL;
-				next_check += (unsigned long)(((float)randnum / RAND_MAX) * UPDATE_CHECK_RETRY_INTERVAL_WOBBLE);
+				next_check += (unsigned long)(((float)randnum / (float)RAND_MAX) * UPDATE_CHECK_RETRY_INTERVAL_WOBBLE);
 				}
 			}
 
@@ -3330,7 +3338,6 @@ int query_update_api(void) {
 	char recv_buf[1024];
 	int report_install = FALSE;
 	char *ptr = NULL;
-	int current_line = 0;
 	int buf_index = 0;
 	int in_header = TRUE;
 	char *var = NULL;
@@ -3419,7 +3426,6 @@ int query_update_api(void) {
 		while((ptr = get_next_string_from_buf(recv_buf, &buf_index, sizeof(recv_buf)))) {
 
 			strip(ptr);
-			current_line++;
 
 			if(!strcmp(ptr, "")) {
 				in_header = FALSE;

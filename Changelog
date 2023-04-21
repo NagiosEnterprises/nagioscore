@@ -2,6 +2,11 @@
 Nagios Core 4 Change Log
 ########################
 
+4.4.12 - 2023-05-15
+-------------------
+FIXES
+* Clean up most compiler warnings on GCC and clang (#901)
+
 4.4.11 - 2023-04-14
 -------------------
 FIXES

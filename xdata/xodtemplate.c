@@ -445,7 +445,7 @@ int xodtemplate_read_config_data(const char *main_config_file, int options) {
 	in this particular case) return an error without printing any error
 	messages, so nothing will say what was wrong. */
 /*	if(result == OK) */
-		result |= xodtemplate_register_objects();
+	result |= xodtemplate_register_objects();
 	if(test_scheduling == TRUE)
 		gettimeofday(&tv[10], NULL);
 
@@ -561,13 +561,14 @@ void xodtemplate_handle_semicolons(char* input) {
 
 
 /* process all files in a specific config directory */
-int xodtemplate_process_config_dir(char *dirname, int options) {
+int xodtemplate_process_config_dir(const char *dirname, int options) {
 	char file[MAX_FILENAME_LENGTH];
 	DIR *dirp = NULL;
 	struct dirent *dirfile = NULL;
 	int result = OK;
 	register int x = 0;
 	struct stat stat_buf;
+	int ofs = 0;
 
 #ifdef NSCORE
 	if(verify_config >= 2)
@@ -581,6 +582,11 @@ int xodtemplate_process_config_dir(char *dirname, int options) {
 		return ERROR;
 		}
 
+	strncpy(file, dirname, sizeof(file));
+	file[sizeof(file) - 1] = '\0';
+	ensure_path_separator(file, sizeof(file));
+	ofs = strlen(file);
+
 	/* process all files in the directory... */
 	while((dirfile = readdir(dirp)) != NULL) {
 
@@ -588,9 +594,12 @@ int xodtemplate_process_config_dir(char *dirname, int options) {
 		if(dirfile->d_name[0] == '.')
 			continue;
 
+		/* skip if it's too long */
+		if (ofs + strlen(dirfile->d_name) + 1 > sizeof(file))
+			continue;
+
 		/* create /path/to/file */
-		snprintf(file, sizeof(file), "%s/%s", dirname, dirfile->d_name);
-		file[sizeof(file) - 1] = '\x0';
+		strncpy(file + ofs, dirfile->d_name, sizeof(file) - ofs);
 
 		/* process this if it's a non-hidden config file... */
 		if(stat(file, &stat_buf) == -1) {
@@ -640,7 +649,7 @@ int xodtemplate_process_config_dir(char *dirname, int options) {
 
 
 /* process data in a specific config file */
-int xodtemplate_process_config_file(char *filename, int options) {
+int xodtemplate_process_config_file(const char *filename, int options) {
 	mmapfile *thefile = NULL;
 	char *input = NULL;
 	register int in_definition = FALSE;
@@ -2595,12 +2604,12 @@ int xodtemplate_add_object_property(char *input, int options) {
 				}
 			else if(!strcmp(variable, "2d_coords")) {
 				if((temp_ptr = strtok(value, ", ")) == NULL) {
-					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid 2d_coords value '%s' in host definition.\n", temp_ptr);
+					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid 2d_coords value in host definition.\n");
 					return ERROR;
 					}
 				temp_host->x_2d = atoi(temp_ptr);
 				if((temp_ptr = strtok(NULL, ", ")) == NULL) {
-					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid 2d_coords value '%s' in host definition.\n", temp_ptr);
+					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid 2d_coords value in host definition.\n");
 					return ERROR;
 					}
 				temp_host->y_2d = atoi(temp_ptr);
@@ -2608,17 +2617,17 @@ int xodtemplate_add_object_property(char *input, int options) {
 				}
 			else if(!strcmp(variable, "3d_coords")) {
 				if((temp_ptr = strtok(value, ", ")) == NULL) {
-					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid 3d_coords value '%s' in host definition.\n", temp_ptr);
+					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid 3d_coords value in host definition.\n");
 					return ERROR;
 					}
 				temp_host->x_3d = strtod(temp_ptr, NULL);
 				if((temp_ptr = strtok(NULL, ", ")) == NULL) {
-					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid 3d_coords value '%s' in host definition.\n", temp_ptr);
+					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid 3d_coords value in host definition.\n");
 					return ERROR;
 					}
 				temp_host->y_3d = strtod(temp_ptr, NULL);
 				if((temp_ptr = strtok(NULL, ", ")) == NULL) {
-					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid 3d_coords value '%s' in host definition.\n", temp_ptr);
+					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid 3d_coords value in host definition.\n");
 					return ERROR;
 					}
 				temp_host->z_3d = strtod(temp_ptr, NULL);
@@ -3445,13 +3454,13 @@ int xodtemplate_add_object_property(char *input, int options) {
 			else if(!strcmp(variable, "2d_coords")) {
 				temp_ptr = strtok(value, ", ");
 				if(temp_ptr == NULL) {
-					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid 2d_coords value '%s' in extended host info definition.\n", temp_ptr);
+					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid 2d_coords value in extended host info definition.\n");
 					return ERROR;
 					}
 				temp_hostextinfo->x_2d = atoi(temp_ptr);
 				temp_ptr = strtok(NULL, ", ");
 				if(temp_ptr == NULL) {
-					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid 2d_coords value '%s' in extended host info definition.\n", temp_ptr);
+					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid 2d_coords value in extended host info definition.\n");
 					return ERROR;
 					}
 				temp_hostextinfo->y_2d = atoi(temp_ptr);
@@ -3460,19 +3469,19 @@ int xodtemplate_add_object_property(char *input, int options) {
 			else if(!strcmp(variable, "3d_coords")) {
 				temp_ptr = strtok(value, ", ");
 				if(temp_ptr == NULL) {
-					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid 3d_coords value '%s' in extended host info definition.\n", temp_ptr);
+					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid 3d_coords value in extended host info definition.\n");
 					return ERROR;
 					}
 				temp_hostextinfo->x_3d = strtod(temp_ptr, NULL);
 				temp_ptr = strtok(NULL, ", ");
 				if(temp_ptr == NULL) {
-					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid 3d_coords value '%s' in extended host info definition.\n", temp_ptr);
+					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid 3d_coords value in extended host info definition.\n");
 					return ERROR;
 					}
 				temp_hostextinfo->y_3d = strtod(temp_ptr, NULL);
 				temp_ptr = strtok(NULL, ", ");
 				if(temp_ptr == NULL) {
-					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid 3d_coords value '%s' in extended host info definition.\n", temp_ptr);
+					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Invalid 3d_coords value in extended host info definition.\n");
 					return ERROR;
 					}
 				temp_hostextinfo->z_3d = strtod(temp_ptr, NULL);

@@ -309,8 +309,7 @@ void display_world(void) {
 	host *temp_host = NULL;
 
 	/* get the url we will use to grab the logo images... */
-	snprintf(url_logo_images_path, sizeof(url_logo_images_path), "%slogos/", url_images_path);
-	url_logo_images_path[sizeof(url_logo_images_path) - 1] = '\x0';
+	build_subdir_path(url_logo_images_path, sizeof(url_logo_images_path), url_images_path, "logos/");
 
 	/* calculate host drawing coordinates */
 	calculate_host_coords();

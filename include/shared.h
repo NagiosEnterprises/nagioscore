@@ -53,5 +53,7 @@ extern void get_datetime_string(time_t *raw_time, char *buffer,
 extern void get_time_breakdown(unsigned long raw_time, int *days, int *hours,
                                int *minutes, int *seconds);
 
+extern void ensure_path_separator(char *path, size_t size);
+
 NAGIOS_END_DECL
 #endif

@@ -262,8 +262,6 @@ int process_cgivars(void) {
 /* shows all hosts that are causing network outages */
 void display_network_outages(void) {
 	char temp_buffer[MAX_INPUT_BUFFER];
-	int number_of_problem_hosts = 0;
-	int number_of_blocking_problem_hosts = 0;
 	hostoutagesort *temp_hostoutagesort;
 	hostoutage *temp_hostoutage;
 	hoststatus *temp_hoststatus;
@@ -300,13 +298,6 @@ void display_network_outages(void) {
 
 	/* sort the outage list by severity */
 	sort_hostoutages();
-
-	/* count the number of top-level hosts that are down and the ones that are actually blocking children hosts */
-	for(temp_hostoutage = hostoutage_list; temp_hostoutage != NULL; temp_hostoutage = temp_hostoutage->next) {
-		number_of_problem_hosts++;
-		if(temp_hostoutage->affected_child_hosts > 1)
-			number_of_blocking_problem_hosts++;
-		}
 
 	/* display the problem hosts... */
 	printf("<P><DIV ALIGN=CENTER>\n");

@@ -507,5 +507,7 @@ struct nagios_extcmd* extcmd_get_command_id(int);
 struct nagios_extcmd* extcmd_get_command_name(const char *);
 const char *extcmd_get_name(int);
 
+void build_subdir_path(char* path, size_t size, const char* prefix, const char* subdir);
+
 NAGIOS_END_DECL
 #endif

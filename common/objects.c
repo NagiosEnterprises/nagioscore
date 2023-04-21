@@ -2987,7 +2987,7 @@ int free_object_data(void) {
 #ifndef NSCGI
 static const char *timerange2str(const timerange *tr)
 {
-	static char str[12];
+	static char str[32];
 	int sh, sm, eh, em;
 
 	if(!tr)

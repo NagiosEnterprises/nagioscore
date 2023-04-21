@@ -602,7 +602,7 @@ void json_array_append_duration(json_object *obj, unsigned long value) {
 	list of nodes. Nodes may be either a key or a zero-based array index.
 
 	For example to return the query_time key in the result object, the
-	path would be "result.query_time". To find the 2nd host host in
+	path would be "result.query_time". To find the 2nd host in
 	the list of hosts for a hostlist query, the path would be
 	"data.hostlist.1"
 */

@@ -3980,7 +3980,7 @@ xodtemplate_daterange *xodtemplate_add_exception_to_timeperiod(xodtemplate_timep
 	if(period == NULL || timeranges == NULL)
 		return NULL;
 
-	/* allocate memory for the date range range */
+	/* allocate memory for the date range */
 	if((new_daterange = malloc(sizeof(xodtemplate_daterange))) == NULL)
 		return NULL;
 

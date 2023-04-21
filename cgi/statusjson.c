@@ -359,7 +359,7 @@ option_help status_json_help[] = {
 		{ NULL },
 		{ "all", NULL },
 		NULL,
-		"strftime format string for values of type time_t. In the absence of a format, the Javascript default format of the number of milliseconds since the beginning of the Unix epoch is used. Because of URL encoding, percent signs must be encoded as %25 and a space must be encoded as a plus (+) sign.",
+		"strftime format string for values of type time_t. In the absence of a format, the JavaScript default format of the number of milliseconds since the beginning of the Unix epoch is used. Because of URL encoding, percent signs must be encoded as %25 and a space must be encoded as a plus (+) sign.",
 		NULL
 		},
 	{ 

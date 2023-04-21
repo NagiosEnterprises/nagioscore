@@ -311,7 +311,7 @@ angular.module("histogramApp")
 					initializeData($scope.summary.hourly, 25);
 
 					$scope.json.data.alertlist.forEach(function(e, i, a) {
-						// Create a Javascript date object
+						// Create a JavaScript date object
 						var ts = new Date(e.timestamp);
 
 						// Update the monthly data

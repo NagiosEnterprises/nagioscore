@@ -66,7 +66,7 @@ const string_value_mapping svm_format_options[] = {
 		"or '%%Y-%%m-%%d %%H:%%M:%%S' if no format specified" },
 	{ "date", JSON_FORMAT_DATE, 
 		"Format dates according to the supplied strftime format or "
-		"default Javascript format (number of ms since the beginning of the "
+		"default JavaScript format (number of ms since the beginning of the "
 		"Unix epoch) if no format specified" },
 	{ "time", JSON_FORMAT_TIME, 
 		"Format times according the supplied strftime format or "

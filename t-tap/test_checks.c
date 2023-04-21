@@ -1370,7 +1370,7 @@ void run_misc_host_check_tests()
     handle_hst1();
 
     ok(strstr(hst1->plugin_output, "127 is out of bounds") != NULL,
-        "found appropriate non existent message, [%s]", hst1->plugin_output);
+        "found appropriate nonexistent message, [%s]", hst1->plugin_output);
 
     create_check_result(check_type, -1, "host down");
     

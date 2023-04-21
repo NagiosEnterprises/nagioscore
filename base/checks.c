@@ -404,7 +404,7 @@ int get_service_check_return_code(service *svc, check_result *cr)
 		rc = STATE_CRITICAL;
 	}
 
-	/* 127 is a return code for non-existent */
+	/* 127 is a return code for nonexistent */
 	else if (cr->return_code == 127) {
 		
 		my_free(svc->plugin_output);
@@ -495,7 +495,7 @@ int get_host_check_return_code(host *hst, check_result *cr)
 		rc = HOST_UNREACHABLE;
 	}
 
-	/* 127 is a return code for non-existent */
+	/* 127 is a return code for nonexistent */
 	else if (cr->return_code == 127) {
 
 		my_free(hst->plugin_output);

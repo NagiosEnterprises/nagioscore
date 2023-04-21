@@ -3884,7 +3884,7 @@ continue
 fi
 rm -f conftest.err conftest.$ac_ext
 
-  # OK, works on sane cases.  Now check whether non-existent headers
+  # OK, works on sane cases.  Now check whether nonexistent headers
   # can be detected and how.
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -3991,7 +3991,7 @@ continue
 fi
 rm -f conftest.err conftest.$ac_ext
 
-  # OK, works on sane cases.  Now check whether non-existent headers
+  # OK, works on sane cases.  Now check whether nonexistent headers
   # can be detected and how.
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -4972,7 +4972,7 @@ continue
 fi
 rm -f conftest.err conftest.$ac_ext
 
-  # OK, works on sane cases.  Now check whether non-existent headers
+  # OK, works on sane cases.  Now check whether nonexistent headers
   # can be detected and how.
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -5079,7 +5079,7 @@ continue
 fi
 rm -f conftest.err conftest.$ac_ext
 
-  # OK, works on sane cases.  Now check whether non-existent headers
+  # OK, works on sane cases.  Now check whether nonexistent headers
   # can be detected and how.
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */

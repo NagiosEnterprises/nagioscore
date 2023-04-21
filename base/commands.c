@@ -4279,7 +4279,7 @@ void schedule_and_propagate_downtime(host *temp_host, time_t entry_time, char *a
 void acknowledge_host_problem(host *hst, char *ack_author, char *ack_data, int type, int notify, int persistent) {
 	time_t current_time = 0L;
 
-	/* cannot acknowledge a non-existent problem */
+	/* cannot acknowledge a nonexistent problem */
 	if(hst->current_state == HOST_UP)
 		return;
 
@@ -4313,7 +4313,7 @@ void acknowledge_host_problem(host *hst, char *ack_author, char *ack_data, int t
 void acknowledge_service_problem(service *svc, char *ack_author, char *ack_data, int type, int notify, int persistent) {
 	time_t current_time = 0L;
 
-	/* cannot acknowledge a non-existent problem */
+	/* cannot acknowledge a nonexistent problem */
 	if(svc->current_state == STATE_OK)
 		return;
 

@@ -18,5 +18,5 @@ In order to force a Nagios v2 or v3 nagios.cfg file to run with Nagios v4 simply
 The included script UpgradeToVersion4.sh will do this automatically for the file 
 /etc/nagios/nagios.cfg (the standard location for the nagios.cfg file)
 
-This is a work-around and you should consider implementing the new nagios.cfg file.
+This is a workaround and you should consider implementing the new nagios.cfg file.
 

@@ -3450,7 +3450,7 @@ void show_servicegroup_grid(servicegroup *temp_servicegroup) {
 		printf("<tr class='status%s'>\n", status_bg_class);
 
 		if(temp_hoststatus->status == SD_HOST_DOWN)
-			host_status_class = "HOStdOWN";
+			host_status_class = "HOSTDOWN";
 		else if(temp_hoststatus->status == SD_HOST_UNREACHABLE)
 			host_status_class = "HOSTUNREACHABLE";
 		else
@@ -3803,8 +3803,8 @@ void show_servicegroup_hostgroup_member_overview(hoststatus *hststatus, int odd,
 		}
 	else if(hststatus->status == SD_HOST_DOWN) {
 		strncpy(status, "DOWN", sizeof(status));
-		status_class = "HOStdOWN";
-		status_bg_class = "HOStdOWN";
+		status_class = "HOSTDOWN";
+		status_bg_class = "HOSTDOWN";
 		}
 	else if(hststatus->status == SD_HOST_UNREACHABLE) {
 		strncpy(status, "UNREACHABLE", sizeof(status));
@@ -4691,7 +4691,7 @@ void show_hostgroup_grid(hostgroup *temp_hostgroup) {
 
 		/* get the status of the host */
 		if(temp_hoststatus->status == SD_HOST_DOWN)
-			host_status_class = "HOStdOWN";
+			host_status_class = "HOSTDOWN";
 		else if(temp_hoststatus->status == SD_HOST_UNREACHABLE)
 			host_status_class = "HOSTUNREACHABLE";
 		else

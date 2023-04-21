@@ -1755,7 +1755,7 @@ int pre_flight_object_check(int *w, int *e) {
 			temp_host->notification_period_ptr = temp_timeperiod;
 			}
 
-		/* check all parent parent host */
+		/* check all parents of host */
 		for(temp_hostsmember = temp_host->parent_hosts; temp_hostsmember != NULL; temp_hostsmember = temp_hostsmember->next) {
 
 			if((temp_host2 = find_host(temp_hostsmember->host_name)) == NULL) {

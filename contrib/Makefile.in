@@ -86,7 +86,7 @@ $(CGI_O): $(CGI_C)
 	$(CC) $(CFLAGS) $(LDFLAGS) $< $(CGI_O) -o $@
 
 ##############################################################################
-# making similiar EPEL rpm for Fedora/RHEL/CentOS 
+# making similar EPEL rpm for Fedora/RHEL/CentOS 
 
 ifneq ("$(wildcard /etc/redhat-release)","")
 

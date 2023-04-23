@@ -1278,7 +1278,7 @@ void run_passive_host_tests()
     ok(hst1->last_hard_state == STATE_DOWN,
         "Host last hard state was down");
     ok(hst1->no_more_notifications == TRUE,
-        "No more notifications reatained");
+        "No more notifications retained");
     ok(hst1->acknowledgement_type == ACKNOWLEDGEMENT_NORMAL,
         "Ack same");
     ok(hst1->last_notification != (time_t)0L,

@@ -542,7 +542,7 @@ void xodtemplate_handle_semicolons(char* input) {
 				}
 
 			/* dest_end and src_start are initialized - we need to do a copy. */
-			/* Copy from src_start (usually a semicolon) up to just before the blackslash */
+			/* Copy from src_start (usually a semicolon) up to just before the backslash */
 			int copy_size = (x - 1) - src_start;
 			memmove(input + dest_end, input + src_start, copy_size);
 			dest_end += copy_size;

@@ -51,7 +51,7 @@ define hostgroup {
 #
 ###############################################################################
 
-# Create a service for monitoring the version of NSCLient++ that is installed
+# Create a service for monitoring the version of NSClient++ that is installed
 # Change the host_name to match the name of the host you defined above
 
 define service {

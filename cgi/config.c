@@ -1779,8 +1779,8 @@ void display_servicedependencies(void) {
 		return;
 		}
 
-	printf("<P><DIV ALIGN=CENTER CLASS='dataTitle'>Service Dependencie%s%s</DIV></P>\n",
-	       (*to_expand == '\0' ? "s" : "s Involving Host "), (*to_expand == '\0' ? "" : html_encode(to_expand, FALSE)));
+	printf("<P><DIV ALIGN=CENTER CLASS='dataTitle'>Service Dependencies%s%s</DIV></P>\n",
+	       (*to_expand == '\0' ? "" : " Involving Host "), (*to_expand == '\0' ? "" : html_encode(to_expand, FALSE)));
 
 	printf("<P>\n");
 	printf("<DIV ALIGN=CENTER>\n");
@@ -2009,8 +2009,8 @@ void display_hostdependencies(void) {
 		return;
 		}
 
-	printf("<P><DIV ALIGN=CENTER CLASS='dataTitle'>Host Dependencie%s%s</DIV></P>\n",
-	       (*to_expand == '\0' ? "s" : "s Involving Host "), (*to_expand == '\0' ? "" : html_encode(to_expand, FALSE)));
+	printf("<P><DIV ALIGN=CENTER CLASS='dataTitle'>Host Dependencies%s%s</DIV></P>\n",
+	       (*to_expand == '\0' ? "" : " Involving Host "), (*to_expand == '\0' ? "" : html_encode(to_expand, FALSE)));
 
 	printf("<P>\n");
 	printf("<DIV ALIGN=CENTER>\n");

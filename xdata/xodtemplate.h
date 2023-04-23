@@ -828,7 +828,6 @@ int xodtemplate_resolve_hostescalation(xodtemplate_hostescalation *);
 int xodtemplate_resolve_hostextinfo(xodtemplate_hostextinfo *);
 int xodtemplate_resolve_serviceextinfo(xodtemplate_serviceextinfo *);
 
-int xodtemplate_merge_extinfo_ojects(void);
 int xodtemplate_merge_host_extinfo_object(xodtemplate_host *, xodtemplate_hostextinfo *);
 int xodtemplate_merge_service_extinfo_object(xodtemplate_service *, xodtemplate_serviceextinfo *);
 #endif

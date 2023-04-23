@@ -922,7 +922,7 @@ static inline void service_state_or_hard_state_type_change(service * svc, int st
 		if ((svc->acknowledgement_type == ACKNOWLEDGEMENT_NORMAL && (state_change == TRUE || hard_state_change == FALSE))
 			|| (svc->acknowledgement_type == ACKNOWLEDGEMENT_STICKY && svc->current_state == STATE_OK)) {
 
-			/* remove any non-persistant comments associated with the ack */
+			/* remove any non-persistent comments associated with the ack */
 			svc->problem_has_been_acknowledged = FALSE;
 			svc->acknowledgement_type = ACKNOWLEDGEMENT_NONE;
 			delete_service_acknowledgement_comments(svc);
@@ -1008,7 +1008,7 @@ static inline void host_state_or_hard_state_type_change(host * hst, int state_ch
 		if ((hst->acknowledgement_type == ACKNOWLEDGEMENT_NORMAL && (state_change == TRUE || hard_state_change == FALSE))
 			|| (hst->acknowledgement_type == ACKNOWLEDGEMENT_STICKY && hst->current_state == STATE_OK)) {
 
-			/* remove any non-persistant comments associated with the ack */
+			/* remove any non-persistent comments associated with the ack */
 			hst->problem_has_been_acknowledged = FALSE;
 			hst->acknowledgement_type = ACKNOWLEDGEMENT_NONE;
 			delete_host_acknowledgement_comments(hst);

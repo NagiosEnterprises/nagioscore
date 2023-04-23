@@ -4352,7 +4352,7 @@ void remove_host_acknowledgement(host *hst) {
 	/* update the status log with the host info */
 	update_host_status(hst, FALSE);
 
-	/* remove any non-persistant comments associated with the ack */
+	/* remove any non-persistent comments associated with the ack */
 	delete_host_acknowledgement_comments(hst);
 
 	return;
@@ -4368,7 +4368,7 @@ void remove_service_acknowledgement(service *svc) {
 	/* update the status log with the service info */
 	update_service_status(svc, FALSE);
 
-	/* remove any non-persistant comments associated with the ack */
+	/* remove any non-persistent comments associated with the ack */
 	delete_service_acknowledgement_comments(svc);
 
 	return;

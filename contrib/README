@@ -47,7 +47,7 @@ Miscellaneous Goodies:
 
   2. Prepare your rpmbuild environment for CentOS/RHEL.
 
-  sudo yum instatll -y rpmdevtools gcc libtool rpmbuild \
+  sudo yum install -y rpmdevtools gcc libtool rpmbuild \
   policycoreutils-devel selinux-policy-devel \
   perl-generators gdbm-devel pyparsing systemtap perl-ExtUtils-Manifest \
   libdb perl-ExtUtils-MakeMaker  perl-ExtUtils-Install perl-devel  \

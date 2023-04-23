@@ -2375,7 +2375,7 @@ void compute_subject_downtime_times(time_t start_time, time_t end_time, avail_su
 				saved_status = temp_as->processed_state;
 			}
 
-			/* is outside schedule time, use end schdule downtime */
+			/* is outside schedule time, use end schedule downtime */
 			if (temp_as->time_stamp > end_time) {
 				if (saved_stamp < start_time) {
 					compute_subject_downtime_part_times(start_time, end_time, saved_status, subject);

@@ -187,7 +187,7 @@ FIXES
 * New Macro(s) to generate URL for host / service object (John Frickson)
 * Fix minor map issues (Troy Lea)
 * Fix lockfile issues (Bryan Heden)
-* Switch order of daemon_init and drop_priveleges (CVE-2017-12847, Bryan Heden)
+* Switch order of daemon_init and drop_privileges (CVE-2017-12847, Bryan Heden)
 * Add an OpenRC init script (Michael Orlitzky)
 
 

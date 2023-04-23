@@ -757,7 +757,7 @@ fi
 - Perl 5.18 rebuild
 
 * Fri Jul 19 2013 Keiran Smith <fedora@affix.me> - 3.5.0-6
-- implimemt aarch64 patch from bug #926192
+- implement aarch64 patch from bug #926192
 
 * Sat Jun 15 2013 Jose Pedro Oliveira <jpo at di.uminho.pt> - 3.5.0-5
 - Build package with PIE flags (#965529)

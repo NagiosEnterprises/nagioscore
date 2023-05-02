@@ -1129,6 +1129,44 @@ static inline void host_propagate_dependency_checks(host * hst, time_t current_t
 	}
 }
 
+static inline void service_propagate_dependency_checks(service * svc, time_t current_time)
+{
+	if (svc->current_attempt == (svc->max_attempts - 1) 
+		&& execute_service_checks == TRUE
+		&& enable_predictive_service_dependency_checks == TRUE) {
+
+		servicedependency *temp_dependency = NULL;
+		service *master_service = NULL;
+		objectlist *list;
+
+		log_debug_info(DEBUGL_CHECKS, 1, "Propagating predictive dependency checks to services this one depends on...\n");
+
+		/* check services that THIS ONE depends on for notification AND execution */
+		/* we do this because we might be sending out a notification soon and we want the dependency logic to be accurate */
+		for(list = svc->exec_deps; list; list = list->next) {
+			temp_dependency = (servicedependency *)list->object_ptr;
+			if (temp_dependency->dependent_service_ptr == svc && temp_dependency->master_service_ptr != NULL) {
+
+				master_service = (service *)temp_dependency->master_service_ptr;
+
+				log_debug_info(DEBUGL_CHECKS, 2, "Predictive check of service '%s' on host '%s' queued.\n", master_service->description, master_service->host_name);
+				schedule_service_check(master_service, current_time, CHECK_OPTION_DEPENDENCY_CHECK);
+			}
+		}
+
+		for(list = svc->notify_deps; list; list = list->next) {
+			temp_dependency = (servicedependency *)list->object_ptr;
+			if (temp_dependency->dependent_service_ptr == svc && temp_dependency->master_service_ptr != NULL) {
+
+				master_service = (service *)temp_dependency->master_service_ptr;
+
+				log_debug_info(DEBUGL_CHECKS, 2, "Predictive check of service '%s' on host '%s' queued.\n", master_service->description, master_service->host_name);
+				schedule_service_check(master_service, current_time, CHECK_OPTION_DEPENDENCY_CHECK);
+			}
+		}
+	}
+}
+
 /******************************************************************************
  ******* One stop shop for determining if check_result data is valid
  *****************************************************************************/
@@ -1355,6 +1393,8 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 			svc->current_attempt = 1;
 
 			handle_event = TRUE;
+
+			service_propagate_dependency_checks(svc, current_time);
 		}
 	}
 

@@ -7,6 +7,7 @@ Nagios Core 4 Change Log
 FIXES
 * Clean up most compiler warnings on GCC and clang (#901)
 * Fix incorrect HTML entity escaping in CGIs (#907)
+* Fix issue where predictive dependency checks were not being scheduled for services (#908)
 
 4.4.11 - 2023-04-14
 -------------------

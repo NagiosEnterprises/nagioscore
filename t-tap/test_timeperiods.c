@@ -63,6 +63,13 @@ int neb_add_module(char *filename, char *args, int should_be_loaded) { return 0;
 void broker_system_command(int type, int flags, int attr, struct timeval start_time, struct timeval end_time, double exectime, int timeout, int early_timeout, int retcode, char *cmd, char *output, struct timeval *timestamp) {}
 
 timed_event *schedule_new_event(int event_type, int high_priority, time_t run_time, int recurring, unsigned long event_interval, void *timing_func, int compensate_for_time_change, void *event_data, void *event_args, int event_options) { return NULL; }
+
+#ifdef HAVE_SSL
+int my_ssl_connect(const char *host_name, int port, int *sd, SSL **ssl, SSL_CTX **ctx, int timeout) { return 0; }
+int my_ssl_sendall(int sd, SSL *ssl, const char *buf, int *len, int timeout) { return 0; }
+int my_ssl_recvall(int s, SSL *ssl, char *buf, int *len, int timeout) { return 0; }
+#endif
+
 int my_tcp_connect(char *host_name, int port, int *sd, int timeout) { return 0; }
 int my_recvall(int s, char *buf, int *len, int timeout) { return 0; }
 int neb_free_module_list(void) { return 0; }

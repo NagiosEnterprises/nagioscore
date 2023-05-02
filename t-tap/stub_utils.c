@@ -1,3 +1,10 @@
+
+#if defined(HAVE_SSL) && HAVE_SSL
+int my_ssl_connect(const char *host_name, int port, int *sd, SSL **ssl, SSL_CTX **ctx, int timeout) { return 0; }
+int my_ssl_sendall(int sd, SSL *ssl, const char *buf, int *len, int timeout) { return 0; }
+int my_ssl_recvall(int s, SSL *ssl, char *buf, int *len, int timeout) { return 0; }
+#endif
+
 void get_next_valid_time(time_t pref_time, time_t *valid_time, timeperiod *tperiod) 
 { }
 

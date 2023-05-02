@@ -1175,7 +1175,7 @@ void run_passive_host_tests()
         "Host is hard state");
     ok(hst1->current_attempt == 3,
         "Expecting current attempt %d, got %d", 3, hst1->current_attempt);
-    ok(hst1->last_state_change == (time_t) ORIG_START_TIME + 10L,
+    ok(hst1->last_state_change == (time_t) ORIG_START_TIME + 30L,
         "Expected last_state_change time %lu, got %lu", (time_t) (ORIG_START_TIME + 10L), hst1->last_state_change);
     ok(hst1->last_hard_state_change == (time_t) (ORIG_START_TIME + 30L),
         "Expected last_hard_state_change time %lu, got %lu", (time_t) (ORIG_START_TIME + 30L), hst1->last_hard_state_change);

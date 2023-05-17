@@ -149,9 +149,10 @@ function read_main_config_file($thefile=""){
 			// read all lines in the config file
 			while( ($s=fgets($fh)) !== false){
 				// skip comments
-				if($s[0]=='#')
-					continue;
-					
+                                if($s){
+                                   if($s[0]=='#')
+				      continue;
+				}
 				// skip blank lines
 				// TODO - is this necessary?
 				

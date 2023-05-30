@@ -15,7 +15,7 @@ fi
 CURRENTVERSION=4.4.12
 
 # Last date
-LASTDATE=2023-05-29
+LASTDATE=2023-05-30
 
 if [ "x$1" = "x" ]
 then

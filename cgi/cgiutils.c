@@ -360,7 +360,7 @@ int read_cgi_config_file(const char *filename, read_config_callback callback) {
 			build_subdir_path(url_docs_path, sizeof(url_docs_path), url_html_path, "docs/");
 			build_subdir_path(url_context_help_path, sizeof(url_context_help_path), url_html_path, "contexthelp/");
 			build_subdir_path(url_images_path, sizeof(url_images_path), url_html_path, "images/");
-			build_subdir_path(url_logo_images_path, sizeof(url_logo_images_path), url_html_path, "logos/");
+			build_subdir_path(url_logo_images_path, sizeof(url_logo_images_path), url_images_path, "logos/");
 			build_subdir_path(url_stylesheets_path, sizeof(url_stylesheets_path), url_html_path, "stylesheets/");
 			build_subdir_path(url_media_path, sizeof(url_media_path), url_html_path, "media/");
 			build_subdir_path(url_js_path, sizeof(url_js_path), url_html_path, "js/");

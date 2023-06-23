@@ -600,9 +600,9 @@ timerange *add_timerange_to_daterange(daterange *drange, unsigned long start_tim
 
 
 /* add a new host definition */
-host *add_host(char *name, char *display_name, char *alias, char *address, char *check_period, int initial_state, double check_interval, double retry_interval, int max_attempts, int notification_options, double notification_interval, double first_notification_delay, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_options, int stalking_options, int process_perfdata, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, char *vrml_image, char *statusmap_image, int x_2d, int y_2d, int have_2d_coords, double x_3d, double y_3d, double z_3d, int have_3d_coords, int should_be_drawn, int retain_status_information, int retain_nonstatus_information, int obsess, unsigned int hourly_value) {
+host *add_host(char *name, char *display_name, char *alias, char *address, char *check_period, int initial_state, double check_interval, double retry_interval, int max_attempts, int notification_options, double notification_interval, double first_notification_delay, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, char *event_handler_period, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_options, int stalking_options, int process_perfdata, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, char *vrml_image, char *statusmap_image, int x_2d, int y_2d, int have_2d_coords, double x_3d, double y_3d, double z_3d, int have_3d_coords, int should_be_drawn, int retain_status_information, int retain_nonstatus_information, int obsess, unsigned int hourly_value) {
 	host *new_host = NULL;
-	timeperiod *check_tp = NULL, *notify_tp = NULL;
+	timeperiod *check_tp = NULL, *notify_tp = NULL, *event_handler_tp = NULL;
 	int result = OK;
 
 	/* make sure we have the data we need */
@@ -619,6 +619,11 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 	if(notification_period && !(notify_tp = find_timeperiod(notification_period))) {
 		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to locate notification_period '%s' for host '%s'!\n",
 			  notification_period, name);
+		return NULL;
+	}
+	if(event_handler_period && !(event_handler_tp = find_timeperiod(event_handler_period))) {
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to locate notification_period '%s' for host '%s'!\n",
+			  event_handler_period, name);
 		return NULL;
 	}
 	/* check values */
@@ -651,9 +656,11 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 	new_host->alias = alias ? alias : new_host->name;
 	new_host->address = address ? address : new_host->name;
 	new_host->check_period = check_tp ? (char *)strdup(check_tp->name) : NULL;
+	new_host->check_period_ptr = check_tp;
 	new_host->notification_period = notify_tp ? (char *)strdup(notify_tp->name) : NULL;
 	new_host->notification_period_ptr = notify_tp;
-	new_host->check_period_ptr = check_tp;
+	new_host->event_handler_period = event_handler_tp ? (char *)strdup(event_handler_tp->name) : NULL;
+	new_host->event_handler_period_ptr = event_handler_tp;
 	new_host->check_command = check_command;
 	new_host->event_handler = event_handler;
 	new_host->notes = notes;
@@ -1425,9 +1432,9 @@ contactsmember *add_contact_to_contactgroup(contactgroup *grp, char *contact_nam
 
 
 /* add a new service to the list in memory */
-service *add_service(char *host_name, char *description, char *display_name, char *check_period, int initial_state, int max_attempts, int parallelize, int accept_passive_checks, double check_interval, double retry_interval, double notification_interval, double first_notification_delay, char *notification_period, int notification_options, int notifications_enabled, int is_volatile, char *event_handler, int event_handler_enabled, char *check_command, int checks_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_options, int stalking_options, int process_perfdata, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, int retain_status_information, int retain_nonstatus_information, int obsess, unsigned int hourly_value) {
+service *add_service(char *host_name, char *description, char *display_name, char *check_period, int initial_state, int max_attempts, int parallelize, int accept_passive_checks, double check_interval, double retry_interval, double notification_interval, double first_notification_delay, char *notification_period, int notification_options, int notifications_enabled, int is_volatile, char *event_handler, int event_handler_enabled, char *event_handler_period, char *check_command, int checks_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_options, int stalking_options, int process_perfdata, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, int retain_status_information, int retain_nonstatus_information, int obsess, unsigned int hourly_value) {
 	host *h;
-	timeperiod *cp = NULL, *np = NULL;
+	timeperiod *cp = NULL, *np = NULL, *ep = NULL;
 	service *new_service = NULL;
 	int result = OK;
 
@@ -1451,6 +1458,11 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 			  check_period, description, host_name);
 		return NULL;
 		}
+	if(event_handler_period && !(ep = find_timeperiod(event_handler_period))) {
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: event_handler_period '%s' for service '%s' on host '%s' not found!\n",
+			  event_handler_period, description, host_name);
+		return NULL;
+	}
 
 	/* check values */
 	if(max_attempts <= 0 || check_interval < 0 || retry_interval <= 0 || notification_interval < 0) {
@@ -1471,9 +1483,11 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 	/* duplicate vars, but assign what we can */
 	new_service->notification_period_ptr = np;
 	new_service->check_period_ptr = cp;
+	new_service->event_handler_period_ptr = ep;
 	new_service->host_ptr = h;
 	new_service->check_period = cp ? (char *)strdup(cp->name) : NULL;
 	new_service->notification_period = np ? (char *)strdup(np->name) : NULL;
+	new_service->event_handler_period = ep ? (char *)strdup(ep->name) : NULL;
 	new_service->host_name = h->name;
 	if((new_service->description = (char *)strdup(description)) == NULL)
 		result = ERROR;
@@ -2683,6 +2697,7 @@ int free_object_data(void) {
 		my_free(this_host->name);
 		my_free(this_host->check_period);
 		my_free(this_host->notification_period);
+		my_free(this_host->event_handler_period);
 #ifdef NSCORE
 		my_free(this_host->plugin_output);
 		my_free(this_host->long_plugin_output);
@@ -2867,6 +2882,7 @@ int free_object_data(void) {
 		my_free(this_service->check_command);		
 		my_free(this_service->check_period);
 		my_free(this_service->notification_period);
+		my_free(this_service->event_handler_period);
 #ifdef NSCORE
 		my_free(this_service->plugin_output);
 		my_free(this_service->long_plugin_output);
@@ -3254,6 +3270,8 @@ void fcache_host(FILE *fp, host *temp_host)
 		fprintf(fp, "\tcheck_command\t%s \n", temp_host->check_command);
 	if(temp_host->event_handler)
 		fprintf(fp, "\tevent_handler\t%s \n", temp_host->event_handler);
+	if(temp_host->event_handler_period)
+		fprintf(fp, "\tevent_handler_period\t%s \n", temp_host->event_handler_period);
 	fcache_contactlist(fp, "\tcontacts\t", temp_host->contacts);
 	fcache_contactgrouplist(fp, "\tcontact_groups\t", temp_host->contact_groups);
 	if(temp_host->notification_period)
@@ -3336,6 +3354,8 @@ void fcache_service(FILE *fp, service *temp_service)
 		fprintf(fp, "\tcheck_command\t%s \n", temp_service->check_command);
 	if(temp_service->event_handler)
 		fprintf(fp, "\tevent_handler\t%s \n", temp_service->event_handler);
+	if(temp_service->event_handler_period)
+		fprintf(fp, "\tevent_handler_period\t%s \n", temp_service->event_handler_period);
 	fcache_contactlist(fp, "\tcontacts\t", temp_service->contacts);
 	fcache_contactgrouplist(fp, "\tcontact_groups\t", temp_service->contact_groups);
 	if(temp_service->notification_period)

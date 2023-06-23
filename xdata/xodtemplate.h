@@ -369,6 +369,7 @@ typedef struct xodtemplate_service_struct {
     int        obsess;
     char       *event_handler;
     int        event_handler_enabled;
+    char       *event_handler_period;
     int        check_freshness;
     int        freshness_threshold;
     double     low_flap_threshold;

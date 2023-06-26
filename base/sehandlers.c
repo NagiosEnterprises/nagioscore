@@ -452,21 +452,16 @@ int handle_host_event(host *hst) {
 	broker_statechange_data(NEBTYPE_STATECHANGE_END, NEBFLAG_NONE, NEBATTR_NONE, HOST_STATECHANGE, (void *)hst, hst->current_state, hst->state_type, hst->current_attempt, hst->max_attempts, NULL);
 #endif
 
-	/* bail out if we shouldn't be running event handlers */
-	if(enable_event_handlers == FALSE)
-		return OK;
-	if(hst->event_handler_enabled == FALSE)
-		return OK;
-
 	/* update host macros */
 	memset(&mac, 0, sizeof(mac));
 	grab_host_macros_r(&mac, hst);
 
 	/* run the global host event handler */
-	run_global_host_event_handler(&mac, hst);
+	if (check_host_event_handler_viability(TRUE, hst))
+		run_global_host_event_handler(&mac, hst);
 
 	/* run the event handler command if there is one */
-	if(hst->event_handler != NULL)
+	if(check_host_event_handler_viability(FALSE, hst))
 		run_host_event_handler(&mac, hst);
 
 	return OK;
@@ -495,10 +490,6 @@ int run_global_host_event_handler(nagios_macros *mac, host *hst) {
 
 	if(hst == NULL)
 		return ERROR;
-
-	/* bail out if we shouldn't be running event handlers */
-	if(enable_event_handlers == FALSE)
-		return OK;
 
 	/* no global host event handler command is defined */
 	if(global_host_event_handler == NULL)
@@ -573,6 +564,7 @@ int run_global_host_event_handler(nagios_macros *mac, host *hst) {
 
 	return OK;
 	}
+
 
 
 /* runs a host event handler command */
@@ -671,9 +663,37 @@ int run_host_event_handler(nagios_macros *mac, host *hst) {
 	return OK;
 	}
 
-int check_host_event_handler_validity(int global, host *hst) {
-	if (hst == NULL) {
+
+
+/* checks if host event handler can be run */
+int check_host_event_handler_viability(int global, host *hst) {
+	time_t current_time = 0L;
+
+	log_debug_info(DEBUGL_FUNCTIONS, 0, "check_host_event_handler_viability()\n");
+
+	time(&current_time);
+
+	if(hst == NULL) {
+		log_debug_info(DEBUGL_EVENTHANDLERS, 2, "Host is null.\n");
 		return ERROR;
 	}
+	if(enable_event_handlers == FALSE) {
+		log_debug_info(DEBUGL_EVENTHANDLERS, 2, "Event handlers are not enabled.\n");
+		return ERROR;
+	}
+	if (!global) {
+		if(hst->event_handler == NULL) {
+			log_debug_info(DEBUGL_EVENTHANDLERS, 2, "The host event handler is null.\n");
+			return ERROR;
+		}
+		if(hst->event_handler_enabled == FALSE) {
+			log_debug_info(DEBUGL_EVENTHANDLERS, 2, "Event handlers are not enabled for host '%s'.\n", hst->name);
+			return ERROR;
+		}
+		if (check_time_against_period((unsigned long)current_time, hst->event_handler_period_ptr) == ERROR) {
+			log_debug_info(DEBUGL_EVENTHANDLERS, 2, "This is not a valid time for this host event handler to run.\n");
+			return ERROR;
+		}
+	}
 	return OK;
-}
+	}

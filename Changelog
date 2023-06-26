@@ -2,6 +2,11 @@
 Nagios Core 4 Change Log
 ########################
 
+4.X.XX - 2023-XX-XX
+-------------------
+ENHANCEMENTS
+* Add event_handler_period configuration option to hosts and services (#913)
+
 4.4.13 - 2023-06-01
 -------------------
 FIXES

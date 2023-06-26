@@ -8946,7 +8946,6 @@ int xodtemplate_free_memory(void) {
 			my_free(this_host->address);
 			my_free(this_host->check_command);
 			my_free(this_host->event_handler);
-			/* I don't know if this goes here */
 			my_free(this_host->event_handler_period);
 			my_free(this_host->notes);
 			my_free(this_host->notes_url);

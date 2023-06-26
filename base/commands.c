@@ -1305,6 +1305,8 @@ int process_external_command2(int cmd, time_t entry_time, char *args) {
 		case CMD_CHANGE_SVC_NOTIFICATION_TIMEPERIOD:
 		case CMD_CHANGE_CONTACT_HOST_NOTIFICATION_TIMEPERIOD:
 		case CMD_CHANGE_CONTACT_SVC_NOTIFICATION_TIMEPERIOD:
+		case CMD_CHANGE_HOST_EVENT_HANDLER_TIMEPERIOD:
+		case CMD_CHANGE_SVC_EVENT_HANDLER_TIMEPERIOD:
 			ret = cmd_change_object_char_var(cmd, args);
 			break;
 

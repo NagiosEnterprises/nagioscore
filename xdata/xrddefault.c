@@ -195,6 +195,7 @@ int xrddefault_save_state_information(void) {
 		fprintf(fp, "check_period=%s\n", (temp_host->check_period == NULL) ? "" : temp_host->check_period);
 		fprintf(fp, "notification_period=%s\n", (temp_host->notification_period == NULL) ? "" : temp_host->notification_period);
 		fprintf(fp, "event_handler=%s\n", (temp_host->event_handler == NULL) ? "" : temp_host->event_handler);
+		fprintf(fp, "event_handler_period=%s\n", (temp_host->event_handler_period == NULL) ? "" : temp_host->event_handler_period);
 		fprintf(fp, "has_been_checked=%d\n", temp_host->has_been_checked);
 		fprintf(fp, "check_execution_time=%.3f\n", temp_host->execution_time);
 		fprintf(fp, "check_latency=%.3f\n", temp_host->latency);
@@ -266,6 +267,7 @@ int xrddefault_save_state_information(void) {
 		fprintf(fp, "check_period=%s\n", (temp_service->check_period == NULL) ? "" : temp_service->check_period);
 		fprintf(fp, "notification_period=%s\n", (temp_service->notification_period == NULL) ? "" : temp_service->notification_period);
 		fprintf(fp, "event_handler=%s\n", (temp_service->event_handler == NULL) ? "" : temp_service->event_handler);
+		fprintf(fp, "event_handler_period=%s\n", (temp_service->event_handler_period == NULL) ? "" : temp_service->event_handler_period);
 		fprintf(fp, "has_been_checked=%d\n", temp_service->has_been_checked);
 		fprintf(fp, "check_execution_time=%.3f\n", temp_service->execution_time);
 		fprintf(fp, "check_latency=%.3f\n", temp_service->latency);
@@ -1195,6 +1197,21 @@ int xrddefault_read_state_information(void) {
 										temp_host->modified_attributes -= MODATTR_EVENT_HANDLER_COMMAND;
 									}
 								}
+							else if(!strcmp(var, "event_handler_period")) {
+								if(temp_host->modified_attributes & MODATTR_EVENT_HANDLER_TIMEPERIOD) {
+
+									/* make sure the timeperiod still exists... */
+									temp_timeperiod = find_timeperiod(val);
+									temp_ptr = (char *)strdup(val);
+
+									if(temp_timeperiod != NULL && temp_ptr != NULL) {
+										my_free(temp_host->event_handler_period);
+										temp_host->event_handler_period = temp_ptr;
+										}
+									else
+										temp_host->modified_attributes -= MODATTR_EVENT_HANDLER_TIMEPERIOD;
+									}
+								}
 							else if(!strcmp(var, "check_interval")) {
 								if(temp_host->modified_attributes & MODATTR_NORMAL_CHECK_INTERVAL && strtod(val, NULL) >= 0)
 									temp_host->check_interval = strtod(val, NULL);
@@ -1466,6 +1483,21 @@ int xrddefault_read_state_information(void) {
 										}
 									else
 										temp_service->modified_attributes -= MODATTR_EVENT_HANDLER_COMMAND;
+									}
+								}
+							else if(!strcmp(var, "event_handler_period")) {
+								if(temp_service->modified_attributes & MODATTR_EVENT_HANDLER_TIMEPERIOD) {
+
+									/* make sure the timeperiod still exists... */
+									temp_timeperiod = find_timeperiod(val);
+									temp_ptr = (char *)strdup(val);
+
+									if(temp_timeperiod != NULL && temp_ptr != NULL) {
+										my_free(temp_service->event_handler_period);
+										temp_service->event_handler_period = temp_ptr;
+										}
+									else
+										temp_service->modified_attributes -= MODATTR_EVENT_HANDLER_TIMEPERIOD;
 									}
 								}
 							else if(!strcmp(var, "check_interval")) {

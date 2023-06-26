@@ -226,6 +226,7 @@ typedef struct xodtemplate_host_struct {
     int       passive_checks_enabled;
     int       obsess;
     char      *event_handler;
+    char      *event_handler_period;
     int       event_handler_enabled;
     int       check_freshness;
     int       freshness_threshold;
@@ -268,6 +269,7 @@ typedef struct xodtemplate_host_struct {
     unsigned have_check_command : 1;
     unsigned have_check_period : 1;
     unsigned have_event_handler : 1;
+    unsigned have_event_handler_period : 1;
     unsigned have_notification_period : 1;
     unsigned have_notes : 1;
     unsigned have_notes_url : 1;
@@ -408,6 +410,7 @@ typedef struct xodtemplate_service_struct {
     unsigned have_important_check_command : 1;
     unsigned have_check_period : 1;
     unsigned have_event_handler : 1;
+    unsigned have_event_handler_period : 1;
     unsigned have_notification_period : 1;
     unsigned have_notes : 1;
     unsigned have_notes_url : 1;

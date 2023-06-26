@@ -382,6 +382,10 @@ int main(int argc, char **argv) {
 			if(temp_ptr != NULL && strcmp(temp_ptr, ""))
 				printf("\tevent_handler\t\t%s\n", temp_ptr);
 
+			temp_ptr = my_strsep(&temp_ptr2, ";");
+			if(temp_ptr != NULL && strcmp(temp_ptr, ""))
+				printf("\tevent_handler_period\t%s\n", temp_ptr);
+
 			printf("\t}\n\n\n");
 			}
 
@@ -507,6 +511,10 @@ int main(int argc, char **argv) {
 			temp_ptr = my_strsep(&temp_ptr2, ";");
 			if(temp_ptr != NULL && strcmp(temp_ptr, ""))
 				printf("\tevent_handler\t\t%s\n", temp_ptr);
+
+			temp_ptr = my_strsep(&temp_ptr2, ";");
+			if(temp_ptr != NULL && strcmp(temp_ptr, ""))
+				printf("\tevent_handler_period\t%s\n", temp_ptr);
 
 			temp_ptr = my_strsep(&temp_ptr2, ";\r\n");
 			if(temp_ptr != NULL && strcmp(temp_ptr, ""))

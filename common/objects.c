@@ -622,7 +622,7 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 		return NULL;
 	}
 	if(event_handler_period && !(event_handler_tp = find_timeperiod(event_handler_period))) {
-		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to locate notification_period '%s' for host '%s'!\n",
+		logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Failed to locate event_handler_period '%s' for host '%s'!\n",
 			  event_handler_period, name);
 		return NULL;
 	}

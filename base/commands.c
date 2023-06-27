@@ -608,7 +608,7 @@ int process_external_command1(char *cmd) {
 	else if(!strcasecmp(command_id, "CHANGE_HOST_EVENT_HANDLER"))
 		command_type = CMD_CHANGE_HOST_EVENT_HANDLER;
 
-	else if(!strcasecmp(command_id, "CMD_CHANGE_HOST_EVENT_HANDLER_TIMEPERIOD"))
+	else if(!strcasecmp(command_id, "CHANGE_HOST_EVENT_HANDLER_TIMEPERIOD"))
 		command_type = CMD_CHANGE_HOST_EVENT_HANDLER_TIMEPERIOD;
 
 	else if(!strcasecmp(command_id, "CHANGE_HOST_CHECK_COMMAND"))
@@ -755,7 +755,7 @@ int process_external_command1(char *cmd) {
 	else if(!strcasecmp(command_id, "CHANGE_SVC_EVENT_HANDLER"))
 		command_type = CMD_CHANGE_SVC_EVENT_HANDLER;
 
-	else if(!strcasecmp(command_id, "CMD_CHANGE_SVC_EVENT_HANDLER_TIMEPERIOD"))
+	else if(!strcasecmp(command_id, "CHANGE_SVC_EVENT_HANDLER_TIMEPERIOD"))
 		command_type = CMD_CHANGE_SVC_EVENT_HANDLER_TIMEPERIOD;
 
 	else if(!strcasecmp(command_id, "CHANGE_SVC_CHECK_COMMAND"))

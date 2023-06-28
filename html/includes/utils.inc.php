@@ -149,9 +149,10 @@ function read_main_config_file($thefile=""){
 			// read all lines in the config file
 			while( ($s=fgets($fh)) !== false){
 				// skip comments
-				if($s[0]=='#')
-					continue;
-					
+                                if($s){
+                                   if($s[0]=='#')
+				      continue;
+				}
 				// skip blank lines
 				// TODO - is this necessary?
 				
@@ -210,9 +211,11 @@ function read_cgi_config_file($thefile=""){
 			// read all lines in the config file
 			while( ($s=fgets($fh)) !== false){
 				// skip comments
-				if($s[0]=='#')
+				if($s){
+				   if($s[0]=='#')
 					continue;
-					
+			        }
+				
 				// skip blank lines
 				// TODO - is this necessary?
 				
@@ -280,9 +283,11 @@ function read_status_file($thefile="",$maxlines=0){
 			$s=fgets($fh);
 			
 			// skip comments
-			if($s[0]=='#')
+                        if($s){
+			   if($s[0]=='#')
 				continue;
-				
+			}
+			
 			// trim lines
 			$s=ltrim(rtrim($s));
 				
@@ -403,9 +408,11 @@ function read_retention_file($thefile="",$maxlines=0){
 			$s=fgets($fh);
 			
 			// skip comments
-			if($s[0]=='#')
+			if($s){
+			   if($s[0]=='#')
 				continue;
-				
+			}
+			
 			// trim lines
 			$s=ltrim(rtrim($s));
 				

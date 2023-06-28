@@ -3931,7 +3931,7 @@ EOF
 	    eval concat_cmds=\"\$concat_cmds~$export_symbols_cmds\"
           fi
 
-	  # Set up a command to remove the reloadale object files
+	  # Set up a command to remove the reloadable object files
 	  # after they are used.
 	  i=0
 	  while test "$i" -lt "$k"

@@ -4279,7 +4279,7 @@ void schedule_and_propagate_downtime(host *temp_host, time_t entry_time, char *a
 void acknowledge_host_problem(host *hst, char *ack_author, char *ack_data, int type, int notify, int persistent) {
 	time_t current_time = 0L;
 
-	/* cannot acknowledge a non-existent problem */
+	/* cannot acknowledge a nonexistent problem */
 	if(hst->current_state == HOST_UP)
 		return;
 
@@ -4313,7 +4313,7 @@ void acknowledge_host_problem(host *hst, char *ack_author, char *ack_data, int t
 void acknowledge_service_problem(service *svc, char *ack_author, char *ack_data, int type, int notify, int persistent) {
 	time_t current_time = 0L;
 
-	/* cannot acknowledge a non-existent problem */
+	/* cannot acknowledge a nonexistent problem */
 	if(svc->current_state == STATE_OK)
 		return;
 
@@ -4352,7 +4352,7 @@ void remove_host_acknowledgement(host *hst) {
 	/* update the status log with the host info */
 	update_host_status(hst, FALSE);
 
-	/* remove any non-persistant comments associated with the ack */
+	/* remove any non-persistent comments associated with the ack */
 	delete_host_acknowledgement_comments(hst);
 
 	return;
@@ -4368,7 +4368,7 @@ void remove_service_acknowledgement(service *svc) {
 	/* update the status log with the service info */
 	update_service_status(svc, FALSE);
 
-	/* remove any non-persistant comments associated with the ack */
+	/* remove any non-persistent comments associated with the ack */
 	delete_service_acknowledgement_comments(svc);
 
 	return;

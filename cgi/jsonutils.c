@@ -66,7 +66,7 @@ const string_value_mapping svm_format_options[] = {
 		"or '%%Y-%%m-%%d %%H:%%M:%%S' if no format specified" },
 	{ "date", JSON_FORMAT_DATE, 
 		"Format dates according to the supplied strftime format or "
-		"default Javascript format (number of ms since the beginning of the "
+		"default JavaScript format (number of ms since the beginning of the "
 		"Unix epoch) if no format specified" },
 	{ "time", JSON_FORMAT_TIME, 
 		"Format times according the supplied strftime format or "
@@ -602,7 +602,7 @@ void json_array_append_duration(json_object *obj, unsigned long value) {
 	list of nodes. Nodes may be either a key or a zero-based array index.
 
 	For example to return the query_time key in the result object, the
-	path would be "result.query_time". To find the 2nd host host in
+	path would be "result.query_time". To find the 2nd host in
 	the list of hosts for a hostlist query, the path would be
 	"data.hostlist.1"
 */

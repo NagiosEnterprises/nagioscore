@@ -404,7 +404,7 @@ int get_service_check_return_code(service *svc, check_result *cr)
 		rc = STATE_CRITICAL;
 	}
 
-	/* 127 is a return code for non-existent */
+	/* 127 is a return code for nonexistent */
 	else if (cr->return_code == 127) {
 		
 		my_free(svc->plugin_output);
@@ -495,7 +495,7 @@ int get_host_check_return_code(host *hst, check_result *cr)
 		rc = HOST_UNREACHABLE;
 	}
 
-	/* 127 is a return code for non-existent */
+	/* 127 is a return code for nonexistent */
 	else if (cr->return_code == 127) {
 
 		my_free(hst->plugin_output);
@@ -922,7 +922,7 @@ static inline void service_state_or_hard_state_type_change(service * svc, int st
 		if ((svc->acknowledgement_type == ACKNOWLEDGEMENT_NORMAL && (state_change == TRUE || hard_state_change == FALSE))
 			|| (svc->acknowledgement_type == ACKNOWLEDGEMENT_STICKY && svc->current_state == STATE_OK)) {
 
-			/* remove any non-persistant comments associated with the ack */
+			/* remove any non-persistent comments associated with the ack */
 			svc->problem_has_been_acknowledged = FALSE;
 			svc->acknowledgement_type = ACKNOWLEDGEMENT_NONE;
 			delete_service_acknowledgement_comments(svc);
@@ -1008,7 +1008,7 @@ static inline void host_state_or_hard_state_type_change(host * hst, int state_ch
 		if ((hst->acknowledgement_type == ACKNOWLEDGEMENT_NORMAL && (state_change == TRUE || hard_state_change == FALSE))
 			|| (hst->acknowledgement_type == ACKNOWLEDGEMENT_STICKY && hst->current_state == STATE_OK)) {
 
-			/* remove any non-persistant comments associated with the ack */
+			/* remove any non-persistent comments associated with the ack */
 			hst->problem_has_been_acknowledged = FALSE;
 			hst->acknowledgement_type = ACKNOWLEDGEMENT_NONE;
 			delete_host_acknowledgement_comments(hst);

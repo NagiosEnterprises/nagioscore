@@ -347,7 +347,7 @@ void *skiplist_get_next(void **node_ptr) {
 
 
 
-/* first first item in list */
+/* find first item in list */
 void *skiplist_find_first(skiplist *list, void *data, void **node_ptr) {
 	skiplistnode *thisnode = NULL;
 	skiplistnode *nextnode = NULL;

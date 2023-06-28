@@ -13,10 +13,10 @@ external_command_buffer_slots
 enable_embedded_perl
 command_check_interval
 
-In order to force a Nagios v2 or v3 nagios.cfg file to run with Nagios v4 simply commment out these nagios.cfg lines.
+In order to force a Nagios v2 or v3 nagios.cfg file to run with Nagios v4 simply comment out these nagios.cfg lines.
 
 The included script UpgradeToVersion4.sh will do this automatically for the file 
 /etc/nagios/nagios.cfg (the standard location for the nagios.cfg file)
 
-This is a work-around and you should consider implementing the new nagios.cfg file.
+This is a workaround and you should consider implementing the new nagios.cfg file.
 

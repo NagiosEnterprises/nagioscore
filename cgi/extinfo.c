@@ -179,7 +179,7 @@ int main(void) {
 				grab_service_macros_r(mac, temp_service);
 				}
 
-			/* write some Javascript helper functions */
+			/* write some JavaScript helper functions */
 			if(temp_host != NULL) {
 				printf("<SCRIPT LANGUAGE=\"JavaScript\">\n<!--\n");
 				printf("function nagios_get_host_name()\n{\n");

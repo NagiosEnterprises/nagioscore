@@ -43,7 +43,7 @@ extern void fanout_destroy(fanout_table *t, void (*destructor)(void *));
  * Return a pointer from the fanout table t
  *
  * @param[in] t table to fetch from
- * @param[in] key key to fetch
+ * @param[in] key Key to fetch
  * @return NULL on errors; Pointer to data on success
  */
 extern void *fanout_get(fanout_table *t, unsigned long key);

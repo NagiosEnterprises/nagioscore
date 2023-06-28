@@ -163,7 +163,7 @@ ENHANCEMENTS
 * Added system limit detection (RLIMIT_NPROC) to check for anticipated fork() failures (#434) (Bryan Heden)
 * Added stalking on notifications (`N` or `notifications` option when specifying `stalking_options`) (#342) (Bryan Heden)
 * Added automatic `systemctl daemon-reload` and `initctl reload-configuration` where applicable on `make install-init` (Bryan Heden)
-* Added case-insentive command submission. (#373) (Bryan Heden)
+* Added case-insensitive command submission. (#373) (Bryan Heden)
 * Enabled `check_external_commands` by default (Bryan Heden)
 
 FIXES
@@ -175,7 +175,7 @@ FIXES
 * Fixed additive inheritance not testing for duplicates in hosts/services/(+escalations) (#392) (Bryan Heden)
 * Fixed very very (around 600k chars or greater) large plugin output crashing Nagios (#432) (Bryan Heden)
 * Fixed first_notification_delay not beeing calculated from last_hard_state_change (#425) (ccztux)
-* Fixed duplicate downtime ID occuring from downtimes in retention file (#506) (Franz [feisenko])
+* Fixed duplicate downtime ID occurring from downtimes in retention file (#506) (Franz [feisenko])
 * Fixed segfault when navbarsearch was used in status.cgi for something other than a host (#489) (Bryan Heden)
 * Fixed some miscellaneous ./configure issues on Solaris (Bryan Heden, Troy Lea)
 * Fixed "Locate host on map" link (#496) (Troy Lea)
@@ -200,7 +200,7 @@ FIXES
 * New Macro(s) to generate URL for host / service object (John Frickson)
 * Fix minor map issues (Troy Lea)
 * Fix lockfile issues (Bryan Heden)
-* Switch order of daemon_init and drop_priveleges (CVE-2017-12847, Bryan Heden)
+* Switch order of daemon_init and drop_privileges (CVE-2017-12847, Bryan Heden)
 * Add an OpenRC init script (Michael Orlitzky)
 
 
@@ -451,7 +451,7 @@ FIXES
 * Added exclusions for ctags generation (Eric Stanley)
 * Update map-popup.html (Scott Wilkerson)
 * Initial commit of new graphical CGIs (Eric Stanley)
-* Fixed Github bug #18 - archivejson.cgi returns wrong host for state change query (Eric Stanley)
+* Fixed GitHub bug #18 - archivejson.cgi returns wrong host for state change query (Eric Stanley)
 * Status JSON: Added next_check to service details (Eric Stanley)
 * Fixed escaping of keys for scalar values in JSON CGIs (Eric Stanley)
 * build: Include <sys/loadavg.h> if it exists. (Eric J. Mislivec)

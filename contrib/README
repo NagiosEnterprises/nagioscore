@@ -3,7 +3,7 @@ Nagios Contrib README
 #####################
 
 This directory contains various programs, scripts, etc. that
-have been contribed by various people.  Read the source code
+have been contributed by various people.  Read the source code
 if you want to find who did what.
 
 Here is a description of what you'll find...
@@ -47,7 +47,7 @@ Miscellaneous Goodies:
 
   2. Prepare your rpmbuild environment for CentOS/RHEL.
 
-  sudo yum instatll -y rpmdevtools gcc libtool rpmbuild \
+  sudo yum install -y rpmdevtools gcc libtool rpmbuild \
   policycoreutils-devel selinux-policy-devel \
   perl-generators gdbm-devel pyparsing systemtap perl-ExtUtils-Manifest \
   libdb perl-ExtUtils-MakeMaker  perl-ExtUtils-Install perl-devel  \

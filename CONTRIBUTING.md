@@ -5,7 +5,7 @@ This document serves as our guidelines for contribution.
 
 ## Questions
 
-If you have a question, your best option is to ask on the [Nagios Community Support Forums](https://support.nagios.com/forum/viewforum.php?f=7). If you leave a question in the Issues list on Github, you will likely be redirected to the forums.
+If you have a question, your best option is to ask on the [Nagios Community Support Forums](https://support.nagios.com/forum/viewforum.php?f=7). If you leave a question in the Issues list on GitHub, you will likely be redirected to the forums.
 
 ## Ideas and Feedback
 

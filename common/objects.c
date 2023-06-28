@@ -537,7 +537,7 @@ daterange *add_exception_to_timeperiod(timeperiod *period, int type, int syear, 
 	if(period == NULL)
 		return NULL;
 
-	/* allocate memory for the date range range */
+	/* allocate memory for the date range */
 	if((new_daterange = malloc(sizeof(daterange))) == NULL)
 		return NULL;
 

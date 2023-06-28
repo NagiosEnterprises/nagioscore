@@ -30,7 +30,7 @@
 
 struct nerd_channel {
 	const char *name; /* name of this channel */
-	const char *description; /* user-presentable string to document the purpouse of this channel */
+	const char *description; /* user-presentable string to document the purpose of this channel */
 	unsigned int id; /* channel id (might vary between invocations) */
 	unsigned int required_options; /* event_broker_options required for this channel */
 	unsigned int num_callbacks;

@@ -461,6 +461,7 @@ void display_hosts(void) {
 	printf("<TH CLASS='data'>Notification Options</TH>");
 	printf("<TH CLASS='data'>Notification Period</TH>");
 	printf("<TH CLASS='data'>Event Handler</TH>");
+	printf("<TH CLASS='data'>Event Handler Period</TH>");
 	printf("<TH CLASS='data'>Enable Event Handler</TH>");
 	printf("<TH CLASS='data'>Stalking Options</TH>\n");
 	printf("<TH CLASS='data'>Enable Flap Detection</TH>");
@@ -619,6 +620,13 @@ void display_hosts(void) {
 			else
 				/* printf("<a href='%s?type=commands&expand=%s'>%s</a></TD>\n",CONFIG_CGI,url_encode(strtok(temp_host->event_handler,"!")),html_encode(temp_host->event_handler,FALSE)); */
 				printf("<a href='%s?type=command&expand=%s'>%s</a></TD>\n", CONFIG_CGI, url_encode(temp_host->event_handler), html_encode(temp_host->event_handler, FALSE));
+			printf("</TD>\n");
+
+			printf("<TD CLASS='%s'>", bg_class);
+			if(temp_host->event_handler_period == NULL)
+				printf("&nbsp");
+			else
+				printf("<a href='%s?type=timeperiods&expand=%s'>%s</a>", CONFIG_CGI, url_encode(temp_host->event_handler_period), html_encode(temp_host->event_handler_period, FALSE));
 			printf("</TD>\n");
 
 			printf("<TD CLASS='%s'>", bg_class);
@@ -1202,6 +1210,7 @@ void display_services(void) {
 	printf("<TH CLASS='data'>Notification Options</TH>\n");
 	printf("<TH CLASS='data'>Notification Period</TH>\n");
 	printf("<TH CLASS='data'>Event Handler</TH>");
+	printf("<TH CLASS='data'>Event Handler Period</TH>");
 	printf("<TH CLASS='data'>Enable Event Handler</TH>");
 	printf("<TH CLASS='data'>Stalking Options</TH>\n");
 	printf("<TH CLASS='data'>Enable Flap Detection</TH>");
@@ -1339,18 +1348,27 @@ void display_services(void) {
 			if(!options)
 				printf("None");
 			printf("</TD>\n");
+
 			printf("<TD CLASS='%s'>", bg_class);
 			if(temp_service->notification_period == NULL)
 				printf("&nbsp;");
 			else
 				printf("<A HREF='%s?type=timeperiods&expand=%s'>%s</A>", CONFIG_CGI, url_encode(temp_service->notification_period), html_encode(temp_service->notification_period, FALSE));
 			printf("</TD>\n");
+
 			printf("<TD CLASS='%s'>", bg_class);
 			if(temp_service->event_handler == NULL)
 				printf("&nbsp;");
 			else
 				/* printf("<A HREF='%s?type=commands&expand=%s'>%s</A>",CONFIG_CGI,url_encode(strtok(temp_service->event_handler,"!")),html_encode(temp_service->event_handler,FALSE)); */
 				printf("<A HREF='%s?type=command&expand=%s'>%s</A>", CONFIG_CGI, url_encode(temp_service->event_handler), html_encode(temp_service->event_handler, FALSE));
+			printf("</TD>\n");
+
+			printf("<TD CLASS='%s'>", bg_class);
+			if(temp_service->event_handler_period == NULL)
+				printf("&nbsp;");
+			else
+				printf("<A HREF='%s?type=timeperiods&expand=%s'>%s</A>", CONFIG_CGI, url_encode(temp_service->event_handler_period), html_encode(temp_service->event_handler_period, FALSE));
 			printf("</TD>\n");
 
 			printf("<TD CLASS='%s'>", bg_class);

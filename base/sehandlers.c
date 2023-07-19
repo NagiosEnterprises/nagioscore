@@ -172,32 +172,28 @@ int handle_service_event(service *svc) {
 	if(svc == NULL)
 		return ERROR;
 
+	/* find the host */
+	if((temp_host = (host *)svc->host_ptr) == NULL)
+		return ERROR;
+
 #ifdef USE_EVENT_BROKER
 	/* send event data to broker */
 	broker_statechange_data(NEBTYPE_STATECHANGE_END, NEBFLAG_NONE, NEBATTR_NONE, SERVICE_STATECHANGE, (void *)svc, svc->current_state, svc->state_type, svc->current_attempt, svc->max_attempts, NULL);
 #endif
-
-	/* bail out if we shouldn't be running event handlers */
-	if(enable_event_handlers == FALSE)
-		return OK;
-	if(svc->event_handler_enabled == FALSE)
-		return OK;
-
-	/* find the host */
-	if((temp_host = (host *)svc->host_ptr) == NULL)
-		return ERROR;
 
 	/* update service macros */
 	memset(&mac, 0, sizeof(mac));
 	grab_host_macros_r(&mac, temp_host);
 	grab_service_macros_r(&mac, svc);
 
-	/* run the global service event handler */
-	run_global_service_event_handler(&mac, svc);
+	/* run the global service event handler is there is one */
+	if(check_service_event_handler_viability(TRUE, svc) != ERROR)
+		run_global_service_event_handler(&mac, svc);
 
 	/* run the event handler command if there is one */
-	if(svc->event_handler != NULL)
+	if(check_service_event_handler_viability(FALSE, svc) != ERROR)
 		run_service_event_handler(&mac, svc);
+
 	clear_volatile_macros_r(&mac);
 
 	return OK;
@@ -227,10 +223,6 @@ int run_global_service_event_handler(nagios_macros *mac, service *svc) {
 
 	if(svc == NULL)
 		return ERROR;
-
-	/* bail out if we shouldn't be running event handlers */
-	if(enable_event_handlers == FALSE)
-		return OK;
 
 	/* a global service event handler command has not been defined */
 	if(global_service_event_handler == NULL)
@@ -343,7 +335,6 @@ int run_service_event_handler(nagios_macros *mac, service *svc) {
 	gettimeofday(&start_time, NULL);
 #endif
 
-
 	/* get the raw command line */
 	get_raw_command_line_r(mac, svc->event_handler_ptr, svc->event_handler, &raw_command, macro_options);
 	if(raw_command == NULL)
@@ -409,6 +400,38 @@ int run_service_event_handler(nagios_macros *mac, service *svc) {
 
 
 
+/* checks if service event handler can be run */
+int check_service_event_handler_viability(int global, service *svc) {
+	time_t current_time = 0L;
+
+	log_debug_info(DEBUGL_FUNCTIONS, 0, "check_service_event_handler_viability()\n");
+
+	time(&current_time);
+
+	if(svc == NULL) {
+		log_debug_info(DEBUGL_EVENTHANDLERS, 2, "Service is null.\n");
+		return ERROR;
+	}
+	if(enable_event_handlers == FALSE) {
+		log_debug_info(DEBUGL_EVENTHANDLERS, 2, "Event handlers are not enabled.\n");
+		return ERROR;
+	}
+	if (!global) {
+		if(svc->event_handler == NULL) {
+			log_debug_info(DEBUGL_EVENTHANDLERS, 2, "The service event handler is null.\n");
+			return ERROR;
+		}
+		if(svc->event_handler_enabled == FALSE) {
+			log_debug_info(DEBUGL_EVENTHANDLERS, 2, "Event handlers are not enabled for service '%s'.\n", svc->description);
+			return ERROR;
+		}
+		if (check_time_against_period((unsigned long)current_time, svc->event_handler_period_ptr) == ERROR) {
+			log_debug_info(DEBUGL_EVENTHANDLERS, 2, "This is not a valid time for this service event handler to run.\n");
+			return ERROR;
+		}
+	}
+	return OK;
+	}
 
 /******************************************************************/
 /****************** HOST EVENT HANDLER FUNCTIONS ******************/
@@ -429,21 +452,16 @@ int handle_host_event(host *hst) {
 	broker_statechange_data(NEBTYPE_STATECHANGE_END, NEBFLAG_NONE, NEBATTR_NONE, HOST_STATECHANGE, (void *)hst, hst->current_state, hst->state_type, hst->current_attempt, hst->max_attempts, NULL);
 #endif
 
-	/* bail out if we shouldn't be running event handlers */
-	if(enable_event_handlers == FALSE)
-		return OK;
-	if(hst->event_handler_enabled == FALSE)
-		return OK;
-
 	/* update host macros */
 	memset(&mac, 0, sizeof(mac));
 	grab_host_macros_r(&mac, hst);
 
 	/* run the global host event handler */
-	run_global_host_event_handler(&mac, hst);
+	if (check_host_event_handler_viability(TRUE, hst))
+		run_global_host_event_handler(&mac, hst);
 
 	/* run the event handler command if there is one */
-	if(hst->event_handler != NULL)
+	if(check_host_event_handler_viability(FALSE, hst))
 		run_host_event_handler(&mac, hst);
 
 	return OK;
@@ -472,10 +490,6 @@ int run_global_host_event_handler(nagios_macros *mac, host *hst) {
 
 	if(hst == NULL)
 		return ERROR;
-
-	/* bail out if we shouldn't be running event handlers */
-	if(enable_event_handlers == FALSE)
-		return OK;
 
 	/* no global host event handler command is defined */
 	if(global_host_event_handler == NULL)
@@ -550,6 +564,7 @@ int run_global_host_event_handler(nagios_macros *mac, host *hst) {
 
 	return OK;
 	}
+
 
 
 /* runs a host event handler command */
@@ -645,5 +660,40 @@ int run_host_event_handler(nagios_macros *mac, host *hst) {
 	my_free(raw_logentry);
 	my_free(processed_logentry);
 
+	return OK;
+	}
+
+
+
+/* checks if host event handler can be run */
+int check_host_event_handler_viability(int global, host *hst) {
+	time_t current_time = 0L;
+
+	log_debug_info(DEBUGL_FUNCTIONS, 0, "check_host_event_handler_viability()\n");
+
+	time(&current_time);
+
+	if(hst == NULL) {
+		log_debug_info(DEBUGL_EVENTHANDLERS, 2, "Host is null.\n");
+		return ERROR;
+	}
+	if(enable_event_handlers == FALSE) {
+		log_debug_info(DEBUGL_EVENTHANDLERS, 2, "Event handlers are not enabled.\n");
+		return ERROR;
+	}
+	if (!global) {
+		if(hst->event_handler == NULL) {
+			log_debug_info(DEBUGL_EVENTHANDLERS, 2, "The host event handler is null.\n");
+			return ERROR;
+		}
+		if(hst->event_handler_enabled == FALSE) {
+			log_debug_info(DEBUGL_EVENTHANDLERS, 2, "Event handlers are not enabled for host '%s'.\n", hst->name);
+			return ERROR;
+		}
+		if (check_time_against_period((unsigned long)current_time, hst->event_handler_period_ptr) == ERROR) {
+			log_debug_info(DEBUGL_EVENTHANDLERS, 2, "This is not a valid time for this host event handler to run.\n");
+			return ERROR;
+		}
+	}
 	return OK;
 	}

@@ -611,7 +611,7 @@ if test "x$TRYGD" = "xyes"; then
 		echo "*** GD, PNG, and/or JPEG libraries could not be located... *********"
 		echo ""
 		echo "Boutell's GD library is required to compile the statusmap, trends"
-		echo "and histogram CGIs.  Get it from http://www.boutell.com/gd/, compile"
+		echo "and histogram CGIs. Get it from https://github.com/libgd/libgd, compile"
 		echo "it, and use the --with-gd-lib and --with-gd-inc arguments to specify"
 		echo "the locations of the GD library and include files."
 		echo ""

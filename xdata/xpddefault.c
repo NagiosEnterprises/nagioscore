@@ -340,7 +340,7 @@ int xpddefault_run_service_performance_data_command(nagios_macros *mac, service 
 	log_debug_info(DEBUGL_PERFDATA, 2, "Processed service performance data command line: %s\n", processed_command_line);
 
 	/* run the command */
-	wproc_run(WPJOB_SVC_PERFDATA, processed_command_line, perfdata_timeout, NULL);
+	wproc_run(WPJOB_SVC_PERFDATA, processed_command_line, perfdata_timeout, mac);
 
 	/* free memory */
 	my_free(processed_command_line);
@@ -381,7 +381,7 @@ int xpddefault_run_host_performance_data_command(nagios_macros *mac, host *hst) 
 	log_debug_info(DEBUGL_PERFDATA, 2, "Processed host performance data command line: %s\n", processed_command_line);
 
 	/* run the command */
-	wproc_run(WPJOB_HOST_PERFDATA, processed_command_line, perfdata_timeout, NULL);
+	wproc_run(WPJOB_HOST_PERFDATA, processed_command_line, perfdata_timeout, mac);
 
 	/* free memory */
 	my_free(processed_command_line);

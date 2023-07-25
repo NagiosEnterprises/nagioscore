@@ -457,11 +457,11 @@ int handle_host_event(host *hst) {
 	grab_host_macros_r(&mac, hst);
 
 	/* run the global host event handler */
-	if (check_host_event_handler_viability(TRUE, hst))
+	if (check_host_event_handler_viability(TRUE, hst) != ERROR)
 		run_global_host_event_handler(&mac, hst);
 
 	/* run the event handler command if there is one */
-	if(check_host_event_handler_viability(FALSE, hst))
+	if(check_host_event_handler_viability(FALSE, hst) != ERROR)
 		run_host_event_handler(&mac, hst);
 
 	return OK;

@@ -1626,6 +1626,10 @@ void show_service_detail(void) {
 		if(temp_service == NULL)
 			continue;
 
+		/* check if the service or host should be hidden based on their name hide_  */
+		if (strstr(temp_status->description, "hide_") == temp_status->description || strstr(temp_status->host_name, "hide_") == temp_status->host_name)
+			continue;
+
 		/* find the host */
 		temp_host = find_host(temp_service->host_name);
 

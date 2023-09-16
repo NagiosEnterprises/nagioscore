@@ -39,11 +39,11 @@ Patch9: nagios-0009-fix-localstatedir-for-linux.patch
 ## their nagios location.
 Patch10: nagios-0010-remove-information-leak.patch
 ## Make it so it knows about all the arches fedora cares about
-Patch11: nagios-0011-remove-rpmbuild.patch
+# Patch11: nagios-0011-remove-rpmbuild.patch
 Patch12: nagios-0012-fix-spool.patch
 Patch13: nagios-0013-fix-plugin.patch
 Patch14: nagios-0014-fix-uidgid.patch
-Patch15: %{name}-0015-Changelog.patch
+#Patch15: %{name}-0015-Changelog.patch
 
 BuildRequires:  make
 BuildRequires:  doxygen

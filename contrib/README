@@ -38,14 +38,13 @@ Miscellaneous Goodies:
   interface.
 
 - Notes about "make rpm" addition, tested on RockyLinux 8
-  0. We need more people to learn how nagioscore rpm on epel was made.
-  1. Preparre epel-nagios.spec and epel-patches/* files.
+  1. Using 4.4.6 as example, download epel-nagios.spec and epel-patches/* files.
     wget https://download-ib01.fedoraproject.org/pub/epel/8/Everything/SRPMS/Packages/n/nagios-4.4.6-4.el8.src.rpm
     rpm -ivh nagios-4.4.6-4.el8.src.rpm # Install patches into ~/RPMBUILD/SOURCES and nagios into ~/RPMBUILD/SPECS
     cp ~/RPMBUILD/SOURCES/* epel-patches
     cp ~/RPMBUILD/SPECS/nagios ./epel-nagios.spec
 
-  2. Prepare your rpmbuild environment for CentOS/RHEL.
+  2. Prepare your rpmbuild environment to buuild EPEL8+ RPMs.
 
   sudo yum install -y rpmdevtools gcc libtool rpmbuild \
   policycoreutils-devel selinux-policy-devel \
@@ -60,7 +59,7 @@ Miscellaneous Goodies:
      make rpm          # Do the rpm build under ./rpmbuild directory
      make localsrc-rpm # tar up existing src code to create rpm
 
-  4. Testing upgrade Nagioscore 4.4.5 on this build host using RPMs created here.
+  4. Testing upgrade Nagioscore 4.4.6 on this build host using RPMs created here.
 
   sudo rpm -Uvh nagios-common-4.4.6-1el8.x86_64.rpm nagios-contrib-4.4.6-1el8.x86_64.rpm \
        nagios-devel-4.4.6-1el8.x86_64.rpm  nagios-4.4.6-1el8.x86_64.rpm

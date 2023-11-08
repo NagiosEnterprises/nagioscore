@@ -350,6 +350,8 @@ NAGIOS_END_DECL
 /* new commands in Nagios 4.x found below... */
 #define CMD_CLEAR_HOST_FLAPPING_STATE                   173
 #define CMD_CLEAR_SVC_FLAPPING_STATE                    174
+#define CMD_CHANGE_HOST_EVENT_HANDLER_TIMEPERIOD        175
+#define CMD_CHANGE_SVC_EVENT_HANDLER_TIMEPERIOD         176
 
 /* custom command introduced in Nagios 3.x */
 #define CMD_CUSTOM_COMMAND                              999
@@ -533,4 +535,5 @@ extern const char *cmd_error_strerror(int error_code);
 #define MODATTR_CHECK_TIMEPERIOD                16384
 #define MODATTR_CUSTOM_VARIABLE                 32768
 #define MODATTR_NOTIFICATION_TIMEPERIOD         65536
+#define MODATTR_EVENT_HANDLER_TIMEPERIOD        131072
 #endif /* NAGIOS_COMMON_H_INCLUDED */

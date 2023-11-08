@@ -241,6 +241,7 @@ int xsddefault_save_status_data(void) {
 		fprintf(fp, "\tcheck_interval=%f\n", temp_host->check_interval);
 		fprintf(fp, "\tretry_interval=%f\n", temp_host->retry_interval);
 		fprintf(fp, "\tevent_handler=%s\n", (temp_host->event_handler == NULL) ? "" : temp_host->event_handler);
+		fprintf(fp, "\tevent_handler_period=%s\n", (temp_host->event_handler_period == NULL) ? "" : temp_host->event_handler_period);
 
 		fprintf(fp, "\thas_been_checked=%d\n", temp_host->has_been_checked);
 		fprintf(fp, "\tshould_be_scheduled=%d\n", temp_host->should_be_scheduled);
@@ -308,6 +309,7 @@ int xsddefault_save_status_data(void) {
 		fprintf(fp, "\tcheck_interval=%f\n", temp_service->check_interval);
 		fprintf(fp, "\tretry_interval=%f\n", temp_service->retry_interval);
 		fprintf(fp, "\tevent_handler=%s\n", (temp_service->event_handler == NULL) ? "" : temp_service->event_handler);
+		fprintf(fp, "\tevent_handler_period=%s\n", (temp_service->event_handler_period == NULL) ? "" : temp_service->event_handler_period);
 
 		fprintf(fp, "\thas_been_checked=%d\n", temp_service->has_been_checked);
 		fprintf(fp, "\tshould_be_scheduled=%d\n", temp_service->should_be_scheduled);

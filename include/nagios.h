@@ -593,9 +593,11 @@ int obsessive_compulsive_host_check_processor(host *);		/* distributed monitorin
 int handle_service_event(service *);				/* top level service event logic */
 int run_service_event_handler(nagios_macros *mac, service *);			/* runs the event handler for a specific service */
 int run_global_service_event_handler(nagios_macros *mac, service *);		/* runs the global service event handler */
+int check_service_event_handler_viability(int, service *);		/* checks if service event handler can be run */
 int handle_host_event(host *);					/* top level host event logic */
 int run_host_event_handler(nagios_macros *mac, host *);				/* runs the event handler for a specific host */
 int run_global_host_event_handler(nagios_macros *mac, host *);			/* runs the global host event handler */
+int check_host_event_handler_viability(int, host *);			/* checks if host event handler can be run */
 
 
 /**** Notification Functions ****/

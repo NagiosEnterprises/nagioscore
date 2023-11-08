@@ -2,6 +2,12 @@
 Nagios Core 4 Change Log
 ########################
 
+4.5.0 - 2023-11-16
+-------------------
+ENHANCEMENTS
+* Add event_handler_period configuration option to hosts and services (#913)
+* Add external commands CHANGE_HOST_EVENT_HANDLER_TIMEPERIOD and CHANGE_SVC_EVENT_HANDLER_TIMEPERIOD (#913)
+
 4.4.14 - 2023-08-01
 -------------------
 * Fix missing macros when running performance data commands (#904)

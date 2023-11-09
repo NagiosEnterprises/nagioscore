@@ -5,17 +5,20 @@
 
 
 # Source code directories
-SRC_BASE=@srcdir@/base
-SRC_LIB=@srcdir@/lib
-SRC_CGI=@srcdir@/cgi
-SRC_HTM=@srcdir@/html
-SRC_MODULE=@srcdir@/module
-SRC_INCLUDE=@srcdir@/include
-SRC_COMMON=@srcdir@/common
-SRC_XDATA=@srcdir@/xdata
-SRC_CONTRIB=@srcdir@/contrib
-SRC_TTAP=@srcdir@/t-tap
-SRC_WORKERS=@srcdir@/worker
+srcdir=@srcdir@
+
+BLD_BASE=@builddir@/base
+BLD_LIB=@builddir@/lib
+BLD_CGI=@builddir@/cgi
+BLD_HTM=@builddir@/html
+BLD_MODULE=@builddir@/module
+BLD_INCLUDE=@builddir@/include
+BLD_COMMON=@builddir@/common
+BLD_XDATA=@builddir@/xdata
+BLD_CONTRIB=@builddir@/contrib
+BLD_T=@builddir@/t
+BLD_TTAP=@builddir@/t-tap
+BLD_WORKERS=@builddir@/worker
 
 CC=@CC@
 CFLAGS=@CFLAGS@ @DEFS@
@@ -46,7 +49,7 @@ NAGIOS_USER=@nagios_user@
 NAGIOS_GRP=@nagios_grp@
 DIST=@dist_type@
 
-SRC_INIT=@src_init@
+BLD_INIT=@src_init@
 INIT_FILE=@initname@
 INIT_TYPE=@init_type@
 
@@ -58,6 +61,12 @@ CGIEXTRAS=@CGIEXTRAS@
 CP=@CP@
 
 @SET_MAKE@
+
+
+ifeq ($(USE_LIBTAP),yes)
+TEST_TAP_DEP = tap/src/tap.o
+endif
+
 
 none:
 		@echo "Please supply a command line argument (i.e. 'make all').  Other targets are:"
@@ -85,13 +94,13 @@ ctags:
 	ctags -R --exclude=html/angularjs --exclude=html/d3 --exclude=t-tap
 
 all:
-	cd $(SRC_BASE) && $(MAKE)
-	cd $(SRC_CGI) && $(MAKE)
-	cd $(SRC_HTM) && $(MAKE)
+	cd $(BLD_BASE) && $(MAKE)
+	cd $(BLD_CGI) && $(MAKE)
+	cd $(BLD_HTM) && $(MAKE)
 	if [ x$(USE_EVENTBROKER) = xyes ]; then \
-		cd $(SRC_MODULE) && $(MAKE); \
+		cd $(BLD_MODULE) && $(MAKE); \
 	fi
-	cd $(SRC_WORKERS) && $(MAKE) $@
+	cd $(BLD_WORKERS) && $(MAKE) $@
 
 	@echo ""
 	@echo "*** Compile finished ***"
@@ -168,11 +177,11 @@ all:
 	@echo "Enjoy."
 	@echo ""
 
-$(SRC_LIB)/libnagios.a:
-	cd $(SRC_LIB) && $(MAKE)
+$(BLD_LIB)/libnagios.a:
+	cd $(BLD_LIB) && $(MAKE)
 
 nagios:
-	cd $(SRC_BASE) && $(MAKE)
+	cd $(BLD_BASE) && $(MAKE)
 
 config:
 	@echo "Sample config files are automatically generated once you run the"
@@ -180,32 +189,33 @@ config:
 	@echo "system by using the 'make install-config' command."
 
 cgis:
-	cd $(SRC_CGI) && $(MAKE)
+	cd $(BLD_CGI) && $(MAKE)
 
 html:
-	cd $(SRC_HTM) && $(MAKE)
+	cd $(BLD_HTM) && $(MAKE)
 
 contrib:
-	cd $(SRC_CONTRIB) && $(MAKE)
+	cd $(BLD_CONTRIB) && $(MAKE)
 
 modules:
-	cd $(SRC_MODULE) && $(MAKE)
+	cd $(BLD_MODULE) && $(MAKE)
 
 workers:
-	cd $(SRC_WORKERS) && $(MAKE) all
+	cd $(BLD_WORKERS) && $(MAKE) all
 
 clean:
-	cd $(SRC_LIB) && $(MAKE) $@
-	cd $(SRC_BASE) && $(MAKE) $@
-	cd $(SRC_CGI) && $(MAKE) $@
-	cd $(SRC_COMMON) && $(MAKE) $@
-	cd $(SRC_XDATA) && $(MAKE) $@
-	cd $(SRC_HTM) && $(MAKE) $@
-	cd $(SRC_INCLUDE) && $(MAKE) $@
-	cd $(SRC_CONTRIB) && $(MAKE) $@
-	cd $(SRC_MODULE) && $(MAKE) $@
-	cd $(SRC_TTAP) && $(MAKE) $@
-	cd $(SRC_WORKERS) && $(MAKE) $@
+	cd $(BLD_LIB) && $(MAKE) $@
+	cd $(BLD_BASE) && $(MAKE) $@
+	cd $(BLD_CGI) && $(MAKE) $@
+	cd $(BLD_COMMON) && $(MAKE) $@
+	cd $(BLD_XDATA) && $(MAKE) $@
+	cd $(BLD_HTM) && $(MAKE) $@
+	cd $(BLD_INCLUDE) && $(MAKE) $@
+	cd $(BLD_CONTRIB) && $(MAKE) $@
+	cd $(BLD_MODULE) && $(MAKE) $@
+	cd $(BLD_T) && $(MAKE) $@
+	cd $(BLD_TTAP) && $(MAKE) $@
+	cd $(BLD_WORKERS) && $(MAKE) $@
 	rm -f *.cfg core
 	rm -f *~ *.*~ */*~ */*.*~ */*/*.*~
 	rm -f nagioscore.info-file
@@ -215,17 +225,18 @@ clean:
 	rm -rf coverage-report
 
 distclean: clean
-	cd $(SRC_LIB) && $(MAKE) $@
-	cd $(SRC_BASE) && $(MAKE) $@
-	cd $(SRC_CGI) && $(MAKE) $@
-	cd $(SRC_COMMON) && $(MAKE) $@
-	cd $(SRC_XDATA) && $(MAKE) $@
-	cd $(SRC_HTM) && $(MAKE) $@
-	cd $(SRC_INCLUDE) && $(MAKE) $@
-	cd $(SRC_CONTRIB) && $(MAKE) $@
-	cd $(SRC_MODULE) && $(MAKE) $@
-	cd $(SRC_TTAP) && $(MAKE) $@
-	cd $(SRC_WORKERS) && $(MAKE) $@
+	cd $(BLD_LIB) && $(MAKE) $@
+	cd $(BLD_BASE) && $(MAKE) $@
+	cd $(BLD_CGI) && $(MAKE) $@
+	cd $(BLD_COMMON) && $(MAKE) $@
+	cd $(BLD_XDATA) && $(MAKE) $@
+	cd $(BLD_HTM) && $(MAKE) $@
+	cd $(BLD_INCLUDE) && $(MAKE) $@
+	cd $(BLD_CONTRIB) && $(MAKE) $@
+	cd $(BLD_MODULE) && $(MAKE) $@
+	cd $(BLD_T) && $(MAKE) $@
+	cd $(BLD_TTAP) && $(MAKE) $@
+	cd $(BLD_WORKERS) && $(MAKE) $@
 	rm -f sample-config/*.cfg  sample-config/*.conf sample-config/template-object/*.cfg
 	rm -f daemon-init daemon-service daemon-openrc pkginfo
 	rm -f Makefile subst
@@ -235,13 +246,13 @@ distclean: clean
 devclean: distclean
 
 test: nagios cgis
-	cd $(SRC_LIB) && $(MAKE) test
+	cd $(BLD_LIB) && $(MAKE) test
 	$(MAKE) test-perl
 	$(MAKE) test-tap
 
-test-tap: tap/src/tap.o nagios cgis
+test-tap: nagios cgis $(TEST_TAP_DEP)
 	@if [ x$(USE_LIBTAP) = xyes ]; then \
-		cd $(SRC_TTAP) && $(MAKE) test; \
+		cd $(BLD_TTAP) && $(MAKE) test; \
 	else \
 		echo "NOTE: You must run configure with --enable-libtap to run the C tap tests"; \
 	fi
@@ -263,26 +274,26 @@ coverage: test
 
 
 install-html:
-	cd $(SRC_HTM) && $(MAKE) install
+	cd $(BLD_HTM) && $(MAKE) install
 	$(MAKE) install-exfoliation
 
 install-base:
-	cd $(SRC_BASE) && $(MAKE) install
+	cd $(BLD_BASE) && $(MAKE) install
 
 install-cgis:
-	cd $(SRC_CGI) && $(MAKE) install
+	cd $(BLD_CGI) && $(MAKE) install
 
 install:
-	cd $(SRC_BASE) && $(MAKE) $@
-	cd $(SRC_CGI) && $(MAKE) $@
-	cd $(SRC_HTM) && $(MAKE) $@
+	cd $(BLD_BASE) && $(MAKE) $@
+	cd $(BLD_CGI) && $(MAKE) $@
+	cd $(BLD_HTM) && $(MAKE) $@
 	$(MAKE) install-exfoliation
 	$(MAKE) install-basic
 
 install-unstripped:
-	cd $(SRC_BASE) && $(MAKE) $@
-	cd $(SRC_CGI) && $(MAKE) $@
-	cd $(SRC_HTM) && $(MAKE) $@
+	cd $(BLD_BASE) && $(MAKE) $@
+	cd $(BLD_CGI) && $(MAKE) $@
+	cd $(BLD_HTM) && $(MAKE) $@
 	$(MAKE) install-exfoliation
 	$(MAKE) install-basic
 
@@ -347,7 +358,7 @@ install-webconf:
 	@echo ""
 
 install-exfoliation:
-	@cd contrib/exfoliation; \
+	@( cd $(srcdir)/contrib/exfoliation; \
 	$(INSTALL) $(INSTALL_OPTS) -d $(DESTDIR)$(HTMLDIR)/stylesheets; \
 	for file in $$(find ./stylesheets/ -type f); do \
 		$(INSTALL) -m 644 $(INSTALL_OPTS) $${file} $(DESTDIR)$(HTMLDIR)/$${file}; \
@@ -356,7 +367,7 @@ install-exfoliation:
 	for file in $$(find ./images -type f); do \
 		$(INSTALL) -m 644 $(INSTALL_OPTS) $${file} $(DESTDIR)$(HTMLDIR)/$${file}; \
 	done; \
-	cd ../..
+	)
 
 	@echo ""
 	@echo "*** Exfoliation theme installed ***"
@@ -382,7 +393,7 @@ install-classicui:
 
 install-init:
 	$(INSTALL) -m 755 -d $(INIT_OPTS) $(DESTDIR)$(INIT_DIR)
-	$(INSTALL) -m 755 $(INIT_OPTS) startup/$(SRC_INIT) $(DESTDIR)$(INIT_DIR)/$(INIT_FILE)
+	$(INSTALL) -m 755 $(INIT_OPTS) startup/$(BLD_INIT) $(DESTDIR)$(INIT_DIR)/$(INIT_FILE)
 
 install-daemoninit: install-init
 	@if [ x$(INIT_TYPE) = xsysv ]; then \
@@ -430,9 +441,9 @@ install-headers:
 	$(INSTALL) -m 644 lib/*.h $(DESTDIR)$(INCLUDEDIR)/lib
 	rm -f $(DESTDIR)$(INCLUDEDIR)/config*.h
 
-install-lib: $(SRC_LIB)/libnagios.a
+install-lib: $(BLD_LIB)/libnagios.a
 	$(INSTALL) -d -m 755 $(DESTDIR)$(LIBDIR)
-	$(INSTALL) -m 644 $(SRC_LIB)/libnagios.a $(DESTDIR)$(LIBDIR)
+	$(INSTALL) -m 644 $(BLD_LIB)/libnagios.a $(DESTDIR)$(LIBDIR)
 
 dox:
 	@rm -rf Documentation

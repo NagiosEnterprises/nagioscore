@@ -1,11 +1,29 @@
 # Makefile for Nagios tests using perl
 
+srcdir=@srcdir@
+builddir=@builddir@
+abs_top_builddir=@abs_top_builddir@
+
+
 all: 
 
-test:
-	prove *.t
+test: bin etc var
+	prove $(srcdir)/*.t :: $(abs_top_builddir)
+
+bin: $(srcdir)/bin
+	ln -s $< $@
+
+etc: $(srcdir)/etc
+	ln -s $< $@
+
+var: $(srcdir)/var
+	cp -r $< $@
 
 clean:
+ifneq ($(srcdir),$(builddir))
+	rm -rf bin etc var
+endif
 
-distclean:
+
+distclean: clean
 

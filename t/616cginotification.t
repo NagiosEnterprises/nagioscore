@@ -5,12 +5,11 @@
 use warnings;
 use strict;
 use Test::More;
-use FindBin qw($Bin);
 
-chdir $Bin or die "Cannot chdir";
+defined($ARGV[0]) or die "Usage: $0 <top build dir>";
 
-my $topdir = "$Bin/..";
-my $cgi_dir = "$topdir/cgi";
+my $top_builddir = shift @ARGV;
+my $cgi_dir = "$top_builddir/cgi";
 my $notifications_cgi = "$cgi_dir/notifications.cgi";
 
 my $output;

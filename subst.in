@@ -3,10 +3,12 @@
 my ${exec_prefix};
 my ${prefix};
 my ${datarootdir};
+my ${srcdir};
 
 ${prefix}="@prefix@";
 ${exec_prefix}="@exec_prefix@";
 ${datarootdir}="@datarootdir@";
+${srcdir}="@srcdir@";
 
 while ($f = shift @ARGV) {
 
@@ -19,7 +21,7 @@ while ($f = shift @ARGV) {
 		$TEMP = "$f.$$.$XXXXXX";
 	}
 
-	open(IN,"<$f.in");
+	open(IN,"<${srcdir}/$f.in");
 	open(OUT,">$TEMP") || die 'Cannot make temporary file $TEMP';
 
 	while (<IN>) {

@@ -802,7 +802,7 @@ if test "x$USE_EVENTBROKER" = "xyes"; then
 	AC_DEFINE_UNQUOTED(USE_EVENT_BROKER,,[defined to bring in the event broker objects])
 	BROKER_O="broker.o nebmods.o"
 	AC_SUBST(BROKER_O)
-	BROKER_H="../include/broker.h ../include/nebmods.h ../include/nebmodules.h ../include/nebcallbacks.h ../include/neberrors.h"
+	BROKER_H="\$(SRC_INCLUDE)/broker.h \$(SRC_INCLUDE)/nebmods.h \$(SRC_INCLUDE)/nebmodules.h \$(SRC_INCLUDE)/nebcallbacks.h \$(SRC_INCLUDE)/neberrors.h"
 	AC_SUBST(BROKER_H)
 fi
 
@@ -929,6 +929,7 @@ AC_OUTPUT([
 	contrib/Makefile
 	cgi/Makefile
 	html/Makefile
+	include/Makefile
 	module/Makefile
 	worker/Makefile
 	worker/ping/Makefile
@@ -943,6 +944,10 @@ AC_OUTPUT([
 	t-tap/Makefile
 ])
 
+if test ! -d "html/js"; then
+	mkdir -p "html/js"
+fi
+
 perl subst include/locations.h
 perl subst html/config.inc.php
 perl subst html/js/histogram.js
@@ -953,6 +958,10 @@ dnl perl subst daemon-service
 
 echo ""
 echo "Creating sample config files in sample-config/ ..."
+
+if test ! -d "sample-config/template-object"; then
+	mkdir -p "sample-config/template-object"
+fi
 
 perl subst sample-config/nagios.cfg
 perl subst sample-config/cgi.cfg

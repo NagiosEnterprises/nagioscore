@@ -19,9 +19,11 @@
 #define TEST_CHECKS_C
 #define NSCORE 1
 
-#include <unistd.h>
-
 #include "config.h"
+
+#include <unistd.h>
+#include <stdio.h>
+
 #include "comments.h"
 #include "common.h"
 #include "statusdata.h"

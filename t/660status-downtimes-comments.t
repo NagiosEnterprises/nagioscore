@@ -6,17 +6,15 @@ use warnings;
 use strict;
 use Test::More;
 
-use FindBin qw($Bin);
+defined($ARGV[0]) or die "Usage: $0 <top build dir>";
 
-chdir $Bin or die "Cannot chdir";
-
-my $topdir = "$Bin/..";
-my $cgi_dir = "$topdir/cgi";
+my $top_builddir = shift @ARGV;
+my $cgi_dir = "$top_builddir/cgi";
 my $status_cgi = "$cgi_dir/status.cgi";
 my $extinfo_cgi = "$cgi_dir/extinfo.cgi";
-my $status_dat = "$Bin/var/status.dat";
-my $generated = "$Bin/var/status-generated.dat";
-my $generator = "$Bin/bin/generate_downtimes";
+my $status_dat = "var/status.dat";
+my $generated = "var/status-generated.dat";
+my $generator = "bin/generate_downtimes";
 
 my $output;
 my $expected;

@@ -5,10 +5,17 @@
 
 
 # Source code directories
-SRC_COMMON=../common
-SRC_INCLUDE=../include
-SRC_XDATA=../xdata
-SRC_LIB=../lib
+srcdir=@srcdir@
+
+SRC_COMMON=@top_srcdir@/common
+SRC_INCLUDE=@top_srcdir@/include
+SRC_XDATA=@top_srcdir@/xdata
+SRC_LIB=@top_srcdir@/lib
+
+BLD_COMMON=@top_builddir@/common
+BLD_INCLUDE=@top_builddir@/include
+BLD_LIB=@top_builddir@/lib
+
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -26,7 +33,7 @@ CGIEXTRAS=@CGIEXTRAS@
 
 CP=@CP@
 CC=@CC@
-CFLAGS=-Wall -I.. @CFLAGS@ @DEFS@ -DNSCGI
+CFLAGS=-Wall -I.. -I@builddir@ -I$(SRC_INCLUDE) -I@top_srcdir@ -I$(BLD_LIB)  @CFLAGS@ @DEFS@ -DNSCGI
 JSONFLAGS=-DJSON_NAGIOS_4X
 
 # Compiler flags for optimization (overrides default)
@@ -63,9 +70,9 @@ DDATAHDRS=
 DDATADEPS=$(DDATALIBS)
 
 # Common CGI functions (includes object and status functions)
-CGILIBS=$(SRC_COMMON)/shared.o getcgi.o cgiutils.o cgiauth.o macros-cgi.o $(SNPRINTF_O) $(ODATALIBS) $(SDATALIBS) $(SRC_LIB)/libnagios.a
-CGIHDRS=$(SRC_INCLUDE)/config.h $(SRC_INCLUDE)/common.h $(SRC_INCLUDE)/locations.h
-CGIDEPS=$(CGILIBS) $(ODATADEPS) $(SDATADEPS) $(SRC_LIB)/libnagios.a
+CGILIBS=$(BLD_COMMON)/shared.o getcgi.o cgiutils.o cgiauth.o macros-cgi.o $(SNPRINTF_O) $(ODATALIBS) $(SDATALIBS) $(BLD_LIB)/libnagios.a
+CGIHDRS=$(BLD_INCLUDE)/config.h $(SRC_INCLUDE)/common.h $(BLD_INCLUDE)/locations.h
+CGIDEPS=$(CGILIBS) $(ODATADEPS) $(SDATADEPS) $(BLD_LIB)/libnagios.a
 
 
 MATHLIBS=-lm
@@ -76,11 +83,13 @@ all cgis: $(CGIS)
 
 $(CGILIBS): $(CGIHDRS)
 
+%.o: $(srcdir)/%.c
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 ######## REQUIRED LIBRARIES ##########
 
-$(SRC_LIB)/libnagios.a:
-	$(MAKE) -C $(SRC_LIB)
+$(BLD_LIB)/libnagios.a:
+	$(MAKE) -C $(BLD_LIB)
 
 macros-cgi.o: $(SRC_COMMON)/macros.c $(SRC_INCLUDE)/macros.h
 	$(CC) $(CFLAGS) -c -o $@ $(SRC_COMMON)/macros.c
@@ -103,84 +112,84 @@ comments-cgi.o: $(SRC_COMMON)/comments.c $(SRC_INCLUDE)/comments.h
 downtime-cgi.o: $(SRC_COMMON)/downtime.c $(SRC_INCLUDE)/downtime.h
 	$(CC) $(CFLAGS) -c -o $@ $(SRC_COMMON)/downtime.c
 
-$(SRC_COMMON)/shared.o: $(SRC_COMMON)/shared.c
+$(BLD_COMMON)/shared.o: $(SRC_COMMON)/shared.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 ########## CGIS ##########
 
-avail.cgi: avail.c $(CGIDEPS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ avail.c $(CGILIBS) $(LIBS)
+avail.cgi: $(srcdir)/avail.c $(CGIDEPS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(srcdir)/avail.c $(CGILIBS) $(LIBS)
 
-checksanity.cgi: checksanity.c $(CGIDEPS) $(CDATADEPS) $(DDATADEPS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ checksanity.c $(CGILIBS) $(CDATALIBS) $(DDATALIBS) $(LIBS)
+checksanity.cgi: $(srcdir)/checksanity.c $(CGIDEPS) $(CDATADEPS) $(DDATADEPS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(srcdir)/checksanity.c $(CGILIBS) $(CDATALIBS) $(DDATALIBS) $(LIBS)
 
-cmd.cgi: cmd.c $(CGIDEPS) $(CDATADEPS) $(DDATADEPS) extcmd_list.o
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ cmd.c extcmd_list.o $(CGILIBS) $(CDATALIBS) $(DDATALIBS) $(LIBS)
+cmd.cgi: $(srcdir)/cmd.c $(CGIDEPS) $(CDATADEPS) $(DDATADEPS) extcmd_list.o
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(srcdir)/cmd.c extcmd_list.o $(CGILIBS) $(CDATALIBS) $(DDATALIBS) $(LIBS)
 
-config.cgi: config.c $(CGIDEPS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ config.c  $(CGILIBS) $(LIBS)
+config.cgi: $(srcdir)/config.c $(CGIDEPS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(srcdir)/config.c  $(CGILIBS) $(LIBS)
 
-extinfo.cgi: extinfo.c $(CGIDEPS) $(CDATADEPS) $(DDATADEPS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ extinfo.c $(CGILIBS) $(CDATALIBS) $(DDATALIBS) $(LIBS)
+extinfo.cgi: $(srcdir)/extinfo.c $(CGIDEPS) $(CDATADEPS) $(DDATADEPS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(srcdir)/extinfo.c $(CGILIBS) $(CDATALIBS) $(DDATALIBS) $(LIBS)
 
-history.cgi: history.c $(CGIDEPS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ history.c $(CGILIBS) $(LIBS)
+history.cgi: $(srcdir)/history.c $(CGIDEPS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(srcdir)/history.c $(CGILIBS) $(LIBS)
 
-ministatus.cgi: ministatus.c $(CGIDEPS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ ministatus.c $(CGILIBS) $(LIBS)
+ministatus.cgi: $(srcdir)/ministatus.c $(CGIDEPS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(srcdir)/ministatus.c $(CGILIBS) $(LIBS)
 
-notifications.cgi: notifications.c $(CGIDEPS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ notifications.c $(CGILIBS) $(LIBS)
+notifications.cgi: $(srcdir)/notifications.c $(CGIDEPS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(srcdir)/notifications.c $(CGILIBS) $(LIBS)
 
-outages.cgi: outages.c $(CGIDEPS) $(CDATADEPS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ outages.c $(CGILIBS) $(CDATALIBS) $(LIBS)
+outages.cgi: $(srcdir)/outages.c $(CGIDEPS) $(CDATADEPS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(srcdir)/outages.c $(CGILIBS) $(CDATALIBS) $(LIBS)
 
-showlog.cgi: showlog.c $(CGIDEPS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ showlog.c $(CGILIBS) $(LIBS)
+showlog.cgi: $(srcdir)/showlog.c $(CGIDEPS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(srcdir)/showlog.c $(CGILIBS) $(LIBS)
 
-status.cgi: status.c $(CGIDEPS) $(CDATADEPS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ status.c $(CGILIBS) $(CDATALIBS) $(LIBS)
+status.cgi: $(srcdir)/status.c $(CGIDEPS) $(CDATADEPS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(srcdir)/status.c $(CGILIBS) $(CDATALIBS) $(LIBS)
 
-statuswml.cgi: statuswml.c $(CGIDEPS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ statuswml.c $(CGILIBS) $(LIBS)
+statuswml.cgi: $(srcdir)/statuswml.c $(CGIDEPS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(srcdir)/statuswml.c $(CGILIBS) $(LIBS)
 
-statusmap.cgi: statusmap.c $(CGIDEPS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ statusmap.c $(CGILIBS) $(GDLIBS) $(LIBS)
+statusmap.cgi: $(srcdir)/statusmap.c $(CGIDEPS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(srcdir)/statusmap.c $(CGILIBS) $(GDLIBS) $(LIBS)
 
-statuswrl.cgi: statuswrl.c $(CGIDEPS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ statuswrl.c $(CGILIBS) $(MATHLIBS) $(LIBS)
+statuswrl.cgi: $(srcdir)/statuswrl.c $(CGIDEPS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(srcdir)/statuswrl.c $(CGILIBS) $(MATHLIBS) $(LIBS)
 
-summary.cgi: summary.c $(CGIDEPS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ summary.c $(CGILIBS) $(LIBS)
+summary.cgi: $(srcdir)/summary.c $(CGIDEPS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(srcdir)/summary.c $(CGILIBS) $(LIBS)
 
-tac.cgi: tac.c $(CGIDEPS) $(CDATADEPS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ tac.c $(CGILIBS) $(CDATALIBS) $(LIBS)
+tac.cgi: $(srcdir)/tac.c $(CGIDEPS) $(CDATADEPS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(srcdir)/tac.c $(CGILIBS) $(CDATALIBS) $(LIBS)
 
-tac-xml.cgi: tac-xml.c $(CGIDEPS) $(CDATADEPS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ tac-xml.c $(CGILIBS) $(CDATALIBS) $(LIBS)
+tac-xml.cgi: $(srcdir)/tac-xml.c $(CGIDEPS) $(CDATADEPS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(srcdir)/tac-xml.c $(CGILIBS) $(CDATALIBS) $(LIBS)
 
-trends.cgi: trends.c $(CGIDEPS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ trends.c $(CGILIBS) $(GDLIBS) $(LIBS)
+trends.cgi: $(srcdir)/trends.c $(CGIDEPS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(srcdir)/trends.c $(CGILIBS) $(GDLIBS) $(LIBS)
 
-histogram.cgi: histogram.c $(CGIDEPS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ histogram.c $(CGILIBS) $(GDLIBS) $(LIBS)
+histogram.cgi: $(srcdir)/histogram.c $(CGIDEPS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(srcdir)/histogram.c $(CGILIBS) $(GDLIBS) $(LIBS)
 
 ########## JSON CGIS ##########
 
-jsonutils.o: jsonutils.c $(SRC_INCLUDE)/jsonutils.h
-	$(CC) $(CFLAGS) $(JSONFLAGS) -c -o $@ jsonutils.c
+jsonutils.o: $(srcdir)/jsonutils.c $(SRC_INCLUDE)/jsonutils.h
+	$(CC) $(CFLAGS) $(JSONFLAGS) -c -o $@ $(srcdir)/jsonutils.c
 
-archiveutils.o: archiveutils.c $(SRC_INCLUDE)/archiveutils.h
-	$(CC) $(CFLAGS) $(JSONFLAGS) -c -o $@ archiveutils.c
+archiveutils.o: $(srcdir)/archiveutils.c $(SRC_INCLUDE)/archiveutils.h
+	$(CC) $(CFLAGS) $(JSONFLAGS) -c -o $@ $(srcdir)/archiveutils.c
 
-archivejson.cgi: archivejson.c $(CGIDEPS) archiveutils.o jsonutils.o $(SRC_INCLUDE)/archivejson.h
-	$(CC) $(CFLAGS) $(JSONFLAGS) $(LDFLAGS) -o $@ archivejson.c $(CGILIBS) archiveutils.o jsonutils.o $(LIBS)
+archivejson.cgi: $(srcdir)/archivejson.c $(CGIDEPS) archiveutils.o jsonutils.o $(SRC_INCLUDE)/archivejson.h
+	$(CC) $(CFLAGS) $(JSONFLAGS) $(LDFLAGS) -o $@ $(srcdir)/archivejson.c $(CGILIBS) archiveutils.o jsonutils.o $(LIBS)
 
-objectjson.cgi: objectjson.c $(CGIDEPS) jsonutils.o $(SRC_INCLUDE)/objectjson.h
-	$(CC) $(CFLAGS) $(JSONFLAGS) $(LDFLAGS) -o $@ objectjson.c $(CGILIBS) jsonutils.o $(LIBS)
+objectjson.cgi: $(srcdir)/objectjson.c $(CGIDEPS) jsonutils.o $(SRC_INCLUDE)/objectjson.h
+	$(CC) $(CFLAGS) $(JSONFLAGS) $(LDFLAGS) -o $@ $(srcdir)/objectjson.c $(CGILIBS) jsonutils.o $(LIBS)
 
-statusjson.cgi: statusjson.c $(CGIDEPS) jsonutils.o $(SRC_INCLUDE)/statusjson.h
-	$(CC) $(CFLAGS) $(JSONFLAGS) $(LDFLAGS) -o $@ statusjson.c $(CGILIBS) jsonutils.o $(LIBS)
+statusjson.cgi: $(srcdir)/statusjson.c $(CGIDEPS) jsonutils.o $(SRC_INCLUDE)/statusjson.h
+	$(CC) $(CFLAGS) $(JSONFLAGS) $(LDFLAGS) -o $@ $(srcdir)/statusjson.c $(CGILIBS) jsonutils.o $(LIBS)
 
 
 clean:

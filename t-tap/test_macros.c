@@ -371,6 +371,7 @@ int main(void) {
     free_svcgrp1();
     free_svc1();
     free_hst1();
+    free(lock_file);
 
     return exit_status();
 }

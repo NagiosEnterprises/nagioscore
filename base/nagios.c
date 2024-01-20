@@ -663,6 +663,9 @@ int main(int argc, char **argv) {
 			/* open debug log now that we're the right user */
 			open_debug_log();
 
+			init_event_queue();
+			timing_point("Event queue initialized\n");
+
 #ifdef USE_EVENT_BROKER
 			/* initialize modules */
 			neb_init_modules();
@@ -768,9 +771,6 @@ int main(int argc, char **argv) {
 			/* write the objects.cache file */
 			fcache_objects(object_cache_file);
 			timing_point("Objects cached\n");
-
-			init_event_queue();
-			timing_point("Event queue initialized\n");
 
 
 #ifdef USE_EVENT_BROKER

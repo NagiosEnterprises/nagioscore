@@ -2366,7 +2366,7 @@ void display_command_expansion(void) {
 							/* TODO: As long as the hyperlinks change all whitespace into actual spaces,
 							   we'll output "[WS]" (whitespace) instead of "[SP]"(ace). */
 							/* if ((*c)==' ')		printf("[SP]"); */
-							if((*c) == ' ') 		printf("[WS]");
+							if((*c) == ' ') 	printf("[WS]");
 							else if((*c) == '\f')	printf("[FF]");
 							else if((*c) == '\n')	printf("[LF]");
 							else if((*c) == '\r')	printf("[CR]");
@@ -2386,7 +2386,7 @@ void display_command_expansion(void) {
 							/* TODO: As long as the hyperlinks change all whitespace into actual spaces,
 							   we'll output "[WS]" (whitespace) instead of "[SP]"(ace). */
 							/* if ((*c)==' ')		printf("[SP]"); */
-							if((*c) == ' ')			printf("[WS]");
+							if((*c) == ' ')		printf("[WS]");
 							else if((*c) == '\f')	printf("[FF]");
 							else if((*c) == '\n')	printf("[LF]");
 							else if((*c) == '\r')	printf("[CR]");

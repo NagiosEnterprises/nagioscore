@@ -2375,8 +2375,9 @@ void display_command_expansion(void) {
 							else			printf("[0x%x]", *c);
 						printf("</FONT><FONT COLOR='%s'>", hash_color(i));
 						// Have to add some internal logic to pass the correct string to html_encode without the trailing whitespace.
-						int temp_command_length = (int)strlen(c) - trail_space[i];
+						int temp_command_length = (int)strlen(command_args[i]) - trail_space[i] - j;
 						char temp_commandline[temp_command_length+1];
+						memset(temp_commandline, 0, temp_command_length+1);
 						strncpy(temp_commandline, c, temp_command_length);
 						temp_commandline[temp_command_length] = '\0';
 						c += temp_command_length;

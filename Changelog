@@ -2,9 +2,9 @@
 Nagios Core 4 Change Log
 ########################
 
-4.5.1 - 2024-XX-XX
+4.5.1 - 2024-02-28
 -------------------
-* Fix printing in Command Expansion page when there is dangling whitespace (Thanks Joran LEREEC for reporting this issue)
+* Fix text rendering in Configuration -> Command Expansion when the command ends in whitespace (Thanks Joran LEREEC for reporting this issue)
 
 4.5.0 - 2023-11-16
 -------------------

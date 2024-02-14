@@ -2374,7 +2374,14 @@ void display_command_expansion(void) {
 							else if((*c) == '\v')	printf("[VT]");
 							else			printf("[0x%x]", *c);
 						printf("</FONT><FONT COLOR='%s'>", hash_color(i));
-						for(; c && ((*c) != '\0') && (j < (int)strlen(command_args[i]) - trail_space[i]); c++, j++) putchar(*c);
+						// Have to add some internal logic to pass the correct string to html_encode without the trailing whitespace.
+						int temp_command_length = (int)strlen(command_args[i]) - trail_space[i] - j;
+						char temp_commandline[temp_command_length+1];
+						memset(temp_commandline, 0, temp_command_length+1);
+						strncpy(temp_commandline, c, temp_command_length);
+						temp_commandline[temp_command_length] = '\0';
+						c += temp_command_length;
+						printf("%s", html_encode(temp_commandline, FALSE));
 						printf("</FONT><FONT COLOR='#0000FF'>");
 						for(; c && ((*c) != '\0'); c++)
 							/* TODO: As long as the hyperlinks change all whitespace into actual spaces,

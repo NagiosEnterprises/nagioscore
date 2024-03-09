@@ -1486,7 +1486,7 @@ time_t calculate_time_from_day_of_month(int year, int month, int monthday) {
 		/* make the new time */
 		t.tm_mon = month;
 		t.tm_year = year;
-		/* -1 means last day of month, so add one to to make this correct - Mike Bird */
+		/* -1 means last day of month, so add one to make this correct - Mike Bird */
 		t.tm_mday += (monthday < -30) ? -30 : monthday + 1;
 		t.tm_isdst = -1;
 		midnight = mktime(&t);

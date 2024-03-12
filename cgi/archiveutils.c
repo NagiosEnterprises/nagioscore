@@ -1596,7 +1596,7 @@ au_node *au_list_add_node(au_linked_list *list, void *data,
 		/* The new node is "less than" the last new node.  Visit each node 
 			starting at the beginning of the list until we reach the end of 
 			the list (which shouldn't happen because that case was covered 
-			earlier) or we find a node whose next node is is "greater than"
+			earlier) or we find a node whose next node is "greater than"
 			the new node. */
 		temp_node = list->head;
 		while((NULL != temp_node->next) && (cmp(&(temp_node->next->data), 

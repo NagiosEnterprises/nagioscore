@@ -904,7 +904,7 @@ sub checkDowntime {
 	my $eventIndex = 0;
 	while( $eventIndex < @sortedEvents) {
 
-		# Sleep until the next event is to to be executed
+		# Sleep until the next event is to be executed
 		if( time < ( $downtimeStart + $sortedEvents[ $eventIndex]->{ "time"})) {
 			my $message = statusString( 1, 
 					sprintf( "Waiting for %s event at %s", 

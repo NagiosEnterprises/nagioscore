@@ -661,7 +661,7 @@ int main(int argc, char **argv) {
 			image_file = fopen("/tmp/histogram.png", "w");
 #endif
 
-			/* write the image to to STDOUT */
+			/* write the image to STDOUT */
 			gdImagePng(histogram_image, image_file);
 
 #ifdef DEBUG

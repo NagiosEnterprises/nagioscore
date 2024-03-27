@@ -2430,6 +2430,15 @@ void compute_subject_downtime_times(time_t start_time, time_t end_time, avail_su
 void compute_subject_downtime_part_times(time_t start_time, time_t end_time, int subject_state, avail_subject *subject)
 {
 	unsigned long state_duration = 0L;
+	struct tm *t                 = NULL;
+	time_t midnight_today        = 0L;
+	int weekday                  = 0;
+	timerange *temp_timerange    = NULL;
+	unsigned long temp_duration  = 0L;
+	unsigned long temp_end       = 0L;
+	unsigned long temp_start     = 0L;
+	unsigned long start          = 0L;
+	unsigned long end            = 0L;
 
 #ifdef DEBUG2
 	printf("ENTERING COMPUTE_SUBJECT_DOWNTIME_PART_TIMES\n");
@@ -2440,7 +2449,65 @@ void compute_subject_downtime_part_times(time_t start_time, time_t end_time, int
 		return;
 	}
 
-	state_duration = (unsigned long)(end_time - start_time);
+	if (current_timeperiod != NULL) {
+
+		t = localtime((time_t *)&start_time);
+		state_duration = 0;
+
+		/* calculate the start of the day (midnight, 00:00 hours) */
+		t->tm_sec      = 0;
+		t->tm_min      = 0;
+		t->tm_hour     = 0;
+		t->tm_isdst    = -1;
+		midnight_today = (unsigned long)mktime(t);
+		weekday        = t->tm_wday;
+
+		while (midnight_today < end_time) {
+
+			temp_duration = 0;
+			temp_end = min(86400, end_time - midnight_today);
+			temp_start = 0;
+
+			if (start_time > midnight_today) {
+				temp_start = start_time - midnight_today;
+			}
+#ifdef DEBUG
+			printf("<b>Matching: %ld -> %ld. (%ld -> %ld)</b><br>\n", temp_start, temp_end, midnight_today + temp_start, midnight_today + temp_end);
+#endif
+			/* check all time ranges for this day of the week */
+			for (temp_timerange = current_timeperiod->days[weekday]; temp_timerange != NULL; temp_timerange = temp_timerange->next) {
+
+#ifdef DEBUG
+				printf("<li>Matching in timerange[%d]: %d -> %d (%ld -> %ld)<br>\n", weekday, temp_timerange->range_start, temp_timerange->range_end, temp_start, temp_end);
+#endif
+				start = max(temp_timerange->range_start, temp_start);
+				end = min(temp_timerange->range_end, temp_end);
+
+				if (start < end) {
+					temp_duration += end - start;
+#ifdef DEBUG
+					printf("<li>Matched time: %ld -> %ld = %d<br>\n", start, end, temp_duration);
+#endif
+				}
+#ifdef DEBUG
+				else {
+					printf("<li>Ignored time: %ld -> %ld<br>\n", start, end);
+				}
+#endif
+			}
+
+			state_duration += temp_duration;
+			temp_start = 0;
+			midnight_today += 86400;
+
+			if (++weekday > 6) {
+				weekday = 0;
+			}
+		}
+	}
+	else {
+		state_duration = (unsigned long)(end_time - start_time);
+	}
 
 	switch (subject_state) {
 

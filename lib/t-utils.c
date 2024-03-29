@@ -136,7 +136,7 @@ int ok_int(int a, int b, const char *name)
 	return TEST_FAIL;
 }
 
-int ok_unsigned int(unsigned int a, unsigned int b, const char *name)
+int ok_uint(unsigned int a, unsigned int b, const char *name)
 {
 	if (a == b) {
 		t_pass("%s", name);

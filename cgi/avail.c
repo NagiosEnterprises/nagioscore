@@ -212,6 +212,8 @@ void compute_subject_availability_times(int, int, time_t, time_t, time_t, avail_
 void compute_subject_downtime(avail_subject *, time_t);
 void compute_subject_downtime_times(time_t, time_t, avail_subject *, archived_state *);
 void compute_subject_downtime_part_times(time_t, time_t, int, avail_subject *);
+unsigned long compute_state_duration_from_timeperiod(timeperiod *, time_t, time_t);
+
 void display_hostgroup_availability(void);
 void display_specific_hostgroup_availability(hostgroup *);
 void display_servicegroup_availability(void);
@@ -1951,11 +1953,8 @@ void compute_subject_availability(avail_subject *subject, time_t current_time) {
 	return;
 	}
 
-
-/* computes availability times */
-void compute_subject_availability_times(int first_state, int last_state, time_t real_start_time, time_t start_time, time_t end_time, avail_subject *subject, archived_state *as)
+unsigned long compute_state_duration_from_timeperiod(timeperiod *current_tp, time_t start_time, time_t end_time)
 {
-	int start_state              = 0;
 	unsigned long state_duration = 0L;
 	struct tm *t                 = NULL;
 	time_t midnight_today        = 0L;
@@ -1966,6 +1965,78 @@ void compute_subject_availability_times(int first_state, int last_state, time_t 
 	unsigned long temp_start     = 0L;
 	unsigned long start          = 0L;
 	unsigned long end            = 0L;
+
+	if (start_time > end_time) {
+		return 0L;
+	}
+
+	if (current_tp == NULL) {
+		/* If we didn't specify a timeperiod, implicitly use "24x7" */
+		return (unsigned long)(end_time - start_time);
+	}
+
+	t = localtime((time_t *)&start_time);
+	state_duration = 0;
+
+	/* calculate the start of the day (midnight, 00:00 hours) */
+	t->tm_sec      = 0;
+	t->tm_min      = 0;
+	t->tm_hour     = 0;
+	t->tm_isdst    = -1;
+	midnight_today = (unsigned long)mktime(t);
+	weekday        = t->tm_wday;
+
+	while (midnight_today < end_time) {
+
+		temp_duration = 0;
+		temp_end = min(86400, end_time - midnight_today);
+		temp_start = 0;
+
+		if (start_time > midnight_today) {
+			temp_start = start_time - midnight_today;
+		}
+#ifdef DEBUG
+		printf("<b>Matching: %ld -> %ld. (%ld -> %ld)</b><br>\n", temp_start, temp_end, midnight_today + temp_start, midnight_today + temp_end);
+#endif
+		/* check all time ranges for this day of the week */
+		for (temp_timerange = current_timeperiod->days[weekday]; temp_timerange != NULL; temp_timerange = temp_timerange->next) {
+
+#ifdef DEBUG
+			printf("<li>Matching in timerange[%d]: %d -> %d (%ld -> %ld)<br>\n", weekday, temp_timerange->range_start, temp_timerange->range_end, temp_start, temp_end);
+#endif
+			start = max(temp_timerange->range_start, temp_start);
+			end = min(temp_timerange->range_end, temp_end);
+
+			if (start < end) {
+				temp_duration += end - start;
+#ifdef DEBUG
+				printf("<li>Matched time: %ld -> %ld = %d<br>\n", start, end, temp_duration);
+#endif
+			}
+#ifdef DEBUG
+			else {
+				printf("<li>Ignored time: %ld -> %ld<br>\n", start, end);
+			}
+#endif
+		}
+
+		state_duration += temp_duration;
+		temp_start = 0;
+		midnight_today += 86400;
+
+		if (++weekday > 6) {
+			weekday = 0;
+		}
+	}
+
+	return state_duration;
+}
+
+/* computes availability times */
+void compute_subject_availability_times(int first_state, int last_state, time_t real_start_time, time_t start_time, time_t end_time, avail_subject *subject, archived_state *as)
+{
+	int start_state              = 0;
+	unsigned long state_duration = 0L;
 
 #ifdef DEBUG2
 	if (subject->type == HOST_SUBJECT) {
@@ -1994,69 +2065,7 @@ void compute_subject_availability_times(int first_state, int last_state, time_t 
 		return;
 	}
 
-	/* MickeM - attempt to handle the current time_period (if any) */
-	if (current_timeperiod != NULL) {
-
-		t = localtime((time_t *)&start_time);
-		state_duration = 0;
-
-		/* calculate the start of the day (midnight, 00:00 hours) */
-		t->tm_sec      = 0;
-		t->tm_min      = 0;
-		t->tm_hour     = 0;
-		t->tm_isdst    = -1;
-		midnight_today = (unsigned long)mktime(t);
-		weekday        = t->tm_wday;
-
-		while (midnight_today < end_time) {
-
-			temp_duration = 0;
-			temp_end = min(86400, end_time - midnight_today);
-			temp_start = 0;
-
-			if (start_time > midnight_today) {
-				temp_start = start_time - midnight_today;
-			}
-#ifdef DEBUG
-			printf("<b>Matching: %ld -> %ld. (%ld -> %ld)</b><br>\n", temp_start, temp_end, midnight_today + temp_start, midnight_today + temp_end);
-#endif
-			/* check all time ranges for this day of the week */
-			for (temp_timerange = current_timeperiod->days[weekday]; temp_timerange != NULL; temp_timerange = temp_timerange->next) {
-
-#ifdef DEBUG
-				printf("<li>Matching in timerange[%d]: %d -> %d (%ld -> %ld)<br>\n", weekday, temp_timerange->range_start, temp_timerange->range_end, temp_start, temp_end);
-#endif
-				start = max(temp_timerange->range_start, temp_start);
-				end = min(temp_timerange->range_end, temp_end);
-
-				if (start < end) {
-					temp_duration += end - start;
-#ifdef DEBUG
-					printf("<li>Matched time: %ld -> %ld = %d<br>\n", start, end, temp_duration);
-#endif
-				}
-#ifdef DEBUG
-				else {
-					printf("<li>Ignored time: %ld -> %ld<br>\n", start, end);
-				}
-#endif
-			}
-
-			state_duration += temp_duration;
-			temp_start = 0;
-			midnight_today += 86400;
-
-			if (++weekday > 6) {
-				weekday = 0;
-			}
-		}
-	}
-
-	/* no report timeperiod was selected (assume 24x7) */
-	else {
-		/* calculate time in this state */
-		state_duration = (unsigned long)(end_time - start_time);
-	}
+	state_duration = compute_state_duration_from_timeperiod(current_timeperiod, start_time, end_time);
 
 	/* can't graph if we don't have data... */
 	if (first_state == AS_NO_DATA || last_state == AS_NO_DATA) {
@@ -2440,7 +2449,7 @@ void compute_subject_downtime_part_times(time_t start_time, time_t end_time, int
 		return;
 	}
 
-	state_duration = (unsigned long)(end_time - start_time);
+	state_duration = compute_state_duration_from_timeperiod(current_timeperiod, start_time, end_time);
 
 	switch (subject_state) {
 

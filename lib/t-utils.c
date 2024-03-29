@@ -1,8 +1,8 @@
 #include "t-utils.h"
 
 const char *cyan = "", *red = "", *green = "", *yellow = "", *reset = "";
-uint passed, failed, t_verbose = 0;
-static uint t_depth;
+unsigned int passed, failed, t_verbose = 0;
+static unsigned int t_depth;
 static const char *indent_str = "  ";
 
 /* can't be used when a or b has side-effects, but we don't care here */
@@ -27,9 +27,9 @@ void t_set_colors(int force)
 	}
 }
 
-static void t_indent(uint depth)
+static void t_indent(unsigned int depth)
 {
-	uint i;
+	unsigned int i;
 	for (i = 0; i < depth; i++) {
 		printf("%s", indent_str);
 	}
@@ -136,7 +136,7 @@ int ok_int(int a, int b, const char *name)
 	return TEST_FAIL;
 }
 
-int ok_uint(uint a, uint b, const char *name)
+int ok_unsigned int(unsigned int a, unsigned int b, const char *name)
 {
 	if (a == b) {
 		t_pass("%s", name);

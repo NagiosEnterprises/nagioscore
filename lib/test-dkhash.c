@@ -68,7 +68,7 @@ static struct test_data *ddup(int x, int i, int j)
 }
 
 struct dkhash_check {
-	uint entries, count, max, added, removed;
+	unsigned int entries, count, max, added, removed;
 	int ent_delta, addrm_delta;
 };
 

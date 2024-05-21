@@ -1116,7 +1116,7 @@ static inline char* encode_character(char in, char *outcp, int outcp_len, char *
 	if (out_len + 6 >= outcp_len - 1)
 		return outcp;
 
-	sprintf(outcp, "&#%u", (unsigned int)in);
+	sprintf(outcp, "&#%u;", (unsigned int)in);
 	outcp += strlen(outcp);
 
 	return outcp;

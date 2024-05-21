@@ -4,6 +4,10 @@ Nagios Core 4 Change Log
 
 4.5.2 - 2024-04-30
 ------------------
+* Fix html encoding of some ascii characters (#813) (Dylan Anderson)
+
+4.5.2 - 2024-04-30
+------------------
 * Fix handling of timeperiods w/ downtime availability calculations in the Availability CGI report (Sebastian Wolf)
 * Fix build when compiling against musl libc (#952) (Sebastian Wolf)
 * Fix downtime comment using current time instead of the downtime's entry time (#910) (Dylan Anderson)

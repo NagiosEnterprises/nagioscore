@@ -30,7 +30,7 @@ clean:
 	rm -f js/*~
 
 distclean: clean
-	rm -f Makefile config.inc.php
+	rm -rf Makefile config.inc.php
 
 devclean: distclean
 

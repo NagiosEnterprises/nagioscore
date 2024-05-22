@@ -18,7 +18,6 @@ COMMAND_OPTS=@COMMAND_OPTS@
 
 CP=@CP@
 
-
 clean:
 	rm -f *.cfg *.sub core
 	rm -f *~

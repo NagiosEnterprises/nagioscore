@@ -37,8 +37,7 @@ devclean: distclean
 
 install:
 	# Remove old files
-	rm -f $(DESTDIR)$(HTMLDIR)/*.html
-	rm -rf $(DESTDIR)$(HTMLDIR)/js/*
+	rm -f $(DESTDIR)$(HTMLDIR)/*
 
 	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(HTMLDIR)
 	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(HTMLDIR)/media

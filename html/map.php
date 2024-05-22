@@ -68,7 +68,7 @@
 		<script type="text/javascript" src="js/map-form.js"></script>
 		<script type="text/javascript" src="js/nagios-decorations.js"></script>
 		<script type="text/javascript" src="js/nagios-time.js"></script>
-		<script type="text/javascript" src="js/jquery-1.12.4.min.js"></script>
+		<script type="text/javascript" src="js/jquery-3.7.1.min.js"></script>
 		<script type="text/javascript" src="js/nag_funcs.js"></script>
 
 		<?php if ($cfg["enable_page_tour"]) { ?>

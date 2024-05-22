@@ -18,7 +18,6 @@ COMMAND_OPTS=@COMMAND_OPTS@
 
 CP=@CP@
 
-all html:
 
 clean:
 	rm -f *.cfg *.sub core
@@ -30,10 +29,6 @@ clean:
 	rm -f docs/images/*.jbf
 	rm -f stylesheets/*~
 	rm -f js/*~
-	rm -rf angularjs/angular-1.3.9
-	rm -rf angularjs/ui-utils-0.2.3
-	rm -rf bootstrap-3.3.7
-	rm -rf d3
 
 distclean: clean
 	rm -f Makefile config.inc.php
@@ -41,6 +36,10 @@ distclean: clean
 devclean: distclean
 
 install:
+	# Remove old files
+	rm -f $(DESTDIR)$(HTMLDIR)/*.html
+	rm -rf $(DESTDIR)$(HTMLDIR)/js/*
+
 	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(HTMLDIR)
 	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(HTMLDIR)/media
 	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(HTMLDIR)/stylesheets
@@ -54,13 +53,6 @@ install:
 	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(HTMLDIR)/ssi
 	$(INSTALL) -m 664 $(INSTALL_OPTS) $(srcdir)/robots.txt $(DESTDIR)$(HTMLDIR)
 #	$(INSTALL) -m 664 $(INSTALL_OPTS) $(srcdir)/docs/robots.txt $(DESTDIR)$(HTMLDIR)/docs
-# Remove old files
-	rm -f $(DESTDIR)$(HTMLDIR)/index.html
-	rm -f $(DESTDIR)$(HTMLDIR)/main.html
-	rm -f $(DESTDIR)$(HTMLDIR)/side.html
-	rm -f $(DESTDIR)$(HTMLDIR)/map.html
-	rm -f $(DESTDIR)$(HTMLDIR)/rss-*
-	rm -rf $(DESTDIR)$(HTMLDIR)/include/rss
 	$(INSTALL) -m 664 $(INSTALL_OPTS) $(srcdir)/jsonquery.html $(DESTDIR)$(HTMLDIR)
 
 	for file in *.php; \

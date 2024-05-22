@@ -30,13 +30,13 @@ clean:
 	rm -f js/*~
 
 distclean: clean
-	rm -rf Makefile config.inc.php
+	rm -f Makefile config.inc.php
 
 devclean: distclean
 
 install:
 	# Remove old files
-	rm -f $(DESTDIR)$(HTMLDIR)/*
+	rm -rf $(DESTDIR)$(HTMLDIR)/*
 
 	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(HTMLDIR)
 	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(HTMLDIR)/media

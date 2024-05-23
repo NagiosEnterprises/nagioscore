@@ -1659,7 +1659,7 @@ void display_info_table(const char *title, int refresh, authdata *current_authda
 	if(refresh == TRUE)
 		printf("Updated every %d seconds<br>\n", refresh_rate);
 
-	printf("Nagios&reg; Core&trade; %s - <A HREF='https://www.nagios.org' TARGET='_new' REL='nofollow' CLASS='homepageURL'>www.nagios.org</A><BR>\n", PROGRAM_VERSION);
+	printf("Nagios&reg; Core&trade; %s - <A HREF='https://www.nagios.org' TARGET='_new' CLASS='homepageURL'>www.nagios.org</A><BR>\n", PROGRAM_VERSION);
 
 	if(current_authdata != NULL)
 		printf("Logged in as <i>%s</i><BR>\n", (!strcmp(current_authdata->username, "")) ? "?" : current_authdata->username);

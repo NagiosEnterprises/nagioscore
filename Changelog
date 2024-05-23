@@ -2,6 +2,10 @@
 Nagios Core 4 Change Log
 ########################
 
+4.5.3 - 2024-XX-XX
+------------------
+* Update jQuery (#960) (Dylan Anderson)
+
 4.5.2 - 2024-04-30
 ------------------
 * Fix handling of timeperiods w/ downtime availability calculations in the Availability CGI report (Sebastian Wolf)

@@ -35,9 +35,6 @@ distclean: clean
 devclean: distclean
 
 install:
-	# Remove old files
-	rm -rf $(DESTDIR)$(HTMLDIR)/*
-
 	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(HTMLDIR)
 	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(HTMLDIR)/media
 	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(HTMLDIR)/stylesheets
@@ -52,6 +49,49 @@ install:
 	$(INSTALL) -m 664 $(INSTALL_OPTS) $(srcdir)/robots.txt $(DESTDIR)$(HTMLDIR)
 #	$(INSTALL) -m 664 $(INSTALL_OPTS) $(srcdir)/docs/robots.txt $(DESTDIR)$(HTMLDIR)/docs
 	$(INSTALL) -m 664 $(INSTALL_OPTS) $(srcdir)/jsonquery.html $(DESTDIR)$(HTMLDIR)
+# Remove old files
+	rm -f $(DESTDIR)$(HTMLDIR)/index.html
+	rm -f $(DESTDIR)$(HTMLDIR)/main.html
+	rm -f $(DESTDIR)$(HTMLDIR)/side.html
+	rm -f $(DESTDIR)$(HTMLDIR)/map.html
+	rm -f $(DESTDIR)$(HTMLDIR)/rss-*
+	rm -f $(DESTDIR)$(HTMLDIR)/graph-header.html
+	rm -f $(DESTDIR)$(HTMLDIR)/histogram.html
+	rm -f $(DESTDIR)$(HTMLDIR)/histogram-form.html
+	rm -f $(DESTDIR)$(HTMLDIR)/histogram-graph.html
+	rm -f $(DESTDIR)$(HTMLDIR)/histogram-links.html
+	rm -f $(DESTDIR)$(HTMLDIR)/infobox.html
+	rm -f $(DESTDIR)$(HTMLDIR)/map.php
+	rm -f $(DESTDIR)$(HTMLDIR)/map-directive.html
+	rm -f $(DESTDIR)$(HTMLDIR)/map-form.html
+	rm -f $(DESTDIR)$(HTMLDIR)/map-links.html
+	rm -f $(DESTDIR)$(HTMLDIR)/map-popup.html
+	rm -f $(DESTDIR)$(HTMLDIR)/trends.html
+	rm -f $(DESTDIR)$(HTMLDIR)/trends-form.html
+	rm -f $(DESTDIR)$(HTMLDIR)/trends-graph.html
+	rm -f $(DESTDIR)$(HTMLDIR)/trends-host-yaxis.html
+	rm -f $(DESTDIR)$(HTMLDIR)/trends-links.html
+	rm -f $(DESTDIR)$(HTMLDIR)/trends-service-yaxis.html
+	rm -f $(DESTDIR)$(HTMLDIR)/js/histogram-events.js
+	rm -f $(DESTDIR)$(HTMLDIR)/js/histogram-form.js
+	rm -f $(DESTDIR)$(HTMLDIR)/js/histogram-graph.js
+	rm -f $(DESTDIR)$(HTMLDIR)/js/histogram.js
+	rm -f $(DESTDIR)$(HTMLDIR)/js/map-directive.js
+	rm -f $(DESTDIR)$(HTMLDIR)/js/map-form.js
+	rm -f $(DESTDIR)$(HTMLDIR)/js/map.js
+	rm -f $(DESTDIR)$(HTMLDIR)/js/nagios-decorations.js
+	rm -f $(DESTDIR)$(HTMLDIR)/js/nagios-time.js
+	rm -f $(DESTDIR)$(HTMLDIR)/js/trends-form.js
+	rm -f $(DESTDIR)$(HTMLDIR)/js/trends-graph.js
+	rm -f $(DESTDIR)$(HTMLDIR)/js/trends.js
+	rm -rf $(DESTDIR)$(HTMLDIR)/include/rss
+	rm -rf $(DESTDIR)$(HTMLDIR)/angularjs
+	rm -rf $(DESTDIR)$(HTMLDIR)/angularjs/angular-1.3.9
+	rm -rf $(DESTDIR)$(HTMLDIR)/angularjs/ui-utils-0.2.3
+	rm -rf $(DESTDIR)$(HTMLDIR)/bootstrap-3.3.7
+	rm -rf $(DESTDIR)$(HTMLDIR)/bootstrap-3.3.7/css
+	rm -rf $(DESTDIR)$(HTMLDIR)/d3
+	rm -rf $(DESTDIR)$(HTMLDIR)/spin
 
 	for file in *.php; \
 	do $(INSTALL) -m 664 $(INSTALL_OPTS) $$file $(DESTDIR)$(HTMLDIR); done

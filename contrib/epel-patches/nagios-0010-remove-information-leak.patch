@@ -142,7 +142,7 @@ diff -up ./html/map.php.remove_3rdparty_links ./html/map.php
 --- ./html/map.php.remove_3rdparty_links	2019-08-29 18:17:32.324544303 +0000
 +++ ./html/map.php	2019-08-29 18:20:48.488341376 +0000
 @@ -71,22 +71,6 @@
- 		<script type="text/javascript" src="js/jquery-1.12.4.min.js"></script>
+ 		<script type="text/javascript" src="js/jquery-3.7.1.min.js"></script>
  		<script type="text/javascript" src="js/nag_funcs.js"></script>
  
 -		<?php if ($cfg["enable_page_tour"]) { ?>

@@ -93,7 +93,7 @@ NAGIOS_BEGIN_DECL
 #define NAGFUNCS_CSS       "nag_funcs.css"
 
 	/********************************* JAVASCRIPT INCLUDES **********************/
-#define JQUERY_JS          "jquery-1.12.4.min.js"
+#define JQUERY_JS          "jquery-3.7.1.min.js"
 #define NAGFUNCS_JS        "nag_funcs.js"
 
 	/********************************* ICONS ************************************/

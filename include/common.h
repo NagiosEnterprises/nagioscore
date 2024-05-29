@@ -353,6 +353,8 @@ NAGIOS_END_DECL
 #define CMD_CHANGE_HOST_EVENT_HANDLER_TIMEPERIOD        175
 #define CMD_CHANGE_SVC_EVENT_HANDLER_TIMEPERIOD         176
 
+#define CMD_SCHEDULE_FORCED_HOST_NOTIFICATION           177
+
 /* custom command introduced in Nagios 3.x */
 #define CMD_CUSTOM_COMMAND                              999
 

@@ -582,6 +582,9 @@ int process_external_command1(char *cmd) {
 	else if(!strcasecmp(command_id, "SCHEDULE_FORCED_HOST_CHECK"))
 		command_type = CMD_SCHEDULE_FORCED_HOST_CHECK;
 
+	else if(!strcasecmp(command_id, "SCHEDULE_FORCED_HOST_NOTIFICATION"))
+		command_type = CMD_SCHEDULE_FORCED_HOST_NOTIFICATION;
+		
 	else if(!strcasecmp(command_id, "SCHEDULE_HOST_DOWNTIME"))
 		command_type = CMD_SCHEDULE_HOST_DOWNTIME;
 	else if(!strcasecmp(command_id, "SCHEDULE_HOST_SVC_DOWNTIME"))
@@ -1213,7 +1216,7 @@ int process_external_command2(int cmd, time_t entry_time, char *args) {
 
 		case CMD_ADD_HOST_COMMENT:
 		case CMD_ADD_SVC_COMMENT:
-			ret= cmd_add_comment(cmd, entry_time, args);
+			ret = cmd_add_comment(cmd, entry_time, args);
 			break;
 
 		case CMD_DEL_HOST_COMMENT:
@@ -1228,7 +1231,7 @@ int process_external_command2(int cmd, time_t entry_time, char *args) {
 
 		case CMD_SCHEDULE_SVC_CHECK:
 		case CMD_SCHEDULE_FORCED_SVC_CHECK:
-			ret =cmd_schedule_check(cmd, args);
+			ret = cmd_schedule_check(cmd, args);
 			break;
 
 		case CMD_SCHEDULE_HOST_SVC_CHECKS:
@@ -1290,6 +1293,10 @@ int process_external_command2(int cmd, time_t entry_time, char *args) {
 
 		case CMD_SCHEDULE_HOST_CHECK:
 		case CMD_SCHEDULE_FORCED_HOST_CHECK:
+			ret = cmd_schedule_check(cmd, args);
+			break;
+
+		case CMD_SCHEDULE_FORCED_HOST_NOTIFICATION:
 			ret = cmd_schedule_check(cmd, args);
 			break;
 

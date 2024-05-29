@@ -2197,12 +2197,12 @@ int cmd_schedule_check(int cmd, char *args) {
 	char *svc_description = NULL;
 	char *author, *comment;
 	time_t delay_time = 0L;
-
+	
 	/* get the host name */
 	if((host_name = my_strtok_with_free(args, ";", FALSE)) == NULL)
 		return ERROR;
 
-	if(cmd == CMD_SCHEDULE_HOST_CHECK || cmd == CMD_SCHEDULE_FORCED_HOST_CHECK || cmd == CMD_SCHEDULE_HOST_SVC_CHECKS || cmd == CMD_SCHEDULE_FORCED_HOST_SVC_CHECKS) {
+	if(cmd == CMD_SCHEDULE_HOST_CHECK || cmd == CMD_SCHEDULE_FORCED_HOST_CHECK || cmd == CMD_SCHEDULE_HOST_SVC_CHECKS || cmd == CMD_SCHEDULE_FORCED_HOST_SVC_CHECKS || cmd == CMD_SCHEDULE_FORCED_HOST_NOTIFICATION) {
 
 		/* verify that the host is valid */
 		if((temp_host = find_host(host_name)) == NULL)
@@ -2230,8 +2230,8 @@ int cmd_schedule_check(int cmd, char *args) {
 	delay_time = strtoul(temp_ptr, NULL, 10);
 
 	/* schedule the host check */
-	if(cmd == CMD_SCHEDULE_HOST_CHECK || cmd == CMD_SCHEDULE_FORCED_HOST_CHECK)
-		schedule_host_check(temp_host, delay_time, (cmd == CMD_SCHEDULE_FORCED_HOST_CHECK) ? CHECK_OPTION_FORCE_EXECUTION : CHECK_OPTION_NONE);
+	if(cmd == CMD_SCHEDULE_HOST_CHECK || cmd == CMD_SCHEDULE_FORCED_HOST_CHECK || cmd == CMD_SCHEDULE_FORCED_HOST_NOTIFICATION)
+		schedule_host_check(temp_host, delay_time, (cmd == CMD_SCHEDULE_FORCED_HOST_CHECK || cmd == CMD_SCHEDULE_FORCED_HOST_NOTIFICATION) ? CHECK_OPTION_FORCE_EXECUTION : CHECK_OPTION_NONE);
 
 	/* schedule service checks */
 	else if(cmd == CMD_SCHEDULE_HOST_SVC_CHECKS || cmd == CMD_SCHEDULE_FORCED_HOST_SVC_CHECKS) {

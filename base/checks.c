@@ -2658,6 +2658,18 @@ inline void schedule_host_check(host *hst, time_t check_time, int options)
 		/* save check options for retention purposes */
 		hst->check_options = options;
 
+		hst->next_notification = get_next_host_notification_time(hst, check_time);
+
+		hst->last_notification = check_time;
+
+		/* update notifications flags */
+		add_notified_on(hst, hst->current_state);
+
+		char *temp_buffer = NULL;
+		asprintf(&temp_buffer, "HOST->NEXT_NOTIFICATION: %lu\n", hst->next_notification);
+		write_to_all_logs(temp_buffer, NSLOG_PASSIVE_CHECK);
+
+
 		/* place the new event in the event queue */
 		temp_event->event_type = EVENT_HOST_CHECK;
 		temp_event->event_data = (void *)hst;

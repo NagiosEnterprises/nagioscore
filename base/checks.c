@@ -1590,10 +1590,17 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 		handle_event = TRUE;
 	}
 
+	int notification_option = NOTIFICATION_OPTION_NONE;
+
+	if (cr->check_options & CHECK_OPTION_FORCE_NOTIFICATION) {
+		notification_option = NOTIFICATION_OPTION_FORCED;
+		send_notification = TRUE;
+	}
+
 	if (send_notification == TRUE) {
 
 		/* send notification */
-		if (service_notification(svc, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE) == OK) {
+		if (service_notification(svc, NOTIFICATION_NORMAL, NULL, NULL, notification_option) == OK) {
 
 			/* log state due to notification event when stalking_options N is set */
 			if (should_stalk_notifications(svc)) {
@@ -2487,7 +2494,7 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 		notification_option = NOTIFICATION_OPTION_FORCED;
 		send_notification = TRUE;
 	}
-	
+
 	if (send_notification == TRUE) {
 
 		/* send notifications */

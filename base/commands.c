@@ -584,6 +584,8 @@ int process_external_command1(char *cmd) {
 
 	else if(!strcasecmp(command_id, "SCHEDULE_FORCED_HOST_NOTIFICATION"))
 		command_type = CMD_SCHEDULE_FORCED_HOST_NOTIFICATION;
+	else if(!strcasecmp(command_id, "SCHEDULE_FORCED_SERVICE_NOTIFICATION"))
+		command_type = CMD_SCHEDULE_FORCED_SERVICE_NOTIFICATION;
 		
 	else if(!strcasecmp(command_id, "SCHEDULE_HOST_DOWNTIME"))
 		command_type = CMD_SCHEDULE_HOST_DOWNTIME;
@@ -1297,6 +1299,7 @@ int process_external_command2(int cmd, time_t entry_time, char *args) {
 			break;
 
 		case CMD_SCHEDULE_FORCED_HOST_NOTIFICATION:
+		case CMD_SCHEDULE_FORCED_SERVICE_NOTIFICATION:
 			ret = cmd_schedule_check(cmd, args);
 			break;
 

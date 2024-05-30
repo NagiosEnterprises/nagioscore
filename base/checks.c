@@ -2487,6 +2487,7 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 		notification_option = NOTIFICATION_OPTION_FORCED;
 		send_notification = TRUE;
 	}
+	
 	if (send_notification == TRUE) {
 
 		/* send notifications */

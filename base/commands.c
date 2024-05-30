@@ -584,8 +584,8 @@ int process_external_command1(char *cmd) {
 
 	else if(!strcasecmp(command_id, "SCHEDULE_FORCED_HOST_NOTIFICATION"))
 		command_type = CMD_SCHEDULE_FORCED_HOST_NOTIFICATION;
-	else if(!strcasecmp(command_id, "SCHEDULE_FORCED_SERVICE_NOTIFICATION"))
-		command_type = CMD_SCHEDULE_FORCED_SERVICE_NOTIFICATION;
+	else if(!strcasecmp(command_id, "SCHEDULE_FORCED_SVC_NOTIFICATION"))
+		command_type = CMD_SCHEDULE_FORCED_SVC_NOTIFICATION;
 		
 	else if(!strcasecmp(command_id, "SCHEDULE_HOST_DOWNTIME"))
 		command_type = CMD_SCHEDULE_HOST_DOWNTIME;
@@ -1299,7 +1299,7 @@ int process_external_command2(int cmd, time_t entry_time, char *args) {
 			break;
 
 		case CMD_SCHEDULE_FORCED_HOST_NOTIFICATION:
-		case CMD_SCHEDULE_FORCED_SERVICE_NOTIFICATION:
+		case CMD_SCHEDULE_FORCED_SVC_NOTIFICATION:
 			ret = cmd_schedule_check(cmd, args);
 			break;
 
@@ -2245,6 +2245,8 @@ int cmd_schedule_check(int cmd, char *args) {
 			schedule_service_check(temp_service, delay_time, (cmd == CMD_SCHEDULE_FORCED_HOST_SVC_CHECKS) ? CHECK_OPTION_FORCE_EXECUTION : CHECK_OPTION_NONE);
 			}
 		}
+	else if(cmd == CMD_SCHEDULE_FORCED_SVC_NOTIFICATION)
+		schedule_service_check(temp_service, delay_time, CHECK_OPTION_FORCE_EXECUTION | CHECK_OPTION_FORCE_NOTIFICATION);
 	else
 		schedule_service_check(temp_service, delay_time, (cmd == CMD_SCHEDULE_FORCED_SVC_CHECK) ? CHECK_OPTION_FORCE_EXECUTION : CHECK_OPTION_NONE);
 

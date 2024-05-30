@@ -1630,6 +1630,10 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 		log_service_event(svc);
 	}
 
+	if (cr->check_options & CHECK_OPTION_FORCE_EVENT_HANDLER) {
+		handle_event = TRUE;
+	}
+
 	if (handle_event == TRUE) {
 		handle_service_event(svc);
 	}
@@ -2529,6 +2533,10 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 
 	if (log_event == TRUE) {
 		log_host_event(hst);
+	}
+
+	if (cr->check_options & CHECK_OPTION_FORCE_EVENT_HANDLER) {
+		handle_event = TRUE;
 	}
 
 	if (handle_event == TRUE) {

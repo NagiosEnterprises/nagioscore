@@ -2212,7 +2212,7 @@ int cmd_schedule_check(int cmd, char *args) {
 	if((host_name = my_strtok_with_free(args, ";", FALSE)) == NULL)
 		return ERROR;
 
-	if(cmd == CMD_SCHEDULE_HOST_CHECK || cmd == CMD_SCHEDULE_FORCED_HOST_CHECK || cmd == CMD_SCHEDULE_HOST_SVC_CHECKS || cmd == CMD_SCHEDULE_FORCED_HOST_SVC_CHECKS || cmd == CMD_SCHEDULE_FORCED_HOST_NOTIFICATION) {
+	if(cmd == CMD_SCHEDULE_HOST_CHECK || cmd == CMD_SCHEDULE_FORCED_HOST_CHECK || cmd == CMD_SCHEDULE_HOST_SVC_CHECKS || cmd == CMD_SCHEDULE_FORCED_HOST_SVC_CHECKS || cmd == CMD_SCHEDULE_FORCED_HOST_NOTIFICATION || cmd == CMD_SCHEDULE_FORCED_HOST_EVENT_HANDLER) {
 
 		/* verify that the host is valid */
 		if((temp_host = find_host(host_name)) == NULL)
@@ -2243,7 +2243,7 @@ int cmd_schedule_check(int cmd, char *args) {
 	if(cmd == CMD_SCHEDULE_HOST_CHECK || cmd == CMD_SCHEDULE_FORCED_HOST_CHECK)
 		schedule_host_check(temp_host, delay_time, (cmd == CMD_SCHEDULE_FORCED_HOST_CHECK) ? CHECK_OPTION_FORCE_EXECUTION : CHECK_OPTION_NONE);
 	else if(cmd == CMD_SCHEDULE_FORCED_HOST_NOTIFICATION || cmd == CMD_SCHEDULE_FORCED_HOST_EVENT_HANDLER)
-		schedule_host_check(temp_host, delay_time, CHECK_OPTION_FORCE_EXECUTION | (cmd == CMD_SCHEDULE_FORCED_HOST_NOTIFICATION) ? CHECK_OPTION_FORCE_NOTIFICATION : CHECK_OPTION_FORCE_EVENT_HANDLER);
+		schedule_host_check(temp_host, delay_time, CHECK_OPTION_FORCE_EXECUTION | ((cmd == CMD_SCHEDULE_FORCED_HOST_NOTIFICATION) ? CHECK_OPTION_FORCE_NOTIFICATION : CHECK_OPTION_FORCE_EVENT_HANDLER));
 	/* schedule service checks */
 	else if(cmd == CMD_SCHEDULE_HOST_SVC_CHECKS || cmd == CMD_SCHEDULE_FORCED_HOST_SVC_CHECKS) {
 		for(temp_servicesmember = temp_host->services; temp_servicesmember != NULL; temp_servicesmember = temp_servicesmember->next) {
@@ -2253,7 +2253,7 @@ int cmd_schedule_check(int cmd, char *args) {
 			}
 		}
 	else if(cmd == CMD_SCHEDULE_FORCED_SVC_NOTIFICATION || cmd == CMD_SCHEDULE_FORCED_SVC_EVENT_HANDLER)
-		schedule_service_check(temp_service, delay_time, CHECK_OPTION_FORCE_EXECUTION | (cmd == CMD_SCHEDULE_FORCED_SVC_NOTIFICATION) ? CHECK_OPTION_FORCE_NOTIFICATION : CHECK_OPTION_FORCE_EVENT_HANDLER);
+		schedule_service_check(temp_service, delay_time, CHECK_OPTION_FORCE_EXECUTION | ((cmd == CMD_SCHEDULE_FORCED_SVC_NOTIFICATION) ? CHECK_OPTION_FORCE_NOTIFICATION : CHECK_OPTION_FORCE_EVENT_HANDLER));
 	else
 		schedule_service_check(temp_service, delay_time, (cmd == CMD_SCHEDULE_FORCED_SVC_CHECK) ? CHECK_OPTION_FORCE_EXECUTION : CHECK_OPTION_NONE);
 

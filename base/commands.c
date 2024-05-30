@@ -2230,9 +2230,10 @@ int cmd_schedule_check(int cmd, char *args) {
 	delay_time = strtoul(temp_ptr, NULL, 10);
 
 	/* schedule the host check */
-	if(cmd == CMD_SCHEDULE_HOST_CHECK || cmd == CMD_SCHEDULE_FORCED_HOST_CHECK || cmd == CMD_SCHEDULE_FORCED_HOST_NOTIFICATION)
-		schedule_host_check(temp_host, delay_time, (cmd == CMD_SCHEDULE_FORCED_HOST_CHECK || cmd == CMD_SCHEDULE_FORCED_HOST_NOTIFICATION) ? CHECK_OPTION_FORCE_EXECUTION : CHECK_OPTION_NONE);
-
+	if(cmd == CMD_SCHEDULE_HOST_CHECK || cmd == CMD_SCHEDULE_FORCED_HOST_CHECK)
+		schedule_host_check(temp_host, delay_time, (cmd == CMD_SCHEDULE_FORCED_HOST_CHECK) ? CHECK_OPTION_FORCE_EXECUTION : CHECK_OPTION_NONE);
+	else if(cmd == CMD_SCHEDULE_FORCED_HOST_NOTIFICATION)
+		schedule_host_check(temp_host, delay_time, CHECK_OPTION_FORCE_EXECUTION | CHECK_OPTION_FORCE_NOTIFICATION);
 	/* schedule service checks */
 	else if(cmd == CMD_SCHEDULE_HOST_SVC_CHECKS || cmd == CMD_SCHEDULE_FORCED_HOST_SVC_CHECKS) {
 		for(temp_servicesmember = temp_host->services; temp_servicesmember != NULL; temp_servicesmember = temp_servicesmember->next) {

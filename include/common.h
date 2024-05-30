@@ -356,6 +356,9 @@ NAGIOS_END_DECL
 #define CMD_SCHEDULE_FORCED_HOST_NOTIFICATION           177
 #define CMD_SCHEDULE_FORCED_SVC_NOTIFICATION            178
 
+#define CMD_SCHEDULE_FORCED_HOST_EVENT_HANDLER          179
+#define CMD_SCHEDULE_FORCED_SVC_EVENT_HANDLER           180
+
 /* custom command introduced in Nagios 3.x */
 #define CMD_CUSTOM_COMMAND                              999
 

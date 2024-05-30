@@ -2481,10 +2481,16 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 		hst->current_attempt = 1;
 	}
 
+	int notification_option = NOTIFICATION_OPTION_NONE;
+
+	if (cr->check_options & CHECK_OPTION_FORCE_NOTIFICATION) {
+		notification_option = NOTIFICATION_OPTION_FORCED;
+		send_notification = TRUE;
+	}
 	if (send_notification == TRUE) {
 
 		/* send notifications */
-		if (host_notification(hst, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE) == OK) {
+		if (host_notification(hst, NOTIFICATION_NORMAL, NULL, NULL, notification_option) == OK) {
 
 			/* log state due to notification event when stalking_options N is set */
 			if (should_stalk_notifications(hst)) {
@@ -2657,18 +2663,6 @@ inline void schedule_host_check(host *hst, time_t check_time, int options)
 
 		/* save check options for retention purposes */
 		hst->check_options = options;
-
-		hst->next_notification = get_next_host_notification_time(hst, check_time);
-
-		hst->last_notification = check_time;
-
-		/* update notifications flags */
-		add_notified_on(hst, hst->current_state);
-
-		char *temp_buffer = NULL;
-		asprintf(&temp_buffer, "HOST->NEXT_NOTIFICATION: %lu\n", hst->next_notification);
-		write_to_all_logs(temp_buffer, NSLOG_PASSIVE_CHECK);
-
 
 		/* place the new event in the event queue */
 		temp_event->event_type = EVENT_HOST_CHECK;

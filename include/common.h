@@ -434,7 +434,7 @@ extern const char *cmd_error_strerror(int error_code);
 #define CHECK_OPTION_ORPHAN_CHECK       4       /* this is an orphan check */
 #define CHECK_OPTION_DEPENDENCY_CHECK   8       /* dependency check. different scheduling rules apply */
 #define CHECK_OPTION_FORCE_NOTIFICATION 16      /* force notification to send on this check */
-#define CHECK_OPTION_FORCE_EVENT_HANDLER 32
+#define CHECK_OPTION_FORCE_EVENT_HANDLER 32     /* force event handler to run on this check */
 
 
 /**************************** PROGRAM MODES ******************************/

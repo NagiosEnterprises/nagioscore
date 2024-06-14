@@ -7,7 +7,7 @@ Nagios Core 4 Change Log
 * Update jQuery (#960) (Dylan Anderson)
 * Remove pages using outdated AngularJS framework (#960) (Dylan Anderson)
 * Fix html encoding of some ascii characters (#813) (Dylan Anderson)
-* Updated several page links to use 'nofollow' (#965) - (Griffin Westerman) 
+* Updated several page links to use 'nofollow' (#965) - (Griffin Westerman)
 
 4.5.2 - 2024-04-30
 ------------------

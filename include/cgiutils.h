@@ -24,6 +24,7 @@
 #include "logging.h"
 #include "objects.h"
 #include "cgiauth.h"
+#include "locations.h"
 
 NAGIOS_BEGIN_DECL
 
@@ -52,7 +53,7 @@ NAGIOS_BEGIN_DECL
 #ifdef LEGACY_GRAPHICAL_CGIS
 #define TRENDS_CGI		"trends.cgi"
 #else
-#define TRENDS_CGI		"../trends.html"
+#define TRENDS_CGI		DEFAULT_URL_HTML_PATH "/trends.html"
 #define LEGACY_TRENDS_CGI		"trends.cgi"
 #endif
 #define AVAIL_CGI		"avail.cgi"
@@ -62,7 +63,7 @@ NAGIOS_BEGIN_DECL
 #ifdef LEGACY_GRAPHICAL_CGIS
 #define HISTOGRAM_CGI		"histogram.cgi"
 #else
-#define HISTOGRAM_CGI		"../histogram.html"
+#define HISTOGRAM_CGI		DEFAULT_URL_HTML_PATH "/histogram.html"
 #define LEGACY_HISTOGRAM_CGI		"histogram.cgi"
 #endif
 #define CHECKSANITY_CGI	   	"checksanity.cgi"

@@ -5392,6 +5392,9 @@ void clear_host_flapping_state(host *hst) {
 		/* should we send a recovery notification? */
 		if (hst->current_state == HOST_UP && hst->check_flapping_recovery_notification == TRUE) {
 			host_notification(hst, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE);
+			/* Similar to what happens when a host recovers in handle_async_host_check_result */
+			hst->current_notification_number = 0;
+			hst->notified_on = 0;
 		}
 	}
 
@@ -5449,6 +5452,9 @@ void clear_service_flapping_state(service *svc) {
 		/* should we send a recovery notification? */
 		if (svc->current_state == STATE_OK && svc->check_flapping_recovery_notification == TRUE) {
 			service_notification(svc, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE);
+			/* Similar to what happens when a service recovers in handle_async_service_check_result */
+			svc->current_notification_number = 0;
+			svc->notified_on = 0;
 		}
 	}
 

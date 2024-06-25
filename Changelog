@@ -2,6 +2,10 @@
 Nagios Core 4 Change Log
 ########################
 
+4.5.4 - 2024-XX-XX
+------------------
+* Send a recovery notification if the object recovered while flapping (#847) (Dylan Anderson)
+
 4.5.3 - 2024-06-11 
 ------------------
 * Update jQuery (#960) (Dylan Anderson)   

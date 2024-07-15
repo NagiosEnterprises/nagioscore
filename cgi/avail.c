@@ -4316,11 +4316,7 @@ void display_host_availability(void)
 			printf("&assumestateretention=%s&assumeinitialstates=%s", (assume_state_retention == TRUE) ? "yes" : "no", (assume_initial_states == TRUE) ? "yes" : "no");
 			printf("&assumestatesduringnotrunning=%s&initialassumedhoststate=%d", (assume_states_during_notrunning == TRUE) ? "yes" : "no", initial_assumed_host_state);
 			printf("&backtrack=%d'>", backtrack_archives);
-#ifdef LEGACY_GRAPHICAL_CGIS
 			printf("<img src='%s?createimage&smallimage&host=%s", TRENDS_CGI, url_encode(host_name));
-#else
-			printf("<img src='%s?createimage&smallimage&host=%s", LEGACY_TRENDS_CGI, url_encode(host_name));
-#endif
 			printf("&t1=%lu&t2=%lu&includesoftstates=%s", t1, t2, (include_soft_states == TRUE) ? "yes" : "no");
 			printf("&assumestateretention=%s&assumeinitialstates=%s", (assume_state_retention == TRUE) ? "yes" : "no", (assume_initial_states == TRUE) ? "yes" : "no");
 			printf("&assumestatesduringnotrunning=%s&initialassumedhoststate=%d", (assume_states_during_notrunning == TRUE) ? "yes" : "no", initial_assumed_host_state);
@@ -4933,11 +4929,7 @@ void display_service_availability(void)
 			printf("&assumestateretention=%s&assumeinitialstates=%s", (assume_state_retention == TRUE) ? "yes" : "no", (assume_initial_states == TRUE) ? "yes" : "no");
 			printf("&assumestatesduringnotrunning=%s&initialassumedservicestate=%d", (assume_states_during_notrunning == TRUE) ? "yes" : "no", initial_assumed_service_state);
 			printf("&backtrack=%d'>", backtrack_archives);
-#ifdef LEGACY_GRAPHICAL_CGIS
 			printf("<img src='%s?createimage&smallimage&host=%s", TRENDS_CGI, url_encode(host_name));
-#else
-			printf("<img src='%s?createimage&smallimage&host=%s", LEGACY_TRENDS_CGI, url_encode(host_name));
-#endif
 			printf("&service=%s&t1=%lu&t2=%lu", url_encode(svc_description), t1, t2);
 			printf("&includesoftstates=%s&assumestateretention=%s", (include_soft_states == TRUE) ? "yes" : "no", (assume_state_retention == TRUE) ? "yes" : "no");
 			printf("&assumeinitialstates=%s&assumestatesduringnotrunning=%s", (assume_initial_states == TRUE) ? "yes" : "no", (assume_states_during_notrunning == TRUE) ? "yes" : "no");

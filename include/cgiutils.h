@@ -24,6 +24,7 @@
 #include "logging.h"
 #include "objects.h"
 #include "cgiauth.h"
+#include "locations.h"
 
 NAGIOS_BEGIN_DECL
 

@@ -1014,7 +1014,7 @@ void request_command_data(int cmd) {
 
 		case CMD_ADD_HOST_COMMENT:
 		case CMD_ACKNOWLEDGE_HOST_PROBLEM:
-			printf("<tr><td CLASS='optBoxRequiredItem'>Host Name:</td><td><b>");
+			printf("<tr><td CLASS='optBoxRequiredItem'>Host Name 2:</td><td><b>");
 			printf("<INPUT TYPE='TEXT' NAME='host' VALUE='%s'>", escape_string(host_name));
 			printf("</b></td></tr>\n");
 			if(cmd == CMD_ACKNOWLEDGE_HOST_PROBLEM) {

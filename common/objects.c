@@ -600,7 +600,7 @@ timerange *add_timerange_to_daterange(daterange *drange, unsigned long start_tim
 
 
 /* add a new host definition */
-host *add_host(char *name, char *display_name, char *alias, char *address, char *check_period, int initial_state, double check_interval, double retry_interval, int max_attempts, int notification_options, double notification_interval, double first_notification_delay, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, char *event_handler_period, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_options, int stalking_options, int process_perfdata, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, char *vrml_image, char *statusmap_image, int x_2d, int y_2d, int have_2d_coords, double x_3d, double y_3d, double z_3d, int have_3d_coords, int should_be_drawn, int retain_status_information, int retain_nonstatus_information, int obsess, unsigned int hourly_value) {
+host *add_host(char *name, char *display_name, char *alias, char *address, char *check_period, int initial_state, double check_interval, double retry_interval, int max_attempts, int notification_options, double notification_interval, double first_notification_delay, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, char *event_handler_period, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_options, int stalking_options, int stalking_notify, int process_perfdata, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, char *vrml_image, char *statusmap_image, int x_2d, int y_2d, int have_2d_coords, double x_3d, double y_3d, double z_3d, int have_3d_coords, int should_be_drawn, int retain_status_information, int retain_nonstatus_information, int obsess, unsigned int hourly_value) {
 	host *new_host = NULL;
 	timeperiod *check_tp = NULL, *notify_tp = NULL, *event_handler_tp = NULL;
 	int result = OK;
@@ -684,6 +684,7 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 	new_host->high_flap_threshold = high_flap_threshold;
 	new_host->flap_detection_options = flap_detection_options;
 	new_host->stalking_options = stalking_options;
+	new_host->stalking_notify = (stalking_notify > 0) ? TRUE : FALSE;
 	new_host->process_performance_data = (process_perfdata > 0) ? TRUE : FALSE;
 	new_host->check_freshness = (check_freshness > 0) ? TRUE : FALSE;
 	new_host->freshness_threshold = freshness_threshold;
@@ -1432,7 +1433,7 @@ contactsmember *add_contact_to_contactgroup(contactgroup *grp, char *contact_nam
 
 
 /* add a new service to the list in memory */
-service *add_service(char *host_name, char *description, char *display_name, char *check_period, int initial_state, int max_attempts, int parallelize, int accept_passive_checks, double check_interval, double retry_interval, double notification_interval, double first_notification_delay, char *notification_period, int notification_options, int notifications_enabled, int is_volatile, char *event_handler, int event_handler_enabled, char *event_handler_period, char *check_command, int checks_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_options, int stalking_options, int process_perfdata, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, int retain_status_information, int retain_nonstatus_information, int obsess, unsigned int hourly_value) {
+service *add_service(char *host_name, char *description, char *display_name, char *check_period, int initial_state, int max_attempts, int parallelize, int accept_passive_checks, double check_interval, double retry_interval, double notification_interval, double first_notification_delay, char *notification_period, int notification_options, int notifications_enabled, int is_volatile, char *event_handler, int event_handler_enabled, char *event_handler_period, char *check_command, int checks_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_options, int stalking_options, int stalking_notify, int process_perfdata, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, int retain_status_information, int retain_nonstatus_information, int obsess, unsigned int hourly_value) {
 	host *h;
 	timeperiod *cp = NULL, *np = NULL, *ep = NULL;
 	service *new_service = NULL;
@@ -1539,6 +1540,7 @@ service *add_service(char *host_name, char *description, char *display_name, cha
 	new_service->high_flap_threshold = high_flap_threshold;
 	new_service->flap_detection_options = flap_detection_options;
 	new_service->stalking_options = stalking_options;
+	new_service->stalking_notify = (stalking_notify > 0) ? TRUE : FALSE;
 	new_service->process_performance_data = (process_perfdata > 0) ? TRUE : FALSE;
 	new_service->check_freshness = (check_freshness > 0) ? TRUE : FALSE;
 	new_service->freshness_threshold = freshness_threshold;
@@ -3302,6 +3304,7 @@ void fcache_host(FILE *fp, host *temp_host)
 	fprintf(fp, "\tnotification_interval\t%f\n", temp_host->notification_interval);
 	fprintf(fp, "\tfirst_notification_delay\t%f\n", temp_host->first_notification_delay);
 	fprintf(fp, "\tstalking_options\t%s\n", opts2str(temp_host->stalking_options, host_flag_map, 'u'));
+	fprintf(fp, "\tstalking_notify\t%d\n", temp_host->stalking_notify);
 	fprintf(fp, "\tprocess_perf_data\t%d\n", temp_host->process_performance_data);
 	if(temp_host->icon_image)
 		fprintf(fp, "\ticon_image\t%s \n", temp_host->icon_image);
@@ -3390,6 +3393,7 @@ void fcache_service(FILE *fp, service *temp_service)
 	fprintf(fp, "\tnotification_interval\t%f\n", temp_service->notification_interval);
 	fprintf(fp, "\tfirst_notification_delay\t%f\n", temp_service->first_notification_delay);
 	fprintf(fp, "\tstalking_options\t%s\n", opts2str(temp_service->stalking_options, service_flag_map, 'o'));
+	fprintf(fp, "\tstalking_notify\t%d\n", temp_service->stalking_notify);
 	fprintf(fp, "\tprocess_perf_data\t%d\n", temp_service->process_performance_data);
 	if(temp_service->icon_image)
 		fprintf(fp, "\ticon_image\t%s \n", temp_service->icon_image);

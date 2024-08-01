@@ -1578,6 +1578,9 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 		svc->current_problem_id = 0L;
 	}
 
+	/* initialize notification type for sending service notifications */
+	int notification_type = NOTIFICATION_NORMAL;
+
 	/* volatile service gets everything in non-ok hard state */
 	if ((svc->current_state != STATE_OK) 
 		&& (svc->state_type == HARD_STATE) 
@@ -1597,6 +1600,7 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 
                 if (svc->stalking_notify == TRUE && svc->state_type == HARD_STATE) {
 			send_notification = TRUE;
+			notification_type = NOTIFICATION_STALKING;
 			log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Notifying due to state stalking, old: [%s], new: [%s]\n", old_plugin_output, svc->plugin_output);
 		}
 	}
@@ -1605,7 +1609,7 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 	if (send_notification == TRUE) {
 
 		/* send notification */
-		if (service_notification(svc, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE) == OK) {
+		if (service_notification(svc, notification_type, NULL, NULL, NOTIFICATION_OPTION_NONE) == OK) {
 
 			/* log state due to notification event when stalking_options N is set */
 			if (should_stalk_notifications(svc)) {
@@ -2486,19 +2490,23 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 		hst->current_attempt = 1;
 	}
 
+	/* initialize notification type for sending host notifications */
+	int notification_type = NOTIFICATION_NORMAL;
+
 	/* if we're stalking this state type AND the plugin output changed since last check, log it now.. */
 	if (should_stalk(hst) && compare_strings(old_plugin_output, hst->plugin_output)) {
 		log_event = TRUE;
 
 		if (hst->stalking_notify == TRUE && hst->state_type == HARD_STATE) {
                         send_notification = TRUE;
+			notification_type = NOTIFICATION_STALKING;
                 }
 	}
 
 	if (send_notification == TRUE) {
 
 		/* send notifications */
-		if (host_notification(hst, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE) == OK) {
+		if (host_notification(hst, notification_type, NULL, NULL, NOTIFICATION_OPTION_NONE) == OK) {
 
 			/* log state due to notification event when stalking_options N is set */
 			if (should_stalk_notifications(hst)) {

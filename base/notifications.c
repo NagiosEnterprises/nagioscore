@@ -112,7 +112,7 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 	log_debug_info(DEBUGL_NOTIFICATIONS, 0, "Notification viability test passed.\n");
 
 	/* should the notification number be increased? */
-	if(type == NOTIFICATION_NORMAL || (options & NOTIFICATION_OPTION_INCREMENT)) {
+	if((type == NOTIFICATION_NORMAL || type == NOTIFICATION_STALKING) || (options & NOTIFICATION_OPTION_INCREMENT)) {
 		svc->current_notification_number++;
 		increment_notification_number = TRUE;
 		}
@@ -276,7 +276,7 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 		clear_servicegroup_macros_r(&mac);
 		clear_datetime_macros_r(&mac);
 
-		if(type == NOTIFICATION_NORMAL) {
+		if(type == NOTIFICATION_NORMAL || type == NOTIFICATION_STALKING) {
 
 			/* adjust last/next notification time and notification flags if we notified someone */
 			if(contacts_notified > 0) {
@@ -391,6 +391,14 @@ int check_service_notification_viability(service *svc, int type, int options) {
 	if(temp_period == NULL) {
 		temp_period = svc->host_ptr->notification_period_ptr;
 		}
+
+	/* if service should stalk and has stalking notify enabled, bypass next notification schedule */
+	int stalk_notify = FALSE;
+	if(type == NOTIFICATION_STALKING) {
+		svc->next_notification = (time_t)0;
+		type = NOTIFICATION_NORMAL;
+		stalk_notify = TRUE;
+	}
 
 	/* see if the service can have notifications sent out at this time */
 	if(check_time_against_period(current_time, temp_period) == ERROR) {
@@ -591,8 +599,8 @@ int check_service_notification_viability(service *svc, int type, int options) {
 		return ERROR;
 		}
 
-	/* don't notify contacts about this service problem again if the notification interval is set to 0 */
-	if(svc->no_more_notifications == TRUE) {
+	/* don't notify contacts about this service problem again if not stalking and the notification interval is set to 0 */
+	if(stalk_notify == FALSE && svc->no_more_notifications == TRUE) {
 		log_debug_info(DEBUGL_NOTIFICATIONS, 1, "We shouldn't re-notify contacts about this service problem.\n");
 		return ERROR;
 		}
@@ -1072,7 +1080,7 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 	log_debug_info(DEBUGL_NOTIFICATIONS, 0, "Notification viability test passed.\n");
 
 	/* should the notification number be increased? */
-	if(type == NOTIFICATION_NORMAL || (options & NOTIFICATION_OPTION_INCREMENT)) {
+	if((type == NOTIFICATION_NORMAL || type == NOTIFICATION_STALKING) || (options & NOTIFICATION_OPTION_INCREMENT)) {
 		hst->current_notification_number++;
 		increment_notification_number = TRUE;
 		}
@@ -1233,7 +1241,7 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 		clear_hostgroup_macros_r(&mac);
 		clear_datetime_macros_r(&mac);
 
-		if(type == NOTIFICATION_NORMAL) {
+		if(type == NOTIFICATION_NORMAL || type == NOTIFICATION_STALKING) {
 
 			/* adjust last/next notification time and notification flags if we notified someone */
 			if(contacts_notified > 0) {
@@ -1291,7 +1299,6 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 	}
 
 
-
 /* checks viability of sending a host notification */
 int check_host_notification_viability(host *hst, int type, int options) {
 	time_t current_time;
@@ -1314,12 +1321,20 @@ int check_host_notification_viability(host *hst, int type, int options) {
 		return ERROR;
 		}
 
+	/* if host should stalk and has stalking notify enabled, bypass next notification schedule */
+	int stalk_notify = FALSE;
+	if(type == NOTIFICATION_STALKING) {
+		hst->next_notification = (time_t)0;
+		type = NOTIFICATION_NORMAL;
+		stalk_notify = TRUE;
+	}
+
 	/* see if the host can have notifications sent out at this time */
 	if(check_time_against_period(current_time, hst->notification_period_ptr) == ERROR) {
 
 		log_debug_info(DEBUGL_NOTIFICATIONS, 1, "This host shouldn't have notifications sent out at this time.\n");
 
-		/* if this is a normal notification, calculate the next acceptable notification time, once the next valid time range arrives... */
+		/* if this is either a normal or a stalking notification, calculate the next acceptable notification time, once the next valid time range arrives... */
 		if(type == NOTIFICATION_NORMAL) {
 
 			get_next_valid_time(current_time, &timeperiod_start, hst->notification_period_ptr);
@@ -1498,7 +1513,7 @@ int check_host_notification_viability(host *hst, int type, int options) {
 		}
 
 	/* check if we shouldn't renotify contacts about the host problem */
-	if(hst->no_more_notifications == TRUE) {
+	if(stalk_notify == FALSE && hst->no_more_notifications == TRUE) {
 		log_debug_info(DEBUGL_NOTIFICATIONS, 1, "We shouldn't re-notify contacts about this host problem.\n");
 		return ERROR;
 		}

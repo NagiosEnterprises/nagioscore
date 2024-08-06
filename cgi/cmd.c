@@ -2168,6 +2168,14 @@ int commit_command(int cmd) {
 			result = cmd_submitf(cmd, "%s;%lu", host_name, start_time);
 			break;
 
+		case CMD_SCHEDULE_FORCED_HOST_NOTIFICATION:
+		case CMD_SCHEDULE_FORCED_HOST_EVENT_HANDLER:
+			result = cmd_submitf(cmd, "%s;%lu", host_name, start_time);
+			break;
+		case CMD_SCHEDULE_FORCED_SVC_NOTIFICATION:
+		case CMD_SCHEDULE_FORCED_SVC_EVENT_HANDLER:
+			result = cmd_submitf(cmd, "%s;%s;%lu", host_name, service_desc, start_time);
+
 		case CMD_SEND_CUSTOM_HOST_NOTIFICATION:
 			result = cmd_submitf(cmd, "%s;%d", host_name, (force_notification | broadcast_notification));
 			break;

@@ -353,6 +353,12 @@ NAGIOS_END_DECL
 #define CMD_CHANGE_HOST_EVENT_HANDLER_TIMEPERIOD        175
 #define CMD_CHANGE_SVC_EVENT_HANDLER_TIMEPERIOD         176
 
+#define CMD_SCHEDULE_FORCED_HOST_NOTIFICATION           177
+#define CMD_SCHEDULE_FORCED_SVC_NOTIFICATION            178
+
+#define CMD_SCHEDULE_FORCED_HOST_EVENT_HANDLER          179
+#define CMD_SCHEDULE_FORCED_SVC_EVENT_HANDLER           180
+
 /* custom command introduced in Nagios 3.x */
 #define CMD_CUSTOM_COMMAND                              999
 
@@ -427,6 +433,8 @@ extern const char *cmd_error_strerror(int error_code);
 #define CHECK_OPTION_FRESHNESS_CHECK    2       /* this is a freshness check */
 #define CHECK_OPTION_ORPHAN_CHECK       4       /* this is an orphan check */
 #define CHECK_OPTION_DEPENDENCY_CHECK   8       /* dependency check. different scheduling rules apply */
+#define CHECK_OPTION_FORCE_NOTIFICATION 16      /* force notification to send on this check */
+#define CHECK_OPTION_FORCE_EVENT_HANDLER 32     /* force event handler to run on this check */
 
 
 /**************************** PROGRAM MODES ******************************/

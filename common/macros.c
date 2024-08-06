@@ -2467,7 +2467,7 @@ int grab_custom_object_macro_r(nagios_macros *mac, char *macro_name, customvaria
 	customvariablesmember *temp_customvariablesmember = NULL;
 	int result = ERROR;
 
-	if(macro_name == NULL || vars == NULL || output == NULL)
+	if(macro_name == NULL || output == NULL)
 		return ERROR;
 
 	/* get the custom variable */
@@ -2482,6 +2482,12 @@ int grab_custom_object_macro_r(nagios_macros *mac, char *macro_name, customvaria
 			result = OK;
 			break;
 			}
+		}
+
+	/* expand nonexistant custom variables as an empty string */
+	if( result == ERROR ){
+		*output = "";
+		result = OK;
 		}
 
 	return result;

@@ -6,6 +6,7 @@ Nagios Core 4 Change Log
 ------------------
 * Fix inconsistent links for 'View {Trends,Alert Histogram} For This {Host,Service}' (Mauricio Faria de Oliveira)
 * Fix broken links from removing AngularJS pages in 4.5.3 (Dylan Anderson)
+* Expand the custom variable macros to an empty string, if the custom variable does not exist
 
 4.5.3 - 2024-06-11 
 ------------------

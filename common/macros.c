@@ -2484,6 +2484,12 @@ int grab_custom_object_macro_r(nagios_macros *mac, char *macro_name, customvaria
 			}
 		}
 
+	/* expand nonexistant custom variables as an empty string */
+	if( result == ERROR ){
+		*output = "";
+		result = OK;
+		}
+
 	return result;
 	}
 

@@ -5819,7 +5819,7 @@ else
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <stdarg.h>
-va_list ap1,ap2;
+		va_list ap1,ap2;
 int
 main ()
 {
@@ -5849,10 +5849,10 @@ if ${ac_cv_HAVE___VA_COPY+:} false; then :
   $as_echo_n "(cached) " >&6
 else
 
-    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <stdarg.h>
-    va_list ap1,ap2;
+				va_list ap1,ap2;
 int
 main ()
 {
@@ -5930,31 +5930,31 @@ else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-#include <sys/types.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-void foo(const char *format, ...) {
-       va_list ap;
-       int len;
-       char buf[5];
+		#include <sys/types.h>
+		#include <stdarg.h>
+		#include <stdio.h>
+		#include <stdlib.h>
+		#include <string.h>
+		void foo(const char *format, ...) {
+			va_list ap;
+			int len;
+			char buf[5];
 
-       va_start(ap, format);
-       len = vsnprintf(buf, 0, format, ap);
-       va_end(ap);
-       if (len != 5) exit(1);
+			va_start(ap, format);
+			len = vsnprintf(buf, 0, format, ap);
+			va_end(ap);
+			if (len != 5) exit(1);
 
-       va_start(ap, format);
-       len = vsnprintf(0, 0, format, ap);
-       va_end(ap);
-       if (len != 5) exit(1);
+			va_start(ap, format);
+			len = vsnprintf(0, 0, format, ap);
+			va_end(ap);
+			if (len != 5) exit(1);
 
-       if (snprintf(buf, 3, "hello") != 5 || strcmp(buf, "he") != 0) exit(1);
+			if (snprintf(buf, 3, "hello") != 5 || strcmp(buf, "he") != 0) exit(1);
 
-       exit(0);
-}
-int main(void) { foo("hello"); }
+			exit(0);
+		}
+		int main(void) { foo("hello"); }
 
 _ACEOF
 if ac_fn_c_try_run "$LINENO"; then :
@@ -6113,9 +6113,8 @@ $as_echo_n "checking for type of socket size... " >&6; }
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <stdlib.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-
+		#include <sys/types.h>
+		#include <sys/socket.h>
 int
 main ()
 {
@@ -6581,7 +6580,8 @@ $as_echo "no" >&6; }
 fi
 
 
-			$as_echo "#define USE_SSL_DH 1" >>confdefs.h
+
+$as_echo "#define USE_SSL_DH /**/" >>confdefs.h
 
 			# Generate DH parameters
 			if test -f "$sslbin"; then
@@ -6871,14 +6871,13 @@ fi
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #ifdef __STDC__
-#include <sys/time.h>
-#include <sys/resource.h>
-#endif
+		#include <sys/time.h>
+		#include <sys/resource.h>
+		#endif
 int
 main ()
 {
-struct rlimit rlim;
-int ilim = getrlimit(RLIMIT_NPROC, &rlim);
+struct rlimit rlim; int ilim = getrlimit(RLIMIT_NPROC, &rlim);
   ;
   return 0;
 }
@@ -6986,7 +6985,8 @@ fi
 case $IOBROKER_METHOD in
 epoll*)
 	if test "$GLIBC_NEWER_2_4" -eq 1 -a "x$ac_cv_header_sys_epoll_h" = "xyes"; then
-		$as_echo "#define IOBROKER_USES_EPOLL 1" >>confdefs.h
+
+$as_echo "#define IOBROKER_USES_EPOLL /**/" >>confdefs.h
 
 	else
 		echo "\"epoll\" is not available as an iobroker method."
@@ -6996,7 +6996,8 @@ epoll*)
 	;;
 poll*)
 	if test "x$ac_cv_header_sys_poll_h" = "xyes" -o "x$ac_cv_header_poll_h" = "xyes"; then
-		$as_echo "#define IOBROKER_USES_POLL 1" >>confdefs.h
+
+$as_echo "#define IOBROKER_USES_POLL /**/" >>confdefs.h
 
 	else
 		echo "\"poll\" is not available as an iobroker method."
@@ -7006,7 +7007,8 @@ poll*)
 	;;
 select*)
 	if test "x$ac_cv_header_sys_select_h" = "xyes"; then
-		$as_echo "#define IOBROKER_USES_SELECT 1" >>confdefs.h
+
+$as_echo "#define IOBROKER_USES_SELECT /**/" >>confdefs.h
 
 	else
 		echo "\"select\" is not available as an iobroker method."
@@ -7637,44 +7639,13 @@ $as_echo_n "checking for extra flags needed to export symbols... " >&6; }
 		*)
 			save_ldflags="$LDFLAGS"
 			LDFLAGS=-Wl,-export-dynamic
-			cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
+			if ac_fn_c_try_link "$LINENO"; then :
 
-int
-main ()
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
+else
   BROKER_LDFLAGS="$BROKER_LDFLAGS -Wl,-export-dynamic"
-else
-
-				LDFLAGS=-Wl,-Bexport
-				cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-int
-main ()
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  BROKER_LDFLAGS="$BROKER_LDFLAGS -Wl,-Bexport"
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: none" >&5
-$as_echo "none" >&6; }
 fi
 rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
+    conftest$ac_exeext
 			LDFLAGS="$save_ldflags"
 		;;
 	esac
@@ -7836,14 +7807,14 @@ $as_echo_n "checking for type va_list... " >&6; }
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #ifdef __STDC__
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#else
-#include <sys/types.h>
-#include <stdio.h>
-#include <varargs.h>
-#endif
+		#include <stdio.h>
+		#include <stdlib.h>
+		#include <stdarg.h>
+		#else
+		#include <sys/types.h>
+		#include <stdio.h>
+		#include <varargs.h>
+		#endif
 int
 main ()
 {

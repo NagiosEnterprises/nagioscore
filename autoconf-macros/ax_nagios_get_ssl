@@ -289,7 +289,7 @@ if test x$SSL_TYPE != xNONE; then
 
 		if test x$need_dh = xyes; then
 			AC_PATH_PROG(sslbin,openssl,value-if-not-found,$ssl_dir/sbin$PATH_SEPARATOR$ssl_dir/bin$PATH_SEPARATOR$PATH)
-			AC_DEFINE(USE_SSL_DH)
+			AC_DEFINE(USE_SSL_DH, [], [Description])
 			# Generate DH parameters
 			if test -f "$sslbin"; then
 				echo ""

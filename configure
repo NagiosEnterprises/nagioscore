@@ -2874,6 +2874,7 @@ ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
+
 # config.h.in is manually managed so we don't want autoheader to overwrite it when running autoreconf
 ac_config_headers="$ac_config_headers ignored_config.h include/config.h lib/snprintf.h lib/iobroker.h"
 
@@ -4186,6 +4187,8 @@ fi
 
 
 
+# Autoupdate added the next two lines to ensure that your configure
+# script's behavior did not change.  They are probably safe to remove.
 
 ac_header= ac_cache=
 for ac_item in $ac_header_c_list
@@ -4286,9 +4289,6 @@ fi
 printf "%s\n" "$ac_cv_path_GREP" >&6; }
  GREP="$ac_cv_path_GREP"
 
-
-# Autoupdate added the next two lines to ensure that your configure
-# script's behavior did not change.  They are probably safe to remove.
 
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for egrep" >&5
 printf %s "checking for egrep... " >&6; }
@@ -8179,10 +8179,6 @@ else case e in #(
 	LIBS="-lgd -lttf -lpng -ljpeg -lz -lm $LIBS"
 	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-	/* Override any gcc2 internal prototype to avoid an error.  */
-/* We use char because int might match the return type of a gcc2
-    builtin and then its argument prototype would still apply.  */
-char gdImagePng();
 
 int
 main (void)
@@ -8231,10 +8227,6 @@ else case e in #(
 	LIBS="-lgd $ICONV -lpng -ljpeg -lz -lm $LIBS"
 	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-	/* Override any gcc2 internal prototype to avoid an error.  */
-/* We use char because int might match the return type of a gcc2
-    builtin and then its argument prototype would still apply.  */
-char gdImagePng();
 
 int
 main (void)
@@ -8284,10 +8276,6 @@ else case e in #(
 	LIBS="-lgd $ICONV -lz -lm -lpng $LIBS"
 	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-	/* Override any gcc2 internal prototype to avoid an error.  */
-/* We use char because int might match the return type of a gcc2
-    builtin and then its argument prototype would still apply.  */
-char gdImagePng();
 
 int
 main (void)
@@ -8337,10 +8325,6 @@ else case e in #(
 	LIBS="-lgd $ICONV -lpng -lz -lm $LIBS"
 	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-	/* Override any gcc2 internal prototype to avoid an error.  */
-/* We use char because int might match the return type of a gcc2
-    builtin and then its argument prototype would still apply.  */
-char gdImagePng();
 
 int
 main (void)

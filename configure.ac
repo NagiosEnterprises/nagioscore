@@ -4,7 +4,8 @@ dnl Disable caching
 define([AC_CACHE_LOAD],)
 define([AC_CACHE_SAVE],)
 
-AC_INIT(base/nagios.c)
+AC_INIT
+AC_CONFIG_SRCDIR([base/nagios.c])
 # config.h.in is manually managed so we don't want autoheader to overwrite it when running autoreconf
 AC_CONFIG_HEADERS(ignored_config.h include/config.h lib/snprintf.h lib/iobroker.h)
 AC_PREFIX_DEFAULT(/usr/local/nagios)
@@ -31,8 +32,29 @@ AC_PROG_LN_S
 AC_PATH_PROG([STRIP],[strip],[true])
 
 dnl Checks for header files.
-AC_HEADER_STDC
-AC_HEADER_TIME
+m4_warn([obsolete],
+[The preprocessor macro 'STDC_HEADERS' is obsolete.
+  Except in unusual embedded environments, you can safely include all
+  C89 headers unconditionally.])dnl
+# Autoupdate added the next two lines to ensure that your configure
+# script's behavior did not change.  They are probably safe to remove.
+AC_CHECK_INCLUDES_DEFAULT
+AC_PROG_EGREP
+
+m4_warn([obsolete],
+[Update your code to rely only on HAVE_SYS_TIME_H,
+then remove this warning and the obsolete code below it.
+All current systems provide time.h; it need not be checked for.
+Not all systems provide sys/time.h, but those that do, all allow
+you to include it and time.h simultaneously.])dnl
+AC_CHECK_HEADERS_ONCE([sys/time.h])
+# Obsolete code to be removed.
+if test $ac_cv_header_sys_time_h = yes; then
+  AC_DEFINE([TIME_WITH_SYS_TIME],[1],[Define to 1 if you can safely include both <sys/time.h>
+	     and <time.h>.  This macro is obsolete.])
+fi
+# End of obsolete code.
+
 AC_HEADER_SYS_WAIT
 AC_CHECK_HEADERS(arpa/inet.h ctype.h dirent.h errno.h fcntl.h getopt.h grp.h)
 AC_CHECK_HEADERS(libgen.h limits.h math.h netdb.h netinet/in.h pwd.h regex.h)
@@ -49,16 +71,28 @@ AC_STRUCT_TIMEZONE
 AC_TYPE_MODE_T
 AC_TYPE_PID_T
 AC_TYPE_SIZE_T
-AC_TYPE_SIGNAL
+m4_warn([obsolete],
+[your code may safely assume C89 semantics that RETSIGTYPE is void.
+Remove this warning and the 'AC_CACHE_CHECK' when you adjust the code.])dnl
+AC_CACHE_CHECK([return type of signal handlers],[ac_cv_type_signal],[AC_COMPILE_IFELSE(
+[AC_LANG_PROGRAM([#include <sys/types.h>
+#include <signal.h>
+],
+		 [return *(signal (0, 0)) (0) == 1;])],
+		   [ac_cv_type_signal=int],
+		   [ac_cv_type_signal=void])])
+AC_DEFINE_UNQUOTED([RETSIGTYPE],[$ac_cv_type_signal],[Define as the return type of signal handlers
+		    ('int' or 'void').])
+
 AC_TYPE_GETGROUPS
 
 dnl Get Nagios autoconf-macros
-AC_NAGIOS_GET_OS
-AC_NAGIOS_GET_DISTRIB_TYPE
-AC_NAGIOS_GET_INIT
-AC_NAGIOS_GET_INETD
-AC_NAGIOS_GET_PATHS
-AC_NAGIOS_GET_FILES
+AX_NAGIOS_GET_OS
+AX_NAGIOS_GET_DISTRIB_TYPE
+AX_NAGIOS_GET_INIT
+AX_NAGIOS_GET_INETD
+AX_NAGIOS_GET_PATHS
+AX_NAGIOS_GET_FILES
 
 dnl We only have these options available so we need to make them work until there are more
 if test "x$src_init" != "xdefault-init" -a \
@@ -202,7 +236,7 @@ dnl Optional SSL library and include paths
 if test x$check_for_ssl = xyes; then
 	# need_dh should only be set for NRPE
 	#need_dh=yes
-	AC_NAGIOS_GET_SSL
+	AX_NAGIOS_GET_SSL
 fi
 
 dnl Solaris needs rt or posix4 libraries for nanosleep()
@@ -384,8 +418,7 @@ GLIBC_NEWER_2_4=0
 case $host_os in
 linux*)
 	AC_MSG_CHECKING(for glibc at least version 2.4)
-	AC_TRY_CPP(
-		[
+	AC_PREPROC_IFELSE([AC_LANG_SOURCE([[
 #include <stdio.h>
 #if defined(__GLIBC__) && defined(__linux)
 #include <features.h>
@@ -395,10 +428,8 @@ linux*)
 #else
 # error Not using GLIBC
 #endif
-		],
-		[GLIBC_NEWER_2_4=1; AC_MSG_RESULT(yes)],
-		[GLIBC_NEWER_2_4=0; AC_MSG_RESULT(no)]
-	)
+		]])],[GLIBC_NEWER_2_4=1; AC_MSG_RESULT(yes)],[GLIBC_NEWER_2_4=0; AC_MSG_RESULT(no)
+	])
 	if test "$GLIBC_NEWER_2_4" -eq 1; then
 		AC_CHECK_HEADER([sys/epoll.h])
 	fi
@@ -536,21 +567,7 @@ dnl              [, OTHER-LIBRARIES]]])
 	AC_CACHE_VAL(ac_cv_lib_$ac_lib_var,
 	[ac_save_LIBS="$LIBS"
 	LIBS="-l$1 $6 $LIBS"
-	AC_TRY_LINK(dnl
-	ifelse([AC_LANG], [FORTRAN77], ,
-	ifelse([$2], [main], , dnl Avoid conflicting decl of main.
-[/* Override any gcc2 internal prototype to avoid an error.  */
-]ifelse([AC_LANG], CPLUSPLUS, [#ifdef __cplusplus
-extern "C"
-#endif
-])dnl
-[/* We use char because int might match the return type of a gcc2
-    builtin and then its argument prototype would still apply.  */
-char $2();
-])),
-	            [$2()],
-	            eval "ac_cv_lib_$ac_lib_var=yes",
-	            eval "ac_cv_lib_$ac_lib_var=no")
+	AC_LINK_IFELSE([AC_LANG_PROGRAM([[]], [[$2()]])],[eval "ac_cv_lib_$ac_lib_var=yes"],[eval "ac_cv_lib_$ac_lib_var=no"])
 	LIBS="$ac_save_LIBS"
 	])dnl
 	if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then

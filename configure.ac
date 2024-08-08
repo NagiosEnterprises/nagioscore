@@ -416,7 +416,7 @@ AC_ARG_WITH(iobroker,
 case $IOBROKER_METHOD in
 epoll*)
 	if test "$GLIBC_NEWER_2_4" -eq 1 -a "x$ac_cv_header_sys_epoll_h" = "xyes"; then
-		AC_DEFINE([IOBROKER_USES_EPOLL], [], [Description])
+		AC_DEFINE([IOBROKER_USES_EPOLL], [], [iobroker uses epoll method])
 	else
 		echo "\"epoll\" is not available as an iobroker method."
 		echo "Please use one of the other options."
@@ -425,7 +425,7 @@ epoll*)
 	;;
 poll*)
 	if test "x$ac_cv_header_sys_poll_h" = "xyes" -o "x$ac_cv_header_poll_h" = "xyes"; then
-		AC_DEFINE([IOBROKER_USES_POLL], [], [Description])
+		AC_DEFINE([IOBROKER_USES_POLL], [], [iobroker uses poll method])
 	else
 		echo "\"poll\" is not available as an iobroker method."
 		echo "Please use one of the other options."
@@ -434,7 +434,7 @@ poll*)
 	;;
 select*)
 	if test "x$ac_cv_header_sys_select_h" = "xyes"; then
-		AC_DEFINE([IOBROKER_USES_SELECT], [], [Description])
+		AC_DEFINE([IOBROKER_USES_SELECT], [], [iobroker uses select method])
 	else
 		echo "\"select\" is not available as an iobroker method."
 		echo "Please use one of the other options."

@@ -2468,7 +2468,8 @@ ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
-ac_config_headers="$ac_config_headers include/config.h lib/snprintf.h lib/iobroker.h"
+# config.h.in is manually managed so we don't want autoheader to overwrite it when running autoreconf
+ac_config_headers="$ac_config_headers ignored_config.h include/config.h lib/snprintf.h lib/iobroker.h"
 
 
 
@@ -8569,6 +8570,7 @@ cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
 for ac_config_target in $ac_config_targets
 do
   case $ac_config_target in
+    "ignored_config.h") CONFIG_HEADERS="$CONFIG_HEADERS ignored_config.h" ;;
     "include/config.h") CONFIG_HEADERS="$CONFIG_HEADERS include/config.h" ;;
     "lib/snprintf.h") CONFIG_HEADERS="$CONFIG_HEADERS lib/snprintf.h" ;;
     "lib/iobroker.h") CONFIG_HEADERS="$CONFIG_HEADERS lib/iobroker.h" ;;

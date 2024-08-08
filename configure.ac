@@ -5,7 +5,8 @@ define([AC_CACHE_LOAD],)
 define([AC_CACHE_SAVE],)
 
 AC_INIT(base/nagios.c)
-AC_CONFIG_HEADERS(include/config.h lib/snprintf.h lib/iobroker.h)
+# config.h.in is manually managed so we don't want autoheader to overwrite it when running autoreconf
+AC_CONFIG_HEADERS(ignored_config.h include/config.h lib/snprintf.h lib/iobroker.h)
 AC_PREFIX_DEFAULT(/usr/local/nagios)
 
 PKG_NAME=nagios

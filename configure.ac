@@ -567,7 +567,7 @@ dnl              [, OTHER-LIBRARIES]]])
 	AC_CACHE_VAL(ac_cv_lib_$ac_lib_var,
 	[ac_save_LIBS="$LIBS"
 	LIBS="-l$1 $6 $LIBS"
-	AC_LINK_IFELSE([AC_LANG_PROGRAM([[]], [[$2()]])],[eval "ac_cv_lib_$ac_lib_var=yes"],[eval "ac_cv_lib_$ac_lib_var=no"])
+	AC_LINK_IFELSE([AC_LANG_PROGRAM([[ifelse($2, main, ,  /* We use char because int might match the return type of a gcc2 builtin and then its argument prototype would still apply.  */ char $2(); )]], [[$2()]])],[eval "ac_cv_lib_$ac_lib_var=yes"],[eval "ac_cv_lib_$ac_lib_var=no"])
 	LIBS="$ac_save_LIBS"
 	])dnl
 	if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then

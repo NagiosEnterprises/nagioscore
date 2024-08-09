@@ -7355,16 +7355,6 @@ func_mode_link ()
 	    *" $arg "*) ;;
 	    * ) func_append new_inherited_linker_flags " $arg" ;;
 	esac
-
-	# As we are forced to pass -nostdlib to g++ during linking, the option
-	# -pthread{,s} is not in effect;  add the -lpthread to $deplist
-	# explicitly to link correctly.
-	if test "$tagname" = CXX -a x"$with_gcc" = xyes; then
-	  case "$arg" in
-	    -pthread*) func_append deplibs " -lpthread" ;;
-	  esac
-	fi
-
 	continue
 	;;
 
@@ -7568,11 +7558,10 @@ func_mode_link ()
       # -fsanitize=*         Clang/GCC memory and address sanitizer
       # -fuse-ld=*           Linker select flags for GCC
       # -Wa,*                Pass flags directly to the assembler
-      # -Werror, -Werror=*   Report (specified) warnings as errors
       -64|-mips[0-9]|-r[0-9][0-9]*|-xarch=*|-xtarget=*|+DA*|+DD*|-q*|-m*| \
       -t[45]*|-txscale*|-p|-pg|--coverage|-fprofile-*|-F*|@*|-tp=*|--sysroot=*| \
       -O*|-g*|-flto*|-fwhopr*|-fuse-linker-plugin|-fstack-protector*|-stdlib=*| \
-      -specs=*|-fsanitize=*|-fuse-ld=*|-Wa,*|-Werror|-Werror=*)
+      -specs=*|-fsanitize=*|-fuse-ld=*|-Wa,*)
         func_quote_arg pretty "$arg"
 	arg=$func_quote_arg_result
         func_append compile_command " $arg"
@@ -10205,14 +10194,9 @@ EOF
 	      fi
 	      func_append delfiles " $output"
 
-	  # Set up a command to remove the reloadable object files
-	  # after they are used.
-	  i=0
-	  while test "$i" -lt "$k"
-	  do
-	    i=`expr $i + 1`
-	    delfiles="$delfiles $output_objdir/$save_output-${i}.$objext"
-	  done
+	    else
+	      output=
+	    fi
 
 	    ${skipped_export-false} && {
 	      func_verbose "generating symbol list for '$libname.la'"

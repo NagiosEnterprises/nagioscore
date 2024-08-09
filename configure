@@ -8179,7 +8179,10 @@ else case e in #(
 	LIBS="-lgd -lttf -lpng -ljpeg -lz -lm $LIBS"
 	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-ifelse(gdImagePng, main, ,  /* We use char because int might match the return type of a gcc2 builtin and then its argument prototype would still apply.  */ char gdImagePng(); )
+	/* We use char because int might match the return type of a gcc2
+    builtin and then its argument prototype would still apply.  */
+char gdImagePng();
+
 int
 main (void)
 {
@@ -8227,7 +8230,10 @@ else case e in #(
 	LIBS="-lgd $ICONV -lpng -ljpeg -lz -lm $LIBS"
 	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-ifelse(gdImagePng, main, ,  /* We use char because int might match the return type of a gcc2 builtin and then its argument prototype would still apply.  */ char gdImagePng(); )
+	/* We use char because int might match the return type of a gcc2
+    builtin and then its argument prototype would still apply.  */
+char gdImagePng();
+
 int
 main (void)
 {
@@ -8276,7 +8282,10 @@ else case e in #(
 	LIBS="-lgd $ICONV -lz -lm -lpng $LIBS"
 	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-ifelse(gdImagePng, main, ,  /* We use char because int might match the return type of a gcc2 builtin and then its argument prototype would still apply.  */ char gdImagePng(); )
+	/* We use char because int might match the return type of a gcc2
+    builtin and then its argument prototype would still apply.  */
+char gdImagePng();
+
 int
 main (void)
 {
@@ -8325,7 +8334,10 @@ else case e in #(
 	LIBS="-lgd $ICONV -lpng -lz -lm $LIBS"
 	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-ifelse(gdImagePng, main, ,  /* We use char because int might match the return type of a gcc2 builtin and then its argument prototype would still apply.  */ char gdImagePng(); )
+	/* We use char because int might match the return type of a gcc2
+    builtin and then its argument prototype would still apply.  */
+char gdImagePng();
+
 int
 main (void)
 {

@@ -1,0 +1,293 @@
+/* include/ignored_config.h.in.  Generated from configure.ac by autoheader.  */
+
+/* group name to run nagios */
+#undef DEFAULT_NAGIOS_GROUP
+
+/* user name to run nagios */
+#undef DEFAULT_NAGIOS_USER
+
+/* System has RLIMIT_PROC */
+#undef DETECT_RLIMIT_PROBLEM
+
+/* defined if user enabled NERD (radio dispatcher) */
+#undef ENABLE_NERD
+
+/* Define to the type of elements in the array argument to 'getgroups'.
+   Usually this is either 'int' or 'gid_t'. */
+#undef GETGROUPS_T
+
+/* Define to 1 if you have the <arpa/inet.h> header file. */
+#undef HAVE_ARPA_INET_H
+
+/* Define if system has C99 compatible vsnprintf */
+#undef HAVE_C99_VSNPRINTF
+
+/* Define to 1 if you have the <ctype.h> header file. */
+#undef HAVE_CTYPE_H
+
+/* Define to 1 if you have the declaration of 'tzname', and to 0 if you don't.
+   */
+#undef HAVE_DECL_TZNAME
+
+/* Define to 1 if you have the <dirent.h> header file. */
+#undef HAVE_DIRENT_H
+
+/* Which loader library should we use? libtdl or dl? */
+#undef HAVE_DLFCN_H
+
+/* Define to 1 if you have the <errno.h> header file. */
+#undef HAVE_ERRNO_H
+
+/* Define to 1 if you have the <fcntl.h> header file. */
+#undef HAVE_FCNTL_H
+
+/* Define if your gd library has gdImageCreateTrueColor */
+#undef HAVE_GDIMAGECREATETRUECOLOR
+
+/* Define to 1 if you have the <getopt.h> header file. */
+#undef HAVE_GETOPT_H
+
+/* Define to 1 if you have the <grp.h> header file. */
+#undef HAVE_GRP_H
+
+/* Define to 1 if you have the 'initgroups' function. */
+#undef HAVE_INITGROUPS
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#undef HAVE_INTTYPES_H
+
+/* Have the krb5.h header file */
+#undef HAVE_KRB5_H
+
+/* Define to 1 if you have the <libgen.h> header file. */
+#undef HAVE_LIBGEN_H
+
+/* Define to 1 if you have the <limits.h> header file. */
+#undef HAVE_LIMITS_H
+
+/* Define to 1 if you have the <locale.h> header file. */
+#undef HAVE_LOCALE_H
+
+/* Which loader library should we use? libtdl or dl? */
+#undef HAVE_LTDL_H
+
+/* Define to 1 if you have the <math.h> header file. */
+#undef HAVE_MATH_H
+
+/* Define to 1 if you have the <netdb.h> header file. */
+#undef HAVE_NETDB_H
+
+/* Define to 1 if you have the <netinet/in.h> header file. */
+#undef HAVE_NETINET_IN_H
+
+/* Define to 1 if you have the <pwd.h> header file. */
+#undef HAVE_PWD_H
+
+/* Define to 1 if you have the <regex.h> header file. */
+#undef HAVE_REGEX_H
+
+/* Define to 1 if you have the 'setenv' function. */
+#undef HAVE_SETENV
+
+/* Define to 1 if you have the 'sigaction' function. */
+#undef HAVE_SIGACTION
+
+/* Define to 1 if you have the <signal.h> header file. */
+#undef HAVE_SIGNAL_H
+
+/* Define to 1 if you have the <socket.h> header file. */
+#undef HAVE_SOCKET_H
+
+/* Have SSL support */
+#undef HAVE_SSL
+
+/* Define to 1 if you have the <stdarg.h> header file. */
+#undef HAVE_STDARG_H
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#undef HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdio.h> header file. */
+#undef HAVE_STDIO_H
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#undef HAVE_STDLIB_H
+
+/* Define to 1 if you have the 'strdup' function. */
+#undef HAVE_STRDUP
+
+/* Define to 1 if you have the <strings.h> header file. */
+#undef HAVE_STRINGS_H
+
+/* Define to 1 if you have the <string.h> header file. */
+#undef HAVE_STRING_H
+
+/* Define to 1 if you have the 'strstr' function. */
+#undef HAVE_STRSTR
+
+/* Define to 1 if you have the 'strtoul' function. */
+#undef HAVE_STRTOUL
+
+/* Define to 1 if 'tm_zone' is a member of 'struct tm'. */
+#undef HAVE_STRUCT_TM_TM_ZONE
+
+/* Define to 1 if you have the <syslog.h> header file. */
+#undef HAVE_SYSLOG_H
+
+/* Define to 1 if you have the <sys/ipc.h> header file. */
+#undef HAVE_SYS_IPC_H
+
+/* Define to 1 if you have the <sys/loadavg.h> header file. */
+#undef HAVE_SYS_LOADAVG_H
+
+/* Define to 1 if you have the <sys/mman.h> header file. */
+#undef HAVE_SYS_MMAN_H
+
+/* Define to 1 if you have the <sys/msg.h> header file. */
+#undef HAVE_SYS_MSG_H
+
+/* Define to 1 if you have the <sys/poll.h> header file. */
+#undef HAVE_SYS_POLL_H
+
+/* Define to 1 if you have the <sys/prctl.h> header file. */
+#undef HAVE_SYS_PRCTL_H
+
+/* Define to 1 if you have the <sys/resource.h> header file. */
+#undef HAVE_SYS_RESOURCE_H
+
+/* Define to 1 if you have the <sys/socket.h> header file. */
+#undef HAVE_SYS_SOCKET_H
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#undef HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/timeb.h> header file. */
+#undef HAVE_SYS_TIMEB_H
+
+/* Define to 1 if you have the <sys/time.h> header file. */
+#undef HAVE_SYS_TIME_H
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#undef HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the <sys/un.h> header file. */
+#undef HAVE_SYS_UN_H
+
+/* Define to 1 if you have the <sys/wait.h> header file. */
+#undef HAVE_SYS_WAIT_H
+
+/* Define to 1 if your 'struct tm' has 'tm_zone'. Deprecated, use
+   'HAVE_STRUCT_TM_TM_ZONE' instead. */
+#undef HAVE_TM_ZONE
+
+/* Define to 1 if you don't have 'tm_zone' but do have the external array
+   'tzname'. */
+#undef HAVE_TZNAME
+
+/* Define to 1 if you have the <uio.h> header file. */
+#undef HAVE_UIO_H
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#undef HAVE_UNISTD_H
+
+/* Define to 1 if you have the 'unsetenv' function. */
+#undef HAVE_UNSETENV
+
+/* Whether va_copy() is available */
+#undef HAVE_VA_COPY
+
+/* Define to 1 if you have the <wchar.h> header file. */
+#undef HAVE_WCHAR_H
+
+/* Whether __va_copy() is available */
+#undef HAVE___VA_COPY
+
+/* iobroker uses epoll method */
+#undef IOBROKER_USES_EPOLL
+
+/* iobroker uses poll method */
+#undef IOBROKER_USES_POLL
+
+/* iobroker uses select method */
+#undef IOBROKER_USES_SELECT
+
+/* defined if va_list fails to compile */
+#undef NEED_VA_LIST
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* Define as the return type of signal handlers ('int' or 'void'). */
+#undef RETSIGTYPE
+
+/* typedef for socket size */
+#undef SOCKET_SIZE_TYPE
+
+/* Define to 1 if all of the C89 standard headers exist (not just the ones
+   required in a freestanding environment). This macro is provided for
+   backward compatibility; new code need not use it. */
+#undef STDC_HEADERS
+
+/* Define to 1 if you can safely include both <sys/time.h> and <time.h>. This
+   macro is obsolete. */
+#undef TIME_WITH_SYS_TIME
+
+/* Define to 1 if your <sys/time.h> declares 'struct tm'. */
+#undef TM_IN_SYS_TIME
+
+/* traceroute command to use */
+#undef TRACEROUTE_COMMAND
+
+/* defined to bring in the event broker objects */
+#undef USE_EVENT_BROKER
+
+/* compile histogram CGI */
+#undef USE_HISTOGRAM
+
+/* enables use of nanosleep (instead of sleep) */
+#undef USE_NANOSLEEP
+
+/* Description */
+#undef USE_SSL_DH
+
+/* defined if the user chose to include status map */
+#undef USE_STATUSMAP
+
+/* statuswrl CGI enabled by default, unless users chooses not to use it */
+#undef USE_STATUSWRL
+
+/* compile trends CGI */
+#undef USE_TRENDS
+
+/* Define to empty if 'const' does not conform to ANSI C. */
+#undef const
+
+/* Define as 'int' if <sys/types.h> doesn't define. */
+#undef gid_t
+
+/* Define to 'int' if <sys/types.h> does not define. */
+#undef mode_t
+
+/* Define as a signed integer type capable of holding a process identifier. */
+#undef pid_t
+
+/* Define as 'unsigned int' if <stddef.h> doesn't define. */
+#undef size_t
+
+/* Define as 'int' if <sys/types.h> doesn't define. */
+#undef uid_t

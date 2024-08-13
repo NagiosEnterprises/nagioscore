@@ -2,7 +2,7 @@
 Nagios Core 4 Change Log
 ########################
 
-4.5.4 - 2024-08-13
+4.5.4 - 2024-08-14
 ------------------
 * Fix inconsistent links for 'View {Trends,Alert Histogram} For This {Host,Service}' (Mauricio Faria de Oliveira)
 * Fix broken links from removing AngularJS pages in 4.5.3 (Dylan Anderson)

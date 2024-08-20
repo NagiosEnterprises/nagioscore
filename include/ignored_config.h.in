@@ -232,9 +232,6 @@
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
 
-/* Define as the return type of signal handlers ('int' or 'void'). */
-#undef RETSIGTYPE
-
 /* typedef for socket size */
 #undef SOCKET_SIZE_TYPE
 
@@ -242,10 +239,6 @@
    required in a freestanding environment). This macro is provided for
    backward compatibility; new code need not use it. */
 #undef STDC_HEADERS
-
-/* Define to 1 if you can safely include both <sys/time.h> and <time.h>. This
-   macro is obsolete. */
-#undef TIME_WITH_SYS_TIME
 
 /* Define to 1 if your <sys/time.h> declares 'struct tm'. */
 #undef TM_IN_SYS_TIME
@@ -262,7 +255,7 @@
 /* enables use of nanosleep (instead of sleep) */
 #undef USE_NANOSLEEP
 
-/* Description */
+/* Use DH parameters for SSL/TLS */
 #undef USE_SSL_DH
 
 /* defined if the user chose to include status map */

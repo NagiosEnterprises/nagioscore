@@ -17,7 +17,6 @@ case "$host" in
 esac
 
 # Checks for header files
-AC_HEADER_STDC
 AC_CHECK_HEADERS([stdlib.h])
 AC_CHECK_HEADERS([pthread.h])
 

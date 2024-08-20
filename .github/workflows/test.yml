@@ -12,8 +12,6 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: configure
-      run: ./configure --enable-testing
-    - name: make all
-      run: make all
+      run: ./configure --enable-libtap
     - name: make test
       run: make test

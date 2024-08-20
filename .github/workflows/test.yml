@@ -11,6 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+    - name: Install other dependencies
+      run: |
+        sudo apt update
+        sudo apt install libgd-dev valgrind gcovr lcov gperf
     - name: configure
       run: ./configure --enable-libtap
     - name: make test

@@ -1,8 +1,8 @@
-AC_INIT(tap, 1.01)
+AC_INIT([tap],[1.01])
 AC_CONFIG_SRCDIR(src/tap.c)
 AM_INIT_AUTOMAKE([foreign])
 AC_PROG_CC
-AC_PROG_LIBTOOL
+LT_INIT
 AC_PROG_INSTALL
 
 # Checks for libraries

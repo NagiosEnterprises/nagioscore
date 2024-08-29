@@ -16,7 +16,6 @@ jobs:
         sudo apt update
         sudo apt install libgd-dev valgrind gcovr lcov gperf
     - name: configure
-    # https://www.gnu.org/software//automake/manual/html_node/maintainer_002dmode.html
-      run: ./configure --enable-libtap --enable-maintainer-mode
+      run: ./configure --enable-libtap
     - name: make test
       run: make test

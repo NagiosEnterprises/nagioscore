@@ -734,9 +734,9 @@ if test "x$USE_EVENTBROKER" = "xyes"; then
 		*)
 			save_ldflags="$LDFLAGS"
 			LDFLAGS=-Wl,-export-dynamic
-			AC_LINK_IFELSE(,,[BROKER_LDFLAGS="$BROKER_LDFLAGS -Wl,-export-dynamic"], [
+			AC_LINK_IFELSE([AC_LANG_PROGRAM(,)],[BROKER_LDFLAGS="$BROKER_LDFLAGS -Wl,-export-dynamic"], [
 				LDFLAGS=-Wl,-Bexport
-				AC_LINK_IFELSE(,,[BROKER_LDFLAGS="$BROKER_LDFLAGS -Wl,-Bexport"],
+				AC_LINK_IFELSE([AC_LANG_PROGRAM(,)],[BROKER_LDFLAGS="$BROKER_LDFLAGS -Wl,-Bexport"],
 					AC_MSG_RESULT(none))])
 			LDFLAGS="$save_ldflags"
 		;;

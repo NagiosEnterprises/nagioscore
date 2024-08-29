@@ -8489,15 +8489,48 @@ printf %s "checking for extra flags needed to export symbols... " >&6; }
 		*)
 			save_ldflags="$LDFLAGS"
 			LDFLAGS=-Wl,-export-dynamic
-			if ac_fn_c_try_link "$LINENO"
-then :
+			cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
+int
+main (void)
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  BROKER_LDFLAGS="$BROKER_LDFLAGS -Wl,-export-dynamic"
 else case e in #(
-  e) BROKER_LDFLAGS="$BROKER_LDFLAGS -Wl,-export-dynamic" ;;
+  e)
+				LDFLAGS=-Wl,-Bexport
+				cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main (void)
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  BROKER_LDFLAGS="$BROKER_LDFLAGS -Wl,-Bexport"
+else case e in #(
+  e) { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: none" >&5
+printf "%s\n" "none" >&6; } ;;
 esac
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.beam \
-    conftest$ac_exeext
+    conftest$ac_exeext conftest.$ac_ext ;;
+esac
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
 			LDFLAGS="$save_ldflags"
 		;;
 	esac

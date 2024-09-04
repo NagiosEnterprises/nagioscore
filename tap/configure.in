@@ -1,9 +1,15 @@
-AC_INIT(tap, 1.01)
+AC_INIT([tap],[1.01])
 AC_CONFIG_SRCDIR(src/tap.c)
 AM_INIT_AUTOMAKE([foreign])
 AC_PROG_CC
-AC_PROG_LIBTOOL
+LT_INIT
 AC_PROG_INSTALL
+# https://www.gnu.org/software//automake/manual/html_node/maintainer_002dmode.html
+# Adding maintainer mode because I don't want to require people to install automake 1.17
+# in order to run the test suite. Caveats are described in the above link
+# One being that maintainers have to make sure that the Makefile.in files are updated manually
+# This helps with github actions
+AM_MAINTAINER_MODE([enable])
 
 # Checks for libraries
 case "$host" in
@@ -17,7 +23,6 @@ case "$host" in
 esac
 
 # Checks for header files
-AC_HEADER_STDC
 AC_CHECK_HEADERS([stdlib.h])
 AC_CHECK_HEADERS([pthread.h])
 

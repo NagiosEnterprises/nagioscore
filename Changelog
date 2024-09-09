@@ -2,6 +2,10 @@
 Nagios Core 4 Change Log
 ########################
 
+4.5.5 - 2024-XX-XX
+------------------
+* Update configure scripts using newer versions of autotools (Dylan Anderson)
+
 4.5.4 - 2024-08-14
 ------------------
 * Fix inconsistent links for 'View {Trends,Alert Histogram} For This {Host,Service}' (Mauricio Faria de Oliveira)

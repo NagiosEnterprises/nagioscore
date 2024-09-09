@@ -4,8 +4,10 @@ dnl Disable caching
 define([AC_CACHE_LOAD],)
 define([AC_CACHE_SAVE],)
 
-AC_INIT(base/nagios.c)
-AC_CONFIG_HEADER(include/config.h lib/snprintf.h lib/iobroker.h)
+AC_INIT
+AC_CONFIG_SRCDIR([base/nagios.c])
+# config.h.in is manually managed so we don't want autoheader to overwrite it when running autoreconf
+AC_CONFIG_HEADERS(include/ignored_config.h include/config.h lib/snprintf.h lib/iobroker.h)
 AC_PREFIX_DEFAULT(/usr/local/nagios)
 
 PKG_NAME=nagios
@@ -30,8 +32,6 @@ AC_PROG_LN_S
 AC_PATH_PROG([STRIP],[strip],[true])
 
 dnl Checks for header files.
-AC_HEADER_STDC
-AC_HEADER_TIME
 AC_HEADER_SYS_WAIT
 AC_CHECK_HEADERS(arpa/inet.h ctype.h dirent.h errno.h fcntl.h getopt.h grp.h)
 AC_CHECK_HEADERS(libgen.h limits.h math.h netdb.h netinet/in.h pwd.h regex.h)
@@ -48,16 +48,16 @@ AC_STRUCT_TIMEZONE
 AC_TYPE_MODE_T
 AC_TYPE_PID_T
 AC_TYPE_SIZE_T
-AC_TYPE_SIGNAL
+
 AC_TYPE_GETGROUPS
 
 dnl Get Nagios autoconf-macros
-AC_NAGIOS_GET_OS
-AC_NAGIOS_GET_DISTRIB_TYPE
-AC_NAGIOS_GET_INIT
-AC_NAGIOS_GET_INETD
-AC_NAGIOS_GET_PATHS
-AC_NAGIOS_GET_FILES
+AX_NAGIOS_GET_OS
+AX_NAGIOS_GET_DISTRIB_TYPE
+AX_NAGIOS_GET_INIT
+AX_NAGIOS_GET_INETD
+AX_NAGIOS_GET_PATHS
+AX_NAGIOS_GET_FILES
 
 dnl We only have these options available so we need to make them work until there are more
 if test "x$src_init" != "xdefault-init" -a \
@@ -89,7 +89,7 @@ if test "x$subsyslockdir" = "xN/A"; then
 	fi
 fi
 AC_ARG_WITH(lockfile,
-	AC_HELP_STRING([--with-lockfile=<path>],
+	AS_HELP_STRING([--with-lockfile=<path>],
 		[sets path for lockfile]),
 	subsyslockfile=$withval,
 	subsyslockfile=$subsyslockfile
@@ -98,18 +98,22 @@ AC_ARG_WITH(lockfile,
 
 dnl Check for asprintf() and friends...
 AC_CACHE_CHECK([for va_copy],ac_cv_HAVE_VA_COPY,[
-AC_TRY_LINK([#include <stdarg.h>
-va_list ap1,ap2;], [va_copy(ap1,ap2);],
-ac_cv_HAVE_VA_COPY=yes,
-ac_cv_HAVE_VA_COPY=no)])
+AC_LINK_IFELSE(
+	[AC_LANG_PROGRAM([[#include <stdarg.h>
+		va_list ap1,ap2;]],
+		[[va_copy(ap1,ap2);]])],
+	ac_cv_HAVE_VA_COPY=yes,
+	ac_cv_HAVE_VA_COPY=no)])
 if test "x$ac_cv_HAVE_VA_COPY" = "xyes"; then
     AC_DEFINE(HAVE_VA_COPY,1,[Whether va_copy() is available])
 else    
     AC_CACHE_CHECK([for __va_copy],ac_cv_HAVE___VA_COPY,[
-    AC_TRY_LINK([#include <stdarg.h>
-    va_list ap1,ap2;], [__va_copy(ap1,ap2);],
-    ac_cv_HAVE___VA_COPY=yes,
-    ac_cv_HAVE___VA_COPY=no)])
+	AC_LINK_IFELSE(
+		[AC_LANG_PROGRAM([[#include <stdarg.h>
+				va_list ap1,ap2;]],
+			[[__va_copy(ap1,ap2);]])],
+		ac_cv_HAVE___VA_COPY=yes,
+		ac_cv_HAVE___VA_COPY=no)])
     if test "x$ac_cv_HAVE___VA_COPY" = "xyes"; then
         AC_DEFINE(HAVE___VA_COPY,1,[Whether __va_copy() is available])
     fi
@@ -122,34 +126,35 @@ AC_CHECK_FUNC(vasprintf,,SNPRINTF_O=../lib/snprintf.o)
 AC_CHECK_FUNCS(sigaction)
 
 AC_CACHE_CHECK([for C99 vsnprintf],ac_cv_HAVE_C99_VSNPRINTF,[
-AC_TRY_RUN([
-#include <sys/types.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-void foo(const char *format, ...) {
-       va_list ap;
-       int len;
-       char buf[5];
+AC_RUN_IFELSE(
+	[AC_LANG_SOURCE([[
+		#include <sys/types.h>
+		#include <stdarg.h>
+		#include <stdio.h>
+		#include <stdlib.h>
+		#include <string.h>
+		void foo(const char *format, ...) {
+			va_list ap;
+			int len;
+			char buf[5];
 
-       va_start(ap, format);
-       len = vsnprintf(buf, 0, format, ap);
-       va_end(ap);
-       if (len != 5) exit(1);
+			va_start(ap, format);
+			len = vsnprintf(buf, 0, format, ap);
+			va_end(ap);
+			if (len != 5) exit(1);
 
-       va_start(ap, format);
-       len = vsnprintf(0, 0, format, ap);
-       va_end(ap);
-       if (len != 5) exit(1);
+			va_start(ap, format);
+			len = vsnprintf(0, 0, format, ap);
+			va_end(ap);
+			if (len != 5) exit(1);
 
-       if (snprintf(buf, 3, "hello") != 5 || strcmp(buf, "he") != 0) exit(1);
+			if (snprintf(buf, 3, "hello") != 5 || strcmp(buf, "he") != 0) exit(1);
 
-       exit(0);
-}
-int main(void) { foo("hello"); }
-],
-ac_cv_HAVE_C99_VSNPRINTF=yes,ac_cv_HAVE_C99_VSNPRINTF=no,ac_cv_HAVE_C99_VSNPRINTF=cross)])
+			exit(0);
+		}
+		int main(void) { foo("hello"); }
+	]])],
+	ac_cv_HAVE_C99_VSNPRINTF=yes,ac_cv_HAVE_C99_VSNPRINTF=no,ac_cv_HAVE_C99_VSNPRINTF=cross)])
 if test "x$ac_cv_HAVE_C99_VSNPRINTF" = "xyes"; then
     AC_DEFINE(HAVE_C99_VSNPRINTF,1,[Define if system has C99 compatible vsnprintf])
 fi
@@ -171,13 +176,13 @@ AC_SUBST(SOCKETLIBS)
 AC_CHECK_FUNCS(initgroups setenv strdup strstr strtoul unsetenv)
 
 AC_MSG_CHECKING(for type of socket size)
-AC_TRY_COMPILE([#include <stdlib.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-],
-[int a = send(1, (const void *) 0, (size_t) 0, (int) 0);],
-[AC_DEFINE(SOCKET_SIZE_TYPE, size_t, [typedef for socket size]) AC_MSG_RESULT(size_t)],
-[AC_DEFINE(SOCKET_SIZE_TYPE, int, [typedef for socket size]) AC_MSG_RESULT(int)])
+AC_COMPILE_IFELSE(
+	[AC_LANG_PROGRAM([[#include <stdlib.h>
+		#include <sys/types.h>
+		#include <sys/socket.h>]],
+		[[int a = send(1, (const void *) 0, (size_t) 0, (int) 0);]])],
+	[AC_DEFINE(SOCKET_SIZE_TYPE, size_t, [typedef for socket size]) AC_MSG_RESULT(size_t)],
+	[AC_DEFINE(SOCKET_SIZE_TYPE, int, [typedef for socket size]) AC_MSG_RESULT(int)])
 
 
 dnl Does user want to check for SSL?
@@ -196,7 +201,7 @@ dnl Optional SSL library and include paths
 if test x$check_for_ssl = xyes; then
 	# need_dh should only be set for NRPE
 	#need_dh=yes
-	AC_NAGIOS_GET_SSL
+	AX_NAGIOS_GET_SSL
 fi
 
 dnl Solaris needs rt or posix4 libraries for nanosleep()
@@ -215,7 +220,7 @@ case $host_os in
 	;;
 esac
 
-AC_ARG_WITH(root_group,AC_HELP_STRING([--with-root-group=<grp>],[sets group name for installing init]),root_grp=$withval)
+AC_ARG_WITH(root_group,AS_HELP_STRING([--with-root-group=<grp>],[sets group name for installing init]),root_grp=$withval)
 AC_SUBST(root_grp)
 INIT_OPTS="-o root -g $root_grp"
 AC_SUBST(INIT_OPTS)
@@ -224,17 +229,17 @@ dnl Just enable all of the testing things
 dnl --enable-debugging --enable-coverage --with-this-user
 dnl This is here because if not, the user override doesnt happen
 ENABLE_TESTING=no
-AC_ARG_ENABLE(testing,AC_HELP_STRING([--enable-testing],[DEBUGGING ONLY - Enable testing options]),
+AC_ARG_ENABLE(testing,AS_HELP_STRING([--enable-testing],[DEBUGGING ONLY - Enable testing options]),
 	[ENABLE_TESTING=$enableval])
 
 not_a_user="^^^^^"
-AC_ARG_WITH(this_user,AC_HELP_STRING([--with-this-user],[sets all user/group info for current user running ./configure]),this_user=$USER,this_user=$not_a_user)
+AC_ARG_WITH(this_user,AS_HELP_STRING([--with-this-user],[sets all user/group info for current user running ./configure]),this_user=$USER,this_user=$not_a_user)
 if test "x$ENABLE_TESTING" = "xyes"; then
 	this_user=$USER
 fi
 
-AC_ARG_WITH(nagios_user,AC_HELP_STRING([--with-nagios-user=<user>],[sets user name to run nagios]),nagios_user=$withval,nagios_user=nagios)
-AC_ARG_WITH(nagios_group,AC_HELP_STRING([--with-nagios-group=<grp>],[sets group name to run nagios]),nagios_grp=$withval,nagios_grp=nagios)
+AC_ARG_WITH(nagios_user,AS_HELP_STRING([--with-nagios-user=<user>],[sets user name to run nagios]),nagios_user=$withval,nagios_user=nagios)
+AC_ARG_WITH(nagios_group,AS_HELP_STRING([--with-nagios-group=<grp>],[sets group name to run nagios]),nagios_grp=$withval,nagios_grp=nagios)
 
 if test "x$this_user" != "x$not_a_user"; then
 	nagios_user=$this_user
@@ -248,8 +253,8 @@ AC_DEFINE_UNQUOTED(DEFAULT_NAGIOS_GROUP,"$nagios_grp",[group name to run nagios]
 INSTALL_OPTS="-o $nagios_user -g $nagios_grp"
 AC_SUBST(INSTALL_OPTS)
 
-AC_ARG_WITH(command_user,AC_HELP_STRING([--with-command-user=<user>],[sets user name for command access]),command_user=$withval,command_user=$nagios_user)
-AC_ARG_WITH(command_group,AC_HELP_STRING([--with-command-group=<grp>],[sets group name for command access]),command_grp=$withval,command_grp=$nagios_grp)
+AC_ARG_WITH(command_user,AS_HELP_STRING([--with-command-user=<user>],[sets user name for command access]),command_user=$withval,command_user=$nagios_user)
+AC_ARG_WITH(command_group,AS_HELP_STRING([--with-command-group=<grp>],[sets group name for command access]),command_grp=$withval,command_grp=$nagios_grp)
 
 if test "x$this_user" != "x$not_a_user"; then
 	command_user=$this_user
@@ -264,7 +269,7 @@ AC_SUBST(COMMAND_OPTS)
 dnl Check for location of mail program
 MAIL_PROG=no
 AC_ARG_WITH(mail,
-	AC_HELP_STRING([--with-mail=<path_to_mail>],
+	AS_HELP_STRING([--with-mail=<path_to_mail>],
 		[sets path to equivalent program to mail]),
 	MAIL_PROG=$withval,
 	MAIL_PROG=no
@@ -301,7 +306,7 @@ AC_SUBST(BIN_KILL)
 dnl Check for location of Apache conf.d directory
 HTTP_CONF=no
 AC_ARG_WITH(httpd_conf,
-	AC_HELP_STRING([--with-httpd-conf=<path_to_conf>],
+	AS_HELP_STRING([--with-httpd-conf=<path_to_conf>],
 		[sets path to Apache conf.d directory]),
 	HTTPD_CONF=$withval,
 	HTTPD_CONF=no
@@ -329,19 +334,19 @@ AC_SUBST(HTTPD_CONF)
 AC_SUBST(LN_HTTPD_SITES_ENABLED)
 
 dnl Check if RLIMIT_PROC exists
-AC_TRY_COMPILE([#ifdef __STDC__
-#include <sys/time.h>
-#include <sys/resource.h>
-#endif],
-[struct rlimit rlim;
-int ilim = getrlimit(RLIMIT_NPROC, &rlim);],
-[AC_DEFINE(DETECT_RLIMIT_PROBLEM,1,[System has RLIMIT_PROC]) AC_MSG_RESULT([checking for RLIMIT_PROC... yes])],
-[AC_MSG_RESULT([checking for RLIMIT_PROC... no])])
+AC_COMPILE_IFELSE(
+	[AC_LANG_PROGRAM([[#ifdef __STDC__
+		#include <sys/time.h>
+		#include <sys/resource.h>
+		#endif]],
+		[[struct rlimit rlim; int ilim = getrlimit(RLIMIT_NPROC, &rlim);]])],
+	[AC_DEFINE(DETECT_RLIMIT_PROBLEM,1,[System has RLIMIT_PROC]) AC_MSG_RESULT([checking for RLIMIT_PROC... yes])],
+	[AC_MSG_RESULT([checking for RLIMIT_PROC... no])])
 
 dnl Location of check result path
 CHECKRESULTDIR=no
 AC_ARG_WITH(checkresult-dir,
-	AC_HELP_STRING([--with-checkresult-dir=<path>],
+	AS_HELP_STRING([--with-checkresult-dir=<path>],
 		[sets path to check results spool directory]),
 	CHECKRESULTDIR=$withval,
 	CHECKRESULTDIR=no
@@ -355,7 +360,7 @@ dnl Location of check result path
 dnl TODO: this should be moved to autoconf-macros
 TMPDIR=no
 AC_ARG_WITH(temp-dir,
-	AC_HELP_STRING([--with-temp-dir=<path>],
+	AS_HELP_STRING([--with-temp-dir=<path>],
 		[sets path to temp directory]),
 	TMPDIR=$withval,
 	TMPDIR=no
@@ -378,8 +383,7 @@ GLIBC_NEWER_2_4=0
 case $host_os in
 linux*)
 	AC_MSG_CHECKING(for glibc at least version 2.4)
-	AC_TRY_CPP(
-		[
+	AC_PREPROC_IFELSE([AC_LANG_SOURCE([[
 #include <stdio.h>
 #if defined(__GLIBC__) && defined(__linux)
 #include <features.h>
@@ -389,10 +393,8 @@ linux*)
 #else
 # error Not using GLIBC
 #endif
-		],
-		[GLIBC_NEWER_2_4=1; AC_MSG_RESULT(yes)],
-		[GLIBC_NEWER_2_4=0; AC_MSG_RESULT(no)]
-	)
+		]])],[GLIBC_NEWER_2_4=1; AC_MSG_RESULT(yes)],[GLIBC_NEWER_2_4=0; AC_MSG_RESULT(no)
+	])
 	if test "$GLIBC_NEWER_2_4" -eq 1; then
 		AC_CHECK_HEADER([sys/epoll.h])
 	fi
@@ -401,7 +403,7 @@ esac
 AC_CHECK_HEADER([sys/select.h])
 
 AC_ARG_WITH(iobroker,
-	AC_HELP_STRING([--with-iobroker=<method>],
+	AS_HELP_STRING([--with-iobroker=<method>],
 		[specify the method to use with iobroker: epoll, poll, or select]),
 	IOBROKER_METHOD=$withval,
 	IOBROKER_METHOD="none"
@@ -410,7 +412,7 @@ AC_ARG_WITH(iobroker,
 case $IOBROKER_METHOD in
 epoll*)
 	if test "$GLIBC_NEWER_2_4" -eq 1 -a "x$ac_cv_header_sys_epoll_h" = "xyes"; then
-		AC_DEFINE([IOBROKER_USES_EPOLL])
+		AC_DEFINE([IOBROKER_USES_EPOLL], [], [iobroker uses epoll method])
 	else
 		echo "\"epoll\" is not available as an iobroker method."
 		echo "Please use one of the other options."
@@ -419,7 +421,7 @@ epoll*)
 	;;
 poll*)
 	if test "x$ac_cv_header_sys_poll_h" = "xyes" -o "x$ac_cv_header_poll_h" = "xyes"; then
-		AC_DEFINE([IOBROKER_USES_POLL])
+		AC_DEFINE([IOBROKER_USES_POLL], [], [iobroker uses poll method])
 	else
 		echo "\"poll\" is not available as an iobroker method."
 		echo "Please use one of the other options."
@@ -428,7 +430,7 @@ poll*)
 	;;
 select*)
 	if test "x$ac_cv_header_sys_select_h" = "xyes"; then
-		AC_DEFINE([IOBROKER_USES_SELECT])
+		AC_DEFINE([IOBROKER_USES_SELECT], [], [iobroker uses select method])
 	else
 		echo "\"select\" is not available as an iobroker method."
 		echo "Please use one of the other options."
@@ -458,14 +460,14 @@ esac
 
 dnl Optional GD library and include paths
 AC_ARG_WITH(gd-lib,
-	AC_HELP_STRING([--with-gd-lib=DIR],[sets location of the gd library]),
+	AS_HELP_STRING([--with-gd-lib=DIR],[sets location of the gd library]),
 	[
 		LDFLAGS="${LDFLAGS} -L${withval}"
 		LD_RUN_PATH="${withval}${LD_RUN_PATH:+:}${LD_RUN_PATH}"
 	]
 )
 AC_ARG_WITH(gd-inc,
-	AC_HELP_STRING([--with-gd-inc=DIR],[sets location of the gd include files]),
+	AS_HELP_STRING([--with-gd-inc=DIR],[sets location of the gd include files]),
 	[CFLAGS="${CFLAGS} -I${withval}"]
 )
 
@@ -476,7 +478,7 @@ dnl 'NERD' is now disabled by default. enable it for functionality
 NERD=no
 NERD_O=""
 AC_ARG_ENABLE(nerd,
-	AC_HELP_STRING([--enable-nerd],
+	AS_HELP_STRING([--enable-nerd],
 		[enables Nagios Event Radio Dispatch (NERD)]),
 	NERD=yes
 )
@@ -489,7 +491,7 @@ AC_SUBST(NERD_O)
 dnl 'corewindow' is now disabled. Allow it to be enabled if someone wants it
 COREWINDOW=no
 AC_ARG_ENABLE(corewindow,
-	AC_HELP_STRING([--enable-corewindow],
+	AS_HELP_STRING([--enable-corewindow],
 		[enables the 'corewindow' URL argument]),
 	COREWINDOW=yes
 )
@@ -498,7 +500,7 @@ AC_SUBST(COREWINDOW)
 dnl statusmap CGI enabled by default, unless users chooses not to use it
 TRYSTATUSMAP=yes
 AC_ARG_ENABLE(statusmap,
-	AC_HELP_STRING([--disable-statusmap],
+	AS_HELP_STRING([--disable-statusmap],
 		[disables compilation of statusmap CGI]),
 	TRYSTATUSMAP=nope
 )
@@ -507,7 +509,7 @@ AC_ARG_ENABLE(statusmap,
 dnl statuswrl CGI enabled by default, unless users chooses not to use it
 TRYSTATUSWRL=yes
 AC_ARG_ENABLE(statuswrl,
-	AC_HELP_STRING([--disable-statuswrl],
+	AS_HELP_STRING([--disable-statuswrl],
 		[disables compilation of statuswrl (VRML) CGI]),
 	TRYSTATUSWRL=nope
 )
@@ -530,21 +532,12 @@ dnl              [, OTHER-LIBRARIES]]])
 	AC_CACHE_VAL(ac_cv_lib_$ac_lib_var,
 	[ac_save_LIBS="$LIBS"
 	LIBS="-l$1 $6 $LIBS"
-	AC_TRY_LINK(dnl
-	ifelse([AC_LANG], [FORTRAN77], ,
-	ifelse([$2], [main], , dnl Avoid conflicting decl of main.
-[/* Override any gcc2 internal prototype to avoid an error.  */
-]ifelse([AC_LANG], CPLUSPLUS, [#ifdef __cplusplus
-extern "C"
-#endif
-])dnl
-[/* We use char because int might match the return type of a gcc2
+	AC_LINK_IFELSE([AC_LANG_PROGRAM(dnl
+	ifelse($2, main, , dnl Avoid conflicting decl of main.
+/* We use char because int might match the return type of a gcc2
     builtin and then its argument prototype would still apply.  */
 char $2();
-])),
-	            [$2()],
-	            eval "ac_cv_lib_$ac_lib_var=yes",
-	            eval "ac_cv_lib_$ac_lib_var=no")
+), [[$2()]])],[eval "ac_cv_lib_$ac_lib_var=yes"],[eval "ac_cv_lib_$ac_lib_var=no"])
 	LIBS="$ac_save_LIBS"
 	])dnl
 	if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
@@ -662,13 +655,13 @@ if test "x$TRYGD" = "xyes"; then
 fi
 
 AC_ARG_WITH(cgiurl,
-	AC_HELP_STRING([--with-cgiurl=<local-url>],
+	AS_HELP_STRING([--with-cgiurl=<local-url>],
 		[sets URL for cgi programs (do not use a trailing slash)]),
 	cgiurl=$withval,
 	cgiurl=/nagios/cgi-bin
 )
 AC_ARG_WITH(htmurl,
-	AC_HELP_STRING([--with-htmurl=<local-url>],
+	AS_HELP_STRING([--with-htmurl=<local-url>],
 		[sets URL for public html]),
 	htmurl=$withval,
 	htmurl=/nagios
@@ -678,7 +671,7 @@ AC_SUBST(cgiurl)
 
 USE_NANOSLEEP=yes
 AC_ARG_ENABLE(nanosleep,
-	AC_HELP_STRING([--enable-nanosleep],
+	AS_HELP_STRING([--enable-nanosleep],
 		[enables use of nanosleep (instead of sleep) in event timing]),
 	USE_NANOSLEEP=$enableval,
 	USE_NANOSLEEP=yes
@@ -689,7 +682,7 @@ fi
 
 USE_EVENTBROKER=yes
 AC_ARG_ENABLE(event-broker,
-	AC_HELP_STRING([--enable-event-broker],
+	AS_HELP_STRING([--enable-event-broker],
 		[enables integration of event broker routines]),
 	USE_EVENTBROKER=$enableval,
 	USE_EVENTBROKER=yes
@@ -741,9 +734,9 @@ if test "x$USE_EVENTBROKER" = "xyes"; then
 		*)
 			save_ldflags="$LDFLAGS"
 			LDFLAGS=-Wl,-export-dynamic
-			AC_TRY_LINK(,,[BROKER_LDFLAGS="$BROKER_LDFLAGS -Wl,-export-dynamic"], [
+			AC_LINK_IFELSE([AC_LANG_PROGRAM(,)],[BROKER_LDFLAGS="$BROKER_LDFLAGS -Wl,-export-dynamic"], [
 				LDFLAGS=-Wl,-Bexport
-				AC_TRY_LINK(,,[BROKER_LDFLAGS="$BROKER_LDFLAGS -Wl,-Bexport"],
+				AC_LINK_IFELSE([AC_LANG_PROGRAM(,)],[BROKER_LDFLAGS="$BROKER_LDFLAGS -Wl,-Bexport"],
 					AC_MSG_RESULT(none))])
 			LDFLAGS="$save_ldflags"
 		;;
@@ -812,7 +805,7 @@ nagios_name=nagios
 nagiostats_name=nagiostats
 cygwin=no
 AC_ARG_ENABLE(cygwin,
-	AC_HELP_STRING([--enable-cygwin],
+	AS_HELP_STRING([--enable-cygwin],
 		[enables building under the CYGWIN environment]),
 	[cygwin=$enableval]
 )
@@ -838,7 +831,7 @@ AC_DEFINE_UNQUOTED(TRACEROUTE_COMMAND,"$PATH_TO_TRACEROUTE",[traceroute command 
 
 dnl Enable debugging?
 ENABLE_DEBUGGING=no
-AC_ARG_ENABLE(debugging,AC_HELP_STRING([--enable-debugging],[DEBUGGING ONLY - Enable some debugging for Nagios Core]),
+AC_ARG_ENABLE(debugging,AS_HELP_STRING([--enable-debugging],[DEBUGGING ONLY - Enable some debugging for Nagios Core]),
 	[ENABLE_DEBUGGING=$enableval])
 if test "x$ENABLE_DEBUGGING" = "xyes" -o "x$ENABLE_TESTING" = "xyes"; then
 	CFLAGS="${CFLAGS} -O0 -ggdb3 -g3"
@@ -846,7 +839,7 @@ fi
 
 dnl Enable coverage?
 ENABLE_COVERAGE=no
-AC_ARG_ENABLE(coverage,AC_HELP_STRING([--enable-coverage],[DEBUGGING ONLY - Enable coverage reports (use with debugging)]),
+AC_ARG_ENABLE(coverage,AS_HELP_STRING([--enable-coverage],[DEBUGGING ONLY - Enable coverage reports (use with debugging)]),
 	[ENABLE_COVERAGE=$enableval])
 if test "x$ENABLE_COVERAGE" = "xyes" -o "x$ENABLE_TESTING" = "xyes"; then
 	CFLAGS="${CFLAGS} -fprofile-arcs -ftest-coverage"
@@ -860,24 +853,25 @@ AC_SUBST(PACKDIR)
 AC_SUBST(VERSION)
  
 AC_MSG_CHECKING(for type va_list)
-AC_TRY_COMPILE([#ifdef __STDC__
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#else
-#include <sys/types.h>
-#include <stdio.h>
-#include <varargs.h>
-#endif],
-[va_list args;],
-[AC_MSG_RESULT(yes)],
-[AC_DEFINE(NEED_VA_LIST,,[defined if va_list fails to compile]) AC_MSG_RESULT(no)])
+AC_COMPILE_IFELSE(
+	[AC_LANG_PROGRAM([[#ifdef __STDC__
+		#include <stdio.h>
+		#include <stdlib.h>
+		#include <stdarg.h>
+		#else
+		#include <sys/types.h>
+		#include <stdio.h>
+		#include <varargs.h>
+		#endif]],
+		[[va_list args;]])],
+	[AC_MSG_RESULT(yes)],
+	[AC_DEFINE(NEED_VA_LIST,,[defined if va_list fails to compile]) AC_MSG_RESULT(no)])
 
 dnl Check if we should build local libtap
 dnl From Nagios Plugins
 dnl Have disabled autodetection of system library until later
 AC_ARG_ENABLE(libtap,
-  AC_HELP_STRING([--enable-libtap],
+  AS_HELP_STRING([--enable-libtap],
                 [Enable built-in libtap for unit-testing (default: no).]),
         [enable_libtap=$enableval],
         [enable_libtap=no])
@@ -921,7 +915,7 @@ fi
 dnl Need this here because of removing it from autoconf-macros
 eval sbindir=$sbindir
 
-AC_OUTPUT([
+AC_CONFIG_FILES([
 	Makefile
 	lib/Makefile
 	base/Makefile
@@ -943,6 +937,7 @@ AC_OUTPUT([
 	t/Makefile 
 	t-tap/Makefile
 ])
+AC_OUTPUT
 
 if test ! -d "html/js"; then
 	mkdir -p "html/js"

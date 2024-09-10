@@ -48,13 +48,13 @@ Latest releases can be downloaded from https://www.nagios.org/download/
 
 Installation
 ------------
-[Quickstart installation guides](http://nagios.sourceforge.net/docs/nagioscore/4/en/quickstart.html)
+[Quickstart installation guides](https://assets.nagios.com/downloads/nagioscore/docs/nagioscore/4/en/quickstart.html)
 are available to help you get Nagios up and monitoring.
 
 
 Documentation & Support
 -----------------------
-* [User Guide](http://nagios.sourceforge.net/docs/nagioscore/4/en/)
+* [User Guide](https://assets.nagios.com/downloads/nagioscore/docs/nagioscore/4/en/)
 * [Nagios Core Documentation Library](https://library.nagios.com/library/products/nagioscore/)
 * [Support Forums](https://support.nagios.com/forum/viewforum.php?f=7)
 * [Additional Support Resources](https://www.nagios.org/support/)

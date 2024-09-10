@@ -654,6 +654,9 @@ ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
+MAINT
+MAINTAINER_MODE_FALSE
+MAINTAINER_MODE_TRUE
 LT_SYS_LIBRARY_PATH
 OTOOL64
 OTOOL
@@ -786,6 +789,7 @@ with_aix_soname
 with_gnu_ld
 with_sysroot
 enable_libtool_lock
+enable_maintainer_mode
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1434,6 +1438,9 @@ Optional Features:
   --enable-fast-install[=PKGS]
                           optimize for fast installation [default=yes]
   --disable-libtool-lock  avoid locking (might break parallel builds)
+  --enable-maintainer-mode
+                          enable make rules and dependencies not useful (and
+                          sometimes confusing) to the casual installer
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -12864,6 +12871,31 @@ CC=$lt_save_CC
 
 
 
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether to enable maintainer-specific portions of Makefiles" >&5
+printf %s "checking whether to enable maintainer-specific portions of Makefiles... " >&6; }
+    # Check whether --enable-maintainer-mode was given.
+if test ${enable_maintainer_mode+y}
+then :
+  enableval=$enable_maintainer_mode; USE_MAINTAINER_MODE=$enableval
+else case e in #(
+  e) USE_MAINTAINER_MODE=no ;;
+esac
+fi
+
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $USE_MAINTAINER_MODE" >&5
+printf "%s\n" "$USE_MAINTAINER_MODE" >&6; }
+   if test $USE_MAINTAINER_MODE = yes; then
+  MAINTAINER_MODE_TRUE=
+  MAINTAINER_MODE_FALSE='#'
+else
+  MAINTAINER_MODE_TRUE='#'
+  MAINTAINER_MODE_FALSE=
+fi
+
+  MAINT=$MAINTAINER_MODE_TRUE
+
+
+
 # Checks for libraries
 case "$host" in
 	*-*-*freebsd4*)
@@ -13232,6 +13264,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${am__fastdepCC_TRUE}" && test -z "${am__fastdepCC_FALSE}"; then
   as_fn_error $? "conditional \"am__fastdepCC\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${MAINTAINER_MODE_TRUE}" && test -z "${MAINTAINER_MODE_FALSE}"; then
+  as_fn_error $? "conditional \"MAINTAINER_MODE\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 

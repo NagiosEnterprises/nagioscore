@@ -8,14 +8,19 @@ on:
 
 jobs:
   build_and_test:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-20.04, ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v4
-    - name: Install other dependencies
+    - name: Install dependencies
+      # https://github.com/actions/runner-images/issues/2139
       run: |
         sudo apt update
-        sudo apt install libgd-dev valgrind gcovr lcov gperf
+        sudo apt remove libgd3 nginx
+        sudo apt install libgd-dev valgrind
     - name: configure
-      run: ./configure --enable-libtap
-    - name: make test
+      run: ./configure --enable-testing
+    - name: Run Tests
       run: make test

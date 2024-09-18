@@ -2,6 +2,10 @@
 Nagios Core 4 Change Log
 ########################
 
+4.5.6 - 2024-XX-XX
+------------------
+* Update tutorial links in Readme (Igor Udot)
+
 4.5.5 - 2024-09-17
 ------------------
 * Update configure scripts using newer versions of autotools (Dylan Anderson)

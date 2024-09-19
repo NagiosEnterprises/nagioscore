@@ -1,0 +1,26 @@
+name: Nagios Core Tests
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build_and_test:
+    strategy:
+      matrix:
+        os: [ubuntu-20.04, ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install dependencies
+      # https://github.com/actions/runner-images/issues/2139
+      run: |
+        sudo apt update
+        sudo apt remove libgd3 nginx
+        sudo apt install libgd-dev valgrind
+    - name: configure
+      run: ./configure --enable-testing
+    - name: Run Tests
+      run: make test

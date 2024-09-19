@@ -3,8 +3,7 @@ Nagios 4.x
 
 ![Nagios!](https://www.nagios.com/wp-content/uploads/2015/05/Nagios-Black-500x124.png)
 
-[![Build Status](https://travis-ci.org/NagiosEnterprises/nagioscore.svg?branch=master)](https://travis-ci.org/NagiosEnterprises/nagioscore)
-
+[![Nagios Core Tests](https://github.com/NagiosEnterprises/nagioscore/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/NagiosEnterprises/nagioscore/actions/workflows/test.yml?query=branch%3Amaster)
 
 Nagios is a host/service/network monitoring program written in C and
 released under the GNU General Public License, version 2. CGI programs
@@ -48,13 +47,13 @@ Latest releases can be downloaded from https://www.nagios.org/download/
 
 Installation
 ------------
-[Quickstart installation guides](http://nagios.sourceforge.net/docs/nagioscore/4/en/quickstart.html)
+[Quickstart installation guides](https://assets.nagios.com/downloads/nagioscore/docs/nagioscore/4/en/quickstart.html)
 are available to help you get Nagios up and monitoring.
 
 
 Documentation & Support
 -----------------------
-* [User Guide](http://nagios.sourceforge.net/docs/nagioscore/4/en/)
+* [User Guide](https://assets.nagios.com/downloads/nagioscore/docs/nagioscore/4/en/)
 * [Nagios Core Documentation Library](https://library.nagios.com/library/products/nagioscore/)
 * [Support Forums](https://support.nagios.com/forum/viewforum.php?f=7)
 * [Additional Support Resources](https://www.nagios.org/support/)

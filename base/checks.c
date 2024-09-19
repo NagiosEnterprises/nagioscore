@@ -1603,7 +1603,8 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 	}
 
 	/* the service recovered, so reset the current notification number and state flags (after the recovery notification has gone out) */
-	if(svc->current_state == STATE_OK && svc->state_type == HARD_STATE && hard_state_change == TRUE) {
+	/* We don't want to reset notifications if the service is currently flapping because we want recovery notifications */
+	if(svc->current_state == STATE_OK && svc->state_type == HARD_STATE && hard_state_change == TRUE && svc->is_flapping == FALSE) {
 		svc->current_notification_number = 0;
 		svc->notified_on = 0;
 		}
@@ -2494,7 +2495,8 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 	}
 
     /* the host recovered, so reset the current notification number and state flags (after the recovery notification has gone out) */
-    if(hst->current_state == HOST_UP && hst->state_type == HARD_STATE && hard_state_change == TRUE) {
+	/* We don't want to reset notifications if the host is currently flapping because we want recovery notifications */
+    if(hst->current_state == HOST_UP && hst->state_type == HARD_STATE && hard_state_change == TRUE && hst->is_flapping == FALSE) {
         hst->current_notification_number = 0;
         hst->notified_on = 0;
         }

@@ -35,7 +35,6 @@
 extern int sigrestart;
 
 static int command_file_fd;
-static FILE *command_file_fp;
 static int command_file_created = FALSE;
 
 /* The command file worker process */
@@ -117,7 +116,7 @@ int close_command_file(void)
 	command_file_created = FALSE;
 
 	/* close the command file */
-	fclose(command_file_fp);
+	close(command_file_fd);
 
 	/* unlink the pipe */
 	unlink(command_file);

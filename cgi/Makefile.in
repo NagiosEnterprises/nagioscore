@@ -33,7 +33,7 @@ CGIEXTRAS=@CGIEXTRAS@
 
 CP=@CP@
 CC=@CC@
-CFLAGS=-Wall -I.. -I@builddir@ -I$(SRC_INCLUDE) -I@top_srcdir@ -I$(BLD_LIB)  @CFLAGS@ @DEFS@ -DNSCGI
+CFLAGS=-Wall -I.. -I@builddir@ -I$(SRC_INCLUDE) -I@top_srcdir@ -I$(BLD_INCLUDE) -I$(BLD_LIB)  @CFLAGS@ @DEFS@ -DNSCGI
 JSONFLAGS=-DJSON_NAGIOS_4X
 
 # Compiler flags for optimization (overrides default)

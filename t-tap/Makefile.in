@@ -24,6 +24,7 @@ TESTS += test_downtime
 TESTS += test_nagios_config
 TESTS += test_timeperiods
 TESTS += test_macros
+TESTS += test_notifications
 
 XSD_OBJS = $(BLD_CGI)/statusdata-cgi.o $(BLD_CGI)/xstatusdata-cgi.o
 XSD_OBJS += $(BLD_CGI)/objects-cgi.o $(BLD_CGI)/xobjects-cgi.o
@@ -103,6 +104,9 @@ test_timeperiods: test_timeperiods.o $(TP_OBJS) $(TAPOBJ)
 
 test_macros: test_macros.o $(TP_OBJS) $(TAPOBJ)
 	$(CC) $(CFLAGS) -o $@ $^ $(BLD_BASE)/checks.o $(BROKER_LDFLAGS) $(LDFLAGS) $(MATHLIBS) $(SOCKETLIBS) $(LIBS)
+
+test_notifications: test_notifications.o $(BLD_BASE)/notifications.o $(BLD_BASE)/checks.o $(BLD_BASE)/utils.o $(BLD_COMMON)/shared.o $(BLD_BASE)/objects-base.o $(TAPOBJ)
+	$(CC) $(CFLAGS) -o $@ $^ $(LIBS)
 
 test_xsddefault: test_xsddefault.o $(XSD_OBJS) $(TAPOBJ)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)

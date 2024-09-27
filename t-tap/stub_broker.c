@@ -42,3 +42,12 @@ void broker_timed_event(int type, int flags, int attr, timed_event *event, struc
 
 void broker_flapping_data(int type, int flags, int attr, int flapping_type, void *data, double percent_change, double high_threshold, double low_threshold, struct timeval *timestamp)
 { }
+
+int broker_contact_notification_data(int type, int flags, int attr, int notification_type, int reason_type, struct timeval start_time, struct timeval end_time, void *data, contact *cntct, char *ack_author, char *ack_data, int escalated, struct timeval *timestamp)
+{ return OK; }
+
+int broker_contact_notification_method_data(int type, int flags, int attr, int notification_type, int reason_type, struct timeval start_time, struct timeval end_time, void *data, contact *cntct, char *cmd, char *ack_author, char *ack_data, int escalated, struct timeval *timestamp)
+{ return OK; }
+
+int broker_notification_data(int type, int flags, int attr, int notification_type, int reason_type, struct timeval start_time, struct timeval end_time, void *data, char *ack_author, char *ack_data, int escalated, int contacts_notified, struct timeval *timestamp)
+{ return OK; }

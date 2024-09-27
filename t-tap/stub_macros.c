@@ -29,3 +29,27 @@ int clear_argv_macros_r(nagios_macros *mac)
 
 int set_all_macro_environment_vars_r(nagios_macros *mac, int set) 
 { return OK; }
+
+int clear_datetime_macros_r(nagios_macros *mac)
+{ return OK; }
+
+int clear_hostgroup_macros_r(nagios_macros *mac)
+{ return OK; }
+
+int clear_contactgroup_macros_r(nagios_macros *mac)
+{ return OK; }
+
+int clear_contact_macros_r(nagios_macros *mac)
+{ return OK; }
+
+int clear_summary_macros_r(nagios_macros *mac)
+{ return OK; }
+
+int grab_contact_macros_r(nagios_macros *mac, contact *cntct)
+{ return OK; }
+
+int clear_service_macros_r(nagios_macros *mac)
+{ return OK; }
+
+int clear_servicegroup_macros_r(nagios_macros *mac)
+{ return OK; }

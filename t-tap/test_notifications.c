@@ -165,6 +165,7 @@ void create_objects(int host_state, int host_state_type, char * host_output, int
     hst1->next_check                 = (time_t) 0L;
     hst1->should_be_scheduled        = TRUE;
     hst1->last_hard_state            = STATE_UP;
+    hst1->notification_options       = OPT_ALL;
     hst1->notifications_enabled      = TRUE;
     hst1->event_handler_enabled      = TRUE;
     hst1->accept_passive_checks      = TRUE;
@@ -194,6 +195,7 @@ void create_objects(int host_state, int host_state_type, char * host_output, int
         svc1->host_problem_at_last_check = FALSE;
         svc1->should_be_scheduled        = TRUE;
         svc1->last_hard_state            = STATE_OK;
+        svc1->notification_options       = OPT_ALL;
         svc1->notifications_enabled      = TRUE;
         svc1->event_handler_enabled      = TRUE;
         svc1->accept_passive_checks      = TRUE;
@@ -246,10 +248,39 @@ void setup_parents()
 
 void run_service_tests() {
 
-    create_objects(STATE_DOWN, HARD_STATE, "host down", STATE_CRITICAL, SOFT_STATE, "service critical");
+    int result = OK;
 
-    int result = check_service_notification_viability(svc1, NOTIFICATION_NORMAL, NOTIFICATION_OPTION_NONE);
-    ok(result == ERROR, "Service should not notify");
+    debug_level = DEBUGL_NOTIFICATIONS;
+    debug_verbosity = 2;
+
+    enable_notifications = FALSE;
+
+    // Forced notifications always pass
+    create_objects(STATE_UP, HARD_STATE, "host up", STATE_OK, HARD_STATE, "service ok");
+    result = check_service_notification_viability(svc1, NOTIFICATION_NORMAL, NOTIFICATION_OPTION_FORCED);
+    ok(result == OK, "Notification Forced - Service should notify");
+
+    // No notifications when notifications are disabled
+    create_objects(STATE_UP, HARD_STATE, "host up", STATE_CRITICAL, HARD_STATE, "service critical");
+    result = check_service_notification_viability(svc1, NOTIFICATION_NORMAL, NOTIFICATION_OPTION_NONE);
+    ok(result == ERROR, "Notifications disabled - Service should NOT notify");
+
+    enable_notifications = TRUE;
+
+    // When you should be typically notified
+    create_objects(STATE_UP, HARD_STATE, "host up", STATE_CRITICAL, HARD_STATE, "service critical");
+    result = check_service_notification_viability(svc1, NOTIFICATION_NORMAL, NOTIFICATION_OPTION_NONE);
+    ok(result == OK, "Host: up,hard - Service: critical,hard - Service should notify");
+
+    // Soft states don't get notifications
+    create_objects(STATE_UP, HARD_STATE, "host up", STATE_CRITICAL, SOFT_STATE, "service critical");
+    result = check_service_notification_viability(svc1, NOTIFICATION_NORMAL, NOTIFICATION_OPTION_NONE);
+    ok(result == ERROR, "Host: down,hard - Service: critical,soft - Service should NOT notify");
+
+    // Host is down, service shouldn't get notification
+    create_objects(STATE_DOWN, HARD_STATE, "host down", STATE_CRITICAL, HARD_STATE, "service critical");
+    result = check_service_notification_viability(svc1, NOTIFICATION_NORMAL, NOTIFICATION_OPTION_NONE);
+    ok(result == ERROR, "Host: down,hard - Service: critical,hard - Service should NOT notify");
 
     free_all();
 
@@ -270,7 +301,7 @@ int main(int argc, char **argv)
     
     time_t now = 0L;
 
-    plan_tests(1);
+    plan_tests(5);
 
     time(&now);
 

@@ -250,8 +250,8 @@ void run_service_tests() {
 
     int result = OK;
 
-    debug_level = DEBUGL_NOTIFICATIONS;
-    debug_verbosity = 2;
+    // debug_level = DEBUGL_NOTIFICATIONS;
+    // debug_verbosity = 2;
 
     enable_notifications = FALSE;
 
@@ -267,23 +267,135 @@ void run_service_tests() {
 
     enable_notifications = TRUE;
 
-    // When you should be typically notified
-    create_objects(STATE_UP, HARD_STATE, "host up", STATE_CRITICAL, HARD_STATE, "service critical");
+    // All parents are bad
+    create_objects(STATE_DOWN, HARD_STATE, "host down", STATE_CRITICAL, HARD_STATE, "service critical");
+    setup_parents();
     result = check_service_notification_viability(svc1, NOTIFICATION_NORMAL, NOTIFICATION_OPTION_NONE);
-    ok(result == OK, "Host: up,hard - Service: critical,hard - Service should notify");
+    ok(result == ERROR, "All parents are down - Service should NOT notify");
+
+    // Not all parents are bad
+    create_objects(STATE_UP, HARD_STATE, "host up", STATE_CRITICAL, HARD_STATE, "service critical");
+    setup_parents();
+    result = check_service_notification_viability(svc1, NOTIFICATION_NORMAL, NOTIFICATION_OPTION_NONE);
+    ok(result == OK, "Not all parents are down - Service should notify");
+
+    free_all();
+
+    // Timeperiod checking
+
+    // Notifications disabled for service
+    create_objects(STATE_UP, HARD_STATE, "host up", STATE_CRITICAL, HARD_STATE, "service critical");
+    svc1->notifications_enabled = FALSE;
+    result = check_service_notification_viability(svc1, NOTIFICATION_NORMAL, NOTIFICATION_OPTION_NONE);
+    ok(result == ERROR, "Service notifications disabled - Service should NOT notify");
+
+    // Custom notifications
+    create_objects(STATE_UP, HARD_STATE, "host up", STATE_OK, HARD_STATE, "service ok");
+    result = check_service_notification_viability(svc1, NOTIFICATION_CUSTOM, NOTIFICATION_OPTION_NONE);
+    ok(result == OK, "Custom notification - Service should notify");
+
+    // Custom Notification in downtime
+    create_objects(STATE_UP, HARD_STATE, "host up", STATE_OK, HARD_STATE, "service ok");
+    svc1->scheduled_downtime_depth = 1;
+    result = check_service_notification_viability(svc1, NOTIFICATION_CUSTOM, NOTIFICATION_OPTION_NONE);
+    ok(result == ERROR, "Custom notification in downtime - Service should NOT notify");
+
+    // Acknowledgement
+    create_objects(STATE_UP, HARD_STATE, "host up", STATE_CRITICAL, HARD_STATE, "service critical");
+    result = check_service_notification_viability(svc1, NOTIFICATION_ACKNOWLEDGEMENT, NOTIFICATION_OPTION_NONE);
+    ok(result == OK, "Acknowledgement - Service should notify");
+
+    // Acknowledgement while ok
+    create_objects(STATE_UP, HARD_STATE, "host up", STATE_OK, HARD_STATE, "service ok");
+    result = check_service_notification_viability(svc1, NOTIFICATION_ACKNOWLEDGEMENT, NOTIFICATION_OPTION_NONE);
+    ok(result == ERROR, "Acknowledgement while OK - Service should NOT notify");
+
+    // Service Flapping start
+    create_objects(STATE_UP, HARD_STATE, "host up", STATE_OK, HARD_STATE, "service ok");
+    result = check_service_notification_viability(svc1, NOTIFICATION_FLAPPINGSTART, NOTIFICATION_OPTION_NONE);
+    ok(result == OK, "Flapping started - Service should notify");
+
+    // Service Flapping start while in downtime
+    create_objects(STATE_UP, HARD_STATE, "host up", STATE_OK, HARD_STATE, "service ok");
+    svc1->scheduled_downtime_depth = 1;
+    result = check_service_notification_viability(svc1, NOTIFICATION_FLAPPINGSTART, NOTIFICATION_OPTION_NONE);
+    ok(result == ERROR, "Flapping started in downtime - Service should NOT notify");
+
+    // Service downtime start
+    create_objects(STATE_UP, HARD_STATE, "host up", STATE_OK, HARD_STATE, "service ok");
+    result = check_service_notification_viability(svc1, NOTIFICATION_DOWNTIMESTART, NOTIFICATION_OPTION_NONE);
+    ok(result == OK, "Downtime started - Service should notify");
+
+    // Service downtime start while in downtime (Sounds wrong)
+    create_objects(STATE_UP, HARD_STATE, "host up", STATE_OK, HARD_STATE, "service ok");
+    svc1->scheduled_downtime_depth = 1;
+    result = check_service_notification_viability(svc1, NOTIFICATION_DOWNTIMESTART, NOTIFICATION_OPTION_NONE);
+    ok(result == ERROR, "Downtime started in downtime - Service should NOT notify");
 
     // Soft states don't get notifications
     create_objects(STATE_UP, HARD_STATE, "host up", STATE_CRITICAL, SOFT_STATE, "service critical");
     result = check_service_notification_viability(svc1, NOTIFICATION_NORMAL, NOTIFICATION_OPTION_NONE);
-    ok(result == ERROR, "Host: down,hard - Service: critical,soft - Service should NOT notify");
+    ok(result == ERROR, "Host: up,hard - Service: critical,soft - Service should NOT notify");
+
+    // Problem has already been acknowledged
+    create_objects(STATE_UP, HARD_STATE, "host up", STATE_CRITICAL, HARD_STATE, "service critical");
+    svc1->problem_has_been_acknowledged = TRUE;
+    result = check_service_notification_viability(svc1, NOTIFICATION_NORMAL, NOTIFICATION_OPTION_NONE);
+    ok(result == ERROR, "Service problem acknowledged - Service should NOT notify");
+
+    // Host and Service Dependencies
+
+    // Notification options for the service don't match
+    create_objects(STATE_UP, HARD_STATE, "host up", STATE_CRITICAL, HARD_STATE, "service critical");
+    svc1->notification_options = OPT_NOTHING;
+    result = check_service_notification_viability(svc1, NOTIFICATION_NORMAL, NOTIFICATION_OPTION_NONE);
+    ok(result == ERROR, "Service options don't have critical - Service should NOT notify");
+
+    // Recovery notification
+    create_objects(STATE_UP, HARD_STATE, "host up", STATE_OK, HARD_STATE, "service ok");
+    svc1->notified_on = 1;
+    result = check_service_notification_viability(svc1, NOTIFICATION_NORMAL, NOTIFICATION_OPTION_NONE);
+    ok(result == OK, "Recovery notification - Service should notify");
+
+    // Recovery notification without matching error notification
+    create_objects(STATE_UP, HARD_STATE, "host up", STATE_OK, HARD_STATE, "service ok");
+    svc1->notified_on = 0;
+    result = check_service_notification_viability(svc1, NOTIFICATION_NORMAL, NOTIFICATION_OPTION_NONE);
+    ok(result == ERROR, "Recovery notification without matching error - Service should NOT notify");
+
+    // Enough time between last notification
+
+    // Service is flapping
+    create_objects(STATE_UP, HARD_STATE, "host up", STATE_CRITICAL, HARD_STATE, "service critical");
+    svc1->is_flapping = TRUE;
+    result = check_service_notification_viability(svc1, NOTIFICATION_NORMAL, NOTIFICATION_OPTION_NONE);
+    ok(result == ERROR, "Service is flapping - Service should NOT notify");
+
+    // Service in downtime
+    create_objects(STATE_UP, HARD_STATE, "host up", STATE_CRITICAL, HARD_STATE, "service critical");
+    svc1->scheduled_downtime_depth = 1;
+    result = check_service_notification_viability(svc1, NOTIFICATION_NORMAL, NOTIFICATION_OPTION_NONE);
+    ok(result == ERROR, "Service is in downtime - Service should NOT notify");
+
+    // Parent host in downtime
+    create_objects(STATE_UP, HARD_STATE, "host up", STATE_CRITICAL, HARD_STATE, "service critical");
+    hst1->scheduled_downtime_depth = 1;
+    result = check_service_notification_viability(svc1, NOTIFICATION_NORMAL, NOTIFICATION_OPTION_NONE);
+    ok(result == ERROR, "Parent host is in downtime - Service should NOT notify");
 
     // Host is down, service shouldn't get notification
     create_objects(STATE_DOWN, HARD_STATE, "host down", STATE_CRITICAL, HARD_STATE, "service critical");
     result = check_service_notification_viability(svc1, NOTIFICATION_NORMAL, NOTIFICATION_OPTION_NONE);
     ok(result == ERROR, "Host: down,hard - Service: critical,hard - Service should NOT notify");
 
-    free_all();
+    // When you should be typically notified
+    create_objects(STATE_UP, HARD_STATE, "host up", STATE_CRITICAL, HARD_STATE, "service critical");
+    result = check_service_notification_viability(svc1, NOTIFICATION_NORMAL, NOTIFICATION_OPTION_NONE);
+    ok(result == OK, "Host: up,hard - Service: critical,hard - Service should notify");
 
+    // Some other thing with not notifying again too soon
+
+    free_all();
 }
 
 void run_host_tests() {
@@ -301,7 +413,7 @@ int main(int argc, char **argv)
     
     time_t now = 0L;
 
-    plan_tests(5);
+    plan_tests(23);
 
     time(&now);
 

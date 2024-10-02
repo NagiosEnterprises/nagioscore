@@ -269,7 +269,7 @@ void run_service_tests() {
 
     enable_notifications = TRUE;
 
-    // All parents are bad
+    // All parents are bad. Reminder that host parents are different than service parents.
     create_objects(STATE_DOWN, HARD_STATE, "host down", STATE_CRITICAL, HARD_STATE, "service critical");
     setup_parents();
     result = check_service_notification_viability(svc1, NOTIFICATION_NORMAL, NOTIFICATION_OPTION_NONE);

@@ -2,11 +2,11 @@
 Nagios Core 4 Change Log
 ########################
 
-4.5.6 - 2024-XX-XX
+4.5.6 - 2024-10-08
 ------------------
-* Update tutorial links in Readme (Igor Udot)
 * Send a recovery notification if the object recovered while flapping (#847) (Dylan Anderson)
 * Fix for separate build directory & a couple small cleanups (Doug Nazar)
+* Update tutorial links in Readme (Igor Udot)
 
 4.5.5 - 2024-09-17
 ------------------

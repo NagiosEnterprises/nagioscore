@@ -106,7 +106,7 @@ test_macros: test_macros.o $(TP_OBJS) $(TAPOBJ)
 	$(CC) $(CFLAGS) -o $@ $^ $(BLD_BASE)/checks.o $(BROKER_LDFLAGS) $(LDFLAGS) $(MATHLIBS) $(SOCKETLIBS) $(LIBS)
 
 test_notifications: test_notifications.o $(BLD_BASE)/notifications.o $(BLD_BASE)/checks.o $(BLD_BASE)/utils.o $(BLD_COMMON)/shared.o $(BLD_BASE)/objects-base.o $(TAPOBJ)
-	$(CC) $(CFLAGS) -o $@ $^ $(LIBS)
+	$(CC) $(CFLAGS) -o $@ $^ $(LIBS) $(MATHLIBS)
 
 test_xsddefault: test_xsddefault.o $(XSD_OBJS) $(TAPOBJ)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)

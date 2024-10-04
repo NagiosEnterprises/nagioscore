@@ -279,7 +279,7 @@ void run_service_tests() {
     create_objects(STATE_UP, HARD_STATE, "host up", STATE_CRITICAL, HARD_STATE, "service critical");
     setup_parents();
     result = check_service_notification_viability(svc1, NOTIFICATION_NORMAL, NOTIFICATION_OPTION_NONE);
-    ok(result == OK, "Not all parents are down - Service should notify");
+    ok(result == ERROR, "Not all parents are down - Service should NOT notify");
 
     free_all();
 

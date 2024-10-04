@@ -1208,6 +1208,8 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 
 	host * hst                     = NULL;
 
+	int notification_type          = NOTIFICATION_NORMAL;
+
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "handle_async_service_check_result()\n");
 
 	if (svc == NULL) {
@@ -1590,10 +1592,16 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 		handle_event = TRUE;
 	}
 
+	// Recovery notification was not sent
+	if(svc->notified_on != 0 && svc->current_state == STATE_OK && svc->state_type == HARD_STATE) {
+		notification_type = NOTIFICATION_RECOVERY;
+		send_notification = TRUE;
+	}
+
 	if (send_notification == TRUE) {
 
 		/* send notification */
-		if (service_notification(svc, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE) == OK) {
+		if (service_notification(svc, notification_type, NULL, NULL, NOTIFICATION_OPTION_NONE) == OK) {
 
 			/* log state due to notification event when stalking_options N is set */
 			if (should_stalk_notifications(svc)) {
@@ -1601,13 +1609,6 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 			}
 		}
 	}
-
-	/* the service recovered, so reset the current notification number and state flags (after the recovery notification has gone out) */
-	/* We don't want to reset notifications if the service is currently flapping because we want recovery notifications */
-	if(svc->current_state == STATE_OK && svc->state_type == HARD_STATE && hard_state_change == TRUE && svc->is_flapping == FALSE) {
-		svc->current_notification_number = 0;
-		svc->notified_on = 0;
-		}
 
 	if (obsess_over_services == TRUE) {
 		obsessive_compulsive_service_check_processor(svc);
@@ -1634,7 +1635,6 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 
 		/* Reset attempts */
 		if (hard_state_change == TRUE) {
-			svc->current_notification_number = 0;
 			svc->host_problem_at_last_check = FALSE;
 		}
 
@@ -2255,6 +2255,8 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 
 	char * old_plugin_output = NULL;
 
+	int notification_type    = NOTIFICATION_NORMAL;
+
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "handle_async_host_check_result()\n");
 
 	if (is_valid_check_result_data(hst, cr) == FALSE) {
@@ -2482,10 +2484,16 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 		hst->current_attempt = 1;
 	}
 
+	// Recovery notification was not sent
+	if(hst->notified_on != 0 && hst->current_state == HOST_UP && hst->state_type == HARD_STATE) {
+		notification_type = NOTIFICATION_RECOVERY;
+		send_notification = TRUE;
+	}
+
 	if (send_notification == TRUE) {
 
 		/* send notifications */
-		if (host_notification(hst, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE) == OK) {
+		if (host_notification(hst, notification_type, NULL, NULL, NOTIFICATION_OPTION_NONE) == OK) {
 
 			/* log state due to notification event when stalking_options N is set */
 			if (should_stalk_notifications(hst)) {
@@ -2494,13 +2502,6 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 		}
 	}
 
-    /* the host recovered, so reset the current notification number and state flags (after the recovery notification has gone out) */
-	/* We don't want to reset notifications if the host is currently flapping because we want recovery notifications */
-    if(hst->current_state == HOST_UP && hst->state_type == HARD_STATE && hard_state_change == TRUE && hst->is_flapping == FALSE) {
-        hst->current_notification_number = 0;
-        hst->notified_on = 0;
-        }
-        
 	if (obsess_over_hosts == TRUE) {
 		obsessive_compulsive_host_check_processor(hst);
 	}

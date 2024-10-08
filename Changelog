@@ -7,6 +7,7 @@ Nagios Core 4 Change Log
 * Send a recovery notification if the object recovered while flapping (#847) (Dylan Anderson)
 * Fix for separate build directory & a couple small cleanups (Doug Nazar)
 * Update tutorial links in Readme (Igor Udot)
+* Expand the custom variable macros to an empty string, if the custom variable does not exist
 
 4.5.5 - 2024-09-17
 ------------------

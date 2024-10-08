@@ -2,12 +2,15 @@
 Nagios Core 4 Change Log
 ########################
 
+4.5.7 - 2024-11-19
+------------------
+* Expand the custom variable macros to an empty string, if the custom variable does not exist (Andre Klärner)
+
 4.5.6 - 2024-10-08
 ------------------
 * Send a recovery notification if the object recovered while flapping (#847) (Dylan Anderson)
 * Fix for separate build directory & a couple small cleanups (Doug Nazar)
 * Update tutorial links in Readme (Igor Udot)
-* Expand the custom variable macros to an empty string, if the custom variable does not exist
 
 4.5.5 - 2024-09-17
 ------------------

@@ -219,11 +219,6 @@ div.navsectionheader ul li ul li {
 	font-size: 11pt;
 	font-weight: bold;
 	}
-#currentversioninfo .whatsnew{
-	font-size: 11pt;
-	font-weight: bold;
-	margin: 50px 0 0 0;
-	}
 
 #updateversioninfo{
 	margin: 15px auto 35px auto;
@@ -268,47 +263,4 @@ div.navsectionheader ul li ul li {
 
 a img {
 	border: none;
-	}
-
-#splashboxes {
-
-	/*border: 1px solid blue;*/
-	clear:both;
-	width: 800px; 
-	height:300px; 
-	margin-left: auto;
-	margin-right:auto; 
-	line-height:1.2em; /* added for better X-browser/OS viewing */
-
-	}
-#topsplashbox {
-	height:150px;
-	}
-#bottomsplashbox { 
-	height:150px;
-	}
-
-.splashbox {
-	padding: 5px;
-	margin: 5px;
-	border: 1px solid #AAAAAA;
-	float: left;
-	text-align: left;
-	width:375px;
-	}
-
-.splashbox h2{
-	margin: 0px;
-	font-size: 12pt;
-	}
-.splashbox ul{
-    margin: 0;
-    padding: 5px 5px 5px 15px;
-	}
-.splashbox ul li{
-	clear: both;
-	}
-#splashbox1 {
-	}
-#splashbox2 {
 	}

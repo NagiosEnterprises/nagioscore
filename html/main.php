@@ -66,16 +66,17 @@ $this_year = '2024';
 <body id="splashpage">
 
 
-<div id="mainbrandsplash">
+<!-- <div id="mainbrandsplash">
 	<div><span id="core-status"></span></div>
-</div>
+</div> -->
 
 
 <div id="currentversioninfo">
-	<div class="product">Nagios<sup><span style="font-size: small;">&reg;</span></sup> Core<sup><span style="font-size: small;">&trade;</span></sup></div>
-	<div class="version">Version <?php echo $this_version; ?></div>
-	<div class="releasedate">October 08, 2024</div>
-	<div class="checkforupdates"><a href="https://www.nagios.org/checkforupdates/?version=<?php echo $this_version; ?>&amp;product=nagioscore" target="_blank">Check for updates</a></div>
+	<div>
+		<div class="version">Version <b><?php echo $this_version; ?></b></div>
+		<div class="releasedate">October 08, 2024</div>
+	</div>
+	<a class="checkforupdates" href="https://www.nagios.org/checkforupdates/?version=<?php echo $this_version; ?>&amp;product=nagioscore" target="_blank">Check for updates</a>
 </div>
 
 

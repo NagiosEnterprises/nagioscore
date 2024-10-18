@@ -56,7 +56,6 @@ not important:  blue             aaccff  777777
 }
 
 body {
-  margin: 0em;
   margin: 0.8em 0.8em 2em 0.8em;
   color: var(--foreground);
   background-color: var(--background);
@@ -212,33 +211,36 @@ ul.navsectionlinks li ul li a:hover {
 }
 
 #currentversioninfo {
-  font-size: 12pt;
+  display: flex;
+  font-size: small;
+  color: var(--secondary-foreground);
+  align-items: center;
+  border-bottom: 1px var(--border) solid;
+  padding: 16px;
+  gap: 16px;
+  margin: -0.8em -0.7em 0 -0.8em;
+  justify-content: space-between;
 }
 
-#currentversioninfo .product {
-  font-size: 14pt;
-  font-weight: bold;
-}
-
-#currentversioninfo .version {
-  font-size: 14pt;
-  font-weight: bold;
-}
-
-#currentversioninfo .releasedate {
-  font-size: 11pt;
-  margin: 5px 0 0 0;
+#currentversioninfo > div {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
 #currentversioninfo .checkforupdates {
-  font-size: 11pt;
-  font-weight: bold;
+  background-color: var(--background);
+  color: var(--foreground);
+  border: 1px var(--border) solid;
+  border-radius: var(--radius);
+  padding: 6px;
+  align-self: flex-end;
 }
 
-#currentversioninfo .whatsnew {
-  font-size: 11pt;
-  font-weight: bold;
-  margin: 50px 0 0 0;
+#currentversioninfo .checkforupdates:hover {
+  color: var(--foreground);
+  background-color: var(--input);
+  text-decoration: none;
 }
 
 #updateversioninfo {
@@ -277,6 +279,7 @@ ul.navsectionlinks li ul li a:hover {
   padding-top: 35px;
   margin: auto;
   width: 800px;
+  color: var(--muted-foreground);
 }
 
 #splashpage #mainfooter .disclaimer {
@@ -604,69 +607,4 @@ th.data {
 
 .NavBarSearchItem {
   font-size: 9pt;
-}
-
-
-
-#splashboxes {
-  margin: auto;
-  width: 794px;
-}
-
-.splashbox {
-  padding: 5px;
-  margin: 5px;
-  border: 1px solid #AAAAAA;
-  float: left;
-  text-align: left;
-  height: 140px;
-}
-
-.splashbox h2 {
-  margin: 0;
-  font-size: 12pt;
-}
-
-.splashbox ul {
-  margin: 0;
-  padding: 5px 5px 5px 15px;
-}
-
-.splashbox ul li {
-  clear: both;
-}
-
-.splashbox-media {
-  margin: 5px;
-}
-
-.splashbox3-empty {
-  margin: 5px;
-  border: 1px solid #AAAAAA;
-  width: 238px;
-  height: 150px;
-}
-
-.splashbox3-full {
-  margin: 5px;
-  width: 240px;
-  height: 152px;
-}
-
-.splashbox-clear {
-  clear: both;
-}
-
-#splashbox1,
-#splashbox2,
-#splashbox4 {
-  width: 250px;
-}
-
-#splashbox3 {
-  float: left;
-}
-
-#splashbox5 {
-  width: 500px;
 }

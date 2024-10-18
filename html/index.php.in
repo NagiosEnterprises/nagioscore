@@ -40,24 +40,30 @@ $this_year = '2024';
 		var n = Math.round(Math.random() * 10000000000);
 		document.cookie = "NagFormId=" + n.toString(16);
 	</script>
+
+	<style>
+		#root {
+			display: flex;
+			margin:0;
+		}
+
+		iframe[name="side"] {
+			height: 100vh;
+			width: 200px;
+			border: none;
+		}
+
+		iframe[name="main"] {
+			height: 100vh;
+			width: 100%;
+			border: none;
+		}
+	</style>
 </head>
 
-<frameset cols="180,*" style="border: 0px; framespacing: 0px">
-	<frame src="side.php" name="side" frameborder="0" style="">
-	<frame src="<?php echo $url; ?>" name="main" frameborder="0" style="">
-
-	<noframes>
-		<!-- This page requires a web browser which supports frames. -->
-		<h2>Nagios Core</h2>
-		<p align="center">
-			<a href="https://www.nagios.org/">www.nagios.org</a><br>
-			Copyright &copy; 2010-<?php echo $this_year; ?> Nagios Core Development Team and Community Contributors.
-			Copyright &copy; 1999-2010 Ethan Galstad<br>
-		</p>
-		<p>
-			<i>Note: These pages require a browser which supports frames</i>
-		</p>
-	</noframes>
-</frameset>
+<body id="root">
+	<iframe src="side.php" name="side"></iframe>
+	<iframe src="<?php echo $url; ?>" name="main"></iframe>
+</body>
 
 </html>

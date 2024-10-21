@@ -211,6 +211,10 @@ div.navsectionheader ul li ul li {
 	font-size: 14pt;
 	font-weight: bold;
 	}
+#currentversioninfo .version b{
+	font-size: 14pt;
+	font-weight: bold;
+	}
 #currentversioninfo .releasedate{
 	font-size: 11pt;
 	margin: 5px 0 0 0;
@@ -244,14 +248,73 @@ div.navsectionheader ul li ul li {
 	font-size: 12pt;
 	font-weight: bold;
 	}
-	
+
+#mainsplash {
+  display: grid;
+  max-width: 1400px;
+  margin: auto;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 100px;
+  padding: 120px 60px 120px 60px;
+}
+
+@media (width <= 1200px) {
+  #mainsplash {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    padding: 60px;
+  }
+}
+
+#mainsplash img {
+  max-width: 100%;
+  margin: 0;
+}
+
+#splashtext {
+  text-align: left;
+  font-size: large;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  justify-content: center;
+}
+
+#splashtexttitle {
+  font-size: 2.25rem; /* 36px */
+  line-height: 2.5rem;
+  font-weight: 700;
+}
+
+#splashbuttons {
+  display: flex;
+  gap: 32px;
+  align-items: center;
+}
+
+#splashlearnmore {
+  background-color: #4D89F9;
+  color: white;
+  padding: 16px;
+  border-radius: 0.5rem;
+}
+
+#splashlearnmore:hover {
+  text-decoration: none;
+}
+
+#splashnewsletter {
+  text-decoration: underline;
+}
+
 #splashpage #mainfooter{
 	/*margin: 100px 0 0 0;*/
 	margin: auto;
 	width: 800px;
 	clear: both;
 	font-size: 8pt;
+	padding-top: 35px;
 	}
+
 #splashpage #mainfooter .disclaimer{
 	/*width: 80%;*/
 	margin: auto;

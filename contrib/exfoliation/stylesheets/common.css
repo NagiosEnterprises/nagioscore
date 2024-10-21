@@ -37,6 +37,55 @@ not important:  blue             aaccff  777777
    controls: 9pt
    data in tables: 8pt or 9pt
 */
+@font-face {
+    font-family: 'Geist';
+    src: url('../fonts/Geist-Regular.woff2');
+    font-weight: normal;
+    font-style: normal;
+}
+
+
+@font-face {
+    font-family: 'Geist';
+    src: url('../fonts/Geist-Bold.woff2');
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Geist';
+    src: url('../fonts/Geist-SemiBold.woff2');
+    font-weight: 600; 
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Geist';
+    src: url('../fonts/Geist-Black.woff2');
+    font-weight: 900; 
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Geist';
+    src: url('../fonts/Geist-Thin.woff2');
+    font-weight: 100;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Geist';
+    src: url('../fonts/Geist-UltraLight.woff2');
+    font-weight: 200; 
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Geist';
+    src: url('../fonts/Geist-UltraBlack.woff2');
+    font-weight: 950;
+    font-style: normal;
+}
 
 :root {
   --background: #000000;
@@ -53,13 +102,19 @@ not important:  blue             aaccff  777777
   border: none;
   border-right: 1px var(--border) solid;
   height: 100vh;
+  color: var(--foreground);
+  background-color: var(--background);
+}
+
+#main {
+  height: 100vh;
+  color: var(--foreground);
+  background-color: var(--background);
 }
 
 body {
   margin: 0.8em 0.8em 2em 0.8em;
-  color: var(--foreground);
-  background-color: var(--background);
-  font-family: verdana, sans-serif;
+  font-family: Geist;
   font-weight: normal;
   font-size: 10pt;
 }
@@ -87,7 +142,7 @@ a img {
 
 a {
   text-decoration: none;
-  color: var(--secondary-foreground);
+  color: #40529b;
 }
 
 a:hover {
@@ -232,8 +287,8 @@ ul.navsectionlinks li ul li a:hover {
   background-color: var(--background);
   color: var(--foreground);
   border: 1px var(--border) solid;
-  border-radius: var(--radius);
-  padding: 6px;
+  border-radius: 0.5rem;
+  padding: 6px 10px 6px 10px;
   align-self: flex-end;
 }
 
@@ -271,6 +326,71 @@ ul.navsectionlinks li ul li a:hover {
 .updateavailable div.updatemessage {
   font-size: 12pt;
   font-weight: bold;
+}
+
+#mainsplash {
+  display: grid;
+  max-width: 1400px;
+  margin: auto;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 100px;
+  padding: 120px 60px 120px 60px;
+}
+
+@media (width <= 1200px) {
+  #mainsplash {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    padding: 60px;
+  }
+}
+
+#mainsplash img {
+  max-width: 100%;
+  margin: 0;
+}
+
+#splashtext {
+  text-align: left;
+  color: var(--secondary-foreground);
+  font-size: large;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  justify-content: center;
+}
+
+#splashtexttitle {
+  font-size: 2.25rem; /* 36px */
+  line-height: 2.5rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+#splashbuttons {
+  display: flex;
+  gap: 32px;
+  align-items: center;
+}
+
+#splashlearnmore {
+  background-color: var(--primary);
+  color: var(--foreground);
+  padding: 16px;
+  border-radius: var(--radius);
+}
+
+#splashlearnmore:hover {
+  background-color: var(--primary);
+  text-decoration: none;
+}
+
+#splashnewsletter {
+  text-decoration: underline;
+  color: var(--secondary-foreground);
+}
+
+#splashnewsletter:hover {
+  color: var(--primary);
 }
 
 #splashpage #mainfooter {

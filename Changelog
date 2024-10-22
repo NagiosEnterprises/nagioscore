@@ -5,6 +5,7 @@ Nagios Core 4 Change Log
 4.5.7 - 2024-11-19
 ------------------
 * Expand the custom variable macros to an empty string, if the custom variable does not exist (Andre Klärner)
+* Update Exfoliation theme (Dylan Anderson)
 
 4.5.6 - 2024-10-08
 ------------------

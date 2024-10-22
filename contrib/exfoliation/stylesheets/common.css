@@ -328,6 +328,10 @@ ul.navsectionlinks li ul li a:hover {
   font-weight: bold;
 }
 
+#mainbrandsplash {
+  display: none;
+}
+
 #mainsplash {
   display: grid;
   max-width: 1400px;

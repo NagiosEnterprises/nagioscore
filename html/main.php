@@ -66,9 +66,9 @@ $this_year = '2024';
 <body id="splashpage">
 
 
-<!-- <div id="mainbrandsplash">
+<div id="mainbrandsplash">
 	<div><span id="core-status"></span></div>
-</div> -->
+</div>
 
 
 <div id="currentversioninfo">

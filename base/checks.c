@@ -1064,8 +1064,8 @@ static inline void host_propagate_checks_to_immediate_parents(host * hst, int pa
 	log_debug_info(DEBUGL_CHECKS, 1, "Propagating checks to parent host(s)...\n");
 	for(temp_hostsmember = hst->parent_hosts; temp_hostsmember != NULL; temp_hostsmember = temp_hostsmember->next) {
 		parent_host = temp_hostsmember->host_ptr;
-		if ((parent_host_up == TRUE  && parent_host->current_state == HOST_UP) 
-			|| ((parent_host_up == FALSE && parent_host->current_state != HOST_UP))) {
+		if ((parent_host_up == TRUE  && parent_host->current_state != HOST_UP) 
+			|| ((parent_host_up == FALSE && parent_host->current_state == HOST_UP))) {
 
 			log_debug_info(DEBUGL_CHECKS, 1, "Check of parent host '%s' queued.\n", parent_host->name);
 			schedule_host_check(parent_host, current_time, CHECK_OPTION_DEPENDENCY_CHECK);

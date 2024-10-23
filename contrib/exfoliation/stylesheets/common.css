@@ -100,10 +100,14 @@ not important:  blue             aaccff  777777
 
 #side {
   border: none;
-  border-right: 1px var(--border) solid;
   height: 100vh;
   color: var(--foreground);
   background-color: var(--background);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) var(--background);
 }
 
 #main {
@@ -155,7 +159,9 @@ a:hover {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  margin: 16px;
+  padding: 16px;
+  margin: 0;
+  border-right: 1px var(--border) solid;
 }
 
 .navbarlogo {
@@ -402,7 +408,7 @@ ul.navsectionlinks li ul li a:hover {
   font-size: 8pt;
   padding-top: 35px;
   margin: auto;
-  width: 800px;
+  max-width: 800px;
   color: var(--muted-foreground);
 }
 

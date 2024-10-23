@@ -367,6 +367,10 @@ install-exfoliation:
 	for file in $$(find ./images -type f); do \
 		$(INSTALL) -m 644 $(INSTALL_OPTS) $${file} $(DESTDIR)$(HTMLDIR)/$${file}; \
 	done; \
+	$(INSTALL) $(INSTALL_OPTS) -d $(DESTDIR)$(HTMLDIR)/fonts; \
+	for file in $$(find ./fonts -type f); do \
+		$(INSTALL) -m 644 $(INSTALL_OPTS) $${file} $(DESTDIR)$(HTMLDIR)/$${file}; \
+	done; \
 	)
 
 	@echo ""

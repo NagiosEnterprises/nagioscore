@@ -199,8 +199,6 @@ vidbox.prototype.init = function()
 
 	this.tab = $("<div/>", { 'class':cls2 }).text("Page Tour").appendTo($('body'));
 	$(this.tab).click(function(){This.toggleFrame();});
-	this.tabClose = $("<div/>", { class:"vidboxTabClose", text:'x' } );
-	this.tabClose.appendTo($(this.tab));
 
 	embed = $("<iframe/>", { 'class':'vidboxIframe', 'width':560,'height':315,
 							'src':this.vidurl } );
@@ -226,28 +224,28 @@ vidbox.prototype.toggleFrame = function(quit)
 		w = this.box.width() * -1;
 
 		if (this.pos.substr(1,1) == 'l') {
-			$(this.box).animate( { "left":w }, "slow", function(){
+			$(this.box).animate( { "left":w }, 400, function(){
 				if (quit == true) {
 					$(This.box).remove();
 					return;
 				}
 				$(This.frame).css("display", "none");
-				$(This.tabClose).css("display","");
-				$(This.tab).css("position", "").css("margin-left","");
+				$(This.tab).css("position", "");
 				$(This.tab).addClass("vidboxTab_" + This.pos);
+				$(This.tab).text("Page Tour")
 				$('body').append($(This.tab).detach());
 			} );
 
 		} else if (this.pos.substr(1,1) == 'r') {
-			$(this.box).animate( { "right":w }, "slow", function(){
+			$(this.box).animate( { "right":w }, 400, function(){
 				if (quit == true) {
 					$(This.box).remove();
 					return;
 				}
 				$(This.frame).css("display", "none");
-				$(This.tabClose).css("display","");
-				$(This.tab).css("position", "").css("margin-left","");
+				$(This.tab).css("position", "");
 				$(This.tab).addClass("vidboxTab_" + This.pos);
+				$(This.tab).text("Page Tour")
 				$('body').append($(This.tab).detach());
 			} );
 		}
@@ -256,8 +254,8 @@ vidbox.prototype.toggleFrame = function(quit)
 
 		this.showing = true;
 		$(this.tab).removeClass("vidboxTab_" + this.pos);
-		$(this.tab).css("position", "static").css("margin-left", "10px");
-		$(this.tabClose).css("display","inline-block");
+		$(this.tab).css("position", "static");
+		$(this.tab).text("Close")
 		$(this.box).prepend($(this.tab).detach());
 
 		$(this.frame).css("display", "block");
@@ -265,10 +263,10 @@ vidbox.prototype.toggleFrame = function(quit)
 
 		if (this.pos.substr(1,1) == 'l') {
 			$(this.box).css( { "left":w+"px" });
-			$(this.box).animate( { "left":"10px" }, "slow"  );
+			$(this.box).animate( { "left":"10px" }, 400  );
 		} else if (this.pos.substr(1,1) == 'r') {
 			$(this.box).css( { "right":w+"px" });
-			$(this.box).animate( { "right":"10px" }, "slow"  );
+			$(this.box).animate( { "right":"10px" }, 400  );
 		}
 	}
 }

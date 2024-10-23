@@ -6,6 +6,7 @@ Nagios Core 4 Change Log
 ------------------
 * Expand the custom variable macros to an empty string, if the custom variable does not exist (Andre Klärner)
 * Fix notification logic to not send a notification if a host and services parents are down (#873) (Dylan Anderson)
+* Update Exfoliation theme (Dylan Anderson)
 
 4.5.6 - 2024-10-08
 ------------------

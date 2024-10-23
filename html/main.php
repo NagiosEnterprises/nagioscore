@@ -104,7 +104,7 @@ $this_year = '2024';
 </div>
 
 <div id="mainsplash">
-	<a href="https://www.nagios.org/launch?utm_campaign=csp&utm_source=nagioscore&utm_medium=splash_image&utm_content=<?php echo $this_version; ?>" target="_blank"><img src="images/csp-dashboard.avif" /></a>
+	<a href="https://www.nagios.org/launch?utm_campaign=csp&utm_source=nagioscore&utm_medium=splash_thumbnail&utm_content=<?php echo $this_version; ?>" target="_blank"><img src="images/csp-dashboard.avif" /></a>
 	<div id="splashtext">
 		<div id="splashtexttitle">Meet Nagios Core Services Platform</div>
 		<div>The next generation of Open Source powered monitoring with advanced dashboards, monitoring wizards, and much more!</div>

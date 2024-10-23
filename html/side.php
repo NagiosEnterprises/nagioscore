@@ -6,7 +6,7 @@ $link_target = 'main';
 ?>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 
-<html>
+<html id="side">
 
 <head>
 <meta name="ROBOTS" content="NOINDEX, NOFOLLOW">
@@ -18,7 +18,7 @@ $link_target = 'main';
 <body class='navbar'>
 
 <div class="navbarlogo">
-	<a href="https://www.nagios.org" target="_blank"><img src="images/sblogo.png" height="39" width="140" border="0" alt="Nagios" /></a>
+	<a href="https://www.nagios.org" target="_blank"><img src="images/logos/horizontal-nagios-full-logo.svg" height="39" width="140" border="0" alt="Nagios" /></a>
 </div>
 
 <div class="navsection">
@@ -53,10 +53,6 @@ $link_target = 'main';
 					<li><a href="<?php echo $cfg["cgi_base_url"];?>/status.cgi?servicegroup=all&amp;style=grid" target="<?php echo $link_target;?>">Grid</a></li>
 				</ul>
 			</li>
-		</ul>
-	</div>
-	<div class="navsectionheader">
-		<ul>
 			<li>Problems
 				<ul>
 					<li><a href="<?php echo $cfg["cgi_base_url"];?>/status.cgi?host=all&amp;servicestatustypes=28" target="<?php echo $link_target;?>">Services</a> (<a href="<?php echo $cfg["cgi_base_url"];?>/status.cgi?host=all&amp;type=detail&amp;hoststatustypes=3&amp;serviceprops=10&amp;servicestatustypes=28" target="<?php echo $link_target;?>">Unhandled</a>)</li>
@@ -68,11 +64,9 @@ $link_target = 'main';
 	</div>
 	<div class="navbarsearch">
 		<form method="get" action="<?php echo $cfg["cgi_base_url"];?>/status.cgi" target="<?php echo $link_target;?>">
-			<fieldset>
-				<legend>Quick Search:</legend>
-				<input type='hidden' name='navbarsearch' value='1'>
-				<input type='text' name='host' size='15' class="NavBarSearchItem">
-			</fieldset>
+			<div>Quick Search:</div>
+			<input type='hidden' name='navbarsearch' value='1'>
+			<input type='text' name='host' size='15' class="NavBarSearchItem">
 		</form>
 	</div>
 </div>

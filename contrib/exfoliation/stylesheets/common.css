@@ -37,13 +37,88 @@ not important:  blue             aaccff  777777
    controls: 9pt
    data in tables: 8pt or 9pt
 */
+@font-face {
+    font-family: 'Geist';
+    src: url('../fonts/Geist-Regular.woff2');
+    font-weight: normal;
+    font-style: normal;
+}
+
+
+@font-face {
+    font-family: 'Geist';
+    src: url('../fonts/Geist-Bold.woff2');
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Geist';
+    src: url('../fonts/Geist-SemiBold.woff2');
+    font-weight: 600; 
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Geist';
+    src: url('../fonts/Geist-Black.woff2');
+    font-weight: 900; 
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Geist';
+    src: url('../fonts/Geist-Thin.woff2');
+    font-weight: 100;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Geist';
+    src: url('../fonts/Geist-UltraLight.woff2');
+    font-weight: 200; 
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Geist';
+    src: url('../fonts/Geist-UltraBlack.woff2');
+    font-weight: 950;
+    font-style: normal;
+}
+
+:root {
+  --background: #000000;
+  --foreground: #FFFFFF;
+  --primary: #4D89F9;
+  --secondary-foreground: #D3DAE5;
+  --muted-foreground: #8A92A1;
+  --border: #28303E;
+  --input: #0D1014;
+  --radius: 0.3rem;
+}
+
+#side {
+  border: none;
+  height: 100vh;
+  color: var(--foreground);
+  background-color: var(--background);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) var(--background);
+}
+
+#main {
+  height: 100vh;
+  color: var(--foreground);
+  background-color: var(--background);
+}
 
 body {
-  margin: 0em;
   margin: 0.8em 0.8em 2em 0.8em;
-  color: black;
-  background-color: white;
-  font-family: arial, verdana, serif;
+  font-family: Geist;
   font-weight: normal;
   font-size: 10pt;
 }
@@ -53,7 +128,8 @@ table {
   margin: 0;
 }
 
-th, td {
+th,
+td {
   border: none;
   padding: 0 2px 0 2px;
 }
@@ -67,169 +143,264 @@ form {
 a img {
   border: none;
 }
+
 a {
   text-decoration: none;
   color: #40529b;
 }
+
 a:hover {
   text-decoration: underline;
-  color: #3f5bcd;
-}
-a:active {
-  color: #496aef;
-}
-a:visited {
-  color: #2c3763;
+  color: var(--primary);
 }
 
 
-div.navbarlogo {
-  margin: 0 0 10px 0;
+.navbar {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px;
+  margin: 0;
+  border-right: 1px var(--border) solid;
 }
+
+.navbarlogo {
+  margin-bottom: 10px;
+}
+
 div.navsection {
-  margin: 5px 0 10px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
+
 div.navsectiontitle {
   font-size: 9pt;
   font-weight: bold;
-  padding: 2px;
-  background-color: #efefef;
-  border:1px solid #dddddd;
-}
-
-div.navsectionlinks {
-  margin: 3px 0 0 0;
+  border-bottom: 1px var(--border) solid;
+  padding-bottom: 6px;
+  margin-top: 4px;
+  margin-bottom: 2px;
 }
 
 ul.navsectionlinks {
   margin: 0;
   padding: 0;
   list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
-ul.navsectionlinks li { }
-ul.navsectionlinks li a {
-  font-weight: bold;
+
+ul.navsectionlinks li {
+  font-weight: normal;
   font-size: 9pt;
   text-decoration: none;
-  padding: 0 0 0 15px;
- /* background: transparent url(../images/greendot.gif) no-repeat scroll 0 0; */
-
+  color: var(--foreground)
 }
+
+ul.navsectionlinks li a {
+  font-weight: normal;
+  font-size: 9pt;
+  text-decoration: none;
+  color: var(--foreground)
+}
+
+ul.navsectionlinks li a:hover {
+  color: var(--primary);
+}
+
 ul.navsectionlinks li ul {
   margin: 0px;
-  padding: 0 0 0 30px;
+  padding-top: 4px;
+  padding-left: 15px;
   list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
-ul.navsectionlinks li ul li { }
-ul.navsectionlinks li a:hover {
-/*  background: transparent url(../images/orangedot.gif) no-repeat scroll 0 0; */
-color: #8391cd;
-}
+
 ul.navsectionlinks li ul li a {
   background: none;
   padding: 0;
   font-weight: normal;
+  color: var(--secondary-foreground)
 }
+
 ul.navsectionlinks li ul li a:hover {
   background: none;
 }
-ul.navsectionlinks li ul li ul {
-  margin: 0px;
-  padding: 0 0 0 15px;
-  list-style: none;
-}
-
-div.navsectionheader {
-  padding: 0;
-  margin: 0;
-}
-div.navsectionheader ul {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-div.navsectionheader ul li {
-  font-size: 9pt;
-  font-weight: bold;
-  padding: 0 0 0 15px;
-}
-div.navsectionheader ul li ul li {
-  font-weight: normal;
-}
 
 .navbarsearch {
-  margin: 5px 0 0 0;
-}
-.navbarsearch fieldset {
-  border: none;
+  margin-top: 4px;
 }
 
-.navbarsearch fieldset legend {
-  font-size: 8pt;
+.navbarsearch form {
+  border: none;
+  padding: 0;
+  margin: 0;
+  font-size: 9pt;
+  font-weight: normal;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
+
 .navbarsearch input {
   font-size: 9pt;
+  background-color: var(--input);
+  border: 1px var(--border) solid;
+  border-radius: var(--radius);
+  padding: 6px;
+  color: var(--foreground);
+  outline: none;
 }
 
 
 #splashpage {
   text-align: center;
 }
+
 #mainbrandsplash {
   font-size: 12pt;
   font-weight: bold;
   margin: 0 0 35px 0;
 }
+
 #maincopy {
   margin: 0 0 15px 0;
 }
+
 #currentversioninfo {
-  font-size: 12pt;
+  display: flex;
+  font-size: small;
+  color: var(--secondary-foreground);
+  align-items: center;
+  border-bottom: 1px var(--border) solid;
+  padding: 16px;
+  gap: 16px;
+  margin: -0.8em -0.7em 0 -0.8em;
+  justify-content: space-between;
 }
-#currentversioninfo .product {
-  font-size: 14pt;
-  font-weight: bold;
+
+#currentversioninfo > div {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
-#currentversioninfo .version {
-  font-size: 14pt;
-  font-weight: bold;
-}
-#currentversioninfo .releasedate {
-  font-size: 11pt;
-  margin: 5px 0 0 0;
-}
+
 #currentversioninfo .checkforupdates {
-  font-size: 11pt;
-  font-weight: bold;
+  background-color: var(--background);
+  color: var(--foreground);
+  border: 1px var(--border) solid;
+  border-radius: 0.5rem;
+  padding: 6px 10px 6px 10px;
+  align-self: flex-end;
 }
-#currentversioninfo .whatsnew {
-  font-size: 11pt;
-  font-weight: bold;
-  margin: 50px 0 0 0;
+
+#currentversioninfo .checkforupdates:hover {
+  color: var(--foreground);
+  background-color: var(--input);
+  text-decoration: none;
 }
+
 #updateversioninfo {
   margin: 15px auto 35px auto;
   width: 400px;
 }
+
 #updateversioninfo div.submessage {
   clear: left;
 }
+
 .updatechecksdisabled {
   background-color: #FF9F9F;
   border: 1px solid red;
   padding: 10px;
 }
+
 .updatechecksdisabled div.warningmessage {
   font-weight: bold;
 }
+
 .updateavailable {
   background-color: #9FD4FF;
   border: 1px solid blue;
   padding: 10px;
 }
+
 .updateavailable div.updatemessage {
   font-size: 12pt;
   font-weight: bold;
+}
+
+#mainbrandsplash {
+  display: none;
+}
+
+#mainsplash {
+  display: grid;
+  max-width: 1400px;
+  margin: auto;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 100px;
+  padding: 120px 60px 120px 60px;
+}
+
+@media (width <= 1200px) {
+  #mainsplash {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    padding: 60px;
+  }
+}
+
+#mainsplash img {
+  max-width: 100%;
+  margin: 0;
+}
+
+#splashtext {
+  text-align: left;
+  color: var(--secondary-foreground);
+  font-size: large;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  justify-content: center;
+}
+
+#splashtexttitle {
+  font-size: 2.25rem; /* 36px */
+  line-height: 2.5rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+#splashbuttons {
+  display: flex;
+  gap: 32px;
+  align-items: center;
+}
+
+#splashlearnmore {
+  background-color: var(--primary);
+  color: var(--foreground);
+  padding: 16px;
+  border-radius: var(--radius);
+}
+
+#splashlearnmore:hover {
+  background-color: var(--primary);
+  text-decoration: none;
+}
+
+#splashnewsletter {
+  text-decoration: underline;
+  color: var(--secondary-foreground);
+}
+
+#splashnewsletter:hover {
+  color: var(--primary);
 }
 
 #splashpage #mainfooter {
@@ -237,88 +408,311 @@ div.navsectionheader ul li ul li {
   font-size: 8pt;
   padding-top: 35px;
   margin: auto;
-  width: 800px;
+  max-width: 800px;
+  color: var(--muted-foreground);
 }
+
 #splashpage #mainfooter .disclaimer {
   margin: auto;
 }
+
 #splashpage #mainfooter .logos {
   margin: 15px 0 0 0;
 }
 
+table.infoBox {
+  width: 100%;
+}
 
+td.infoBox {
+  font-size: 8pt;
+  padding: 0 0 1em 0;
+  white-space: nowrap;
+}
 
+div.infoBoxTitle {
+  font-size: 10pt;
+  font-weight: bold;
+}
 
-table.infoBox { width: 100%; }
-td.infoBox { font-size: 8pt; padding: 0 0 1em 0; white-space: nowrap; }
-div.infoBoxTitle { font-size: 10pt; font-weight: bold; }
-div.infoBoxBadProcStatus { font-size: 8pt; font-weight: bold; color: red; }
+div.infoBoxBadProcStatus {
+  font-size: 8pt;
+  font-weight: bold;
+  color: red;
+}
 
-.linkBox { font-size: 8pt; padding: 1px; }
-table.linkBox td { white-space: nowrap; }
+.linkBox {
+  font-size: 8pt;
+  padding: 1px;
+}
 
-.filter      { font-size: 8pt; padding: 1px; }
-.filterTitle { font-size: 9pt; font-weight: bold; }
-.filterName  { font-size: 8pt; text-align: right; font-weight: bold; }
-.filterValue { font-size: 8pt; }
+table.linkBox td {
+  white-space: nowrap;
+}
 
-.errorDescription { font-size: 10pt; text-align: center; font-weight: bold; }
-.errorMessage     { font-size: 10pt; text-align: center; font-weight: bold; color: red; }
-.warningMessage   { font-size: 10pt; text-align: center; font-weight: bold; color: red; }
+.filter {
+  font-size: 8pt;
+  padding: 1px;
+}
 
-.statusTitle { text-align: center; font-weight: bold; font-size: 12pt; white-space: nowrap; }
-.statusSort  { font-size: 8pt; }
+.filterTitle {
+  font-size: 9pt;
+  font-weight: bold;
+}
 
-table.data    { padding: 0; }
-th.data       { font-size: 9pt; text-align: left; padding: 0 3px 0 3px; border-bottom: 1px solid #777777; color: #333333; }
-.dataOdd      { font-size: 8pt; background-color: #e7e7e7; padding: 0px 4px 0px 4px; }
-.dataEven     { font-size: 8pt; background-color: #f4f2f2; padding: 0px 4px 0px 4px; }
-.dataTitle    { font-size: 12pt; text-align: center; font-weight: bold; }
-.dataSubTitle { font-size: 10pt; text-align: center; font-weight: bold; }
+.filterName {
+  font-size: 8pt;
+  text-align: right;
+  font-weight: bold;
+}
 
-.optBox             { font-size:  9pt; white-space: nowrap; padding: 2px 0px 0px 0px; }
-.optBoxTitle        { font-size: 10pt; font-weight: bold; text-align: center; }
-.optBoxRequiredItem { font-size:  9pt; text-align: right; padding: 0px 5px 0px 5px; color: red; }
-.optBoxItem         { font-size:  9pt; text-align: right; padding: 0px 5px 0px 5px; }
-.optBoxValue        { font-size:  9pt; }
+.filterValue {
+  font-size: 8pt;
+}
 
-.optionBoxTitle { font-size: 10pt; text-align: center; font-weight: bold; }
-.optionBox      { font-size: 10pt; padding: 2px; }
+.errorDescription {
+  font-size: 10pt;
+  text-align: center;
+  font-weight: bold;
+}
 
-.navBoxTitle { font-size: 10pt; font-weight: bold; white-space: nowrap; }
-.navBoxItem  { font-size: 8pt; }
-.navBoxDate  { font-size: 8pt; white-space: nowrap; }
-.navBoxFile  { font-size: 8pt; text-align: center; }
+.errorMessage {
+  font-size: 10pt;
+  text-align: center;
+  font-weight: bold;
+  color: red;
+}
 
-.helpfulHint { font-size: 8pt; font-style: italic; text-align: center; }
+.warningMessage {
+  font-size: 10pt;
+  text-align: center;
+  font-weight: bold;
+  color: red;
+}
 
-.logEntries { font-size: 8pt; white-space: nowrap; }
+.statusTitle {
+  text-align: center;
+  font-weight: bold;
+  font-size: 12pt;
+  white-space: nowrap;
+}
 
-.dateTimeBreak { font-size: 9pt; font-weight: bold; }
+.statusSort {
+  font-size: 8pt;
+}
 
-.reportRange    { font-size: 10pt; white-space: nowrap; }
-.reportDuration { font-size:  8pt; white-space: nowrap; }
-.reportTime     { font-size:  8pt; white-space: nowrap; text-align: right; font-style: italic; }
+table.data {
+  padding: 0;
+}
 
-.reportSelectTitle    { font-size: 12pt; text-align: center; font-weight: bold; }
-.reportSelectSubTitle { font-size:  9pt; text-align: right; }
-.reportSelectItem     { font-size:  9pt; }
-.reportSelectTip      { font-size:  8pt; font-style: italic; }
+th.data {
+  font-size: 9pt;
+  text-align: left;
+  padding: 0 3px 0 3px;
+  border-bottom: 1px solid #777777;
+  color: #333333;
+}
 
-.dateSelectTitle    { font-size: 12pt; text-align: center; font-weight: bold; }
-.dateSelectSubTitle { font-size:  9pt; text-align: right; }
-.dateSelectItem     { font-size:  9pt; }
+.dataOdd {
+  font-size: 8pt;
+  background-color: #e7e7e7;
+  padding: 0px 4px 0px 4px;
+}
 
-.popupText { font-size: 8pt; background-color: #eeeeaa; border: 1px solid #777777; padding: 10px 10px 10px 10px; }
+.dataEven {
+  font-size: 8pt;
+  background-color: #f4f2f2;
+  padding: 0px 4px 0px 4px;
+}
 
-.hostImportantProblem      { font-size: 8pt; background-color: #88aadd; border: 1px solid #aaaaaa; padding: 0px 5px 0px 5px; }
-.hostUnimportantProblem    { font-size: 8pt; background-color: #aaccff; border: 1px solid #888888; padding: 0px 5px 0px 5px; }
+.dataTitle {
+  font-size: 12pt;
+  text-align: center;
+  font-weight: bold;
+}
 
-.serviceImportantProblem   { font-size: 8pt; background-color: #88aadd; border: 1px solid #aaaaaa; padding: 0px 5px 0px 5px; }
-.serviceUnimportantProblem { font-size: 8pt; background-color: #aaccff; border: 1px solid #888888; padding: 0px 5px 0px 5px; }
+.dataSubTitle {
+  font-size: 10pt;
+  text-align: center;
+  font-weight: bold;
+}
 
-.outageImportantProblem    { font-size: 8pt; background-color: #88aadd; border: 1px solid #aaaaaa; padding: 0px 5px 0px 5px; }
-.outageUnimportantProblem  { font-size: 8pt; background-color: #aaccff; border: 1px solid #888888; padding: 0px 5px 0px 5px; }
+.optBox {
+  font-size: 9pt;
+  white-space: nowrap;
+  padding: 2px 0px 0px 0px;
+}
+
+.optBoxTitle {
+  font-size: 10pt;
+  font-weight: bold;
+  text-align: center;
+}
+
+.optBoxRequiredItem {
+  font-size: 9pt;
+  text-align: right;
+  padding: 0px 5px 0px 5px;
+  color: red;
+}
+
+.optBoxItem {
+  font-size: 9pt;
+  text-align: right;
+  padding: 0px 5px 0px 5px;
+}
+
+.optBoxValue {
+  font-size: 9pt;
+}
+
+.optionBoxTitle {
+  font-size: 10pt;
+  text-align: center;
+  font-weight: bold;
+}
+
+.optionBox {
+  font-size: 10pt;
+  padding: 2px;
+}
+
+.navBoxTitle {
+  font-size: 10pt;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.navBoxItem {
+  font-size: 8pt;
+}
+
+.navBoxDate {
+  font-size: 8pt;
+  white-space: nowrap;
+}
+
+.navBoxFile {
+  font-size: 8pt;
+  text-align: center;
+}
+
+.helpfulHint {
+  font-size: 8pt;
+  font-style: italic;
+  text-align: center;
+}
+
+.logEntries {
+  font-size: 8pt;
+  white-space: nowrap;
+}
+
+.dateTimeBreak {
+  font-size: 9pt;
+  font-weight: bold;
+}
+
+.reportRange {
+  font-size: 10pt;
+  white-space: nowrap;
+}
+
+.reportDuration {
+  font-size: 8pt;
+  white-space: nowrap;
+}
+
+.reportTime {
+  font-size: 8pt;
+  white-space: nowrap;
+  text-align: right;
+  font-style: italic;
+}
+
+.reportSelectTitle {
+  font-size: 12pt;
+  text-align: center;
+  font-weight: bold;
+}
+
+.reportSelectSubTitle {
+  font-size: 9pt;
+  text-align: right;
+}
+
+.reportSelectItem {
+  font-size: 9pt;
+}
+
+.reportSelectTip {
+  font-size: 8pt;
+  font-style: italic;
+}
+
+.dateSelectTitle {
+  font-size: 12pt;
+  text-align: center;
+  font-weight: bold;
+}
+
+.dateSelectSubTitle {
+  font-size: 9pt;
+  text-align: right;
+}
+
+.dateSelectItem {
+  font-size: 9pt;
+}
+
+.popupText {
+  font-size: 8pt;
+  background-color: #eeeeaa;
+  border: 1px solid #777777;
+  padding: 10px 10px 10px 10px;
+}
+
+.hostImportantProblem {
+  font-size: 8pt;
+  background-color: #88aadd;
+  border: 1px solid #aaaaaa;
+  padding: 0px 5px 0px 5px;
+}
+
+.hostUnimportantProblem {
+  font-size: 8pt;
+  background-color: #aaccff;
+  border: 1px solid #888888;
+  padding: 0px 5px 0px 5px;
+}
+
+.serviceImportantProblem {
+  font-size: 8pt;
+  background-color: #88aadd;
+  border: 1px solid #aaaaaa;
+  padding: 0px 5px 0px 5px;
+}
+
+.serviceUnimportantProblem {
+  font-size: 8pt;
+  background-color: #aaccff;
+  border: 1px solid #888888;
+  padding: 0px 5px 0px 5px;
+}
+
+.outageImportantProblem {
+  font-size: 8pt;
+  background-color: #88aadd;
+  border: 1px solid #aaaaaa;
+  padding: 0px 5px 0px 5px;
+}
+
+.outageUnimportantProblem {
+  font-size: 8pt;
+  background-color: #aaccff;
+  border: 1px solid #888888;
+  padding: 0px 5px 0px 5px;
+}
 
 
 /* Some nagios configurations have side.html rather than side.php and define */
@@ -343,59 +737,4 @@ th.data       { font-size: 9pt; text-align: left; padding: 0 3px 0 3px; border-b
 
 .NavBarSearchItem {
   font-size: 9pt;
-}
-
-
-
-#splashboxes {
-  margin: auto;
-  width: 794px;
-}
-
-.splashbox {
-  padding: 5px;
-  margin: 5px;
-  border: 1px solid #AAAAAA;
-  float: left;
-  text-align: left;
-  height: 140px;
-}
-.splashbox h2 {
-  margin: 0;
-  font-size: 12pt;
-}
-.splashbox ul {
-  margin: 0;
-  padding: 5px 5px 5px 15px;
-}
-.splashbox ul li {
-  clear: both;
-}
-
-.splashbox-media {
-  margin: 5px;
-}
-.splashbox3-empty {
-  margin: 5px;
-  border: 1px solid #AAAAAA;
-  width: 238px;
-  height: 150px;
-}
-.splashbox3-full {
-  margin: 5px;
-  width: 240px;
-  height: 152px;
-}
-.splashbox-clear {
-  clear: both;
-}
-
-#splashbox1, #splashbox2, #splashbox4 {
-  width: 250px;
-}
-#splashbox3 {
-  float: left;
-}
-#splashbox5 {
-  width: 500px;
 }

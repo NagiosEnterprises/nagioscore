@@ -581,6 +581,16 @@ int process_external_command1(char *cmd) {
 	else if(!strcasecmp(command_id, "SCHEDULE_FORCED_HOST_CHECK"))
 		command_type = CMD_SCHEDULE_FORCED_HOST_CHECK;
 
+	else if(!strcasecmp(command_id, "SCHEDULE_FORCED_HOST_NOTIFICATION"))
+		command_type = CMD_SCHEDULE_FORCED_HOST_NOTIFICATION;
+	else if(!strcasecmp(command_id, "SCHEDULE_FORCED_SVC_NOTIFICATION"))
+		command_type = CMD_SCHEDULE_FORCED_SVC_NOTIFICATION;
+
+	else if(!strcasecmp(command_id, "SCHEDULE_FORCED_HOST_EVENT_HANDLER"))
+		command_type = CMD_SCHEDULE_FORCED_HOST_EVENT_HANDLER;
+	else if(!strcasecmp(command_id, "SCHEDULE_FORCED_SVC_EVENT_HANDLER"))
+		command_type = CMD_SCHEDULE_FORCED_SVC_EVENT_HANDLER;
+		
 	else if(!strcasecmp(command_id, "SCHEDULE_HOST_DOWNTIME"))
 		command_type = CMD_SCHEDULE_HOST_DOWNTIME;
 	else if(!strcasecmp(command_id, "SCHEDULE_HOST_SVC_DOWNTIME"))
@@ -1212,7 +1222,7 @@ int process_external_command2(int cmd, time_t entry_time, char *args) {
 
 		case CMD_ADD_HOST_COMMENT:
 		case CMD_ADD_SVC_COMMENT:
-			ret= cmd_add_comment(cmd, entry_time, args);
+			ret = cmd_add_comment(cmd, entry_time, args);
 			break;
 
 		case CMD_DEL_HOST_COMMENT:
@@ -1227,7 +1237,7 @@ int process_external_command2(int cmd, time_t entry_time, char *args) {
 
 		case CMD_SCHEDULE_SVC_CHECK:
 		case CMD_SCHEDULE_FORCED_SVC_CHECK:
-			ret =cmd_schedule_check(cmd, args);
+			ret = cmd_schedule_check(cmd, args);
 			break;
 
 		case CMD_SCHEDULE_HOST_SVC_CHECKS:
@@ -1289,6 +1299,13 @@ int process_external_command2(int cmd, time_t entry_time, char *args) {
 
 		case CMD_SCHEDULE_HOST_CHECK:
 		case CMD_SCHEDULE_FORCED_HOST_CHECK:
+			ret = cmd_schedule_check(cmd, args);
+			break;
+
+		case CMD_SCHEDULE_FORCED_HOST_NOTIFICATION:
+		case CMD_SCHEDULE_FORCED_SVC_NOTIFICATION:
+		case CMD_SCHEDULE_FORCED_HOST_EVENT_HANDLER:
+		case CMD_SCHEDULE_FORCED_SVC_EVENT_HANDLER:
 			ret = cmd_schedule_check(cmd, args);
 			break;
 
@@ -2189,12 +2206,12 @@ int cmd_schedule_check(int cmd, char *args) {
 	char *svc_description = NULL;
 	char *author, *comment;
 	time_t delay_time = 0L;
-
+	
 	/* get the host name */
 	if((host_name = my_strtok_with_free(args, ";", FALSE)) == NULL)
 		return ERROR;
 
-	if(cmd == CMD_SCHEDULE_HOST_CHECK || cmd == CMD_SCHEDULE_FORCED_HOST_CHECK || cmd == CMD_SCHEDULE_HOST_SVC_CHECKS || cmd == CMD_SCHEDULE_FORCED_HOST_SVC_CHECKS) {
+	if(cmd == CMD_SCHEDULE_HOST_CHECK || cmd == CMD_SCHEDULE_FORCED_HOST_CHECK || cmd == CMD_SCHEDULE_HOST_SVC_CHECKS || cmd == CMD_SCHEDULE_FORCED_HOST_SVC_CHECKS || cmd == CMD_SCHEDULE_FORCED_HOST_NOTIFICATION || cmd == CMD_SCHEDULE_FORCED_HOST_EVENT_HANDLER) {
 
 		/* verify that the host is valid */
 		if((temp_host = find_host(host_name)) == NULL)
@@ -2224,7 +2241,8 @@ int cmd_schedule_check(int cmd, char *args) {
 	/* schedule the host check */
 	if(cmd == CMD_SCHEDULE_HOST_CHECK || cmd == CMD_SCHEDULE_FORCED_HOST_CHECK)
 		schedule_host_check(temp_host, delay_time, (cmd == CMD_SCHEDULE_FORCED_HOST_CHECK) ? CHECK_OPTION_FORCE_EXECUTION : CHECK_OPTION_NONE);
-
+	else if(cmd == CMD_SCHEDULE_FORCED_HOST_NOTIFICATION || cmd == CMD_SCHEDULE_FORCED_HOST_EVENT_HANDLER)
+		schedule_host_check(temp_host, delay_time, CHECK_OPTION_FORCE_EXECUTION | ((cmd == CMD_SCHEDULE_FORCED_HOST_NOTIFICATION) ? CHECK_OPTION_FORCE_NOTIFICATION : CHECK_OPTION_FORCE_EVENT_HANDLER));
 	/* schedule service checks */
 	else if(cmd == CMD_SCHEDULE_HOST_SVC_CHECKS || cmd == CMD_SCHEDULE_FORCED_HOST_SVC_CHECKS) {
 		for(temp_servicesmember = temp_host->services; temp_servicesmember != NULL; temp_servicesmember = temp_servicesmember->next) {
@@ -2233,6 +2251,8 @@ int cmd_schedule_check(int cmd, char *args) {
 			schedule_service_check(temp_service, delay_time, (cmd == CMD_SCHEDULE_FORCED_HOST_SVC_CHECKS) ? CHECK_OPTION_FORCE_EXECUTION : CHECK_OPTION_NONE);
 			}
 		}
+	else if(cmd == CMD_SCHEDULE_FORCED_SVC_NOTIFICATION || cmd == CMD_SCHEDULE_FORCED_SVC_EVENT_HANDLER)
+		schedule_service_check(temp_service, delay_time, CHECK_OPTION_FORCE_EXECUTION | ((cmd == CMD_SCHEDULE_FORCED_SVC_NOTIFICATION) ? CHECK_OPTION_FORCE_NOTIFICATION : CHECK_OPTION_FORCE_EVENT_HANDLER));
 	else
 		schedule_service_check(temp_service, delay_time, (cmd == CMD_SCHEDULE_FORCED_SVC_CHECK) ? CHECK_OPTION_FORCE_EXECUTION : CHECK_OPTION_NONE);
 

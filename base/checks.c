@@ -1590,10 +1590,17 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 		handle_event = TRUE;
 	}
 
+	int notification_option = NOTIFICATION_OPTION_NONE;
+
+	if (cr->check_options & CHECK_OPTION_FORCE_NOTIFICATION) {
+		notification_option = NOTIFICATION_OPTION_FORCED;
+		send_notification = TRUE;
+	}
+
 	if (send_notification == TRUE) {
 
 		/* send notification */
-		if (service_notification(svc, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE) == OK) {
+		if (service_notification(svc, NOTIFICATION_NORMAL, NULL, NULL, notification_option) == OK) {
 
 			/* log state due to notification event when stalking_options N is set */
 			if (should_stalk_notifications(svc)) {
@@ -1622,6 +1629,10 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 
 	if (log_event == TRUE) {
 		log_service_event(svc);
+	}
+
+	if (cr->check_options & CHECK_OPTION_FORCE_EVENT_HANDLER) {
+		handle_event = TRUE;
 	}
 
 	if (handle_event == TRUE) {
@@ -2482,10 +2493,17 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 		hst->current_attempt = 1;
 	}
 
+	int notification_option = NOTIFICATION_OPTION_NONE;
+
+	if (cr->check_options & CHECK_OPTION_FORCE_NOTIFICATION) {
+		notification_option = NOTIFICATION_OPTION_FORCED;
+		send_notification = TRUE;
+	}
+
 	if (send_notification == TRUE) {
 
 		/* send notifications */
-		if (host_notification(hst, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE) == OK) {
+		if (host_notification(hst, NOTIFICATION_NORMAL, NULL, NULL, notification_option) == OK) {
 
 			/* log state due to notification event when stalking_options N is set */
 			if (should_stalk_notifications(hst)) {
@@ -2517,6 +2535,10 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 
 	if (log_event == TRUE) {
 		log_host_event(hst);
+	}
+
+	if (cr->check_options & CHECK_OPTION_FORCE_EVENT_HANDLER) {
+		handle_event = TRUE;
 	}
 
 	if (handle_event == TRUE) {

@@ -375,10 +375,7 @@ void clear_service_flap(service *svc, double percent_change, double high_thresho
 
 		/* should we send a recovery notification? */
 		if(svc->check_flapping_recovery_notification == TRUE && svc->current_state == STATE_OK) {
-			service_notification(svc, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE);
-			/* Similar to what happens when a service recovers in handle_async_service_check_result */
-			svc->current_notification_number = 0;
-			svc->notified_on = 0;
+			service_notification(svc, NOTIFICATION_RECOVERY, NULL, NULL, NOTIFICATION_OPTION_NONE);
 		}
 	}
 
@@ -470,10 +467,7 @@ void clear_host_flap(host *hst, double percent_change, double high_threshold, do
 
 		/* should we send a recovery notification? */
 		if(hst->check_flapping_recovery_notification == TRUE && hst->current_state == HOST_UP) {
-			host_notification(hst, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE);
-			/* Similar to what happens when a host recovers in handle_async_host_check_result */
-			hst->current_notification_number = 0;
-			hst->notified_on = 0;
+			host_notification(hst, NOTIFICATION_RECOVERY, NULL, NULL, NOTIFICATION_OPTION_NONE);
 		}
 	}
 
@@ -663,10 +657,7 @@ void handle_host_flap_detection_disabled(host *hst) {
 
 		/* should we send a recovery notification? */
 		if(hst->check_flapping_recovery_notification == TRUE && hst->current_state == HOST_UP) {
-			host_notification(hst, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE);
-			/* Similar to what happens when a host recovers in handle_async_host_check_result */
-			hst->current_notification_number = 0;
-			hst->notified_on = 0;
+			host_notification(hst, NOTIFICATION_RECOVERY, NULL, NULL, NOTIFICATION_OPTION_NONE);
 		}
 
 		/* clear the recovery notification flag */
@@ -781,10 +772,7 @@ void handle_service_flap_detection_disabled(service *svc) {
 
 		/* should we send a recovery notification? */
 		if(svc->check_flapping_recovery_notification == TRUE && svc->current_state == STATE_OK) {
-			service_notification(svc, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE);
-			/* Similar to what happens when a service recovers in handle_async_service_check_result */
-			svc->current_notification_number = 0;
-			svc->notified_on = 0;
+			service_notification(svc, NOTIFICATION_RECOVERY, NULL, NULL, NOTIFICATION_OPTION_NONE);
 		}
 
 		/* clear the recovery notification flag */

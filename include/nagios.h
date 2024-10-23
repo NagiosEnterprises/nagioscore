@@ -326,6 +326,7 @@ extern struct load_control loadctl;
 #define NOTIFICATION_DOWNTIMEEND        6
 #define NOTIFICATION_DOWNTIMECANCELLED  7
 #define NOTIFICATION_CUSTOM             8
+#define NOTIFICATION_RECOVERY           9
 
 
 

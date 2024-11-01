@@ -722,6 +722,11 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime) {
 
 		/* schedule an event to end the downtime */
 		if(temp_downtime->fixed == FALSE) {
+			/* What if a downtime is both triggered and flexible? If downtime is initiated by being triggered
+				then the flex downtime start will never be set by check_pending_flex_*_downtime, set it now */
+			if (temp_downtime->triggered_by != 0 && temp_downtime->flex_downtime_start == 0) {
+				temp_downtime->flex_downtime_start = time(NULL);
+			}
 			event_time = (time_t)((unsigned long)temp_downtime->flex_downtime_start
 					+ temp_downtime->duration);
 			}
@@ -735,7 +740,8 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime) {
 
 		/* handle (start) downtime that is triggered by this one */
 		for(this_downtime = scheduled_downtime_list; this_downtime != NULL; this_downtime = this_downtime->next) {
-			if(this_downtime->triggered_by == temp_downtime->downtime_id)
+			/* If we have a downtime that is both flexible and triggered, we need to make sure we don't double handle here */
+			if(this_downtime->triggered_by == temp_downtime->downtime_id && this_downtime->is_in_effect == FALSE)
 				handle_scheduled_downtime(this_downtime);
 			}
 		}
@@ -773,10 +779,6 @@ int check_pending_flex_host_downtime(host *hst) {
 			continue;
 
 		if(temp_downtime->is_in_effect == TRUE)
-			continue;
-
-		/* triggered downtime entries should be ignored here */
-		if(temp_downtime->triggered_by != 0)
 			continue;
 
 		/* this entry matches our host! */
@@ -828,10 +830,6 @@ int check_pending_flex_service_downtime(service *svc) {
 		if(temp_downtime->is_in_effect == TRUE)
 			continue;
 
-		/* triggered downtime entries should be ignored here */
-		if(temp_downtime->triggered_by != 0)
-			continue;
-
 		/* this entry matches our service! */
 		if(find_service(temp_downtime->host_name, temp_downtime->service_description) == svc) {
 
@@ -846,6 +844,66 @@ int check_pending_flex_service_downtime(service *svc) {
 			}
 		}
 
+	return OK;
+	}
+
+int precheck_flex_service_downtime(service *svc, scheduled_downtime *temp_downtime) {
+	time_t current_time = 0L;
+
+	log_debug_info(DEBUGL_FUNCTIONS, 0, "precheck_flex_service_downtime()\n");
+
+	if(svc == NULL || temp_downtime == NULL)
+		return ERROR;
+
+	time(&current_time);
+
+	/* Some pre checking */
+	if(svc->current_state == STATE_OK || temp_downtime->type != SERVICE_DOWNTIME || temp_downtime->fixed == TRUE || temp_downtime->is_in_effect == TRUE)
+		return OK;
+
+	/* this entry matches our service! */
+	if(find_service(temp_downtime->host_name, temp_downtime->service_description) == svc) {
+
+		/* if the time boundaries are okay, start this scheduled downtime */
+		if(temp_downtime->start_time <= current_time && current_time <= temp_downtime->end_time) {
+
+			log_debug_info(DEBUGL_DOWNTIME, 0, "Flexible downtime (id=%lu) for service '%s' on host '%s' starting now...\n", temp_downtime->downtime_id, svc->description, svc->host_name);
+
+			temp_downtime->flex_downtime_start = current_time;
+			handle_scheduled_downtime_by_id(temp_downtime->downtime_id);
+			}
+		}
+	return OK;
+	}
+
+int precheck_flex_host_downtime(host *hst, scheduled_downtime *temp_downtime) {
+	time_t current_time = 0L;
+	unsigned long * new_downtime_id = NULL;
+
+	log_debug_info(DEBUGL_FUNCTIONS, 0, "check_pending_flex_host_downtime()\n");
+
+	if(hst == NULL || temp_downtime == NULL)
+		return ERROR;
+
+	time(&current_time);
+
+	/* if host is currently up, nothing to do */
+	if(hst->current_state == HOST_UP || temp_downtime->type != HOST_DOWNTIME || temp_downtime->fixed == TRUE || temp_downtime->is_in_effect == TRUE)
+		return OK;
+
+	/* this entry matches our host! */
+	if(find_host(temp_downtime->host_name) == hst) {
+
+		/* if the time boundaries are okay, start this scheduled downtime */
+		if(temp_downtime->start_time <= current_time && current_time <= temp_downtime->end_time) {
+
+			log_debug_info(DEBUGL_DOWNTIME, 0, "Flexible downtime (id=%lu) for host '%s' starting now...\n", temp_downtime->downtime_id, hst->name);
+
+			temp_downtime->flex_downtime_start = current_time;
+			handle_scheduled_downtime_by_id(temp_downtime->downtime_id);
+
+			}
+		}
 	return OK;
 	}
 

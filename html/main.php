@@ -56,7 +56,7 @@ $this_year = '2024';
 	}
 
 	function setCoreStatusHTML(image, text) {
-		$('#core-status').html('<img src="images/' + image + '.gif" /> ' + text);
+		$('#core-status').html(`<span class='dot-${image}'>●</span> ${text}`);
 	}
 </script>
 
@@ -65,17 +65,12 @@ $this_year = '2024';
 
 <body id="splashpage">
 
-
-<div id="mainbrandsplash">
-	<div><span id="core-status"></span></div>
-</div>
-
-
 <div id="currentversioninfo">
 	<div>
 		<div class="version">Version <b><?php echo $this_version; ?></b></div>
 		<div class="releasedate">October 24, 2024</div>
 	</div>
+	<div><span id="core-status"></span></div>
 	<a class="checkforupdates" href="https://www.nagios.org/checkforupdates/?version=<?php echo $this_version; ?>&amp;product=nagioscore" target="_blank">Check for updates</a>
 </div>
 
@@ -83,7 +78,7 @@ $this_year = '2024';
 <div id="updateversioninfo">
 <?php
 	$updateinfo = get_update_information();
-	if (!$updateinfo['update_checks_enabled']) {
+	if (!$updateinfo['update_checks_enabled'] || true) {
 ?>
 		<div class="updatechecksdisabled">
 			<div class="warningmessage">Warning: Automatic Update Checks are Disabled!</div>

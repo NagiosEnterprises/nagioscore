@@ -334,8 +334,12 @@ ul.navsectionlinks li ul li a:hover {
   font-weight: bold;
 }
 
-#mainbrandsplash {
-  display: none;
+.dot-enabled {
+  color: #00EE5F;
+}
+
+.dot-disabled {
+  color: red;
 }
 
 #mainsplash {

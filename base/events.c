@@ -1300,13 +1300,25 @@ int handle_timed_event(timed_event *event) {
 			update_all_status_data();
 			break;
 
-		case EVENT_SCHEDULED_DOWNTIME:
+		case EVENT_SCHEDULED_DOWNTIME_START:
 
-			log_debug_info(DEBUGL_EVENTS, 0, "** Scheduled Downtime Event. Latency: %.3fs\n", latency);
+			log_debug_info(DEBUGL_EVENTS, 0, "** Scheduled Downtime Start Event. Latency: %.3fs\n", latency);
 
 			/* process scheduled downtime info */
 			if(event->event_data) {
-				handle_scheduled_downtime_by_id(*(unsigned long *)event->event_data);
+				handle_scheduled_downtime_start_by_id(*(unsigned long *)event->event_data);
+				free(event->event_data);
+				event->event_data = NULL;
+				}
+			break;
+
+		case EVENT_SCHEDULED_DOWNTIME_END:
+
+			log_debug_info(DEBUGL_EVENTS, 0, "** Scheduled Downtime End Event. Latency: %.3fs\n", latency);
+
+			/* process scheduled downtime info */
+			if(event->event_data) {
+				handle_scheduled_downtime_end_by_id(*(unsigned long *)event->event_data);
 				free(event->event_data);
 				event->event_data = NULL;
 				}

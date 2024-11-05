@@ -12,7 +12,10 @@ int check_pending_flex_host_downtime(host *hst)
 int check_pending_flex_service_downtime(service *svc) 
 { return OK; }
 
-int handle_scheduled_downtime_by_id(unsigned long downtime_id) 
+int handle_scheduled_downtime_start_by_id(unsigned long downtime_id) 
+{ return OK; }
+
+int handle_scheduled_downtime_end_by_id(unsigned long downtime_id) 
 { return OK; }
 
 int check_for_expired_downtime(void) 
@@ -48,7 +51,10 @@ int delete_downtime(int id, unsigned long downtime_id)
 int register_downtime(int id, unsigned long downtime_id) 
 { return OK; }
 
-int handle_scheduled_downtime(struct scheduled_downtime *sd) 
+int handle_scheduled_downtime_start(struct scheduled_downtime *sd) 
+{ return OK; }
+
+int handle_scheduled_downtime_end(struct scheduled_downtime *sd) 
 { return OK; }
 
 int is_host_in_pending_flex_downtime(struct host *hst) 

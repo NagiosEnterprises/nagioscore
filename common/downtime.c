@@ -386,6 +386,7 @@ int register_downtime(int type, unsigned long downtime_id) {
 	char flex_start_string[MAX_DATETIME_LENGTH] = "";
 	char end_time_string[MAX_DATETIME_LENGTH] = "";
 	scheduled_downtime *temp_downtime = NULL;
+	scheduled_downtime *triggering_downtime = NULL;
 	host *hst = NULL;
 	service *svc = NULL;
 	const char *type_string = NULL;
@@ -514,11 +515,12 @@ int register_downtime(int type, unsigned long downtime_id) {
 
 	/* If the triggering downtime is already in effect, trigger this now */
 	if(temp_downtime->triggered_by != 0 && was_in_effect == FALSE) {
-		for(scheduled_downtime *parent_downtime = scheduled_downtime_list; parent_downtime != NULL; parent_downtime = parent_downtime->next) {
-			if(temp_downtime->triggered_by == parent_downtime->downtime_id && parent_downtime->is_in_effect == TRUE)
+		/* This check shouldn't ever return NULL because of checking done before in other functions but just in case */
+		if((triggering_downtime = find_downtime(ANY_DOWNTIME, temp_downtime->triggered_by)) != NULL) {
+			if(triggering_downtime->is_in_effect == TRUE) 
 				schedule_event = TRUE;
+			}
 		}
-	}
 	
 	if (schedule_event == TRUE) {
 		log_debug_info(DEBUGL_DOWNTIME, 1, "Conditions to schedule downtime event have been met\n");

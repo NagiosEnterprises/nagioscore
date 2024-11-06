@@ -96,6 +96,22 @@ not important:  blue             aaccff  777777
   --border: #28303E;
   --input: #0D1014;
   --radius: 0.3rem;
+
+  --info-msg-text: #89BDF1;
+  --info-msg-border: #1866B6;
+  --info-msg-bg: #041220;
+
+  --success-msg-text: #40DE7A;
+  --success-msg-border: #147538;
+  --success-msg-bg: #04160A;
+
+  --warning-msg-text: #FFF948;
+  --warning-msg-border: #706C00;
+  --warning-msg-bg: #191900;
+
+  --error-msg-text: #F9B4B5;
+  --error-msg-border: #710B09;
+  --error-msg-bg: #1C0202;
 }
 
 #side {
@@ -161,7 +177,6 @@ a:hover {
   gap: 4px;
   padding: 16px;
   margin: 0;
-  border-right: 1px var(--border) solid;
 }
 
 .navbarlogo {
@@ -305,7 +320,7 @@ ul.navsectionlinks li ul li a:hover {
 }
 
 #updateversioninfo {
-  margin: 15px auto 35px auto;
+  margin: 15px auto 0 auto;
   width: 400px;
 }
 
@@ -314,8 +329,10 @@ ul.navsectionlinks li ul li a:hover {
 }
 
 .updatechecksdisabled {
-  background-color: #FF9F9F;
-  border: 1px solid red;
+  background-color: var(--error-msg-bg);
+  border: 1px solid var(--error-msg-border);
+  color: var(--error-msg-text);
+  border-radius: var(--radius);
   padding: 10px;
 }
 
@@ -324,8 +341,10 @@ ul.navsectionlinks li ul li a:hover {
 }
 
 .updateavailable {
-  background-color: #9FD4FF;
-  border: 1px solid blue;
+  background-color: var(--info-msg-bg);
+  border: 1px solid var(--info-msg-border);
+  color: var(--info-msg-text);
+  border-radius: var(--radius);
   padding: 10px;
 }
 

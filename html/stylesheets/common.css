@@ -200,29 +200,31 @@ div.navsectionheader ul li ul li {
 	margin: 0 0 15px 0;
 	}
 	
-#currentversioninfo{
+#currentversioninfo {
+	font-size: 14pt;
+	display: flex;
+	flex-direction: column;
+	gap: 2rem;
+	}
+
+#currentversioninfo *{
 	font-size: 12pt;
 	}
-#currentversioninfo .product{
-	font-size: 14pt;
-	font-weight: bold;
-	}
-#currentversioninfo .version{
-	font-size: 14pt;
-	font-weight: bold;
-	}
-#currentversioninfo .version b{
-	font-size: 14pt;
-	font-weight: bold;
-	}
-#currentversioninfo .releasedate{
-	font-size: 11pt;
-	margin: 5px 0 0 0;
-	}
-#currentversioninfo .checkforupdates{
-	font-size: 11pt;
-	font-weight: bold;
-	}
+
+#currentversioninfo > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
+
+.dot-enabled {
+  color: #33FF00;
+}
+
+.dot-disabled {
+  color: red;
+}
 
 #updateversioninfo{
 	margin: 15px auto 35px auto;

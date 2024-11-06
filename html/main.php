@@ -56,7 +56,7 @@ $this_year = '2024';
 	}
 
 	function setCoreStatusHTML(image, text) {
-		$('#core-status').html(`<span class='dot-${image}'>●</span> ${text}`);
+		$('#core-status').html(`<span class='dot-${image}'>●</span>&nbsp&nbsp${text}`);
 	}
 </script>
 
@@ -78,16 +78,14 @@ $this_year = '2024';
 <div id="updateversioninfo">
 <?php
 	$updateinfo = get_update_information();
-	if (!$updateinfo['update_checks_enabled'] || true) {
+	if (!$updateinfo['update_checks_enabled']) {
 ?>
 		<div class="updatechecksdisabled">
 			<div class="warningmessage">Warning: Automatic Update Checks are Disabled!</div>
 			<div class="submessage">Disabling update checks presents a possible security risk.  Visit <a href="https://www.nagios.org/" target="_blank">nagios.org</a> to check for updates manually or enable update checks in your Nagios config file.</a></div>
 		</div>
 <?php
-	} else if (
-		$updateinfo['update_available'] && $this_version < $updateinfo['update_version']
-	) {
+	} else if ($updateinfo['update_available'] && $this_version < $updateinfo['update_version']) {
 ?>
 		<div class="updateavailable">
 			<div class="updatemessage">A new version of Nagios Core is available!</div>

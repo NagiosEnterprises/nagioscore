@@ -51,6 +51,8 @@ $this_year = '2024';
 			height: 100vh;
 			width: 200px;
 			border: none;
+			/* I don't like doing this but not sure of a better way */
+			border-right: 1px solid #28303E;
 		}
 
 		iframe[name="main"] {

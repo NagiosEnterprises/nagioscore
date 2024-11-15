@@ -4,6 +4,7 @@ Nagios Core 4 Change Log
 
 4.5.8 - 2024-XX-XX
 ------------------
+* Improve new exfoliation theme and add back in PID information (Dylan Anderson)
 * Fix issues with downtimes that are both flexible and triggered and improve downtime additions in general (#595) (Dylan Anderson)
 
 4.5.7 - 2024-10-24

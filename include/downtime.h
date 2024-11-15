@@ -80,8 +80,10 @@ int schedule_downtime(int, char *, char *, time_t, char *, char *, time_t, time_
 int unschedule_downtime(int, unsigned long);
 
 int register_downtime(int, unsigned long);
-int handle_scheduled_downtime(struct scheduled_downtime *);
-int handle_scheduled_downtime_by_id(unsigned long);
+int handle_scheduled_downtime_start(struct scheduled_downtime *);
+int handle_scheduled_downtime_end(struct scheduled_downtime *);
+int handle_scheduled_downtime_start_by_id(unsigned long);
+int handle_scheduled_downtime_end_by_id(unsigned long);
 
 int check_pending_flex_host_downtime(struct host *);
 int check_pending_flex_service_downtime(struct service *);

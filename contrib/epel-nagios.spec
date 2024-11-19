@@ -3,7 +3,7 @@
 %global bootstrap 0
 
 Name:           nagios
-Version: 4.5.7
+Version: 4.5.8
 Release:        4%{?dist}
 
 Summary: Host/service/network monitoring program

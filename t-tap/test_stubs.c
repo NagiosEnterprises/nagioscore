@@ -1,6 +1,8 @@
 #ifndef NAGIOS_TEST_STUBS__
 #define NAGIOS_TEST_STUBS__
 #include "macros.h"
+#include "defaults.h"
+#include "logging.h"
 
 /* Loads of variables + stubbed functions */
 char *config_file = "etc/nagios.cfg";
@@ -67,7 +69,8 @@ int save_state_information(int int1) {}
 int check_for_external_commands(void) {}
 int check_time_against_period(time_t time_t1, timeperiod *timeperiod) {}
 time_t get_next_log_rotation_time(void) {}
-int handle_scheduled_downtime_by_id(unsigned long long1) {}
+int handle_scheduled_downtime_start_by_id(unsigned long long1) {}
+int handle_scheduled_downtime_end_by_id(unsigned long long1) {}
 #ifndef TEST_LOGGING
 int log_host_event(host *hst) {}
 int log_service_event_flag = 0;
@@ -119,10 +122,10 @@ int update_service_status(service *svc, int aggregated_dump) {}
 int update_all_status_data(void) {}
 char    *check_result_path = NULL;
 int process_check_result_queue(char *dirname) {}
-service * find_service(char *host_name, char *svc_desc) {}
+struct service * find_service(const char *host_name, const char *svc_desc) {}
 int delete_check_result_file(char *fname) {}
 int free_check_result(check_result *info) {}
-host * find_host(char *name) {}
+struct host * find_host(const char *name) {}
 int             max_check_reaper_time = DEFAULT_MAX_REAPER_TIME;
 check_result *read_check_result(void) {}
 int broker_service_check(int type, int flags, int attr, service *svc, int check_type, struct timeval start_time, struct timeval end_time, char *cmd, double latency, double exectime, int timeout, int early_timeout, int retcode, char *cmdline, struct timeval *timestamp) {}
@@ -183,5 +186,6 @@ int             passive_host_checks_are_soft = DEFAULT_PASSIVE_HOST_CHECKS_SOFT;
 int             translate_passive_host_checks = DEFAULT_TRANSLATE_PASSIVE_HOST_CHECKS;
 int             enable_predictive_host_dependency_checks = DEFAULT_ENABLE_PREDICTIVE_HOST_DEPENDENCY_CHECKS;
 
+int main() {}
 
 #endif

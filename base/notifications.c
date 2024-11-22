@@ -397,23 +397,6 @@ int check_service_notification_viability(service *svc, int type, int options) {
 			}
 		}
 
-	/* If all of the host parents are down, don't notify */
-	if (temp_host->parent_hosts != NULL) {
-		int bad_parents = 0, total_parents = 0;
-		hostsmember *temp_hostsmember = NULL;
-
-		for(temp_hostsmember = temp_host->parent_hosts; temp_hostsmember != NULL; temp_hostsmember = temp_hostsmember->next) {
-			if (temp_hostsmember->host_ptr->current_state != HOST_UP)
-				bad_parents += !!temp_hostsmember->host_ptr->current_state;
-			total_parents++;
-			}
-		if(bad_parents == total_parents) {
-			log_debug_info(DEBUGL_NOTIFICATIONS, 1, "This service has a host with no good parents, so notification will be blocked.\n");
-			return ERROR;
-			}
-		}
-
-
 	/* if the service has no notification period, inherit one from the host */
 	temp_period = svc->notification_period_ptr;
 	if(temp_period == NULL) {
@@ -629,6 +612,22 @@ int check_service_notification_viability(service *svc, int type, int options) {
 	if(temp_host->current_state != STATE_UP && temp_host->state_type == HARD_STATE) {
 		log_debug_info(DEBUGL_NOTIFICATIONS, 1, "The host is either down or unreachable, so we won't notify contacts about this service.\n");
 		return ERROR;
+		}
+
+	/* If all of the host parents are down, don't notify */
+	if (temp_host->parent_hosts != NULL) {
+		int bad_parents = 0, total_parents = 0;
+		hostsmember *temp_hostsmember = NULL;
+
+		for(temp_hostsmember = temp_host->parent_hosts; temp_hostsmember != NULL; temp_hostsmember = temp_hostsmember->next) {
+			if (temp_hostsmember->host_ptr->current_state != HOST_UP)
+				bad_parents += !!temp_hostsmember->host_ptr->current_state;
+			total_parents++;
+			}
+		if(bad_parents == total_parents) {
+			log_debug_info(DEBUGL_NOTIFICATIONS, 1, "This service has a host with no good parents, so notification will be blocked.\n");
+			return ERROR;
+			}
 		}
 
 	/* don't notify if we haven't waited long enough since the last time (and the service is not marked as being volatile) */

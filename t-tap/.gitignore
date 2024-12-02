@@ -9,4 +9,5 @@ test_commands
 test_downtime
 test_strtoul
 test_notifications
+test_stubs
 *.dSYM

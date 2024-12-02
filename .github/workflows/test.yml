@@ -19,7 +19,7 @@ jobs:
       run: |
         sudo apt update
         sudo apt remove libgd3 nginx
-        sudo apt install libgd-dev valgrind
+        sudo apt install libgd-dev valgrind binutils
     - name: configure
       run: ./configure --enable-testing
     - name: Run Tests

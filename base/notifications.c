@@ -614,19 +614,21 @@ int check_service_notification_viability(service *svc, int type, int options) {
 		return ERROR;
 		}
 
-	/* If any of the parents are down, don't notify */
+	/* If all of the host parents are down, don't notify */
 	if (temp_host->parent_hosts != NULL) {
+		int bad_parents = 0, total_parents = 0;
 		hostsmember *temp_hostsmember = NULL;
-		host *parent_host = NULL;
 
 		for(temp_hostsmember = temp_host->parent_hosts; temp_hostsmember != NULL; temp_hostsmember = temp_hostsmember->next) {
-			parent_host = temp_hostsmember->host_ptr;
-			if (parent_host->current_state != HOST_UP) {
-				log_debug_info(DEBUGL_NOTIFICATIONS, 1, "At least one parent (%s) is down, so we won't notify about this service.\n", parent_host->name);
-				return ERROR;
+			if (temp_hostsmember->host_ptr->current_state != HOST_UP)
+				bad_parents += !!temp_hostsmember->host_ptr->current_state;
+			total_parents++;
+			}
+		if(bad_parents == total_parents) {
+			log_debug_info(DEBUGL_NOTIFICATIONS, 1, "This service has a host with no good parents, so notification will be blocked.\n");
+			return ERROR;
 			}
 		}
-	}
 
 	/* don't notify if we haven't waited long enough since the last time (and the service is not marked as being volatile) */
 	if((current_time < svc->next_notification) && svc->is_volatile == FALSE) {
@@ -1537,20 +1539,6 @@ int check_host_notification_viability(host *hst, int type, int options) {
 		log_debug_info(DEBUGL_NOTIFICATIONS, 1, "Next acceptable notification time: %s", ctime(&hst->next_notification));
 		return ERROR;
 		}
-
-	/* If any of the parents are down, don't notify */
-	if (hst->parent_hosts != NULL) {
-		hostsmember *temp_hostsmember = NULL;
-		host *parent_host = NULL;
-
-		for(temp_hostsmember = hst->parent_hosts; temp_hostsmember != NULL; temp_hostsmember = temp_hostsmember->next) {
-			parent_host = temp_hostsmember->host_ptr;
-			if (parent_host->current_state != HOST_UP) {
-				log_debug_info(DEBUGL_NOTIFICATIONS, 1, "At least one parent (%s) is down, so we won't notify about this host.\n", parent_host->name);
-				return ERROR;
-			}
-		}
-	}
 
 	return OK;
 	}

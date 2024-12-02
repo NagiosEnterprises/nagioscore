@@ -2,6 +2,10 @@
 Nagios Core 4 Change Log
 ########################
 
+4.5.9 - 2024-XX-XX
+------------------
+* Fix unreachable notifications (Dylan Anderson)
+
 4.5.8 - 2024-11-19
 ------------------
 * Improve new exfoliation theme and add back in PID information (Dylan Anderson)

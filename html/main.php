@@ -7,12 +7,6 @@ $theme = $cfg['theme'] ?? 'dark';
 if ($theme != 'dark' && $theme != 'light') {
 	$theme = 'dark';
 }
-
-$logo = "images/logos/nagios-n-logo-black.svg";
-if($theme == 'dark') {
-	$logo = "images/logos/nagios-n-logo-white.svg";
-}
-
 ?>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 

@@ -91,6 +91,7 @@ not important:  blue             aaccff  777777
   --background: #000000;
   --foreground: #FFFFFF;
   --primary: #4D89F9;
+  --primary-foreground: #FAFAFA;
   --secondary-foreground: #D3DAE5;
   --muted-foreground: #8A92A1;
   --border: #28303E;
@@ -112,6 +113,32 @@ not important:  blue             aaccff  777777
   --error-msg-text: #F9B4B5;
   --error-msg-border: #710B09;
   --error-msg-bg: #1C0202;
+}
+
+.light {
+  --background: #FFFFFF;
+  --foreground: #000000;
+  --primary: #4D89F9;
+  --secondary-foreground: #1A1A1A;
+  --muted-foreground: #3D3D3D;
+  --border: #D6D6D6;
+  --input: #FCFCFC;
+
+  --info-msg-text: #033281;
+  --info-msg-border: #0860F7;
+  --info-msg-bg: #DCE8FE;
+
+  --success-msg-text: #005C2E;
+  --success-msg-border: #47B880;
+  --success-msg-bg: #DBFFED;
+
+  --warning-msg-text: #5C5900;
+  --warning-msg-border: #E0D900;
+  --warning-msg-bg: #FFFEE5;
+
+  --error-msg-text: #710B09;
+  --error-msg-border: #DB2424;
+  --error-msg-bg: #FCD9D9;
 }
 
 #side {
@@ -181,6 +208,21 @@ a:hover {
 
 .navbarlogo {
   margin-bottom: 10px;
+}
+
+.nagioslogo {
+  background-color: var(--foreground);
+}
+
+.nlogo {
+  mask: url(../images/logos/nagios-n-logo.svg) no-repeat center / contain;
+  height: 32px;
+}
+
+.fulllogo {
+  mask: url(../images/logos/horizontal-nagios-full-logo.svg) no-repeat center / contain;
+  height: 39px;
+  width: 140px;
 }
 
 div.navsection {
@@ -401,7 +443,7 @@ ul.navsectionlinks li ul li a:hover {
 
 #splashlearnmore {
   background-color: var(--primary);
-  color: var(--foreground);
+  color: var(--primary-foreground);
   padding: 16px;
   border-radius: var(--radius);
 }

@@ -1,4 +1,6 @@
 <?php
+require_once(dirname(__FILE__).'/config.inc.php');
+
 // Allow specifying main window URL for permalinks, etc.
 $url = 'main.php';
 
@@ -27,10 +29,14 @@ if ("@COREWINDOW@" == "yes" && isset($_GET['corewindow'])) {
 }
 
 $this_year = '2024';
+$theme = $cfg['theme'] ?? 'dark';
+if ($theme != 'dark' && $theme != 'light') {
+	$theme = 'dark';
+}
 ?>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN" "http://www.w3.org/TR/html4/frameset.dtd">
 
-<html>
+<html class="<?= $theme ?>">
 <head>
 	<meta name="ROBOTS" content="NOINDEX, NOFOLLOW">
 	<title>Nagios: <?php echo $_SERVER['SERVER_NAME']; ?></title>
@@ -47,12 +53,19 @@ $this_year = '2024';
 			margin:0;
 		}
 
+		:root {
+			--border: #28303E
+		}
+
+		.light {
+			--border: #D6D6D6
+		}
+
 		iframe[name="side"] {
 			height: 100vh;
 			width: 200px;
 			border: none;
-			/* I don't like doing this but not sure of a better way */
-			border-right: 1px solid #28303E;
+			border-right: 1px solid var(--border);
 		}
 
 		iframe[name="main"] {

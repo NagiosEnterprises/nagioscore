@@ -3,10 +3,14 @@ include_once(dirname(__FILE__).'/includes/utils.inc.php');
 
 $this_version = '4.5.8';
 $link_target = 'main';
+$theme = $cfg['theme'] ?? 'dark';
+if ($theme != 'dark' && $theme != 'light') {
+	$theme = 'dark';
+}
 ?>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 
-<html id="side">
+<html id="side" class="<?= $theme ?>">
 
 <head>
 <meta name="ROBOTS" content="NOINDEX, NOFOLLOW">
@@ -18,7 +22,7 @@ $link_target = 'main';
 <body class='navbar'>
 
 <div class="navbarlogo">
-	<a href="https://www.nagios.org" target="_blank"><img src="images/logos/horizontal-nagios-full-logo.svg" height="39" width="140" border="0" alt="Nagios" /></a>
+	<a href="https://www.nagios.org" target="_blank"><div class="fulllogo nagioslogo"></div></a>
 </div>
 
 <div class="navsection">

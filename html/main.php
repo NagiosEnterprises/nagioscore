@@ -3,10 +3,14 @@ include_once(dirname(__FILE__).'/includes/utils.inc.php');
 
 $this_version = '4.5.8';
 $this_year = '2024';
+$theme = $cfg['theme'] ?? 'dark';
+if ($theme != 'dark' && $theme != 'light') {
+	$theme = 'dark';
+}
 ?>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 
-<html id="main">
+<html id="main" class="<?= $theme ?>">
 
 <head>
 
@@ -116,7 +120,7 @@ $this_year = '2024';
 		Nagios Core is licensed under the GNU General Public License and is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE WARRANTY OF DESIGN, MERCHANTABILITY, AND FITNESS FOR A PARTICULAR PURPOSE.  Nagios, Nagios Core and the Nagios logo are trademarks, servicemarks, registered trademarks or registered servicemarks owned by Nagios Enterprises, LLC.  Use of the Nagios marks is governed by the <A href="https://www.nagios.com/legal/trademarks/">trademark use restrictions</a>.
 	</div>
 	<div class="logos">
-		<a href="https://www.nagios.org/" target="_blank"><img src="images/logos/nagios-n-logo.svg" title="Nagios.org" /></a>
+		<a href="https://www.nagios.org/" target="_blank"><div class="nlogo nagioslogo"></div></a>
 	</div>
 </div>
 

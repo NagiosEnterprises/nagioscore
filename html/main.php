@@ -26,7 +26,7 @@ $this_year = '2024';
 						"Click here to watch the entire Nagios Core 4 Tour!</a>";
 	<?php } ?>
 	$(document).ready(function() {
-		var user = "<?php echo htmlspecialchars($_SERVER['REMOTE_USER']); ?>";
+		var user = "<?php echo htmlspecialchars($_SERVER['REMOTE_USER'] ?? ''); ?>";
 
 		<?php if ($cfg["enable_page_tour"]) { ?>
 			vBoxId += ";" + user;

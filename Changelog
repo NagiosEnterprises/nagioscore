@@ -6,6 +6,7 @@ Nagios Core 4 Change Log
 ------------------
 * Fix unreachable notifications (Dylan Anderson)
 * Add light option in new exfoliation theme (Dylan Anderson)
+* Fix authentication in trends.cgi (Dylan Anderson)
 
 4.5.8 - 2024-11-19
 ------------------

@@ -1,7 +1,7 @@
 <?php
 include_once(dirname(__FILE__).'/includes/utils.inc.php');
 
-$this_version = '4.5.8';
+$this_version = '4.5.9';
 $link_target = 'main';
 $theme = $cfg['theme'] ?? 'dark';
 if ($theme != 'dark' && $theme != 'light') {

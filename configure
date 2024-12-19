@@ -2878,9 +2878,9 @@ ac_config_headers="$ac_config_headers include/ignored_config.h include/config.h 
 
 PKG_NAME=nagios
 
-PKG_VERSION="4.5.8"
+PKG_VERSION="4.5.9"
 PKG_HOME_URL="https://www.nagios.org/"
-PKG_REL_DATE="2024-11-19"
+PKG_REL_DATE="2024-12-19"
 
 
 

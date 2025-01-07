@@ -2,6 +2,10 @@
 Nagios Core 4 Change Log
 ########################
 
+4.5.10 - 2025-XX-XX
+-------------------
+* Update quickstart and documentations links (Aaron Cieslicki)
+
 4.5.9 - 2024-12-19
 ------------------
 * Fix unreachable notifications (Dylan Anderson)

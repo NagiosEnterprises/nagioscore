@@ -1,17 +1,12 @@
 Nagios Installation Instructions
 --------------------------------
 
-A quickstart installation guide can now be found in the HTML
-documentation.  You can find the quickstart guide (quickstart.html)
-in the following subdirectory:
+A quickstart installation guide can now be found at
 
-	html/docs/
+https://assets.nagios.com/downloads/nagioscore/docs/nagioscore/4/en/quickstart.html
 
 The quickstart covers all the basic steps you need to follow
 to install Nagios, the Nagios plugins, and start out monitoring
 the machine that Nagios is installed on.
 
 Good luck!
-
-
-

@@ -24,8 +24,8 @@ function get_update_information(){
 		);
 	
 	// first read CGI config file to determine main file location
-	$ccfc=read_cgi_config_file();
-	//print_r($ccfc);
+	$ccf=read_cgi_config_file();
+	//print_r($ccf);
 	
 	// read main config file to determine file locations
 	if(isset($ccf['main_config_file']))

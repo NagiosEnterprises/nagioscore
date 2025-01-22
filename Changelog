@@ -5,7 +5,7 @@ Nagios Core 4 Change Log
 4.5.10 - 2025-XX-XX
 -------------------
 * Update quickstart and documentations links (Aaron Cieslicki)
-* Remove null coalescing operators and fix some php errors (Dylan Anderson)
+* Remove null coalescing operators and fix some php errors (Dylan Anderson and Robert Högberg)
 
 4.5.9 - 2024-12-19
 ------------------

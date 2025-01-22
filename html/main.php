@@ -3,7 +3,7 @@ include_once(dirname(__FILE__).'/includes/utils.inc.php');
 
 $this_version = '4.5.9';
 $this_year = '2024';
-$theme = $cfg['theme'] ?? 'dark';
+$theme = isset($cfg['theme']) ? $cfg['theme'] : 'dark';
 if ($theme != 'dark' && $theme != 'light') {
 	$theme = 'dark';
 }

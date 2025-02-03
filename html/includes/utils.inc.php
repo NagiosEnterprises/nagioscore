@@ -24,26 +24,18 @@ function get_update_information(){
 		);
 	
 	// first read CGI config file to determine main file location
-	$ccfc=read_cgi_config_file();
-	//print_r($ccfc);
+	$ccf=read_cgi_config_file();
+	//print_r($ccf);
 	
 	// read main config file to determine file locations
-	if(isset($ccf['main_config_file']))
-		$mcf=$ccf['main_config_file'];
-	else
-		$mcf="";
-	$mcfc=read_main_config_file($mcf);
-	//print_r($mcfc);
+	$mcf = isset($ccf['main_config_file']) ? $ccf['main_config_file'] : "";
 
-	if(isset($mcf['status_file']))
-		$sf=$mcf['status_file'];
-	else
-		$sf="";
+	$mcf=read_main_config_file($mcf);
+	//print_r($mcf);
 
-	if(isset($mcf['state_retention_file']))
-		$rf=$mcf['state_retention_file'];
-	else
-		$rf="";
+	$sf = isset($mcf['status_file']) ? $mcf['status_file'] : "";
+
+	$rf = isset($mcf['state_retention_file']) ? $mcf['state_retention_file'] : "";
 
 
 	///////////////////////////////////////////////
@@ -51,7 +43,7 @@ function get_update_information(){
 	///////////////////////////////////////////////
 	
 	// are update checks enabled?
-	if(isset($mcfc['check_for_updates']) && $mcfc['check_for_updates']=="0")
+	if(isset($mcf['check_for_updates']) && $mcf['check_for_updates'] == "0")
 		$updateinfo["update_checks_enabled"]=false;
 		
 
@@ -68,20 +60,17 @@ function get_update_information(){
 	if(isset($sfc['info']['last_update_check'])){
 		$updateinfo["last_update_check"]=$sfc['info']['last_update_check'];
 		$updateinfo["found_update_info"]=true;
-		}
+	}
 	
 	// update available
 	if(isset($sfc['info']['update_available'])){
-		if($sfc['info']['update_available']=="1")
-			$updateinfo["update_available"]=true;
-		else
-			$updateinfo["update_available"]=false;
-		}
+		$updateinfo["update_available"] = $sfc['info']['update_available'] == "1";
+	}
 	
 	// update version
 	if(isset($sfc['info']['new_version'])){
 		$updateinfo["update_version"]=$sfc['info']['new_version'];
-		}
+	}
 		
 	// did we find update information in the status file? if so, we're done
 	if($updateinfo["found_update_info"]==true)
@@ -100,29 +89,24 @@ function get_update_information(){
 	//exit();
 	
 	// last update time
-	if(isset($rfc['info']['last_update_check'])){
-		$updateinfo["last_update_check"]=$rfc['info']['last_update_check'];
-		$updateinfo["found_update_info"]=true;
-		}
+	if(isset($rfc['info']['last_update_check'])) {
+		$updateinfo["last_update_check"] = $rfc['info']['last_update_check'];
+		$updateinfo["found_update_info"] = true;
+	}
 	
 	// update available
-	if(isset($rfc['info']['update_available'])){
-		if($rfc['info']['update_available']=="1")
-			$updateinfo["update_available"]=true;
-		else
-			$updateinfo["update_available"]=false;
-		}
+	if(isset($rfc['info']['update_available'])) {
+		$updateinfo["update_available"] = $rfc['info']['update_available'] == "1";
+	}
 	
 	// update version
 	if(isset($rfc['info']['new_version'])){
 		$updateinfo["update_version"]=$rfc['info']['new_version'];
-		}
+	}
 		
 	
 	return $updateinfo;
-	}
-	
-
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////

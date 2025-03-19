@@ -410,7 +410,7 @@ char *mmap_fgets_multiline(mmapfile * temp_mmapfile) {
 
 /* strip newline, carriage return, and tab characters from beginning and end of a string */
 void strip(char *buffer) {
-	register int x, z;
+	int x, z;
 	int len;
 
 	if(buffer == NULL || buffer[0] == '\x0')

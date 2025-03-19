@@ -106,7 +106,7 @@ void unescape_cgi_input(char *input) {
 /* read the CGI input and place all name/val pairs into list. returns list containing name1, value1, name2, value2, ... , NULL */
 /* this is a hacked version of a routine I found a long time ago somewhere - can't remember where anymore */
 char **getcgivars(void) {
-	register int i;
+	int i;
 	char *accept_lang;
 	char *request_method;
 	char *content_type;
@@ -538,7 +538,7 @@ void free_accept_languages( accept_languages * langs) {
 
 /* free() memory allocated to storing the CGI variables */
 void free_cgivars(char **cgivars) {
-	register int x;
+	int x;
 
 	for(x = 0; cgivars[x]; x++)
 		free(cgivars[x]);

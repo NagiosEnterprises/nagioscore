@@ -795,9 +795,9 @@ int my_system(char *cmd, int timeout, int *early_timeout, double *exectime, char
 int get_raw_command_line_r(nagios_macros *mac, command *cmd_ptr, char *cmd, char **full_command, int macro_options) {
 	char temp_arg[MAX_COMMAND_BUFFER] = "";
 	char *arg_buffer = NULL;
-	register int x = 0;
-	register int y = 0;
-	register int arg_index = 0;
+	int x = 0;
+	int y = 0;
+	int arg_index = 0;
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "get_raw_command_line_r()\n");
 
@@ -2170,7 +2170,7 @@ int process_check_result_queue(const char *dirname) {
 	char file[MAX_FILENAME_LENGTH];
 	DIR *dirp = NULL;
 	struct dirent *dirfile = NULL;
-	register int x = 0;
+	int x = 0;
 	struct stat stat_buf;
 	struct stat ok_stat_buf;
 	char *temp_buffer = NULL;
@@ -2635,8 +2635,8 @@ char *get_next_string_from_buf(char *buf, int *start_index, int bufsize) {
 
 /* determines whether or not an object name (host, service, etc) contains illegal characters */
 int contains_illegal_object_chars(char *name) {
-	register int x = 0;
-	register int y = 0;
+	int x = 0;
+	int y = 0;
 
 	if(name == NULL || illegal_object_chars == NULL)
 		return FALSE;

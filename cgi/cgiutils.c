@@ -848,7 +848,7 @@ char *pop_lifo(void) {
 
 /* unescapes newlines in a string */
 char *unescape_newlines(char *rawbuf) {
-	register int x, y;
+	int x, y;
 
 	for(x = 0, y = 0; rawbuf[x] != (char)'\x0'; x++) {
 
@@ -1362,9 +1362,9 @@ char * html_encode(char *input, int escape_newlines) {
 
 /* strip > and < from string */
 void strip_html_brackets(char *buffer) {
-	register int x;
-	register int y;
-	register int z;
+	int x;
+	int y;
+	int z;
 
 	if(buffer == NULL || buffer[0] == '\x0')
 		return;
@@ -2142,9 +2142,9 @@ void display_splunk_generic_url(char *buf, int icon) {
 
 /* strip quotes and from string */
 void strip_splunk_query_terms(char *buffer) {
-	register int x;
-	register int y;
-	register int z;
+	int x;
+	int y;
+	int z;
 
 	if(buffer == NULL || buffer[0] == '\x0')
 		return;

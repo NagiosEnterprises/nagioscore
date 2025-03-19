@@ -84,7 +84,7 @@ inline
 #endif
 #endif
 static unsigned int
-wpres_key_phash (register const char *str, register size_t len)
+wpres_key_phash (const char *str, size_t len)
 {
   static unsigned char asso_values[] =
     {
@@ -115,7 +115,7 @@ wpres_key_phash (register const char *str, register size_t len)
       65, 65, 65, 65, 65, 65, 65, 65, 65, 65,
       65, 65, 65, 65, 65, 65
     };
-  register unsigned int hval = len;
+  unsigned int hval = len;
 
   switch (hval)
     {
@@ -134,7 +134,7 @@ wpres_key_phash (register const char *str, register size_t len)
 }
 
 struct wpres_key *
-wpres_get_key (register const char *str, register size_t len)
+wpres_get_key (const char *str, size_t len)
 {
   static struct wpres_key wordlist[] =
     {
@@ -200,11 +200,11 @@ wpres_get_key (register const char *str, register size_t len)
 
   if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH)
     {
-      register unsigned int key = wpres_key_phash (str, len);
+      unsigned int key = wpres_key_phash (str, len);
 
       if (key <= MAX_HASH_VALUE && key >= MIN_HASH_VALUE)
         {
-          register struct wpres_key *resword;
+          struct wpres_key *resword;
 
           switch (key - 4)
             {
@@ -299,7 +299,7 @@ wpres_get_key (register const char *str, register size_t len)
           return 0;
         compare:
           {
-            register const char *s = resword->name;
+            const char *s = resword->name;
 
             if (*str == *s && !strcmp (str + 1, s + 1))
               return resword;

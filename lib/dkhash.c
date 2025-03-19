@@ -58,9 +58,9 @@ unsigned int dkhash_table_size(dkhash_table *t)
  * typical data.
  */
 #define PRIME 509
-static inline unsigned int hash(register const char *k)
+static inline unsigned int hash(const char *k)
 {
-	register unsigned int h = 0x123; /* magic */
+	unsigned int h = 0x123; /* magic */
 
 	while (*k)
 		h = *k++ + PRIME * h;
@@ -70,7 +70,7 @@ static inline unsigned int hash(register const char *k)
 
 static inline unsigned int dkhash_slot(dkhash_table *t, const char *k1, const char *k2)
 {
-	register unsigned int h;
+	unsigned int h;
 	h = hash(k1);
 	if (k2)
 		h ^= hash(k2);

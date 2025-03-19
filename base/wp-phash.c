@@ -52,7 +52,7 @@ error "gperf generated tables don't work with this execution character set. Plea
 #endif
 
 static inline unsigned int
-wp_phash(register const char *str, register unsigned int len)
+wp_phash(const char *str, unsigned int len)
 {
 	/* the last 136 entries have been cut, as we don't need them */
 	static unsigned char asso_values[256] =
@@ -84,7 +84,7 @@ wp_phash(register const char *str, register unsigned int len)
 		34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
 		34, 34, 34, 34, 34, 34,
     };
-	register int hval = len;
+	int hval = len;
 
 	switch (hval) {
 	default:

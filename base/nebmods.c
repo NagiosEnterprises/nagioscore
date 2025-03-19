@@ -507,7 +507,7 @@ int neb_deregister_callback(int callback_type, int (*callback_func)(int, void *)
 int neb_make_callbacks(int callback_type, void *data) {
 	nebcallback *temp_callback, *next_callback;
 	int (*callbackfunc)(int, void *);
-	register int cbresult = 0;
+	int cbresult = 0;
 	int total_callbacks = 0;
 
 	/* make sure callback list is initialized */
@@ -547,7 +547,7 @@ int neb_make_callbacks(int callback_type, void *data) {
 
 /* initialize callback list */
 int neb_init_callback_list(void) {
-	register int x = 0;
+	int x = 0;
 
 	/* allocate memory for the callback list */
 	neb_callback_list = (nebcallback **)malloc(NEBCALLBACK_NUMITEMS * sizeof(nebcallback *));
@@ -566,7 +566,7 @@ int neb_init_callback_list(void) {
 int neb_free_callback_list(void) {
 	nebcallback *temp_callback = NULL;
 	nebcallback *next_callback = NULL;
-	register int x = 0;
+	int x = 0;
 
 	if(neb_callback_list == NULL)
 		return OK;

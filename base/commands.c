@@ -3701,7 +3701,7 @@ int cmd_change_object_custom_var(int cmd, char *args) {
 	char *name2 = NULL;
 	char *varname = NULL;
 	char *varvalue = NULL;
-	register int x = 0;
+	int x = 0;
 
 	/* get the host or contact name */
 	if((temp_ptr = my_strtok(args, ";")) == NULL)

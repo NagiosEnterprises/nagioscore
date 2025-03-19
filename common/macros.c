@@ -395,9 +395,9 @@ int grab_argv_macros_r(nagios_macros *mac, char *check_command) {
 	char temp_arg[MAX_COMMAND_BUFFER] = "";
 	char *arg_buffer = NULL;
 	int macro_options = STRIP_ILLEGAL_MACRO_CHARS | ESCAPE_MACRO_CHARS;
-	register int x = 0;
-	register int y = 0;
-	register int arg_index = 0;
+	int x = 0;
+	int y = 0;
+	int arg_index = 0;
 
 	/* clear the argv macros */
 	clear_argv_macros_r(mac);
@@ -670,7 +670,7 @@ int grab_macrox_value_r(nagios_macros *mac, int macro_type, char *arg1, char *ar
 	int delimiter_len = 0;
 	int free_sub_macro = FALSE;
 #ifdef NSCORE
-	register int x;
+	int x;
 	int authorized = TRUE;
 	int problem = TRUE;
 	int hosts_up = 0;
@@ -2504,10 +2504,10 @@ int grab_custom_object_macro(char *macro_name, customvariablesmember *vars, char
 
 /* cleans illegal characters in macros before output */
 char *clean_macro_chars(char *macro, int options) {
-	register int x = 0;
-	register int y = 0;
-	register int ch = 0;
-	register int len = 0;
+	int x = 0;
+	int y = 0;
+	int ch = 0;
+	int len = 0;
 	char *ret = NULL;
 
 	if(macro == NULL || !*macro)
@@ -2562,8 +2562,8 @@ char *get_url_encoded_string(char *input) {
 	space as %20 (as all other characters that should be escaped)
 	*/
 
-	register int x = 0;
-	register int y = 0;
+	int x = 0;
+	int y = 0;
 	char *encoded_url_string = NULL;
 
 
@@ -2678,7 +2678,7 @@ int init_macros(void) {
  */
 #define add_macrox_name(name) macro_x_names[MACRO_##name] = strdup(#name)
 int init_macrox_names(void) {
-	register int x = 0;
+	int x = 0;
 
 	/* initialize macro names */
 	for(x = 0; x < MACRO_X_COUNT; x++)
@@ -2859,7 +2859,7 @@ int init_macrox_names(void) {
 
 /* free memory associated with the macrox names */
 int free_macrox_names(void) {
-	register int x = 0;
+	int x = 0;
 
 	/* free each macro name */
 	for(x = 0; x < MACRO_X_COUNT; x++)
@@ -2872,7 +2872,7 @@ int free_macrox_names(void) {
 
 /* clear argv macros - used in commands */
 int clear_argv_macros_r(nagios_macros *mac) {
-	register int x = 0;
+	int x = 0;
 
 	/* command argument macros */
 	for(x = 0; x < MAX_COMMAND_ARGUMENTS; x++)
@@ -2927,7 +2927,7 @@ static void clear_custom_vars(customvariablesmember **vars) {
 
 /* clear all macros that are not "constant" (i.e. they change throughout the course of monitoring) */
 int clear_volatile_macros_r(nagios_macros *mac) {
-	register int x = 0;
+	int x = 0;
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "clear_volatile_macros_r()\n");
 
@@ -3100,7 +3100,7 @@ int clear_contactgroup_macros(void) {
 
 /* clear summary macros */
 int clear_summary_macros_r(nagios_macros *mac) {
-	register int x;
+	int x;
 
 	for(x = MACRO_TOTALHOSTSUP; x <= MACRO_TOTALSERVICEPROBLEMSUNHANDLED; x++)
 		my_free(mac->x[x]);
@@ -3139,7 +3139,7 @@ int set_all_macro_environment_vars(int set) {
 
 /* sets or unsets macrox environment variables */
 int set_macrox_environment_vars_r(nagios_macros *mac, int set) {
-	register int x = 0;
+	int x = 0;
 	int free_macro = FALSE;
 
 	/* set each of the macrox environment variables */
@@ -3184,7 +3184,7 @@ int set_macrox_environment_vars(int set) {
 /* sets or unsets argv macro environment variables */
 int set_argv_macro_environment_vars_r(nagios_macros *mac, int set) {
 	char *macro_name = NULL;
-	register int x = 0;
+	int x = 0;
 
 	/* set each of the argv macro environment variables */
 	for(x = 0; x < MAX_COMMAND_ARGUMENTS; x++) {
@@ -3260,7 +3260,7 @@ int set_custom_macro_environment_vars(int set) {
 /* sets or unsets contact address environment variables */
 int set_contact_address_environment_vars_r(nagios_macros *mac, int set) {
 	char *varname = NULL;
-	register int x;
+	int x;
 
 	/* these only get set during notifications */
 	if(mac->contact_ptr == NULL)
@@ -3386,7 +3386,7 @@ static int add_macrox_environment_vars_r(nagios_macros *mac, struct kvvec *kvvp)
 static int add_argv_macro_environment_vars_r(nagios_macros *mac,
 		struct kvvec *kvvp) {
 	char *macro_name = NULL;
-	register int x = 0;
+	int x = 0;
 
 	log_debug_info(DEBUGL_FUNCTIONS, 1, "add_argv_macro_environment_vars_r()\n");
 
@@ -3519,7 +3519,7 @@ static int add_contact_address_environment_vars_r(nagios_macros *mac,
 		struct kvvec *kvvp) {
 
 	char *varname = NULL;
-	register int x;
+	int x;
 
 	log_debug_info(DEBUGL_FUNCTIONS, 1, "add_contact_address_environment_vars_r()\n");
 

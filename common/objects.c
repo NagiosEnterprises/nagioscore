@@ -3061,7 +3061,7 @@ void fcache_timeperiod(FILE *fp, timeperiod *temp_timeperiod)
 	const char *months[12] = {"january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"};
 	daterange *temp_daterange;
 	timerange *tr;
-	register int x;
+	int x;
 
 	fprintf(fp, "define timeperiod {\n");
 	fprintf(fp, "\ttimeperiod_name\t%s\n", temp_timeperiod->name);

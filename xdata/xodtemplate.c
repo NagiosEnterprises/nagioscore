@@ -524,7 +524,7 @@ void xodtemplate_handle_semicolons(char* input) {
 	int dest_end = 0; /* The index to input that we need to copy to */
 	int src_start = 0; /* The index to input that we need to copy from */
 
-	register int x = 0;
+	int x = 0;
 
 	/* grab data before comment delimiter - faster than a strtok() and strncpy()... */
 	for(x = 0; input[x] != '\x0'; x++) {
@@ -566,7 +566,7 @@ int xodtemplate_process_config_dir(const char *dirname, int options) {
 	DIR *dirp = NULL;
 	struct dirent *dirfile = NULL;
 	int result = OK;
-	register int x = 0;
+	int x = 0;
 	struct stat stat_buf;
 	int ofs = 0;
 
@@ -652,11 +652,11 @@ int xodtemplate_process_config_dir(const char *dirname, int options) {
 int xodtemplate_process_config_file(const char *filename, int options) {
 	mmapfile *thefile = NULL;
 	char *input = NULL;
-	register int in_definition = FALSE;
-	register int current_line = 0;
+	int in_definition = FALSE;
+	int current_line = 0;
 	int result = OK;
-	register int x = 0;
-	register int y = 0;
+	int x = 0;
+	int y = 0;
 	char *ptr = NULL;
 
 
@@ -3692,7 +3692,7 @@ xodtemplate_customvariablesmember *xodtemplate_add_custom_variable_to_contact(xo
 /* adds a custom variable to an object */
 xodtemplate_customvariablesmember *xodtemplate_add_custom_variable_to_object(xodtemplate_customvariablesmember **object_ptr, char *varname, char *varvalue) {
 	xodtemplate_customvariablesmember *new_customvariablesmember = NULL;
-	register int x = 0;
+	int x = 0;
 
 	/* make sure we have the data we need */
 	if(object_ptr == NULL)
@@ -8782,7 +8782,7 @@ int xodtemplate_free_memory(void) {
 	xodtemplate_service *next_service = NULL;
 	xodtemplate_customvariablesmember *this_customvariablesmember = NULL;
 	xodtemplate_customvariablesmember *next_customvariablesmember = NULL;
-	register int x = 0;
+	int x = 0;
 
 
 	/* free memory allocated to timeperiod list */

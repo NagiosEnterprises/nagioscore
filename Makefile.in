@@ -21,7 +21,7 @@ BLD_TTAP=@builddir@/t-tap
 BLD_WORKERS=@builddir@/worker
 
 CC=@CC@
-CFLAGS=@CFLAGS@ @DEFS@ -Wwrite-string -Wregister
+CFLAGS=@CFLAGS@ @DEFS@
 LDFLAGS=@LDFLAGS@ @LIBS@
 
 prefix=@prefix@

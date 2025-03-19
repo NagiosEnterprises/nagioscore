@@ -46,8 +46,8 @@ static void write_to_console(char *buffer) {
 
 /* write something to the log file, syslog, and possibly the console */
 static void write_to_logs_and_console(char *buffer, unsigned long data_type, int display) {
-	register int len = 0;
-	register int x = 0;
+	int len = 0;
+	int x = 0;
 
 	/* strip unnecessary newlines */
 	len = strlen(buffer);

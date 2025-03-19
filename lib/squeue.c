@@ -109,7 +109,7 @@ squeue_event *squeue_add_tv(squeue_t *q, struct timeval *tv, void *data)
 	if (!q)
 		return NULL;
 
-	evt = calloc(1, sizeof(*evt));
+	evt = (squeue_event*)calloc(1, sizeof(*evt));
 	if (!evt)
 		return NULL;
 
@@ -184,7 +184,7 @@ void squeue_change_priority_tv(squeue_t *q, squeue_event *evt, struct timeval *t
 
 void *squeue_peek(squeue_t *q)
 {
-	squeue_event *evt = prqueue_peek(q);
+	squeue_event *evt = (squeue_event*)prqueue_peek(q);
 	if (evt)
 		return evt->data;
 	return NULL;
@@ -195,7 +195,7 @@ void *squeue_pop(squeue_t *q)
 	squeue_event *evt;
 	void *ptr = NULL;
 
-	evt = prqueue_pop(q);
+	evt = (squeue_event*)prqueue_pop(q);
 	if (evt) {
 		ptr = evt->data;
 		free(evt);

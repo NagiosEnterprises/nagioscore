@@ -2229,7 +2229,7 @@ int pre_flight_circular_check(int *w, int *e) {
 		alloc = num_objects.timeperiods;
 
 	for (i = 0; i < ARRAY_SIZE(ary); i++) {
-		if (!(ary[i] = calloc(1, alloc))) {
+		if (!(ary[i] = (char *)calloc(1, alloc))) {
 			while (i) {
 				my_free(ary[--i]);
 				}

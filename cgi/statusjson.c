@@ -155,7 +155,7 @@ const string_value_mapping valid_queries[] = {
 		"Return the Nagios Core performance data" },
 	{ "help", STATUS_QUERY_HELP, 
 		"Display help for this CGI" },
-	{ NULL, -1, NULL},
+	{ NULL, (unsigned)-1, NULL},
 	};
 
 static const int query_status[][2] = {
@@ -195,7 +195,7 @@ const string_value_mapping svm_host_time_fields[] = {
 			"Last Time Unreachable" },
 	{ "lastnotification", STATUS_TIME_LAST_NOTIFICATION, "Last Notification" },
 	{ "nextnotification", STATUS_TIME_NEXT_NOTIFICATION, "Next Notification" },
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 
 const string_value_mapping svm_service_time_fields[] = {
@@ -212,13 +212,13 @@ const string_value_mapping svm_service_time_fields[] = {
 	{ "lasttimeunknown", STATUS_TIME_LAST_TIME_UNKNOWN, "Last Time Unknown" },
 	{ "lastnotification", STATUS_TIME_LAST_NOTIFICATION, "Last Notification" },
 	{ "nextnotification", STATUS_TIME_NEXT_NOTIFICATION, "Next Notification" },
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 
 const string_value_mapping svm_valid_comment_types[] = {
 	{ "host", COMMENT_TYPE_HOST, "Host Comment" },
 	{ "service", COMMENT_TYPE_SERVICE, "Service Comment" },
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 
 const string_value_mapping svm_valid_comment_entry_types[] = {
@@ -227,25 +227,25 @@ const string_value_mapping svm_valid_comment_entry_types[] = {
 	{ "flapping", COMMENT_ENTRY_FLAPPING, "Flapping Comment" },
 	{ "acknowledgement", COMMENT_ENTRY_ACKNOWLEDGEMENT, 
 			"Acknowledgement Comment" },
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 
 const string_value_mapping svm_valid_persistence[] = {
 	{ "yes", BOOLEAN_TRUE, "Persistent Comment" },
 	{ "no", BOOLEAN_FALSE, "Non-Persistent Comment" },
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 
 const string_value_mapping svm_valid_expiration[] = {
 	{ "yes", BOOLEAN_TRUE, "Comment Expires" },
 	{ "no", BOOLEAN_FALSE, "Comment Does Not Expire" },
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 
 const string_value_mapping svm_comment_time_fields[] = {
 	{ "entrytime", STATUS_TIME_ENTRY_TIME, "Entry Time" },
 	{ "expiretime", STATUS_TIME_EXPIRE_TIME, "Expiration Time" },
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 
 const string_value_mapping svm_downtime_time_fields[] = {
@@ -254,31 +254,31 @@ const string_value_mapping svm_downtime_time_fields[] = {
 	{ "flexdowntimestart", STATUS_TIME_FLEX_DOWNTIME_START, 
 			"Flex Downtime Start" },
 	{ "endtime", STATUS_TIME_END_TIME, "End Time" },
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 
 const string_value_mapping svm_valid_downtime_object_types[] = {
 	{ "host", DOWNTIME_OBJECT_TYPE_HOST, "Host Downtime" },
 	{ "service", DOWNTIME_OBJECT_TYPE_SERVICE, "Service Downtime" },
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 
 const string_value_mapping svm_valid_downtime_types[] = {
 	{ "fixed", DOWNTIME_TYPE_FIXED, "Fixed Downtime" },
 	{ "flexible", DOWNTIME_TYPE_FLEXIBLE, "Flexible Downtime" },
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 
 const string_value_mapping svm_valid_triggered_status[] = {
 	{ "yes", BOOLEAN_TRUE, "Downtime Triggered" },
 	{ "no", BOOLEAN_FALSE, "Downtime Not Triggered" },
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 
 const string_value_mapping svm_valid_in_effect_status[] = {
 	{ "yes", BOOLEAN_TRUE, "Downtime In Effect" },
 	{ "no", BOOLEAN_FALSE, "Downtime Not In Effect" },
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 
 option_help status_json_help[] = {
@@ -697,7 +697,15 @@ option_help status_json_help[] = {
 		},
 	};
 
-extern const json_escape percent_escapes;
+const json_escape_pair percent_escape_pairs[] = {
+	{ L"%", L"%%" },
+};
+
+const json_escape percent_escapes = {
+	(sizeof(percent_escape_pairs) / sizeof(percent_escape_pairs[0])),
+	percent_escape_pairs
+};
+
 
 int json_status_host_passes_selection(host *, int, host *, int, host *, 
 		hostgroup *, contact *, hoststatus *, int, time_t, time_t,
@@ -882,9 +890,9 @@ int main(void) {
 				json_status_hostcount(cgi_data.format_options, 
 				cgi_data.use_parent_host, cgi_data.parent_host, 
 				cgi_data.use_child_host, cgi_data.child_host, 
-				cgi_data.hostgroup, cgi_data.host_statuses, cgi_data.contact,
+				cgi_data._hostgroup, cgi_data.host_statuses, cgi_data._contact,
 				cgi_data.host_time_field, cgi_data.start_time, 
-				cgi_data.end_time, cgi_data.contactgroup,
+				cgi_data.end_time, cgi_data._contactgroup,
 				cgi_data.check_timeperiod,
 				cgi_data.host_notification_timeperiod, cgi_data.check_command,
 				cgi_data.event_handler));
@@ -900,9 +908,9 @@ int main(void) {
 				json_status_hostlist(cgi_data.format_options, cgi_data.start, 
 				cgi_data.count, cgi_data.details, cgi_data.use_parent_host, 
 				cgi_data.parent_host, cgi_data.use_child_host, 
-				cgi_data.child_host, cgi_data.hostgroup, cgi_data.host_statuses,
-				cgi_data.contact, cgi_data.host_time_field, cgi_data.start_time,
-				cgi_data.end_time, cgi_data.contactgroup,
+				cgi_data.child_host, cgi_data._hostgroup, cgi_data.host_statuses,
+				cgi_data._contact, cgi_data.host_time_field, cgi_data.start_time,
+				cgi_data.end_time, cgi_data._contactgroup,
 				cgi_data.check_timeperiod,
 				cgi_data.host_notification_timeperiod, cgi_data.check_command,
 				cgi_data.event_handler));
@@ -927,7 +935,7 @@ int main(void) {
 					last_status_data_update, &current_authdata,
 					RESULT_SUCCESS, ""));
 			json_object_append_object(json_root, "data", 
-					json_status_host(cgi_data.format_options, cgi_data.host, 
+					json_status_host(cgi_data.format_options, cgi_data._host, 
 					temp_hoststatus));
 			}
 		break;
@@ -939,15 +947,15 @@ int main(void) {
 				last_status_data_update, &current_authdata,
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
-				json_status_servicecount(cgi_data.format_options, cgi_data.host, 
+				json_status_servicecount(cgi_data.format_options, cgi_data._host, 
 				cgi_data.use_parent_host, cgi_data.parent_host, 
 				cgi_data.use_child_host, cgi_data.child_host, 
-				cgi_data.hostgroup, cgi_data.servicegroup, 
+				cgi_data._hostgroup, cgi_data._servicegroup, 
 				cgi_data.host_statuses, cgi_data.service_statuses, 
-				cgi_data.contact, cgi_data.service_time_field, 
+				cgi_data._contact, cgi_data.service_time_field, 
 				cgi_data.start_time, cgi_data.end_time, 
 				cgi_data.service_description, cgi_data.parent_service_name,
-				cgi_data.child_service_name, cgi_data.contactgroup,
+				cgi_data.child_service_name, cgi_data._contactgroup,
 				cgi_data.check_timeperiod,
 				cgi_data.service_notification_timeperiod,
 				cgi_data.check_command, cgi_data.event_handler));
@@ -961,15 +969,15 @@ int main(void) {
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
 				json_status_servicelist(cgi_data.format_options, cgi_data.start, 
-				cgi_data.count, cgi_data.details, cgi_data.host, 
+				cgi_data.count, cgi_data.details, cgi_data._host, 
 				cgi_data.use_parent_host, cgi_data.parent_host, 
 				cgi_data.use_child_host, cgi_data.child_host, 
-				cgi_data.hostgroup, cgi_data.servicegroup,
+				cgi_data._hostgroup, cgi_data._servicegroup,
 				cgi_data.host_statuses, cgi_data.service_statuses, 
-				cgi_data.contact, cgi_data.service_time_field, 
+				cgi_data._contact, cgi_data.service_time_field, 
 				cgi_data.start_time, cgi_data.end_time, 
 				cgi_data.service_description, cgi_data.parent_service_name,
-				cgi_data.child_service_name, cgi_data.contactgroup,
+				cgi_data.child_service_name, cgi_data._contactgroup,
 				cgi_data.check_timeperiod,
 				cgi_data.service_notification_timeperiod,
 				cgi_data.check_command, cgi_data.event_handler));
@@ -996,7 +1004,7 @@ int main(void) {
 					RESULT_SUCCESS, ""));
 			json_object_append_object(json_root, "data", 
 					json_status_service(cgi_data.format_options, 
-					cgi_data.service, temp_servicestatus));
+					cgi_data._service, temp_servicestatus));
 			}
 		break;
 #if 0
@@ -1207,21 +1215,21 @@ void init_cgi_data(status_json_cgi_data *cgi_data) {
 	cgi_data->use_child_host = 0;
 	cgi_data->child_host = NULL;
 	cgi_data->host_name = NULL;
-	cgi_data->host = NULL;
+	cgi_data->_host = NULL;
 	cgi_data->host_statuses = HOST_STATUS_ALL;
 	cgi_data->hostgroup_name = NULL;
-	cgi_data->hostgroup = NULL;
+	cgi_data->_hostgroup = NULL;
 	cgi_data->servicegroup_name = NULL;
-	cgi_data->servicegroup = NULL;
+	cgi_data->_servicegroup = NULL;
 	cgi_data->service_description = NULL;
-	cgi_data->service = NULL;
+	cgi_data->_service = NULL;
 	cgi_data->service_statuses = SERVICE_STATUS_ALL;
 	cgi_data->parent_service_name = NULL;
 	cgi_data->child_service_name = NULL;
 	cgi_data->contactgroup_name = NULL;
-	cgi_data->contactgroup = NULL;
+	cgi_data->_contactgroup = NULL;
 	cgi_data->contact_name = NULL;
-	cgi_data->contact = NULL;
+	cgi_data->_contact = NULL;
 	cgi_data->check_timeperiod_name = NULL;
 	cgi_data->check_timeperiod = NULL;
 	cgi_data->host_notification_timeperiod_name = NULL;
@@ -2040,7 +2048,7 @@ int validate_arguments(json_object *json_root, status_json_cgi_data *cgi_data,
 					"The host '%s' could not be found.", cgi_data->host_name));
 			}
 		else {
-			cgi_data->host = temp_host;
+			cgi_data->_host = temp_host;
 			}
 		}
 
@@ -2058,7 +2066,7 @@ int validate_arguments(json_object *json_root, status_json_cgi_data *cgi_data,
 					cgi_data->hostgroup_name));
 			}
 		else {
-			cgi_data->hostgroup = temp_hostgroup;
+			cgi_data->_hostgroup = temp_hostgroup;
 			}
 		}
 
@@ -2076,7 +2084,7 @@ int validate_arguments(json_object *json_root, status_json_cgi_data *cgi_data,
 					cgi_data->servicegroup_name));
 			}
 		else {
-			cgi_data->servicegroup = temp_servicegroup;
+			cgi_data->_servicegroup = temp_servicegroup;
 			}
 		}
 
@@ -2094,7 +2102,7 @@ int validate_arguments(json_object *json_root, status_json_cgi_data *cgi_data,
 					cgi_data->contactgroup_name));
 			}
 		else {
-			cgi_data->contactgroup = temp_contactgroup;
+			cgi_data->_contactgroup = temp_contactgroup;
 			}
 		}
 
@@ -2116,7 +2124,7 @@ int validate_arguments(json_object *json_root, status_json_cgi_data *cgi_data,
 					cgi_data->service_description, cgi_data->host_name));
 			}
 		else {
-			cgi_data->service = temp_service;
+			cgi_data->_service = temp_service;
 			}
 		}
 
@@ -2279,7 +2287,7 @@ int validate_arguments(json_object *json_root, status_json_cgi_data *cgi_data,
 					cgi_data->contact_name));
 			}
 		else {
-			cgi_data->contact = temp_contact;
+			cgi_data->_contact = temp_contact;
 			}
 		}
 
@@ -2509,11 +2517,11 @@ json_object *json_status_host_selectors(unsigned format_options, int start,
 	if(1 == use_parent_host) {
 		json_object_append_string(json_selectors, "parenthost",
 				&percent_escapes,
-				( NULL == parent_host ? "none" : parent_host->name));
+				(char *)(( NULL == parent_host ? "none" : parent_host->name)));
 		}
 	if(1 == use_child_host) {
 		json_object_append_string(json_selectors, "childhost", &percent_escapes,
-				( NULL == child_host ? "none" : child_host->name));
+				(char *)(( NULL == child_host ? "none" : child_host->name)));
 		}
 	if(NULL != temp_hostgroup) {
 		json_object_append_string(json_selectors, "hostgroup", &percent_escapes,
@@ -3164,11 +3172,11 @@ json_object *json_status_service_selectors(unsigned format_options,
 	if( 1 == use_parent_host) {
 		json_object_append_string(json_selectors, "parenthost",
 				&percent_escapes,
-				( NULL == parent_host ? "none" : parent_host->name));
+				(char *)(( NULL == parent_host ? "none" : parent_host->name)));
 		}
 	if( 1 == use_child_host) {
 		json_object_append_string(json_selectors, "childhost", &percent_escapes,
-				( NULL == child_host ? "none" : child_host->name));
+				(char *)(( NULL == child_host ? "none" : child_host->name)));
 		}
 	if( NULL != temp_hostgroup) {
 		json_object_append_string(json_selectors, "hostgroup", &percent_escapes,

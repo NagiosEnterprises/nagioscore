@@ -30,7 +30,10 @@
 #include "nagios.h"
 #endif
 
-NAGIOS_BEGIN_DECL
+#ifdef __cplusplus
+/** C++ compatibility macro that avoids confusing indentation programs */
+// "C" {
+#endif
 
 /* SCHEDULED_DOWNTIME_ENTRY structure */
 typedef struct scheduled_downtime {
@@ -112,5 +115,8 @@ void free_downtime_data(void);                                       /* frees me
 
 int delete_downtime_by_hostname_service_description_start_time_comment(char *, char *, time_t, char *);
 
-NAGIOS_END_DECL
+#ifdef __cplusplus
+//}
+#endif
+
 #endif

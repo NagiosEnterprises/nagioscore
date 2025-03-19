@@ -1266,7 +1266,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 			temp_timeperiod = (xodtemplate_timeperiod *)xodtemplate_current_object;
 
 			if(!strcmp(variable, "use")) {
-				if((temp_timeperiod->template = (char *)strdup(value)) == NULL)
+				if((temp_timeperiod->_template = (char *)strdup(value)) == NULL)
 					result = ERROR;
 				}
 			else if(!strcmp(variable, "name")) {
@@ -1337,7 +1337,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 			temp_command = (xodtemplate_command *)xodtemplate_current_object;
 
 			if(!strcmp(variable, "use")) {
-				if((temp_command->template = (char *)strdup(value)) == NULL)
+				if((temp_command->_template = (char *)strdup(value)) == NULL)
 					result = ERROR;
 				}
 			else if(!strcmp(variable, "name")) {
@@ -1400,7 +1400,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 			temp_contactgroup = (xodtemplate_contactgroup *)xodtemplate_current_object;
 
 			if(!strcmp(variable, "use")) {
-				if((temp_contactgroup->template = (char *)strdup(value)) == NULL)
+				if((temp_contactgroup->_template = (char *)strdup(value)) == NULL)
 					result = ERROR;
 				}
 			else if(!strcmp(variable, "name")) {
@@ -1496,7 +1496,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 			temp_hostgroup = (xodtemplate_hostgroup *)xodtemplate_current_object;
 
 			if(!strcmp(variable, "use")) {
-				if((temp_hostgroup->template = (char *)strdup(value)) == NULL)
+				if((temp_hostgroup->_template = (char *)strdup(value)) == NULL)
 					result = ERROR;
 				}
 			else if(!strcmp(variable, "name")) {
@@ -1614,7 +1614,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 			temp_servicegroup = (xodtemplate_servicegroup *)xodtemplate_current_object;
 
 			if(!strcmp(variable, "use")) {
-				if((temp_servicegroup->template = (char *)strdup(value)) == NULL)
+				if((temp_servicegroup->_template = (char *)strdup(value)) == NULL)
 					result = ERROR;
 				}
 			else if(!strcmp(variable, "name")) {
@@ -1732,7 +1732,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 			temp_servicedependency = (xodtemplate_servicedependency *)xodtemplate_current_object;
 
 			if(!strcmp(variable, "use")) {
-				if((temp_servicedependency->template = (char *)strdup(value)) == NULL)
+				if((temp_servicedependency->_template = (char *)strdup(value)) == NULL)
 					result = ERROR;
 				}
 			else if(!strcmp(variable, "name")) {
@@ -1891,7 +1891,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 			temp_serviceescalation = (xodtemplate_serviceescalation *)xodtemplate_current_object;
 
 			if(!strcmp(variable, "use")) {
-				if((temp_serviceescalation->template = (char *)strdup(value)) == NULL)
+				if((temp_serviceescalation->_template = (char *)strdup(value)) == NULL)
 					result = ERROR;
 				}
 			else if(!strcmp(variable, "name")) {
@@ -2026,7 +2026,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 			temp_contact = (xodtemplate_contact *)xodtemplate_current_object;
 
 			if(!strcmp(variable, "use")) {
-				if((temp_contact->template = (char *)strdup(value)) == NULL)
+				if((temp_contact->_template = (char *)strdup(value)) == NULL)
 					result = ERROR;
 				}
 			else if(!strcmp(variable, "name")) {
@@ -2261,7 +2261,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 			temp_host = (xodtemplate_host *)xodtemplate_current_object;
 
 			if(!strcmp(variable, "use")) {
-				if((temp_host->template = (char *)strdup(value)) == NULL)
+				if((temp_host->_template = (char *)strdup(value)) == NULL)
 					result = ERROR;
 				}
 			else if(!strcmp(variable, "name")) {
@@ -2694,7 +2694,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 			temp_service = (xodtemplate_service *)xodtemplate_current_object;
 
 			if(!strcmp(variable, "use")) {
-				if((temp_service->template = (char *)strdup(value)) == NULL)
+				if((temp_service->_template = (char *)strdup(value)) == NULL)
 					result = ERROR;
 				}
 			else if(!strcmp(variable, "name")) {
@@ -3134,7 +3134,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 			temp_hostdependency = (xodtemplate_hostdependency *)xodtemplate_current_object;
 
 			if(!strcmp(variable, "use")) {
-				if((temp_hostdependency->template = (char *)strdup(value)) == NULL)
+				if((temp_hostdependency->_template = (char *)strdup(value)) == NULL)
 					result = ERROR;
 				}
 			else if(!strcmp(variable, "name")) {
@@ -3260,7 +3260,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 			temp_hostescalation = (xodtemplate_hostescalation *)xodtemplate_current_object;
 
 			if(!strcmp(variable, "use")) {
-				if((temp_hostescalation->template = (char *)strdup(value)) == NULL)
+				if((temp_hostescalation->_template = (char *)strdup(value)) == NULL)
 					result = ERROR;
 				}
 			else if(!strcmp(variable, "name")) {
@@ -3377,7 +3377,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 			temp_hostextinfo = xodtemplate_hostextinfo_list;
 
 			if(!strcmp(variable, "use")) {
-				if((temp_hostextinfo->template = (char *)strdup(value)) == NULL)
+				if((temp_hostextinfo->_template = (char *)strdup(value)) == NULL)
 					result = ERROR;
 				}
 			else if(!strcmp(variable, "name")) {
@@ -3515,7 +3515,7 @@ int xodtemplate_add_object_property(char *input, int options) {
 			temp_serviceextinfo = xodtemplate_serviceextinfo_list;
 
 			if(!strcmp(variable, "use")) {
-				if((temp_serviceextinfo->template = (char *)strdup(value)) == NULL)
+				if((temp_serviceextinfo->_template = (char *)strdup(value)) == NULL)
 					result = ERROR;
 				}
 			else if(!strcmp(variable, "name")) {
@@ -3702,7 +3702,7 @@ xodtemplate_customvariablesmember *xodtemplate_add_custom_variable_to_object(xod
 		return NULL;
 
 	/* allocate memory for a new member */
-	if((new_customvariablesmember = malloc(sizeof(xodtemplate_customvariablesmember))) == NULL)
+	if((new_customvariablesmember = (xodtemplate_customvariablesmember*)malloc(sizeof(xodtemplate_customvariablesmember))) == NULL)
 		return NULL;
 	if((new_customvariablesmember->variable_name = (char *)strdup(varname)) == NULL) {
 		my_free(new_customvariablesmember);
@@ -4004,7 +4004,7 @@ xodtemplate_daterange *xodtemplate_add_exception_to_timeperiod(xodtemplate_timep
 		return NULL;
 
 	/* allocate memory for the date range */
-	if((new_daterange = malloc(sizeof(xodtemplate_daterange))) == NULL)
+	if((new_daterange = (xodtemplate_daterange*)malloc(sizeof(xodtemplate_daterange))) == NULL)
 		return NULL;
 
 	new_daterange->next = NULL;
@@ -4422,7 +4422,7 @@ int xodtemplate_duplicate_objects(void) {
 			/* if this is the last duplication, use the existing entry */
 			if(!next) {
 				my_free(temp_hostescalation->name);
-				my_free(temp_hostescalation->template);
+				my_free(temp_hostescalation->_template);
 				my_free(temp_hostescalation->host_name);
 				my_free(temp_hostescalation->hostgroup_name);
 				temp_hostescalation->host_name = h->host_name;
@@ -4521,7 +4521,7 @@ int xodtemplate_duplicate_objects(void) {
 			xodtemplate_merge_host_extinfo_object(h, temp_hostextinfo);
 			}
 		/* might as well kill it off early */
-		my_free(temp_hostextinfo->template);
+		my_free(temp_hostextinfo->_template);
 		my_free(temp_hostextinfo->name);
 		my_free(temp_hostextinfo->notes);
 		my_free(temp_hostextinfo->host_name);
@@ -4563,7 +4563,7 @@ int xodtemplate_duplicate_objects(void) {
 			xodtemplate_merge_service_extinfo_object(s, temp_serviceextinfo);
 			}
 		/* now we're done, so we might as well kill it off */
-		my_free(temp_serviceextinfo->template);
+		my_free(temp_serviceextinfo->_template);
 		my_free(temp_serviceextinfo->name);
 		my_free(temp_serviceextinfo->host_name);
 		my_free(temp_serviceextinfo->hostgroup_name);
@@ -4902,7 +4902,7 @@ static int xodtemplate_register_and_destroy_hostdependency(void *hd_)
 		}
 
 	my_free(temp_hostdependency->name);
-	my_free(temp_hostdependency->template);
+	my_free(temp_hostdependency->_template);
 	my_free(temp_hostdependency->host_name);
 	my_free(temp_hostdependency->hostgroup_name);
 	my_free(temp_hostdependency->dependent_host_name);
@@ -4949,7 +4949,7 @@ static int xodtemplate_register_and_destroy_servicedependency(void *sd_)
 	dsdesc = temp_servicedependency->dependent_service_description;
 
 	my_free(temp_servicedependency->name);
-	my_free(temp_servicedependency->template);
+	my_free(temp_servicedependency->_template);
 
 	/* skip templates, but free them first */
 	if(temp_servicedependency->register_object == 0) {
@@ -5218,10 +5218,10 @@ int xodtemplate_resolve_timeperiod(xodtemplate_timeperiod *this_timeperiod) {
 	this_timeperiod->has_been_resolved = TRUE;
 
 	/* return if we have no template */
-	if(this_timeperiod->template == NULL)
+	if(this_timeperiod->_template == NULL)
 		return OK;
 
-	if((template_names = (char *)strdup(this_timeperiod->template)) == NULL)
+	if((template_names = (char *)strdup(this_timeperiod->_template)) == NULL)
 		return ERROR;
 
 	/* apply all templates */
@@ -5308,10 +5308,10 @@ int xodtemplate_resolve_command(xodtemplate_command *this_command) {
 	this_command->has_been_resolved = TRUE;
 
 	/* return if we have no template */
-	if(this_command->template == NULL)
+	if(this_command->_template == NULL)
 		return OK;
 
-	if((template_names = (char *)strdup(this_command->template)) == NULL)
+	if((template_names = (char *)strdup(this_command->_template)) == NULL)
 		return ERROR;
 
 	/* apply all templates */
@@ -5356,10 +5356,10 @@ int xodtemplate_resolve_contactgroup(xodtemplate_contactgroup *this_contactgroup
 	this_contactgroup->has_been_resolved = TRUE;
 
 	/* return if we have no template */
-	if(this_contactgroup->template == NULL)
+	if(this_contactgroup->_template == NULL)
 		return OK;
 
-	if((template_names = (char *)strdup(this_contactgroup->template)) == NULL)
+	if((template_names = (char *)strdup(this_contactgroup->_template)) == NULL)
 		return ERROR;
 
 	/* apply all templates */
@@ -5408,10 +5408,10 @@ int xodtemplate_resolve_hostgroup(xodtemplate_hostgroup *this_hostgroup) {
 	this_hostgroup->has_been_resolved = TRUE;
 
 	/* return if we have no template */
-	if(this_hostgroup->template == NULL)
+	if(this_hostgroup->_template == NULL)
 		return OK;
 
-	if((template_names = (char *)strdup(this_hostgroup->template)) == NULL)
+	if((template_names = (char *)strdup(this_hostgroup->_template)) == NULL)
 		return ERROR;
 
 	/* apply all templates */
@@ -5463,10 +5463,10 @@ int xodtemplate_resolve_servicegroup(xodtemplate_servicegroup *this_servicegroup
 	this_servicegroup->has_been_resolved = TRUE;
 
 	/* return if we have no template */
-	if(this_servicegroup->template == NULL)
+	if(this_servicegroup->_template == NULL)
 		return OK;
 
-	if((template_names = (char *)strdup(this_servicegroup->template)) == NULL)
+	if((template_names = (char *)strdup(this_servicegroup->_template)) == NULL)
 		return ERROR;
 
 	/* apply all templates */
@@ -5516,10 +5516,10 @@ int xodtemplate_resolve_servicedependency(xodtemplate_servicedependency *this_se
 	this_servicedependency->has_been_resolved = TRUE;
 
 	/* return if we have no template */
-	if(this_servicedependency->template == NULL)
+	if(this_servicedependency->_template == NULL)
 		return OK;
 
-	if((template_names = (char *)strdup(this_servicedependency->template)) == NULL)
+	if((template_names = (char *)strdup(this_servicedependency->_template)) == NULL)
 		return ERROR;
 
 	/* apply all templates */
@@ -5586,10 +5586,10 @@ int xodtemplate_resolve_serviceescalation(xodtemplate_serviceescalation *this_se
 	this_serviceescalation->has_been_resolved = TRUE;
 
 	/* return if we have no template */
-	if(this_serviceescalation->template == NULL)
+	if(this_serviceescalation->_template == NULL)
 		return OK;
 
-	if((template_names = (char *)strdup(this_serviceescalation->template)) == NULL)
+	if((template_names = (char *)strdup(this_serviceescalation->_template)) == NULL)
 		return ERROR;
 
 	/* apply all templates */
@@ -5662,10 +5662,10 @@ int xodtemplate_resolve_contact(xodtemplate_contact *this_contact) {
 	this_contact->has_been_resolved = TRUE;
 
 	/* return if we have no template */
-	if(this_contact->template == NULL)
+	if(this_contact->_template == NULL)
 		return OK;
 
-	if((template_names = (char *)strdup(this_contact->template)) == NULL)
+	if((template_names = (char *)strdup(this_contact->_template)) == NULL)
 		return ERROR;
 
 	/* apply all templates */
@@ -5745,10 +5745,10 @@ int xodtemplate_resolve_host(xodtemplate_host *this_host) {
 	this_host->has_been_resolved = TRUE;
 
 	/* return if we have no template */
-	if(this_host->template == NULL)
+	if(this_host->_template == NULL)
 		return OK;
 
-	if((template_names = (char *)strdup(this_host->template)) == NULL)
+	if((template_names = (char *)strdup(this_host->_template)) == NULL)
 		return ERROR;
 
 	/* apply all templates */
@@ -5866,10 +5866,10 @@ int xodtemplate_resolve_service(xodtemplate_service *this_service) {
 	this_service->has_been_resolved = TRUE;
 
 	/* return if we have no template */
-	if(this_service->template == NULL)
+	if(this_service->_template == NULL)
 		return OK;
 
-	if((template_names = (char *)strdup(this_service->template)) == NULL)
+	if((template_names = (char *)strdup(this_service->_template)) == NULL)
 		return ERROR;
 
 	/* apply all templates */
@@ -5977,10 +5977,10 @@ int xodtemplate_resolve_hostdependency(xodtemplate_hostdependency *this_hostdepe
 	this_hostdependency->has_been_resolved = TRUE;
 
 	/* return if we have no template */
-	if(this_hostdependency->template == NULL)
+	if(this_hostdependency->_template == NULL)
 		return OK;
 
-	if((template_names = (char *)strdup(this_hostdependency->template)) == NULL)
+	if((template_names = (char *)strdup(this_hostdependency->_template)) == NULL)
 		return ERROR;
 
 	/* apply all templates */
@@ -6031,10 +6031,10 @@ int xodtemplate_resolve_hostescalation(xodtemplate_hostescalation *this_hostesca
 	this_hostescalation->has_been_resolved = TRUE;
 
 	/* return if we have no template */
-	if(this_hostescalation->template == NULL)
+	if(this_hostescalation->_template == NULL)
 		return OK;
 
-	if((template_names = (char *)strdup(this_hostescalation->template)) == NULL)
+	if((template_names = (char *)strdup(this_hostescalation->_template)) == NULL)
 		return ERROR;
 
 	/* apply all templates */
@@ -6086,10 +6086,10 @@ int xodtemplate_resolve_hostextinfo(xodtemplate_hostextinfo *this_hostextinfo) {
 	this_hostextinfo->has_been_resolved = TRUE;
 
 	/* return if we have no template */
-	if(this_hostextinfo->template == NULL)
+	if(this_hostextinfo->_template == NULL)
 		return OK;
 
-	if((template_names = (char *)strdup(this_hostextinfo->template)) == NULL)
+	if((template_names = (char *)strdup(this_hostextinfo->_template)) == NULL)
 		return ERROR;
 
 	/* apply all templates */
@@ -6152,10 +6152,10 @@ int xodtemplate_resolve_serviceextinfo(xodtemplate_serviceextinfo *this_servicee
 	this_serviceextinfo->has_been_resolved = TRUE;
 
 	/* return if we have no template */
-	if(this_serviceextinfo->template == NULL)
+	if(this_serviceextinfo->_template == NULL)
 		return OK;
 
-	if((template_names = (char *)strdup(this_serviceextinfo->template)) == NULL)
+	if((template_names = (char *)strdup(this_serviceextinfo->_template)) == NULL)
 		return ERROR;
 
 	/* apply all templates */
@@ -6779,7 +6779,7 @@ xodtemplate_timeperiod *xodtemplate_find_timeperiod(char *name) {
 
 	temp_timeperiod.name = name;
 
-	return skiplist_find_first(xobject_template_skiplists[TIMEPERIOD_SKIPLIST], &temp_timeperiod, NULL);
+	return (xodtemplate_timeperiod*)skiplist_find_first(xobject_template_skiplists[TIMEPERIOD_SKIPLIST], &temp_timeperiod, NULL);
 	}
 
 
@@ -6792,7 +6792,7 @@ xodtemplate_command *xodtemplate_find_command(char *name) {
 
 	temp_command.name = name;
 
-	return skiplist_find_first(xobject_template_skiplists[COMMAND_SKIPLIST], &temp_command, NULL);
+	return (xodtemplate_command*)skiplist_find_first(xobject_template_skiplists[COMMAND_SKIPLIST], &temp_command, NULL);
 	}
 
 #endif
@@ -6806,7 +6806,7 @@ xodtemplate_contactgroup *xodtemplate_find_contactgroup(char *name) {
 
 	temp_contactgroup.name = name;
 
-	return skiplist_find_first(xobject_template_skiplists[CONTACTGROUP_SKIPLIST], &temp_contactgroup, NULL);
+	return (xodtemplate_contactgroup*)skiplist_find_first(xobject_template_skiplists[CONTACTGROUP_SKIPLIST], &temp_contactgroup, NULL);
 	}
 
 
@@ -6819,7 +6819,7 @@ xodtemplate_contactgroup *xodtemplate_find_real_contactgroup(char *name) {
 
 	temp_contactgroup.contactgroup_name = name;
 
-	return skiplist_find_first(xobject_skiplists[CONTACTGROUP_SKIPLIST], &temp_contactgroup, NULL);
+	return (xodtemplate_contactgroup*)skiplist_find_first(xobject_skiplists[CONTACTGROUP_SKIPLIST], &temp_contactgroup, NULL);
 	}
 
 
@@ -6832,7 +6832,7 @@ xodtemplate_hostgroup *xodtemplate_find_hostgroup(char *name) {
 
 	temp_hostgroup.name = name;
 
-	return skiplist_find_first(xobject_template_skiplists[HOSTGROUP_SKIPLIST], &temp_hostgroup, NULL);
+	return (xodtemplate_hostgroup*)skiplist_find_first(xobject_template_skiplists[HOSTGROUP_SKIPLIST], &temp_hostgroup, NULL);
 	}
 
 
@@ -6845,7 +6845,7 @@ xodtemplate_hostgroup *xodtemplate_find_real_hostgroup(char *name) {
 
 	temp_hostgroup.hostgroup_name = name;
 
-	return skiplist_find_first(xobject_skiplists[HOSTGROUP_SKIPLIST], &temp_hostgroup, NULL);
+	return (xodtemplate_hostgroup*)skiplist_find_first(xobject_skiplists[HOSTGROUP_SKIPLIST], &temp_hostgroup, NULL);
 	}
 
 
@@ -6858,7 +6858,7 @@ xodtemplate_servicegroup *xodtemplate_find_servicegroup(char *name) {
 
 	temp_servicegroup.name = name;
 
-	return skiplist_find_first(xobject_template_skiplists[SERVICEGROUP_SKIPLIST], &temp_servicegroup, NULL);
+	return (xodtemplate_servicegroup*)skiplist_find_first(xobject_template_skiplists[SERVICEGROUP_SKIPLIST], &temp_servicegroup, NULL);
 	}
 
 
@@ -6871,7 +6871,7 @@ xodtemplate_servicegroup *xodtemplate_find_real_servicegroup(char *name) {
 
 	temp_servicegroup.servicegroup_name = name;
 
-	return skiplist_find_first(xobject_skiplists[SERVICEGROUP_SKIPLIST], &temp_servicegroup, NULL);
+	return (xodtemplate_servicegroup*)skiplist_find_first(xobject_skiplists[SERVICEGROUP_SKIPLIST], &temp_servicegroup, NULL);
 	}
 
 
@@ -6884,7 +6884,7 @@ xodtemplate_servicedependency *xodtemplate_find_servicedependency(char *name) {
 
 	temp_servicedependency.name = name;
 
-	return skiplist_find_first(xobject_template_skiplists[SERVICEDEPENDENCY_SKIPLIST], &temp_servicedependency, NULL);
+	return (xodtemplate_servicedependency*)skiplist_find_first(xobject_template_skiplists[SERVICEDEPENDENCY_SKIPLIST], &temp_servicedependency, NULL);
 	}
 
 
@@ -6897,7 +6897,7 @@ xodtemplate_serviceescalation *xodtemplate_find_serviceescalation(char *name) {
 
 	temp_serviceescalation.name = name;
 
-	return skiplist_find_first(xobject_template_skiplists[SERVICEESCALATION_SKIPLIST], &temp_serviceescalation, NULL);
+	return (xodtemplate_serviceescalation*)skiplist_find_first(xobject_template_skiplists[SERVICEESCALATION_SKIPLIST], &temp_serviceescalation, NULL);
 	}
 
 
@@ -6910,7 +6910,7 @@ xodtemplate_contact *xodtemplate_find_contact(char *name) {
 
 	temp_contact.name = name;
 
-	return skiplist_find_first(xobject_template_skiplists[CONTACT_SKIPLIST], &temp_contact, NULL);
+	return (xodtemplate_contact*)skiplist_find_first(xobject_template_skiplists[CONTACT_SKIPLIST], &temp_contact, NULL);
 	}
 
 
@@ -6923,7 +6923,7 @@ xodtemplate_contact *xodtemplate_find_real_contact(char *name) {
 
 	temp_contact.contact_name = name;
 
-	return skiplist_find_first(xobject_skiplists[CONTACT_SKIPLIST], &temp_contact, NULL);
+	return (xodtemplate_contact*)skiplist_find_first(xobject_skiplists[CONTACT_SKIPLIST], &temp_contact, NULL);
 	}
 
 
@@ -6936,7 +6936,7 @@ xodtemplate_host *xodtemplate_find_host(char *name) {
 
 	temp_host.name = name;
 
-	return skiplist_find_first(xobject_template_skiplists[HOST_SKIPLIST], &temp_host, NULL);
+	return (xodtemplate_host*)skiplist_find_first(xobject_template_skiplists[HOST_SKIPLIST], &temp_host, NULL);
 	}
 
 
@@ -6949,7 +6949,7 @@ xodtemplate_host *xodtemplate_find_real_host(char *name) {
 
 	temp_host.host_name = name;
 
-	return skiplist_find_first(xobject_skiplists[HOST_SKIPLIST], &temp_host, NULL);
+	return (xodtemplate_host*)skiplist_find_first(xobject_skiplists[HOST_SKIPLIST], &temp_host, NULL);
 	}
 
 
@@ -6962,7 +6962,7 @@ xodtemplate_hostdependency *xodtemplate_find_hostdependency(char *name) {
 
 	temp_hostdependency.name = name;
 
-	return skiplist_find_first(xobject_template_skiplists[HOSTDEPENDENCY_SKIPLIST], &temp_hostdependency, NULL);
+	return (xodtemplate_hostdependency*)skiplist_find_first(xobject_template_skiplists[HOSTDEPENDENCY_SKIPLIST], &temp_hostdependency, NULL);
 	}
 
 
@@ -6975,7 +6975,7 @@ xodtemplate_hostescalation *xodtemplate_find_hostescalation(char *name) {
 
 	temp_hostescalation.name = name;
 
-	return skiplist_find_first(xobject_template_skiplists[HOSTESCALATION_SKIPLIST], &temp_hostescalation, NULL);
+	return (xodtemplate_hostescalation*)skiplist_find_first(xobject_template_skiplists[HOSTESCALATION_SKIPLIST], &temp_hostescalation, NULL);
 	}
 
 
@@ -6988,7 +6988,7 @@ xodtemplate_hostextinfo *xodtemplate_find_hostextinfo(char *name) {
 
 	temp_hostextinfo.name = name;
 
-	return skiplist_find_first(xobject_template_skiplists[HOSTEXTINFO_SKIPLIST], &temp_hostextinfo, NULL);
+	return (xodtemplate_hostextinfo*)skiplist_find_first(xobject_template_skiplists[HOSTEXTINFO_SKIPLIST], &temp_hostextinfo, NULL);
 	}
 
 
@@ -7001,7 +7001,7 @@ xodtemplate_serviceextinfo *xodtemplate_find_serviceextinfo(char *name) {
 
 	temp_serviceextinfo.name = name;
 
-	return skiplist_find_first(xobject_template_skiplists[SERVICEEXTINFO_SKIPLIST], &temp_serviceextinfo, NULL);
+	return (xodtemplate_serviceextinfo*)skiplist_find_first(xobject_template_skiplists[SERVICEEXTINFO_SKIPLIST], &temp_serviceextinfo, NULL);
 	}
 
 
@@ -7014,7 +7014,7 @@ xodtemplate_service *xodtemplate_find_service(char *name) {
 
 	temp_service.name = name;
 
-	return skiplist_find_first(xobject_template_skiplists[SERVICE_SKIPLIST], &temp_service, NULL);
+	return (xodtemplate_service*)skiplist_find_first(xobject_template_skiplists[SERVICE_SKIPLIST], &temp_service, NULL);
 	}
 
 /* finds a specific service object by its REAL name, not its TEMPLATE name */
@@ -7027,7 +7027,7 @@ xodtemplate_service *xodtemplate_find_real_service(char *host_name, char *servic
 	temp_service.host_name = host_name;
 	temp_service.service_description = service_description;
 
-	return skiplist_find_first(xobject_skiplists[SERVICE_SKIPLIST], &temp_service, NULL);
+	return (xodtemplate_service*)skiplist_find_first(xobject_skiplists[SERVICE_SKIPLIST], &temp_service, NULL);
 	}
 
 
@@ -8788,7 +8788,7 @@ int xodtemplate_free_memory(void) {
 	/* free memory allocated to timeperiod list */
 	for(this_timeperiod = xodtemplate_timeperiod_list; this_timeperiod != NULL; this_timeperiod = next_timeperiod) {
 		next_timeperiod = this_timeperiod->next;
-		my_free(this_timeperiod->template);
+		my_free(this_timeperiod->_template);
 		my_free(this_timeperiod->name);
 		if (!this_timeperiod->register_object) {
 			my_free(this_timeperiod->timeperiod_name);
@@ -8812,7 +8812,7 @@ int xodtemplate_free_memory(void) {
 	/* free memory allocated to command list */
 	for(this_command = xodtemplate_command_list; this_command != NULL; this_command = next_command) {
 		next_command = this_command->next;
-		my_free(this_command->template);
+		my_free(this_command->_template);
 		my_free(this_command->name);
 		if (!this_command->register_object) {
 			my_free(this_command->command_name);
@@ -8826,7 +8826,7 @@ int xodtemplate_free_memory(void) {
 	/* free memory allocated to contactgroup list */
 	for(this_contactgroup = xodtemplate_contactgroup_list; this_contactgroup != NULL; this_contactgroup = next_contactgroup) {
 		next_contactgroup = this_contactgroup->next;
-		my_free(this_contactgroup->template);
+		my_free(this_contactgroup->_template);
 		my_free(this_contactgroup->name);
 		my_free(this_contactgroup->members);
 		my_free(this_contactgroup->contactgroup_members);
@@ -8845,7 +8845,7 @@ int xodtemplate_free_memory(void) {
 	/* free memory allocated to hostgroup list */
 	for(this_hostgroup = xodtemplate_hostgroup_list; this_hostgroup != NULL; this_hostgroup = next_hostgroup) {
 		next_hostgroup = this_hostgroup->next;
-		my_free(this_hostgroup->template);
+		my_free(this_hostgroup->_template);
 		my_free(this_hostgroup->name);
 		my_free(this_hostgroup->members);
 		my_free(this_hostgroup->hostgroup_members);
@@ -8872,7 +8872,7 @@ int xodtemplate_free_memory(void) {
 		bitmap_destroy(this_servicegroup->member_map);
 		free_objectlist(&this_servicegroup->member_list);
 		free_objectlist(&this_servicegroup->group_list);
-		my_free(this_servicegroup->template);
+		my_free(this_servicegroup->_template);
 		my_free(this_servicegroup->name);
 		if (!this_servicegroup->register_object) {
 			my_free(this_servicegroup->servicegroup_name);
@@ -8898,7 +8898,7 @@ int xodtemplate_free_memory(void) {
 			my_free(this_customvariablesmember);
 			this_customvariablesmember = next_customvariablesmember;
 			}
-		my_free(this_contact->template);
+		my_free(this_contact->_template);
 		my_free(this_contact->name);
 		my_free(this_contact->contact_groups);
 		my_free(this_contact->service_notification_period);
@@ -8931,7 +8931,7 @@ int xodtemplate_free_memory(void) {
 			this_customvariablesmember = next_customvariablesmember;
 			}
 
-		my_free(this_host->template);
+		my_free(this_host->_template);
 		my_free(this_host->name);
 		my_free(this_host->parents);
 		my_free(this_host->host_groups);
@@ -8978,7 +8978,7 @@ int xodtemplate_free_memory(void) {
 				this_customvariablesmember = next_customvariablesmember;
 				}
 
-			my_free(this_service->template);
+			my_free(this_service->_template);
 			my_free(this_service->name);
 			my_free(this_service->parents);
 			my_free(this_service->display_name);

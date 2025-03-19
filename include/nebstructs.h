@@ -27,7 +27,10 @@
 #include "objects.h"
 #include "nagios.h"
 
-NAGIOS_BEGIN_DECL
+#ifdef __cplusplus
+/** C++ compatibility macro that avoids confusing indentation programs */
+//extern "C" {
+#endif
 
 /****** STRUCTURES *************************/
 
@@ -190,7 +193,7 @@ typedef struct nebstruct_comment_struct {
 	char            *host_name;
 	char            *service_description;
 	time_t          entry_time;
-	char            *author_name;
+	const char            *author_name;
 	char            *comment_data;
 	int             persistent;
 	int             source;
@@ -521,5 +524,8 @@ typedef struct nebstruct_statechange_struct {
 	char            *longoutput;
 	} nebstruct_statechange_data;
 
-NAGIOS_END_DECL
+#ifdef __cplusplus
+//}
+#endif
+
 #endif

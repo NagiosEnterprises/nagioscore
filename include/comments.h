@@ -55,7 +55,10 @@
 
 /**************************** DATA STRUCTURES ******************************/
 
-NAGIOS_BEGIN_DECL
+#ifdef __cplusplus
+/** C++ compatibility macro that avoids confusing indentation programs */
+//extern "C" {
+#endif
 
 /* COMMENT structure */
 typedef struct nagios_comment {
@@ -113,6 +116,9 @@ int add_comment_to_hashlist(struct nagios_comment *);
 
 void free_comment_data(void);                                             /* frees memory allocated to the comment list */
 
-NAGIOS_END_DECL
+#ifdef __cplusplus
+//}
+#endif
+
 
 #endif

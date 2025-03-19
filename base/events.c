@@ -833,7 +833,7 @@ void reschedule_event(squeue_t *sq, timed_event *event)
 		/* use custom timing function */
 		if(event->timing_func != NULL) {
 
-			timingfunc      = event->timing_func;
+			timingfunc      = (time_t (*)())event->timing_func;
 			event->run_time = (*timingfunc)();
 		}
 
@@ -1378,7 +1378,7 @@ int handle_timed_event(timed_event *event) {
 
 			/* run a user-defined function */
 			if(event->event_data != NULL) {
-				userfunc = event->event_data;
+				userfunc = (void (*)(void*))event->event_data;
 				(*userfunc)(event->event_args);
 				}
 			break;
@@ -1446,8 +1446,8 @@ void adjust_check_scheduling(void) {
 	last_window_time = first_window_time + auto_rescheduling_window;
 
 	/* Nothing to do if the first event is after the reschedule window. */
-	sq_event = prqueue_peek(nagios_squeue);
-	temp_event = sq_event ? sq_event->data : NULL;
+	sq_event = (squeue_event*)prqueue_peek(nagios_squeue);
+	temp_event = sq_event ? (timed_event*)sq_event->data : NULL;
 	if (!temp_event || temp_event->run_time > last_window_time)
 		return;
 
@@ -1460,7 +1460,7 @@ void adjust_check_scheduling(void) {
 	 * and prqueue, but we don't have much choice to avoid a free/malloc of each
 	 * squeue_event from the head to last_window_time, or avoid paying the full
 	 * O(n lg n) penalty twice to drain and rebuild the queue. */
-	temp_prqueue = malloc(sizeof(*temp_prqueue));
+	temp_prqueue = (prqueue_t*)malloc(sizeof(*temp_prqueue));
 	if (!temp_prqueue) {
 		logit(NSLOG_RUNTIME_ERROR, TRUE, "Failed to allocate queue needed to adjust check scheduling.\n");
 		return;
@@ -1468,7 +1468,7 @@ void adjust_check_scheduling(void) {
 	*temp_prqueue = *nagios_squeue;
 
 	/* We need a separate copy of the underlying queue array. */
-	temp_prqueue->d = malloc(temp_prqueue->size * sizeof(void*));
+	temp_prqueue->d = (void **)malloc(temp_prqueue->size * sizeof(void*));
 	if (!temp_prqueue->d) {
 		logit(NSLOG_RUNTIME_ERROR, TRUE, "Failed to allocate queue data needed to adjust check scheduling.\n");
 		free(temp_prqueue);
@@ -1480,7 +1480,7 @@ void adjust_check_scheduling(void) {
 	/* Now allocate space for a sorted array of check events. We shouldn't need
 	 * space for all events, but we can't really calculate how many we'll need
 	 * without looking at all events. */
-	events_to_reschedule = malloc((temp_prqueue->size - 1) * sizeof(void*));
+	events_to_reschedule = (squeue_event**)malloc((temp_prqueue->size - 1) * sizeof(void*));
 	if (!events_to_reschedule) {
 		logit(NSLOG_RUNTIME_ERROR, TRUE, "Failed to allocate memory needed to adjust check scheduling.\n");
 		prqueue_free(temp_prqueue); /* prqueue_free() to keep the events. */
@@ -1488,10 +1488,10 @@ void adjust_check_scheduling(void) {
 		}
 
 	/* Now we get the events to reschedule and collect some scheduling info. */
-	while ((sq_event = prqueue_pop(temp_prqueue))) {
+	while ((sq_event = (squeue_event*)prqueue_pop(temp_prqueue))) {
 
 		/* We need a timed_event and event data. */
-		temp_event = sq_event->data;
+		temp_event = (timed_event*)sq_event->data;
 		if (!temp_event || !temp_event->event_data)
 			continue;
 
@@ -1504,14 +1504,14 @@ void adjust_check_scheduling(void) {
 
 		switch (temp_event->event_type) {
 			case EVENT_HOST_CHECK:
-				temp_host = temp_event->event_data;
+				temp_host = (host*)temp_event->event_data;
 				/* Leave forced checks. */
 				if (temp_host->check_options & CHECK_OPTION_FORCE_EXECUTION)
 					continue;
 				break;
 
 			case EVENT_SERVICE_CHECK:
-				temp_service = temp_event->event_data;
+				temp_service = (service*)temp_event->event_data;
 				/* Leave forced checks. */
 				if (temp_service->check_options & CHECK_OPTION_FORCE_EXECUTION)
 					continue;
@@ -1535,7 +1535,7 @@ void adjust_check_scheduling(void) {
 	 * those events in nagios_squeue, so we need to fix that up before we
 	 * return or change their priorities. Start at i=1 since i=0 is unused. */
 	for (i = 1; i < (int)nagios_squeue->size; ++i) {
-		if ((sq_event = nagios_squeue->d[i]))
+		if ((sq_event = (squeue_event*)nagios_squeue->d[i]))
 			sq_event->pos = i;
 		}
 
@@ -1562,7 +1562,7 @@ void adjust_check_scheduling(void) {
 		/* All events_to_reschedule are valid squeue_events with data pointers
 		 * to timed_events for non-forced host or service checks. */
 		sq_event = events_to_reschedule[i];
-		temp_event = sq_event->data;
+		temp_event = (timed_event*)sq_event->data;
 
 		/* Calculate and apply a new queue 'when' time. */
 		new_run_time.tv_sec = first_window_time + (time_t)floor(new_run_time_offset);
@@ -1574,7 +1574,7 @@ void adjust_check_scheduling(void) {
 		/* 06/2019 - moved switch earlier in the for loop because we need to check against the check_period before rescheduling the event */
 		switch (temp_event->event_type) {
 			case EVENT_HOST_CHECK:
-				temp_host = temp_event->event_data;
+				temp_host = (host*)temp_event->event_data;
 				if (check_time_against_period(new_run_time.tv_sec, temp_host->check_period_ptr) == ERROR) {
 					continue;
 					}
@@ -1585,7 +1585,7 @@ void adjust_check_scheduling(void) {
 					}
 				break;
 			case EVENT_SERVICE_CHECK:
-				temp_service = temp_event->event_data;
+				temp_service = (service*)temp_event->event_data;
 				if (check_time_against_period(new_run_time.tv_sec, temp_service->check_period_ptr) == ERROR) {
 					continue;
 					}
@@ -1626,11 +1626,11 @@ static void adjust_squeue_for_time_change(squeue_t **q, int delta) {
 	 * so we go with the well-tested codepath.
 	 */
 	sq_new = squeue_create(squeue_size(*q));
-	while ((event = squeue_pop(*q))) {
+	while ((event = (timed_event*)squeue_pop(*q))) {
 		if (event->compensate_for_time_change == TRUE) {
 			if (event->timing_func) {
 				time_t (*timingfunc)(void);
-				timingfunc = event->timing_func;
+				timingfunc = (time_t (*)())event->timing_func;
 				event->run_time = timingfunc();
 				}
 			else {

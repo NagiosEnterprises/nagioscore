@@ -37,14 +37,14 @@ int bitmap_resize(bitmap *bm, unsigned long size)
 	ralloc = (size >> SHIFTOUT) + !!(size & MAPMASK);
 
 	if (!bm->vector) {
-		bm->vector = calloc(1, ralloc * sizeof(bmap));
+		bm->vector = (bmap*)calloc(1, ralloc * sizeof(bmap));
 		if (!bm->vector)
 			return -1;
 		bm->alloc = ralloc;
 		return 0;
 	}
 
-	nvec = realloc(bm->vector, ralloc * sizeof(bmap));
+	nvec = (bmap*)realloc(bm->vector, ralloc * sizeof(bmap));
 	if (!nvec) {
 		return -1;
 	}
@@ -71,7 +71,7 @@ bitmap *bitmap_create(unsigned long size)
 {
 	bitmap *bm;
 
-	if (!(bm = calloc(1, sizeof(bitmap))))
+	if (!(bm = (bitmap*)calloc(1, sizeof(bitmap))))
 		return NULL;
 
 	if (bitmap_init(bm, size) == bm)

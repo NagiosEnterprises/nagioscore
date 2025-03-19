@@ -24,7 +24,10 @@
 #define NAGIOS_NEBMODULES_H_INCLUDED
 
 #include "common.h"
-NAGIOS_BEGIN_DECL
+#ifdef __cplusplus
+/** C++ compatibility macro that avoids confusing indentation programs */
+//extern "C" {
+#endif
 
 	/***** MODULE VERSION INFORMATION *****/
 
@@ -90,5 +93,8 @@ typedef struct nebmodule_struct {
 /***** MODULE FUNCTIONS *****/
 int neb_set_module_info(void *, int, char *);
 
-NAGIOS_END_DECL
+#ifdef __cplusplus
+//}
+#endif
+
 #endif

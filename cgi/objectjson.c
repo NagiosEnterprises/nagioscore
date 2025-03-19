@@ -137,7 +137,7 @@ const string_value_mapping valid_queries[] = {
 		"Return a list of host escalations" },
 	{ "help", OBJECT_QUERY_HELP, 
 		"Display help for this CGI" },
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 
 static const int query_status[][2] = {
@@ -540,7 +540,15 @@ option_help object_json_help[] = {
 		},
 	};
 
-extern const json_escape percent_escapes;
+const json_escape_pair percent_escape_pairs[] = {
+	{ L"%", L"%%" },
+};
+
+const json_escape percent_escapes = {
+	(sizeof(percent_escape_pairs) / sizeof(percent_escape_pairs[0])),
+	percent_escape_pairs
+};
+
 
 int json_object_host_passes_selection(host *, int, host *, int, host *, 
 		hostgroup *, contact *, contactgroup *, timeperiod *, timeperiod *,
@@ -744,8 +752,8 @@ int main(void) {
 		json_object_append_object(json_root, "data", 
 				json_object_hostcount(cgi_data.use_parent_host, 
 				cgi_data.parent_host, cgi_data.use_child_host, 
-				cgi_data.child_host, cgi_data.hostgroup, cgi_data.contact,
-				cgi_data.contactgroup, cgi_data.check_timeperiod,
+				cgi_data.child_host, cgi_data._hostgroup, cgi_data._contact,
+				cgi_data._contactgroup, cgi_data.check_timeperiod,
 				cgi_data.host_notification_timeperiod, cgi_data.check_command,
 				cgi_data.event_handler));
 		break;
@@ -760,8 +768,8 @@ int main(void) {
 				json_object_hostlist(cgi_data.format_options, cgi_data.start, 
 				cgi_data.count, cgi_data.details, cgi_data.use_parent_host, 
 				cgi_data.parent_host, cgi_data.use_child_host, 
-				cgi_data.child_host, cgi_data.hostgroup, cgi_data.contact,
-				cgi_data.contactgroup, cgi_data.check_timeperiod,
+				cgi_data.child_host, cgi_data._hostgroup, cgi_data._contact,
+				cgi_data._contactgroup, cgi_data.check_timeperiod,
 				cgi_data.host_notification_timeperiod, cgi_data.check_command,
 				cgi_data.event_handler));
 		break;
@@ -773,7 +781,7 @@ int main(void) {
 				last_object_cache_update, &current_authdata,
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
-				json_object_host(cgi_data.format_options, cgi_data.host));
+				json_object_host(cgi_data.format_options, cgi_data._host));
 		break;
 	case OBJECT_QUERY_HOSTGROUPCOUNT:
 		json_object_append_object(json_root, "result", 
@@ -807,7 +815,7 @@ int main(void) {
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
 				json_object_hostgroup(cgi_data.format_options, 
-				cgi_data.hostgroup));
+				cgi_data._hostgroup));
 		break;
 	case OBJECT_QUERY_SERVICECOUNT:
 		json_object_append_object(json_root, "result", 
@@ -817,12 +825,12 @@ int main(void) {
 				last_object_cache_update, &current_authdata,
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
-				json_object_servicecount(cgi_data.host, 
+				json_object_servicecount(cgi_data._host, 
 				cgi_data.use_parent_host, cgi_data.parent_host, 
 				cgi_data.use_child_host, cgi_data.child_host, 
-				cgi_data.hostgroup, cgi_data.servicegroup, cgi_data.contact, 
+				cgi_data._hostgroup, cgi_data._servicegroup, cgi_data._contact, 
 				cgi_data.service_description, cgi_data.parent_service_name,
-				cgi_data.child_service_name, cgi_data.contactgroup,
+				cgi_data.child_service_name, cgi_data._contactgroup,
 				cgi_data.check_timeperiod,
 				cgi_data.service_notification_timeperiod,
 				cgi_data.check_command, cgi_data.event_handler));
@@ -836,12 +844,12 @@ int main(void) {
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
 				json_object_servicelist(cgi_data.format_options, cgi_data.start,
-				cgi_data.count, cgi_data.details, cgi_data.host, 
+				cgi_data.count, cgi_data.details, cgi_data._host, 
 				cgi_data.use_parent_host, cgi_data.parent_host, 
 				cgi_data.use_child_host, cgi_data.child_host, 
-				cgi_data.hostgroup, cgi_data.servicegroup, cgi_data.contact, 
+				cgi_data._hostgroup, cgi_data._servicegroup, cgi_data._contact, 
 				cgi_data.service_description, cgi_data.parent_service_name,
-				cgi_data.child_service_name, cgi_data.contactgroup,
+				cgi_data.child_service_name, cgi_data._contactgroup,
 				cgi_data.check_timeperiod,
 				cgi_data.service_notification_timeperiod,
 				cgi_data.check_command, cgi_data.event_handler));
@@ -854,7 +862,7 @@ int main(void) {
 				last_object_cache_update, &current_authdata,
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
-				json_object_service(cgi_data.format_options, cgi_data.service));
+				json_object_service(cgi_data.format_options, cgi_data._service));
 		break;
 	case OBJECT_QUERY_SERVICEGROUPCOUNT:
 		json_object_append_object(json_root, "result", 
@@ -887,7 +895,7 @@ int main(void) {
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
 				json_object_servicegroup(cgi_data.format_options, 
-				cgi_data.servicegroup));
+				cgi_data._servicegroup));
 		break;
 	case OBJECT_QUERY_CONTACTCOUNT:
 		json_object_append_object(json_root, "result", 
@@ -897,7 +905,7 @@ int main(void) {
 				last_object_cache_update, &current_authdata,
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
-				json_object_contactcount(cgi_data.contactgroup,
+				json_object_contactcount(cgi_data._contactgroup,
 				cgi_data.host_notification_timeperiod,
 				cgi_data.service_notification_timeperiod));
 		break;
@@ -910,7 +918,7 @@ int main(void) {
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
 				json_object_contactlist(cgi_data.format_options, cgi_data.start, 
-				cgi_data.count, cgi_data.details, cgi_data.contactgroup,
+				cgi_data.count, cgi_data.details, cgi_data._contactgroup,
 				cgi_data.host_notification_timeperiod,
 				cgi_data.service_notification_timeperiod));
 		break;
@@ -922,7 +930,7 @@ int main(void) {
 				last_object_cache_update, &current_authdata,
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
-				json_object_contact(cgi_data.format_options, cgi_data.contact));
+				json_object_contact(cgi_data.format_options, cgi_data._contact));
 		break;
 	case OBJECT_QUERY_CONTACTGROUPCOUNT:
 		json_object_append_object(json_root, "result", 
@@ -955,7 +963,7 @@ int main(void) {
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
 				json_object_contactgroup(cgi_data.format_options, 
-				cgi_data.contactgroup));
+				cgi_data._contactgroup));
 		break;
 	case OBJECT_QUERY_TIMEPERIODCOUNT:
 		json_object_append_object(json_root, "result", 
@@ -987,7 +995,7 @@ int main(void) {
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
 				json_object_timeperiod(cgi_data.format_options, 
-				cgi_data.timeperiod));
+				cgi_data._timeperiod));
 		break;
 	case OBJECT_QUERY_COMMANDCOUNT:
 		json_object_append_object(json_root, "result", 
@@ -1017,7 +1025,7 @@ int main(void) {
 				last_object_cache_update, &current_authdata,
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
-				json_object_command(cgi_data.format_options, cgi_data.command));
+				json_object_command(cgi_data.format_options, cgi_data._command));
 		break;
 	case OBJECT_QUERY_SERVICEDEPENDENCYCOUNT:
 		json_object_append_object(json_root, "result", 
@@ -1058,10 +1066,10 @@ int main(void) {
 				last_object_cache_update, &current_authdata,
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
-				json_object_serviceescalationcount(cgi_data.host,
-				cgi_data.service_description, cgi_data.hostgroup,
-				cgi_data.servicegroup, cgi_data.contact,
-				cgi_data.contactgroup));
+				json_object_serviceescalationcount(cgi_data._host,
+				cgi_data.service_description, cgi_data._hostgroup,
+				cgi_data._servicegroup, cgi_data._contact,
+				cgi_data._contactgroup));
 		break;
 	case OBJECT_QUERY_SERVICEESCALATIONLIST:
 		json_object_append_object(json_root, "result", 
@@ -1072,10 +1080,10 @@ int main(void) {
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
 				json_object_serviceescalationlist(cgi_data.format_options, 
-				cgi_data.start, cgi_data.count, cgi_data.host,
-				cgi_data.service_description, cgi_data.hostgroup,
-				cgi_data.servicegroup, cgi_data.contact,
-				cgi_data.contactgroup));
+				cgi_data.start, cgi_data.count, cgi_data._host,
+				cgi_data.service_description, cgi_data._hostgroup,
+				cgi_data._servicegroup, cgi_data._contact,
+				cgi_data._contactgroup));
 		break;
 	case OBJECT_QUERY_HOSTDEPENDENCYCOUNT:
 		json_object_append_object(json_root, "result", 
@@ -1110,8 +1118,8 @@ int main(void) {
 				last_object_cache_update, &current_authdata,
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
-				json_object_hostescalationcount(cgi_data.host,
-				cgi_data.hostgroup, cgi_data.contact, cgi_data.contactgroup));
+				json_object_hostescalationcount(cgi_data._host,
+				cgi_data._hostgroup, cgi_data._contact, cgi_data._contactgroup));
 		break;
 	case OBJECT_QUERY_HOSTESCALATIONLIST:
 		json_object_append_object(json_root, "result", 
@@ -1122,8 +1130,8 @@ int main(void) {
 				RESULT_SUCCESS, ""));
 		json_object_append_object(json_root, "data", 
 				json_object_hostescalationlist(cgi_data.format_options, 
-				cgi_data.start, cgi_data.count, cgi_data.host,
-				cgi_data.hostgroup, cgi_data.contact, cgi_data.contactgroup));
+				cgi_data.start, cgi_data.count, cgi_data._host,
+				cgi_data._hostgroup, cgi_data._contact, cgi_data._contactgroup));
 		break;
 	case OBJECT_QUERY_HELP:
 		json_object_append_object(json_root, "result", 
@@ -1202,28 +1210,28 @@ void init_cgi_data(object_json_cgi_data *cgi_data) {
 	cgi_data->use_child_host = 0;
 	cgi_data->child_host = NULL;
 	cgi_data->host_name = NULL;
-	cgi_data->host = NULL;
+	cgi_data->_host = NULL;
 	cgi_data->hostgroup_member_name = NULL;
 	cgi_data->hostgroup_member = NULL;
 	cgi_data->hostgroup_name = NULL;
-	cgi_data->hostgroup = NULL;
+	cgi_data->_hostgroup = NULL;
 	cgi_data->servicegroup_name = NULL;
-	cgi_data->servicegroup = NULL;
+	cgi_data->_servicegroup = NULL;
 	cgi_data->service_description = NULL;
-	cgi_data->service = NULL;
+	cgi_data->_service = NULL;
 	cgi_data->servicegroup_member_host_name = NULL;
 	cgi_data->servicegroup_member_service_description = NULL;
 	cgi_data->servicegroup_member = NULL;
 	cgi_data->parent_service_name = NULL;
 	cgi_data->child_service_name = NULL;
 	cgi_data->contactgroup_name = NULL;
-	cgi_data->contactgroup = NULL;
+	cgi_data->_contactgroup = NULL;
 	cgi_data->contact_name = NULL;
-	cgi_data->contact = NULL;
+	cgi_data->_contact = NULL;
 	cgi_data->contactgroup_member_name = NULL;
 	cgi_data->contactgroup_member = NULL;
 	cgi_data->timeperiod_name = NULL;
-	cgi_data->timeperiod = NULL;
+	cgi_data->_timeperiod = NULL;
 	cgi_data->check_timeperiod_name = NULL;
 	cgi_data->check_timeperiod = NULL;
 	cgi_data->host_notification_timeperiod_name = NULL;
@@ -1231,7 +1239,7 @@ void init_cgi_data(object_json_cgi_data *cgi_data) {
 	cgi_data->service_notification_timeperiod_name = NULL;
 	cgi_data->service_notification_timeperiod = NULL;
 	cgi_data->command_name = NULL;
-	cgi_data->command = NULL;
+	cgi_data->_command = NULL;
 	cgi_data->check_command_name = NULL;
 	cgi_data->check_command = NULL;
 	cgi_data->event_handler_name = NULL;
@@ -1998,7 +2006,7 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 					"The host '%s' could not be found.", cgi_data->host_name));
 			}
 		else {
-			cgi_data->host = temp_host;
+			cgi_data->_host = temp_host;
 			}
 		}
 
@@ -2034,7 +2042,7 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 					cgi_data->hostgroup_name));
 			}
 		else {
-			cgi_data->hostgroup = temp_hostgroup;
+			cgi_data->_hostgroup = temp_hostgroup;
 			}
 		}
 
@@ -2052,7 +2060,7 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 					cgi_data->servicegroup_name));
 			}
 		else {
-			cgi_data->servicegroup = temp_servicegroup;
+			cgi_data->_servicegroup = temp_servicegroup;
 			}
 		}
 
@@ -2070,7 +2078,7 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 					cgi_data->contactgroup_name));
 			}
 		else {
-			cgi_data->contactgroup = temp_contactgroup;
+			cgi_data->_contactgroup = temp_contactgroup;
 			}
 		}
 
@@ -2092,7 +2100,7 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 					cgi_data->service_description, cgi_data->host_name));
 			}
 		else {
-				cgi_data->service = temp_service;
+				cgi_data->_service = temp_service;
 			}
 		}
 
@@ -2145,7 +2153,7 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 					cgi_data->contact_name));
 			}
 		else {
-			cgi_data->contact = temp_contact;
+			cgi_data->_contact = temp_contact;
 			}
 		}
 
@@ -2181,7 +2189,7 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 					cgi_data->timeperiod_name));
 			}
 		else {
-			cgi_data->timeperiod = temp_timeperiod;
+			cgi_data->_timeperiod = temp_timeperiod;
 			}
 		}
 
@@ -2254,7 +2262,7 @@ int validate_arguments(json_object *json_root, object_json_cgi_data *cgi_data,
 					cgi_data->command_name));
 			}
 		else {
-			cgi_data->command = temp_command;
+			cgi_data->_command = temp_command;
 			}
 		}
 
@@ -2537,11 +2545,11 @@ json_object * json_object_host_selectors(int start, int count,
 	if( 1 == use_parent_host) {
 		json_object_append_string(json_selectors, "parenthost",
 				&percent_escapes,
-				( NULL == parent_host ? "none" : parent_host->name));
+				(char *)(( NULL == parent_host ? "none" : parent_host->name)));
 		}
 	if( 1 == use_child_host) {
 		json_object_append_string(json_selectors, "childhost", &percent_escapes,
-				( NULL == child_host ? "none" : child_host->name));
+				(char *)(( NULL == child_host ? "none" : child_host->name)));
 		}
 	if( NULL != temp_hostgroup) {
 		json_object_append_string(json_selectors, "hostgroup", &percent_escapes,
@@ -3348,11 +3356,11 @@ json_object *json_object_service_selectors(int start, int count,
 	if( 1 == use_parent_host) {
 		json_object_append_string(json_selectors, "parenthost",
 				&percent_escapes,
-				( NULL == parent_host ? "none" : parent_host->name));
+				(char *)(( NULL == parent_host ? "none" : parent_host->name)));
 		}
 	if( 1 == use_child_host) {
 		json_object_append_string(json_selectors, "childhost", &percent_escapes,
-				( NULL == child_host ? "none" : child_host->name));
+				(char *)(( NULL == child_host ? "none" : child_host->name)));
 		}
 	if( NULL != temp_hostgroup) {
 		json_object_append_string(json_selectors, "hostgroup", &percent_escapes,

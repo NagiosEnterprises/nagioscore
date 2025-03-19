@@ -64,7 +64,10 @@
 #define DEBUGV_MORE                     1
 #define DEBUGV_MOST                     2
 
-NAGIOS_BEGIN_DECL
+#ifdef __cplusplus
+/** C++ compatibility macro that avoids confusing indentation programs */
+//extern "C" {
+#endif
 /**** Logging Functions ****/
 void logit(int, int, const char *, ...)
 __attribute__((__format__(__printf__, 3, 4)));
@@ -87,5 +90,8 @@ int close_log_file(void);
 int fix_log_file_owner(uid_t uid, gid_t gid);
 #endif /* !NSCGI */
 
-NAGIOS_END_DECL
+#ifdef __cplusplus
+//}
+#endif
+
 #endif

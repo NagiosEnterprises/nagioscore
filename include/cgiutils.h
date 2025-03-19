@@ -26,7 +26,10 @@
 #include "cgiauth.h"
 #include "locations.h"
 
-NAGIOS_BEGIN_DECL
+#ifdef __cplusplus
+/** C++ compatibility macro that avoids confusing indentation programs */
+//extern "C" {
+#endif
 
 	/**************************** CGI REFRESH RATE ******************************/
 
@@ -495,5 +498,8 @@ const char *extcmd_get_name(int);
 
 void build_subdir_path(char* path, size_t size, const char* prefix, const char* subdir);
 
-NAGIOS_END_DECL
+#ifdef __cplusplus
+//}
+#endif
+
 #endif

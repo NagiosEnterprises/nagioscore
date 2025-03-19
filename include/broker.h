@@ -178,7 +178,10 @@
 /****** EVENT BROKER FUNCTIONS *************/
 
 #ifdef USE_EVENT_BROKER
-NAGIOS_BEGIN_DECL
+#ifdef __cplusplus
+/** C++ compatibility macro that avoids confusing indentation programs */
+//extern "C" {
+#endif
 
 struct timeval get_broker_timestamp(struct timeval *);
 void broker_program_state(int, int, int, struct timeval *);
@@ -188,7 +191,7 @@ int broker_event_handler(int, int, int, int, void *, int, int, struct timeval, s
 void broker_system_command(int, int, int, struct timeval, struct timeval, double, int, int, int, char *, char *, struct timeval *);
 int broker_host_check(int, int, int, host *, int, int, int, struct timeval, struct timeval, char *, double, double, int, int, int, char *, char *, char *, char *, struct timeval *, check_result *);
 int broker_service_check(int, int, int, service *, int, struct timeval, struct timeval, char *, double, double, int, int, int, char *, struct timeval *, check_result *);
-void broker_comment_data(int, int, int, int, int, char *, char *, time_t, char *, char *, int, int, int, time_t, unsigned long, struct timeval *);
+void broker_comment_data(int, int, int, int, int, char *, char *, time_t, const char *, char *, int, int, int, time_t, unsigned long, struct timeval *);
 void broker_downtime_data(int, int, int, int, char *, char *, time_t, char *, char *, time_t, time_t, int, unsigned long, unsigned long, unsigned long, struct timeval *);
 void broker_flapping_data(int, int, int, int, void *, double, double, double, struct timeval *);
 void broker_program_status(int, int, int, struct timeval *);
@@ -208,7 +211,11 @@ void broker_retention_data(int, int, int, struct timeval *);
 void broker_acknowledgement_data(int, int, int, int, void *, char *, char *, int, int, int, struct timeval *);
 void broker_statechange_data(int, int, int, int, void *, int, int, int, int, struct timeval *);
 
-NAGIOS_END_DECL
+#ifdef __cplusplus
+/** C++ compatibility macro that avoids confusing indentation programs */
+//}
+#endif
+
 #endif
 
 #endif

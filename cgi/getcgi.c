@@ -391,7 +391,7 @@ accept_languages * parse_accept_languages( char * acceptlang) {
 
 	/* Initialize the structure to contain the parsed HTTP_ACCEPT_LANGUAGE
 		information */
-	if( NULL == ( langs = malloc( sizeof( accept_languages)))) {
+	if( NULL == ( langs = (accept_languages*)malloc( sizeof( accept_languages)))) {
 		printf( "Unable to allocate memory for langs\n");
 		free( langdup);
 		return NULL;
@@ -407,7 +407,7 @@ accept_languages * parse_accept_languages( char * acceptlang) {
 		if( NULL == langs->languages) {
 			/* Adding first language */
 			if( NULL == ( langs->languages =
-					malloc( langs->count * sizeof( accept_language *)))) {
+					(accept_language_struct**)malloc( langs->count * sizeof( accept_language *)))) {
 				printf( "Unable to allocate memory for first language\n");
 				langs->count--;
 				free_accept_languages( langs);
@@ -417,7 +417,7 @@ accept_languages * parse_accept_languages( char * acceptlang) {
 		}
 		else {
 			/* Adding additional language */
-			if( NULL == ( langs->languages = realloc( langs->languages,
+			if( NULL == ( langs->languages = (accept_language_struct**)realloc( langs->languages,
 					langs->count * sizeof( accept_language *)))) {
 				printf( "Unable to allocate memory for additional language\n");
 				langs->count--;
@@ -427,7 +427,7 @@ accept_languages * parse_accept_languages( char * acceptlang) {
 			}
 		}
 		if( NULL == ( langs->languages[ langs->count - 1] =
-				malloc( sizeof( accept_language)))) {
+				(accept_language*)malloc( sizeof( accept_language)))) {
 			printf( "Unable to allocate memory for language\n");
 			langs->count--;
 			free_accept_languages( langs);

@@ -1437,7 +1437,7 @@ Fine tuning of the installation directories:
   --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
-  --oldincludedir=DIR     C header files for non-gcc [/usr/include]
+  --oldincludedir=DIR     C header files for non-g++ [/usr/include]
   --datarootdir=DIR       read-only arch.-independent data root [PREFIX/share]
   --datadir=DIR           read-only architecture-independent data [DATAROOTDIR]
   --infodir=DIR           info documentation [DATAROOTDIR/info]
@@ -3081,8 +3081,8 @@ ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 if test -n "$ac_tool_prefix"; then
-  # Extract the first word of "${ac_tool_prefix}gcc", so it can be a program name with args.
-set dummy ${ac_tool_prefix}gcc; ac_word=$2
+  # Extract the first word of "${ac_tool_prefix}g++", so it can be a program name with args.
+set dummy ${ac_tool_prefix}g++; ac_word=$2
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 printf %s "checking for $ac_word... " >&6; }
 if test ${ac_cv_prog_CC+y}
@@ -3103,7 +3103,7 @@ do
   esac
     for ac_exec_ext in '' $ac_executable_extensions; do
   if as_fn_executable_p "$as_dir$ac_word$ac_exec_ext"; then
-    ac_cv_prog_CC="${ac_tool_prefix}gcc"
+    ac_cv_prog_CC="${ac_tool_prefix}g++"
     printf "%s\n" "$as_me:${as_lineno-$LINENO}: found $as_dir$ac_word$ac_exec_ext" >&5
     break 2
   fi
@@ -3127,8 +3127,8 @@ fi
 fi
 if test -z "$ac_cv_prog_CC"; then
   ac_ct_CC=$CC
-  # Extract the first word of "gcc", so it can be a program name with args.
-set dummy gcc; ac_word=$2
+  # Extract the first word of "g++", so it can be a program name with args.
+set dummy g++; ac_word=$2
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 printf %s "checking for $ac_word... " >&6; }
 if test ${ac_cv_prog_ac_ct_CC+y}
@@ -3149,7 +3149,7 @@ do
   esac
     for ac_exec_ext in '' $ac_executable_extensions; do
   if as_fn_executable_p "$as_dir$ac_word$ac_exec_ext"; then
-    ac_cv_prog_ac_ct_CC="gcc"
+    ac_cv_prog_ac_ct_CC="g++"
     printf "%s\n" "$as_me:${as_lineno-$LINENO}: found $as_dir$ac_word$ac_exec_ext" >&5
     break 2
   fi
@@ -7616,7 +7616,7 @@ else case e in #(
       ac_preproc_ok=false
 for ac_c_preproc_warn_flag in '' yes
 do
-  # Use a header file that comes with gcc, so configuring glibc
+  # Use a header file that comes with g++, so configuring glibc
   # with a fresh cross-compiler works.
   # On the NeXT, cc -E runs the code through the compiler's parser,
   # not just through cpp. "Syntax error" is here to catch this case.
@@ -7675,7 +7675,7 @@ printf "%s\n" "$CPP" >&6; }
 ac_preproc_ok=false
 for ac_c_preproc_warn_flag in '' yes
 do
-  # Use a header file that comes with gcc, so configuring glibc
+  # Use a header file that comes with g++, so configuring glibc
   # with a fresh cross-compiler works.
   # On the NeXT, cc -E runs the code through the compiler's parser,
   # not just through cpp. "Syntax error" is here to catch this case.
@@ -7980,7 +7980,7 @@ else case e in #(
 	LIBS="-lgd -lttf -lpng -ljpeg -lz -lm $LIBS"
 	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-	/* We use char because int might match the return type of a gcc2
+	/* We use char because int might match the return type of a g++2
     builtin and then its argument prototype would still apply.  */
 char gdImagePng();
 
@@ -8031,7 +8031,7 @@ else case e in #(
 	LIBS="-lgd $ICONV -lpng -ljpeg -lz -lm $LIBS"
 	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-	/* We use char because int might match the return type of a gcc2
+	/* We use char because int might match the return type of a g++2
     builtin and then its argument prototype would still apply.  */
 char gdImagePng();
 
@@ -8083,7 +8083,7 @@ else case e in #(
 	LIBS="-lgd $ICONV -lz -lm -lpng $LIBS"
 	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-	/* We use char because int might match the return type of a gcc2
+	/* We use char because int might match the return type of a g++2
     builtin and then its argument prototype would still apply.  */
 char gdImagePng();
 
@@ -8135,7 +8135,7 @@ else case e in #(
 	LIBS="-lgd $ICONV -lpng -lz -lm $LIBS"
 	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-	/* We use char because int might match the return type of a gcc2
+	/* We use char because int might match the return type of a g++2
     builtin and then its argument prototype would still apply.  */
 char gdImagePng();
 

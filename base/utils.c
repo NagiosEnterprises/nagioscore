@@ -2675,7 +2675,7 @@ char *escape_newlines(char *rawbuf) {
 		return strdup(rawbuf);
 
 	/* Allocate memory for the new string with escapes. */
-	if ((newbuf = malloc(x + y + 1)) == NULL)
+	if ((newbuf = (char *)malloc(x + y + 1)) == NULL)
 		return NULL;
 
 	for (x = 0, y = 0; rawbuf[x]; x++) {
@@ -2720,7 +2720,7 @@ char *unescape_check_result_output(const char *rawbuf) {
 		return strdup(rawbuf);
 
 	/* Allocate memory for the new string, with our escape sequences replaced. */
-	if ((newbuf = malloc(x - y + 1)) == NULL)
+	if ((newbuf = (char *)malloc(x - y + 1)) == NULL)
 		return NULL;
 
 	for (x = 0, y = 0; rawbuf[x]; x++) {
@@ -2836,7 +2836,7 @@ int my_fdcopy(char *source, char *dest, int dest_fd) {
 	 * cache, so larger isn't necessarily better.
 	 */
 	buf_size = st.st_size > 128 << 10 ? 128 << 10 : st.st_size;
-	buf = malloc(buf_size);
+	buf = (char *)malloc(buf_size);
 	if(!buf) {
 		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Unable to malloc(%d) bytes: %s\n", buf_size, strerror(errno));
 		close(source_fd);

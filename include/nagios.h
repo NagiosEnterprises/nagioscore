@@ -430,7 +430,10 @@ extern struct load_control loadctl;
 #define PENDING_DOWNTIME                1       /* pending downtime - scheduled for the future */
 
 
-NAGIOS_BEGIN_DECL
+#ifdef __cplusplus
+/** C++ compatibility macro that avoids confusing indentation programs */
+//extern "C" {
+#endif
 
 /* useful for hosts and services to determine time 'til next check */
 #define normal_check_window(o) ((time_t)(o->check_interval * interval_length))
@@ -791,6 +794,9 @@ int shutdown_command_file_worker(void);
 char *get_program_version(void);
 char *get_program_modification_date(void);
 
-NAGIOS_END_DECL
+#ifdef __cplusplus
+//}
+#endif
+
 #endif
 

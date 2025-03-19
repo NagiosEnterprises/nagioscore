@@ -37,7 +37,10 @@
 #define SKIPLIST_ERROR_MEMORY    2 /**< Memory error */
 #define SKIPLIST_ERROR_DUPLICATE 3 /**< Trying to insert non-unique item */
 
-NAGIOS_BEGIN_DECL
+#ifdef __cplusplus
+/** C++ compatibility macro that avoids confusing indentation programs */
+//extern "C" {
+#endif
 
 struct skiplist_struct;
 typedef struct skiplist_struct skiplist;
@@ -157,6 +160,9 @@ int skiplist_delete_first(skiplist *list, void *data);
  */
 int skiplist_delete_node(skiplist *list, void *node_ptr);
 
-NAGIOS_END_DECL
+#ifdef __cplusplus
+//}
+#endif
+
 /* @} */
 #endif

@@ -250,7 +250,7 @@ static void destroy_job(child_process *cp)
 		char *nul; \
 		if (!io.buf || !*io.buf) \
 			io.len = 0; \
-		else if ((nul = memchr(io.buf, 0, io.len))) { \
+		else if ((nul = (char *)memchr(io.buf, 0, io.len))) { \
 			io.len = (unsigned long)nul - (unsigned long)io.buf; \
 		} \
 	} while (0)
@@ -471,7 +471,7 @@ static void gather_output(child_process *cp, iobuf *io, int final)
 
 		if (rd > 0) {
 			/* we read some data */
-			io->buf = realloc(io->buf, rd + io->len + 1);
+			io->buf = (char *)realloc(io->buf, rd + io->len + 1);
 			memcpy(&io->buf[io->len], buf, rd);
 			io->len += rd;
 			io->buf[io->len] = '\0';
@@ -522,7 +522,7 @@ static void reap_jobs(void)
 			struct child_process *cp;
 
 			reapable--;
-			if (!(cp = fanout_get(ptab, pid))) {
+			if (!(cp = (child_process*)fanout_get(ptab, pid))) {
 				/* we reaped a lost child. Odd that */
 				continue;
 			}
@@ -556,7 +556,7 @@ char **env_from_kvvec(struct kvvec *kvv_env) {
 
 	if(NULL == kvv_env) return NULL;
 
-	env = calloc(kvv_env->kv_pairs*2+1, sizeof(char *));
+	env = (char**)calloc(kvv_env->kv_pairs*2+1, sizeof(char *));
 	for (i = 0; i < kvv_env->kv_pairs; i++) {
 		struct key_value *kv = &kvv_env->kv[i];
 		env[i*2] = kv->key;
@@ -600,12 +600,12 @@ static child_process *parse_command_kvvec(struct kvvec *kvv)
 	child_process *cp;
 
 	/* get this command's struct and insert it at the top of the list */
-	cp = calloc(1, sizeof(*cp));
+	cp = (child_process*)calloc(1, sizeof(*cp));
 	if (!cp) {
 		wlog("Failed to calloc() a child_process struct");
 		return NULL;
 	}
-	cp->ei = calloc(1, sizeof(*cp->ei));
+	cp->ei = (execution_information*)calloc(1, sizeof(*cp->ei));
 	if (!cp->ei) {
 		wlog("Failed to calloc() a execution_information struct");
 		return NULL;
@@ -717,7 +717,7 @@ static int receive_command(int sd, int events, void *arg)
 		/* we must copy vars here, as we preserve them for the response */
 		kvv = buf2kvvec(buf, (unsigned int)size, KV_SEP, PAIR_SEP, KVVEC_COPY);
 		if (kvv)
-			spawn_job(kvv, arg);
+			spawn_job(kvv, (int (*)(child_process*))arg);
 	}
 
 	return 0;
@@ -789,7 +789,7 @@ void enter_worker(int sd, int (*cb)(child_process*))
 	sq = squeue_create(1024);
 	worker_set_sockopts(master_sd, 256 * 1024);
 
-	iobroker_register(iobs, master_sd, cb, receive_command);
+	iobroker_register(iobs, master_sd, (void*)cb, receive_command);
 	while (iobroker_get_num_fds(iobs) > 0) {
 		int poll_time = -1;
 

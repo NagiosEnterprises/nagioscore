@@ -81,7 +81,7 @@ const string_value_mapping valid_queries[] = {
 		"Return a list of state changes" },
 	{ "availability", ARCHIVE_QUERY_AVAILABILITY, 
 		"Return an availability report" },
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 
 static const int query_status[][2] = {
@@ -98,7 +98,7 @@ static const int query_status[][2] = {
 const string_value_mapping valid_object_types[] = {
 	{ "host", AU_OBJTYPE_HOST, "Host" },
 	{ "service", AU_OBJTYPE_SERVICE, "Service" },
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 
 const string_value_mapping valid_availability_object_types[] = {
@@ -106,13 +106,13 @@ const string_value_mapping valid_availability_object_types[] = {
 	{ "hostgroups", AU_OBJTYPE_HOSTGROUP, "Hostgroups" },
 	{ "services", AU_OBJTYPE_SERVICE, "Services" },
 	{ "servicegroups", AU_OBJTYPE_SERVICEGROUP, "Servicegroups" },
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 
 const string_value_mapping valid_state_types[] = {
 	{ "hard", AU_STATETYPE_HARD, "Hard" },
 	{ "soft", AU_STATETYPE_SOFT, "Soft" },
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 
 const string_value_mapping valid_states[] = {
@@ -134,7 +134,7 @@ const string_value_mapping valid_host_states[] = {
 	{ "up", AU_STATE_HOST_UP, "Up" },
 	{ "down", AU_STATE_HOST_DOWN, "Down" },
 	{ "unreachable", AU_STATE_HOST_UNREACHABLE, "Unreachable" },
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 
 const string_value_mapping valid_initial_host_states[] = {
@@ -142,7 +142,7 @@ const string_value_mapping valid_initial_host_states[] = {
 	{ "down", AU_STATE_HOST_DOWN, "Down" },
 	{ "unreachable", AU_STATE_HOST_UNREACHABLE, "Unreachable" },
 	{ "current", AU_STATE_CURRENT_STATE, "Current State" },
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 
 const string_value_mapping valid_service_states[] = {
@@ -150,7 +150,7 @@ const string_value_mapping valid_service_states[] = {
 	{ "warning", AU_STATE_SERVICE_WARNING, "Warning" },
 	{ "critical", AU_STATE_SERVICE_CRITICAL, "Critical" },
 	{ "unknown", AU_STATE_SERVICE_UNKNOWN, "Unknown" },
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 
 const string_value_mapping valid_initial_service_states[] = {
@@ -159,7 +159,7 @@ const string_value_mapping valid_initial_service_states[] = {
 	{ "critical", AU_STATE_SERVICE_CRITICAL, "Critical" },
 	{ "unknown", AU_STATE_SERVICE_UNKNOWN, "Unknown" },
 	{ "current", AU_STATE_CURRENT_STATE, "Current State" },
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 
 const string_value_mapping valid_host_notification_types[] = {
@@ -179,7 +179,7 @@ const string_value_mapping valid_host_notification_types[] = {
 			"Host Flapping Start" },
 	{ "hostflapstop", AU_NOTIFICATION_HOST_FLAPPING_STOP, 
 			"Host Flapping Stop" },
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 
 const string_value_mapping valid_service_notification_types[] = {
@@ -201,7 +201,7 @@ const string_value_mapping valid_service_notification_types[] = {
 			"Service Flapping Stop" },
 	{ "unknown", AU_NOTIFICATION_SERVICE_UNKNOWN, 
 			"Service Unknown" },
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 
 option_help archive_json_help[] = {
@@ -549,7 +549,15 @@ option_help archive_json_help[] = {
 		},
 	};
 
-extern const json_escape percent_escapes;
+const json_escape_pair percent_escape_pairs[] = {
+	{ L"%", L"%%" },
+};
+
+const json_escape percent_escapes = {
+	(sizeof(percent_escape_pairs) / sizeof(percent_escape_pairs[0])),
+	percent_escape_pairs
+};
+
 
 int json_archive_alert_passes_selection(time_t, time_t, time_t, int, int, 
 		au_host *, char *, au_service *, char *, int, host *, int, host *,
@@ -790,8 +798,8 @@ int main(void) {
 				cgi_data.host_name, cgi_data.service_description, 
 				cgi_data.use_parent_host, cgi_data.parent_host, 
 				cgi_data.use_child_host, cgi_data.child_host, 
-				cgi_data.hostgroup, cgi_data.servicegroup, cgi_data.contact, 
-				cgi_data.contactgroup, cgi_data.state_types, 
+				cgi_data._hostgroup, cgi_data._servicegroup, cgi_data._contact, 
+				cgi_data._contactgroup, cgi_data.state_types, 
 				cgi_data.host_states, cgi_data.service_states, log));
 		break;
 	case ARCHIVE_QUERY_ALERTLIST:
@@ -818,8 +826,8 @@ int main(void) {
 				cgi_data.object_types, cgi_data.host_name, 
 				cgi_data.service_description, cgi_data.use_parent_host, 
 				cgi_data.parent_host, cgi_data.use_child_host, 
-				cgi_data.child_host, cgi_data.hostgroup, cgi_data.servicegroup, 
-				cgi_data.contact, cgi_data.contactgroup, cgi_data.state_types, 
+				cgi_data.child_host, cgi_data._hostgroup, cgi_data._servicegroup, 
+				cgi_data._contact, cgi_data._contactgroup, cgi_data.state_types, 
 				cgi_data.host_states, cgi_data.service_states, log));
 		break;
 	case ARCHIVE_QUERY_NOTIFICATIONCOUNT:
@@ -846,8 +854,8 @@ int main(void) {
 				cgi_data.host_name, cgi_data.service_description, 
 				cgi_data.use_parent_host, cgi_data.parent_host, 
 				cgi_data.use_child_host, cgi_data.child_host, 
-				cgi_data.hostgroup, cgi_data.servicegroup, 
-				cgi_data.contact_name, cgi_data.contactgroup, 
+				cgi_data._hostgroup, cgi_data._servicegroup, 
+				cgi_data.contact_name, cgi_data._contactgroup, 
 				cgi_data.host_notification_types, 
 				cgi_data.service_notification_types, 
 				cgi_data.notification_method, log));
@@ -876,8 +884,8 @@ int main(void) {
 				cgi_data.end_time, cgi_data.object_types, cgi_data.host_name, 
 				cgi_data.service_description, cgi_data.use_parent_host, 
 				cgi_data.parent_host, cgi_data.use_child_host, 
-				cgi_data.child_host, cgi_data.hostgroup, cgi_data.servicegroup, 
-				cgi_data.contact_name, cgi_data.contactgroup, 
+				cgi_data.child_host, cgi_data._hostgroup, cgi_data._servicegroup, 
+				cgi_data.contact_name, cgi_data._contactgroup, 
 				cgi_data.host_notification_types, 
 				cgi_data.service_notification_types, 
 				cgi_data.notification_method, log));
@@ -945,8 +953,8 @@ int main(void) {
 				json_archive_availability(cgi_data.format_options, query_time,
 				cgi_data.start_time, cgi_data.end_time, 
 				cgi_data.object_type, cgi_data.host_name, 
-				cgi_data.service_description, cgi_data.hostgroup, 
-				cgi_data.servicegroup, cgi_data.timeperiod, 
+				cgi_data.service_description, cgi_data._hostgroup, 
+				cgi_data._servicegroup, cgi_data._timeperiod, 
 				cgi_data.assume_initial_state, cgi_data.assume_state_retention, 
 				cgi_data.assume_states_during_nagios_downtime,
 				cgi_data.assumed_initial_host_state, 
@@ -1034,20 +1042,20 @@ void init_cgi_data(archive_json_cgi_data *cgi_data) {
 	cgi_data->use_child_host = 0;
 	cgi_data->child_host = NULL;
 	cgi_data->host_name = NULL;
-	cgi_data->host = NULL;
+	cgi_data->_host = NULL;
 	cgi_data->hostgroup_name = NULL;
-	cgi_data->hostgroup = NULL;
+	cgi_data->_hostgroup = NULL;
 	cgi_data->servicegroup_name = NULL;
-	cgi_data->servicegroup = NULL;
+	cgi_data->_servicegroup = NULL;
 	cgi_data->service_description = NULL;
-	cgi_data->service = NULL;
+	cgi_data->_service = NULL;
 	cgi_data->contact_name = NULL;
-	cgi_data->contact = NULL;
+	cgi_data->_contact = NULL;
 	cgi_data->contactgroup_name = NULL;
-	cgi_data->contactgroup = NULL;
+	cgi_data->_contactgroup = NULL;
 	cgi_data->notification_method = NULL;
 	cgi_data->timeperiod_name = NULL;
-	cgi_data->timeperiod = NULL;
+	cgi_data->_timeperiod = NULL;
 	cgi_data->assumed_initial_host_state = AU_STATE_NO_DATA;
 	cgi_data->assumed_initial_service_state = AU_STATE_NO_DATA;
 	cgi_data->assume_initial_state = 1;
@@ -1649,7 +1657,7 @@ int validate_arguments(json_object *json_root, archive_json_cgi_data *cgi_data,
 		we're looking at historical data, the host may no longer 
 		exist. */
 	if(NULL != cgi_data->host_name) {
-		cgi_data->host = find_host(cgi_data->host_name);
+		cgi_data->_host = find_host(cgi_data->host_name);
 		}
 
 	/* Attempt to find the service object associated with host_name and
@@ -1657,7 +1665,7 @@ int validate_arguments(json_object *json_root, archive_json_cgi_data *cgi_data,
 		the service may no longer exist. */
 	if((NULL != cgi_data->host_name) && 
 			(NULL != cgi_data->service_description)) {
-		cgi_data->service = find_service(cgi_data->host_name, 
+		cgi_data->_service = find_service(cgi_data->host_name, 
 				cgi_data->service_description);
 		}
 
@@ -1727,7 +1735,7 @@ int validate_arguments(json_object *json_root, archive_json_cgi_data *cgi_data,
 					cgi_data->hostgroup_name));
 			}
 		else {
-			cgi_data->hostgroup = temp_hostgroup;
+			cgi_data->_hostgroup = temp_hostgroup;
 			}
 		}
 
@@ -1745,7 +1753,7 @@ int validate_arguments(json_object *json_root, archive_json_cgi_data *cgi_data,
 					cgi_data->servicegroup_name));
 			}
 		else {
-			cgi_data->servicegroup = temp_servicegroup;
+			cgi_data->_servicegroup = temp_servicegroup;
 			}
 		}
 
@@ -1753,7 +1761,7 @@ int validate_arguments(json_object *json_root, archive_json_cgi_data *cgi_data,
 		Because we're looking at historical data, the contact may 
 		no longer exist. */
 	if(NULL != cgi_data->contact_name) {
-		cgi_data->contact = find_contact(cgi_data->contact_name);
+		cgi_data->_contact = find_contact(cgi_data->contact_name);
 		}
 
 	/* Validate the requested contactgroup */
@@ -1770,7 +1778,7 @@ int validate_arguments(json_object *json_root, archive_json_cgi_data *cgi_data,
 					cgi_data->contactgroup_name));
 			}
 		else {
-			cgi_data->contactgroup = temp_contactgroup;
+			cgi_data->_contactgroup = temp_contactgroup;
 			}
 		}
 
@@ -1788,7 +1796,7 @@ int validate_arguments(json_object *json_root, archive_json_cgi_data *cgi_data,
 					cgi_data->timeperiod_name));
 			}
 		else {
-			cgi_data->timeperiod = temp_timeperiod;
+			cgi_data->_timeperiod = temp_timeperiod;
 			}
 		}
 
@@ -2162,12 +2170,12 @@ json_object * json_archive_alert_selectors(unsigned format_options, int start,
 	if(1 == use_parent_host) {
 		json_object_append_string(json_selectors, "parenthost", 
 				&percent_escapes,
-				( NULL == parent_host ? "none" : parent_host->name));
+				(char *)(( NULL == parent_host ? "none" : parent_host->name)));
 		}
 
 	if( 1 == use_child_host) {
 		json_object_append_string(json_selectors, "childhost", &percent_escapes,
-				( NULL == child_host ? "none" : child_host->name));
+				(char *)(( NULL == child_host ? "none" : child_host->name)));
 		}
 
 	if(NULL != match_hostgroup) {
@@ -2672,13 +2680,13 @@ json_object * json_archive_notification_selectors(unsigned format_options,
 	if(1 == use_parent_host) {
 		json_object_append_string(json_selectors, "parenthost", 
 				&percent_escapes,
-				( NULL == parent_host ? "none" : parent_host->name));
+				(char *)(( NULL == parent_host ? "none" : parent_host->name)));
 		}
 
 	if( 1 == use_child_host) {
 		json_object_append_string(json_selectors, "childhost", 
 				&percent_escapes,
-				( NULL == child_host ? "none" : child_host->name));
+				(char *)(( NULL == child_host ? "none" : child_host->name)));
 		}
 
 	if(NULL != match_hostgroup) {
@@ -4477,7 +4485,7 @@ json_object *json_archive_single_host_availability(unsigned format_options,
 		/* host has no log entries, so create the host */
 		host = au_add_host(log->hosts, host_name);
 		/* Add global events to this new host */
-		global_host = au_find_host(log->hosts, "*");
+		global_host = (au_host*)au_find_host(log->hosts, "*");
 		if(NULL != global_host) {
 			for(temp_entry = global_host->log_entries->head; NULL != temp_entry;
 					temp_entry = temp_entry->next) {
@@ -4489,7 +4497,7 @@ json_object *json_archive_single_host_availability(unsigned format_options,
 			}
 		}
 
-	if((host->availability = calloc(1, sizeof(au_availability))) != NULL) {
+	if((host->availability = (au_availability*)(1, sizeof(au_availability))) != NULL) {
 		compute_host_availability(query_time, start_time, end_time, log, host, 
 				report_timeperiod, assume_initial_state, 
 				assumed_initial_host_state, 
@@ -4530,7 +4538,7 @@ json_object *json_archive_single_service_availability(unsigned format_options,
 			}
 		}
 
-	if((service->availability = calloc(1, sizeof(au_availability))) != NULL) {
+	if((service->availability = (au_availability*)calloc(1, sizeof(au_availability))) != NULL) {
 		compute_service_availability(query_time, start_time, end_time, log, 
 				service, report_timeperiod, assume_initial_state, 
 				assumed_initial_service_state, 

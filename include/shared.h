@@ -4,7 +4,10 @@
 #include <time.h>
 #include "lib/libnagios.h"
 
-NAGIOS_BEGIN_DECL
+#ifdef __cplusplus
+/** C++ compatibility macro that avoids confusing indentation programs */
+//extern "C" {
+#endif
 
 /* mmapfile structure - used for reading files via mmap() */
 typedef struct mmapfile_struct {
@@ -55,5 +58,8 @@ extern void get_time_breakdown(unsigned long raw_time, int *days, int *hours,
 
 extern void ensure_path_separator(char *path, size_t size);
 
-NAGIOS_END_DECL
+#ifdef __cplusplus
+//}
+#endif
+
 #endif

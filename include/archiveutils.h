@@ -122,7 +122,7 @@ typedef struct au_array_struct {
 	int		size;
 	int		count;
 	void	**members;
-	int		new;
+	int		_new;
 	} au_array;
 
 typedef struct au_node_struct {

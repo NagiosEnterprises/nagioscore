@@ -6,7 +6,10 @@
  *****************************************************/
 
 #include "lib/lnag-utils.h"
-NAGIOS_BEGIN_DECL
+#ifdef __cplusplus
+/** C++ compatibility macro that avoids confusing indentation programs */
+//extern "C" {
+#endif
 
 #define ACCEPT_LANGUAGE_Q_DELIMITER	";q="
 
@@ -36,4 +39,7 @@ accept_languages *	parse_accept_languages( char *);
 int compare_accept_languages( const void *, const void *);
 void	free_accept_languages( accept_languages *);
 
-NAGIOS_END_DECL
+#ifdef __cplusplus
+//}
+#endif
+

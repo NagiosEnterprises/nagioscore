@@ -25,7 +25,10 @@
 #include "common.h"
 #include "objects.h"
 
-NAGIOS_BEGIN_DECL
+#ifdef __cplusplus
+/** C++ compatibility macro that avoids confusing indentation programs */
+//extern "C" {
+#endif
 
 typedef struct authdata_struct {
 	char *username;
@@ -65,6 +68,8 @@ int is_authorized_for_configuration_information(authdata *);
 
 int is_authorized_for_read_only(authdata *);
 
-NAGIOS_END_DECL
+#ifdef __cplusplus
+//}
+#endif
 
 #endif

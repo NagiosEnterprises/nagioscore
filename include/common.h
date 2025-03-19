@@ -27,7 +27,10 @@
 #define PROGRAM_VERSION "4.5.9"
 #define PROGRAM_MODIFICATION_DATE "2024-12-19"
 
-NAGIOS_BEGIN_DECL
+#ifdef __cplusplus
+/** C++ compatibility macro that avoids confusing indentation programs */
+//extern "C" {
+#endif
 
 /*************************************************************/
 /************** SHARED GLOBAL VARIABLES **********************/
@@ -77,7 +80,10 @@ extern char     *tzname[2];
 #endif
 
 
-NAGIOS_END_DECL
+#ifdef __cplusplus
+//}
+#endif
+
 
 
 /* Experimental performance tweaks - use with caution */

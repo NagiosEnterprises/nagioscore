@@ -1155,7 +1155,7 @@ char * html_encode_with_buffer(char *input, int escape_newlines, char **output, 
 	output_max = len * 6 + 1;
 	outcp = *output;
 	if (output_max > *output_len) {
-		outcp = *output = realloc(*output, output_max);
+		outcp = *output = (char*)realloc(*output, output_max);
 		if (outcp == NULL) {
 			// Old pointer is valid, so output_len shouldn't be rewritten.
 			return "";
@@ -1406,7 +1406,7 @@ char *escape_string_with_buffer(const char *input, char **output, size_t *output
 	output_max = len * 6 + 1;
 	stp = *output;
 	if (output_max > *output_len) {
-		stp = *output = realloc(*output, output_max);
+		stp = *output = (char*)realloc(*output, output_max);
 		if (stp == NULL) {
 			return "";
 		}

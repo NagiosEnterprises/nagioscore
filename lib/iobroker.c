@@ -121,13 +121,13 @@ struct iobroker_set *iobroker_create(void)
 {
 	iobroker_set *iobs = NULL;
 
-	iobs = calloc(1, sizeof(*iobs));
+	iobs = (iobroker_set*)calloc(1, sizeof(*iobs));
 	if (!iobs) {
 		goto error_out;
 	}
 
 	iobs->max_fds = iobroker_max_usable_fds();
-	iobs->iobroker_fds = calloc(iobs->max_fds, sizeof(iobroker_fd *));
+	iobs->iobroker_fds = (iobroker_fd**)calloc(iobs->max_fds, sizeof(iobroker_fd *));
 	if (!iobs->iobroker_fds) {
 		goto error_out;
 	}
@@ -136,7 +136,7 @@ struct iobroker_set *iobroker_create(void)
 	{
 		int flags;
 
-		iobs->ep_events = calloc(iobs->max_fds, sizeof(struct epoll_event));
+		iobs->ep_events = (epoll_event*)calloc(iobs->max_fds, sizeof(struct epoll_event));
 		if (!iobs->ep_events) {
 			goto error_out;
 		}
@@ -201,7 +201,7 @@ static int reg_one(iobroker_set *iobs, int fd, int events, void *arg, int (*hand
 	}
 #endif
 
-	s = calloc(1, sizeof(iobroker_fd));
+	s = (iobroker_fd*)calloc(1, sizeof(iobroker_fd));
 	s->handler = handler;
 	s->fd = fd;
 	s->arg = arg;

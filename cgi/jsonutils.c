@@ -72,7 +72,7 @@ const string_value_mapping svm_format_options[] = {
 		"Format times according the supplied strftime format or "
 		"'%%H:%%M:%%S' in for format specified" },
 #endif
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 
 const string_value_mapping query_statuses[] = {
@@ -80,7 +80,7 @@ const string_value_mapping query_statuses[] = {
 	{ "beta", QUERY_STATUS_BETA, "Beta" },
 	{ "released", QUERY_STATUS_RELEASED, "Released" },
 	{ "deprecated", QUERY_STATUS_DEPRECATED, "Deprecated" },
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 
 const string_value_mapping svm_host_statuses[] = {
@@ -94,7 +94,7 @@ const string_value_mapping svm_host_statuses[] = {
 	{ "unreachable", HOST_UNREACHABLE, "HOST_UNREACHABLE" },
 #endif
 	{ "pending", HOST_PENDING, "HOST_PENDING" },
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 
 /* Hard-coded values used because the HOST_UP/DOWN/UNREACHABLE
@@ -103,7 +103,7 @@ const string_value_mapping svm_host_states[] = {
 	{ "up", 0, "HOST_UP" },
 	{ "down", 1, "HOST_DOWN" },
 	{ "unreachable", 2, "HOST_UNREACHABLE" },
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 
 const string_value_mapping svm_service_statuses[] = {
@@ -112,7 +112,7 @@ const string_value_mapping svm_service_statuses[] = {
 	{ "critical", SERVICE_CRITICAL, "SERVICE_CRITICAL" },
 	{ "unknown", SERVICE_UNKNOWN, "SERVICE_UNKNOWN" },
 	{ "pending", SERVICE_PENDING, "SERVICE_PENDING" },
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 
 /* Hard-coded values used because the SERVICE_OK/WARNING/CRITICAL/UNKNOWN
@@ -122,45 +122,45 @@ const string_value_mapping svm_service_states[] = {
 	{ "warning", 1, "SERVICE_WARNING" },
 	{ "critical", 2, "SERVICE_CRITICAL" },
 	{ "unknown", 3, "SERVICE_UNKNOWN" },
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 
 const string_value_mapping svm_check_options[] = {
 	{ "force_execution", CHECK_OPTION_FORCE_EXECUTION, "FORCE_EXECUTION" },
 	{ "freshness_check", CHECK_OPTION_FRESHNESS_CHECK, "FRESHNESS_CHECK" },
 	{ "orphan_check", CHECK_OPTION_ORPHAN_CHECK, "ORPHAN_CHECK" },
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 
 const string_value_mapping svm_host_check_types[] = {
 	{ "active", HOST_CHECK_ACTIVE, "ACTIVE" },
 	{ "passive", HOST_CHECK_PASSIVE, "PASSIVE" },
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 
 const string_value_mapping svm_service_check_types[] = {
 	{ "active", SERVICE_CHECK_ACTIVE, "ACTIVE" },
 	{ "passive", SERVICE_CHECK_PASSIVE, "PASSIVE" },
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 
 const string_value_mapping svm_state_types[] = {
 	{ "soft", SOFT_STATE, "SOFT" },
 	{ "hard", HARD_STATE, "HARD" },
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 
 const string_value_mapping svm_acknowledgement_types[] = {
 	{ "none", ACKNOWLEDGEMENT_NONE, "NONE" },
 	{ "normal", ACKNOWLEDGEMENT_NORMAL, "NORMAL" },
 	{ "sticky", ACKNOWLEDGEMENT_STICKY, "STICKY" },
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 
 const string_value_mapping svm_comment_types[] = {
 	{ "host", HOST_COMMENT, "Host Comment" },
 	{ "service", SERVICE_COMMENT, "Service Comment" },
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 
 const string_value_mapping svm_comment_entry_types[] = {
@@ -168,14 +168,14 @@ const string_value_mapping svm_comment_entry_types[] = {
 	{ "downtime", DOWNTIME_COMMENT, "Downtime Comment" },
 	{ "flapping", FLAPPING_COMMENT, "Flapping Comment" },
 	{ "acknowledgement", ACKNOWLEDGEMENT_COMMENT, "Acknowledgement Comment" },
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 
 const string_value_mapping svm_downtime_types[] = {
 	{ "service", SERVICE_DOWNTIME, "Service Downtime" },
 	{ "host", HOST_DOWNTIME, "Host Downtime" },
 	{ "any", ANY_DOWNTIME, "Any Downtime" },
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 
 #ifdef JSON_NAGIOS_4X
@@ -191,28 +191,28 @@ const string_value_mapping svm_option_types[] = {
 	{ "pending", OPT_PENDING, "Pending" },
 	{ "flapping", OPT_FLAPPING, "Flapping" },
 	{ "downtime", OPT_DOWNTIME, "Downtime" },
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 #endif
 
 const string_value_mapping parent_host_extras[] = {
 	{ "none", 0, "Hosts that are directly reachable by the Nagios Core host" },
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 
 const string_value_mapping child_host_extras[] = {
 	{ "none", 0, "Hosts that have no child hosts" },
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 
 const string_value_mapping parent_service_extras[] = {
 	{ "none", 0, "Services that have no parent services" },
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 
 const string_value_mapping child_service_extras[] = {
 	{ "none", 0, "Services that have no child services" },
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 
 const char *dayofweek[7] = { "Sunday", "Monday", "Tuesday", "Wednesday",
@@ -277,9 +277,9 @@ extern time_t program_start;
 static json_object_member * json_object_add_member(json_object *);
 
 json_object *json_new_object(void) {
-	json_object *new;
-	new = calloc(1, sizeof(json_object));
-	return new;
+	json_object *_new;
+	_new = (json_object*)calloc(1, sizeof(json_object));
+	return _new;
 	}
 
 void json_free_object(json_object *obj, int free_children) {
@@ -333,21 +333,21 @@ void json_free_member(json_object_member *mp, int free_children) {
 static json_object_member * json_object_add_member(json_object *obj) {
 
 	if(0 == obj->member_count) {
-		obj->members = calloc(1, sizeof(json_object_member *)); 
+		obj->members = (json_object_member**)calloc(1, sizeof(json_object_member *)); 
 		if(NULL == obj->members) {
 			obj->member_count = 0;
 			return NULL;
 			}
 		}
 	else {
-		obj->members = realloc(obj->members, 
+		obj->members = (json_object_member**)realloc(obj->members, 
 				((obj->member_count + 1) * sizeof(json_object_member *)));
 		if(NULL == obj->members) {
 			obj->member_count = 0;
 			return NULL;
 			}
 		}
-	obj->members[ obj->member_count] = calloc(1, sizeof(json_object_member));
+	obj->members[ obj->member_count] = (json_object_member*)calloc(1, sizeof(json_object_member));
 	if(NULL == obj->members[ obj->member_count]) {
 		return NULL;
 		}
@@ -1426,7 +1426,7 @@ char *json_escape_string(const char *src, const json_escape *escapes) {
 	/* Make a wide string copy of src */
 	wdest_len = mbstowcs(NULL, src, 0);
 	if(wdest_len <= 0) return NULL;
-	if((wdest = calloc(wdest_len + 1, sizeof(wchar_t))) == NULL) {
+	if((wdest = (wchar_t*)calloc(wdest_len + 1, sizeof(wchar_t))) == NULL) {
 		return NULL;
 		}
 	if(mbstowcs(wdest, src, wdest_len) != wdest_len) {
@@ -1447,7 +1447,7 @@ char *json_escape_string(const char *src, const json_escape *escapes) {
 				if((wdest_size - wdest_len) < (to_len - from_len)) {
 					/* If more room is needed, realloc and update variables */
 					wdest_size += (to_len - from_len) * BUF_REALLOC_MULTIPLIER;
-					wdest = realloc(wdest, (wdest_size + 1) * sizeof(wchar_t));
+					wdest = (wchar_t*)realloc(wdest, (wdest_size + 1) * sizeof(wchar_t));
 					if(NULL == wdest) return NULL;
 					fromp = wdest + offset;
 					}
@@ -1471,7 +1471,7 @@ char *json_escape_string(const char *src, const json_escape *escapes) {
 	/* Covert the wide string back to a multibyte string */
 	dest_len = wcstombs(NULL, wdest, 0);
 	if(0 == dest_len) return NULL;
-	if((dest = calloc(dest_len + 1, sizeof(char))) == NULL) {
+	if((dest = (char*)calloc(dest_len + 1, sizeof(char))) == NULL) {
 		return NULL;
 		}
 	if(wcstombs(dest, wdest, dest_len) != dest_len) {

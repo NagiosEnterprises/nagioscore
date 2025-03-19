@@ -26,6 +26,12 @@
 #include "common.h"
 #include "objects.h"
 
+#ifdef __cplusplus
+/** C++ compatibility macro that avoids confusing indentation programs */
+//extern "C" {
+#endif
+
+
 #ifdef NSCGI
 #define READ_PROGRAM_STATUS	1
 #define READ_HOST_STATUS	2
@@ -44,7 +50,6 @@
 
 	/**************************** DATA STRUCTURES ******************************/
 
-NAGIOS_BEGIN_DECL
 
 /* HOST STATUS structure */
 typedef struct hoststatus_struct {
@@ -195,5 +200,8 @@ int update_service_status(service *, int);              /* updates service statu
 int update_contact_status(contact *, int);              /* updates contact status data */
 #endif
 
-NAGIOS_END_DECL
+#ifdef __cplusplus
+//}
+#endif
+
 #endif

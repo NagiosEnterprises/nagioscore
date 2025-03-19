@@ -26,8 +26,6 @@ int daemon_mode = FALSE;
 
 time_t last_log_rotation = 0L;
 
-int check_external_commands;
-
 int enable_timing_point = FALSE; /* cgi's never set this to TRUE */
 
 int enable_flap_detection;

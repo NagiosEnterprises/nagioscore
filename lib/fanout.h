@@ -15,7 +15,10 @@
  * @{
  */
 
-NAGIOS_BEGIN_DECL
+#ifdef __cplusplus
+/** C++ compatibility macro that avoids confusing indentation programs */
+//extern "C" {
+#endif
 
 /** Primary (opaque) type for this api */
 typedef struct fanout_table fanout_table;
@@ -68,6 +71,8 @@ extern int fanout_add(fanout_table *t, unsigned long key, void *data);
  * @return Pointer to the data stored on success; NULL on errors
  */
 extern void *fanout_remove(fanout_table *t, unsigned long key);
-NAGIOS_END_DECL
+#ifdef __cplusplus
+//
+#endif
 /** @} */
 #endif

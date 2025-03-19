@@ -406,8 +406,6 @@ int add_service_comment(int entry_type, char *host_name, char *svc_description, 
 	return result;
 	}
 
-
-
 /* adds a comment to the list in memory */
 int add_comment(int comment_type, int entry_type, char *host_name, char *svc_description, time_t entry_time, char *author, char *comment_data, unsigned long comment_id, int persistent, int expires, time_t expire_time, int source) {
 	nagios_comment *new_comment = NULL;
@@ -522,7 +520,7 @@ int sort_comments(void) {
 	if(!unsorted_comments)
 		return OK;
 
-	if(!(array = malloc(sizeof(*array) * unsorted_comments)))
+	if(!(array = (nagios_comment**)malloc(sizeof(*array) * unsorted_comments)))
 		return ERROR;
 	while(comment_list) {
 		array[i++] = comment_list;

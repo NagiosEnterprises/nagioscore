@@ -115,7 +115,7 @@ int dkhash_insert(dkhash_table *t, const char *k1, const char *k2, void *data)
 	if (bkt)
 		return DKHASH_EDUPE;
 
-	if (!(bkt = malloc(sizeof(*bkt))))
+	if (!(bkt = (dkhash_bucket*)malloc(sizeof(*bkt))))
 		return DKHASH_ENOMEM;
 
 	if (t->buckets[slot])
@@ -157,7 +157,7 @@ dkhash_table *dkhash_create(unsigned int size)
 	if (!size)
 		return NULL;
 
-	if(!(t = calloc(1, sizeof(*t))))
+	if(!(t = (dkhash_table*)calloc(1, sizeof(*t))))
 		return NULL;
 
 	sz = rup2pof2(size);
@@ -165,7 +165,7 @@ dkhash_table *dkhash_create(unsigned int size)
 	if (ratio < 1.4)
 		sz = rup2pof2(sz + 1);
 
-	if (!(t->buckets = calloc(sz, sizeof(dkhash_bucket *)))) {
+	if (!(t->buckets = (dkhash_bucket**)calloc(sz, sizeof(dkhash_bucket *)))) {
 		free(t);
 		return NULL;
 	}

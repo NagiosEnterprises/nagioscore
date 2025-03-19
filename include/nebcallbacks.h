@@ -60,11 +60,17 @@
 #define nebcallback_flag(x) (1 << (x))
 
 /***** CALLBACK FUNCTIONS *****/
-NAGIOS_BEGIN_DECL
+#ifdef __cplusplus
+/** C++ compatibility macro that avoids confusing indentation programs */
+//extern "C" {
+#endif
 
 int neb_register_callback(int callback_type, void *mod_handle, int priority, int (*callback_func)(int, void *));
 int neb_deregister_callback(int callback_type, int (*callback_func)(int, void *));
 int neb_deregister_module_callbacks(nebmodule *);
 
-NAGIOS_END_DECL
+#ifdef __cplusplus
+//}
+#endif
+
 #endif

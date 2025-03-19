@@ -37,14 +37,14 @@ const string_value_mapping svm_au_object_types[] = {
 	{ "none", AU_OBJTYPE_NONE, "None" },
 	{ "host", AU_OBJTYPE_HOST, "Host" },
 	{ "service", AU_OBJTYPE_SERVICE, "Service" },
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 
 const string_value_mapping svm_au_state_types[] = {
 	{ "hard", AU_STATETYPE_HARD, "Hard" },
 	{ "soft", AU_STATETYPE_SOFT, "Soft" },
 	{ "nodata", AU_STATETYPE_NO_DATA, "No Data" },
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 
 const string_value_mapping svm_au_states[] = {
@@ -61,7 +61,7 @@ const string_value_mapping svm_au_states[] = {
 	{ "downtimestart", AU_STATE_DOWNTIME_START, "Downtime Start"},
 	{ "downtimeend", AU_STATE_DOWNTIME_END, "Downtime End"},
 	{ "currentstate", AU_STATE_CURRENT_STATE, "Current State"},
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 
 const string_value_mapping svm_au_log_types[] = {
@@ -71,7 +71,7 @@ const string_value_mapping svm_au_log_types[] = {
 	{ "notification", AU_LOGTYPE_NOTIFICATION, "Notification" },
 	{ "downtime", AU_LOGTYPE_DOWNTIME, "Downtime" },
 	{ "nagios", AU_LOGTYPE_NAGIOS, "Nagios" },
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 
 const string_value_mapping svm_au_notification_types[] = {
@@ -107,7 +107,7 @@ const string_value_mapping svm_au_notification_types[] = {
 			"Service Flapping Stop" },
 	{ "unknown", AU_NOTIFICATION_SERVICE_UNKNOWN, 
 			"Service Unknown" },
-	{ NULL, -1, NULL },
+	{ NULL, (unsigned)-1, NULL },
 	};
 
 /* Function prototypes */
@@ -154,7 +154,7 @@ au_log *au_init_log(void) {
 	au_log *log;
 
 	/* Initialize the log structure itself */
-	if((log = calloc(1, sizeof( au_log))) == NULL) {
+	if((log = (au_log*)calloc(1, sizeof( au_log))) == NULL) {
 		return NULL;
 		}
 
@@ -291,7 +291,7 @@ int read_archived_data(time_t start_time, time_t end_time,
 		for(temp_entry = global_host->log_entries->head; NULL != temp_entry; 
 				temp_entry = temp_entry->next) {
 			for(x = 0; x < log->hosts->count; x++) {
-				temp_host = log->hosts->members[x];
+				temp_host = (au_host*)log->hosts->members[x];
 				if(temp_host == global_host) continue;
 				if(au_list_add_node(temp_host->log_entries, 
 						temp_entry->data, au_cmp_log_entries) == 0) {
@@ -301,7 +301,7 @@ int read_archived_data(time_t start_time, time_t end_time,
 				}
 			if(0 == retval) break;
 			for(x = 0; x < log->services->count; x++) {
-				temp_service = log->services->members[x];
+				temp_service = (au_service*)log->services->members[x];
 				if(au_list_add_node(temp_service->log_entries, 
 							temp_entry->data, au_cmp_log_entries) == 0) {
 					retval = 0;
@@ -516,7 +516,7 @@ int au_add_nagios_log(au_log *log, time_t timestamp, int type,
 	au_host *global_host;
 
 	/* Create the au_log_nagios */
-	if((nagios_log = calloc(1, sizeof(au_log_nagios))) == NULL) {
+	if((nagios_log = (au_log_nagios*)calloc(1, sizeof(au_log_nagios))) == NULL) {
 		return 0;
 		}
 	nagios_log->type = type;
@@ -734,7 +734,7 @@ au_log_alert *au_create_alert_or_state_log(int obj_type, void *object,
 	au_log_alert *alert_log;
 
 	/* Create the au_log_alert */
-	if((alert_log = calloc(1, sizeof(au_log_alert))) == NULL) {
+	if((alert_log = (au_log_alert*)calloc(1, sizeof(au_log_alert))) == NULL) {
 		return NULL;
 		}
 	alert_log->obj_type = obj_type;
@@ -865,7 +865,7 @@ int au_add_downtime_log(au_log *log, time_t timestamp, int obj_type,
 	au_log_entry *new_log_entry;
 
 	/* Create the au_log_downtime */
-	if((downtime_log = calloc(1, sizeof(au_log_downtime))) == NULL) {
+	if((downtime_log = (au_log_downtime*)calloc(1, sizeof(au_log_downtime))) == NULL) {
 		return 0;
 		}
 	downtime_log->obj_type = obj_type;
@@ -1087,7 +1087,7 @@ int au_add_notification_log(au_log *log, time_t timestamp, int obj_type,
 	au_log_entry *new_log_entry;
 
 	/* Create the au_log_downtime */
-	if((notification_log = calloc(1, sizeof(au_log_notification))) == NULL) {
+	if((notification_log = (au_log_notification*)calloc(1, sizeof(au_log_notification))) == NULL) {
 		return 0;
 		}
 	notification_log->obj_type = obj_type;
@@ -1114,13 +1114,13 @@ int au_add_notification_log(au_log *log, time_t timestamp, int obj_type,
 	/* Add the log entry to the logs for the object supplied */
 	switch(obj_type) {
 	case AU_OBJTYPE_HOST:
-		if(au_list_add_node((void *)((au_host *)object)->log_entries,
+		if(au_list_add_node((au_linked_list *)((au_host *)object)->log_entries,
 				new_log_entry, au_cmp_log_entries) == 0) {
 			return 0;
 			}
 		break;
 	case AU_OBJTYPE_SERVICE:
-		if(au_list_add_node((void *)((au_service *)object)->log_entries, 
+		if(au_list_add_node((au_linked_list *)((au_service *)object)->log_entries, 
 				new_log_entry, au_cmp_log_entries) == 0) {
 			return 0;
 			}
@@ -1143,7 +1143,7 @@ au_log_entry *au_add_log_entry(au_log *log, time_t timestamp, int entry_type,
 	au_log_entry *new_log_entry;
 
 	/* Create the au_log_entry */
-	if((new_log_entry = calloc(1, sizeof(au_log_entry))) == NULL) {
+	if((new_log_entry = (au_log_entry*)calloc(1, sizeof(au_log_entry))) == NULL) {
 		return NULL;
 		}
 	new_log_entry->timestamp = timestamp;
@@ -1208,7 +1208,7 @@ au_host *au_add_host(au_array *host_list, char *name) {
 		}
 
 	/* Create the host */
-	if((new_host = calloc(1, sizeof(au_host))) == NULL) {
+	if((new_host = (au_host*)calloc(1, sizeof(au_host))) == NULL) {
 		return NULL;
 		}
 	if((new_host->name = strdup(name)) == NULL) {
@@ -1291,7 +1291,7 @@ au_service *au_add_service(au_array *service_list, char *host_name,
 		}
 
 	/* Create the service */
-	if((new_service = calloc(1, sizeof(au_service))) == NULL) {
+	if((new_service = (au_service*)calloc(1, sizeof(au_service))) == NULL) {
 		return NULL;
 		}
 	if((new_service->host_name = strdup(host_name)) == NULL) {
@@ -1389,7 +1389,7 @@ au_contact *au_add_contact(au_array *contact_list, char *name) {
 		}
 
 	/* Create the contact */
-	if((new_contact = calloc(1, sizeof(au_contact))) == NULL) {
+	if((new_contact = (au_contact*)calloc(1, sizeof(au_contact))) == NULL) {
 		return NULL;
 		}
 	if((new_contact->name = strdup(name)) == NULL) {
@@ -1441,7 +1441,7 @@ au_contact *au_find_contact(au_array *contact_list, char *name) {
 au_array *au_init_array(char *label) {
 	au_array *array;
 
-	if((array = calloc(1, sizeof(au_array))) == NULL) {
+	if((array = (au_array*)calloc(1, sizeof(au_array))) == NULL) {
 		return NULL;
 		}
 	array->label = NULL;
@@ -1454,7 +1454,7 @@ au_array *au_init_array(char *label) {
 	array->size = 0;
 	array->count = 0;
 	array->members = (void **)NULL;
-	array->new = 0;
+	array->_new = 0;
 
 	return array;
 	}
@@ -1499,7 +1499,7 @@ int au_array_append_member(au_array *array, void *member) {
 		}
 
 	array->members[array->count] = member;
-	array->new++;		/* Number of appends since last sort */
+	array->_new++;		/* Number of appends since last sort */
 	array->count++;
 
 	return 1;
@@ -1510,7 +1510,7 @@ void au_sort_array(au_array *array, int(*cmp)(const void *, const void *)) {
 	/* TODO: Use array->new to determine whether to do a quick sort or a 
 		bubble sort */
 	qsort(array->members, array->count, sizeof(void *), cmp);
-	array->new = 0;
+	array->_new = 0;
 	}
 
 void *au_find_in_array(au_array *array, void *key, 
@@ -1523,7 +1523,7 @@ au_linked_list *au_init_list(char *label) {
 
 	au_linked_list *list;
 
-	if((list = calloc(1, sizeof(au_linked_list))) == NULL) {
+	if((list = (au_linked_list*)calloc(1, sizeof(au_linked_list))) == NULL) {
 		return NULL;
 		}
 	list->label = NULL;
@@ -1546,7 +1546,7 @@ au_node *au_list_add_node(au_linked_list *list, void *data,
 	au_node *temp_node;
 
 	/* Create the new node */
-	if((new_node = calloc(1, sizeof(au_node))) == NULL) {
+	if((new_node = (au_node*)calloc(1, sizeof(au_node))) == NULL) {
 		return NULL;
 		}
 	new_node->data = data;

@@ -40,7 +40,10 @@
 
 #define MACRO_X_COUNT				163	/* size of macro_x[] array */
 
-NAGIOS_BEGIN_DECL
+#ifdef __cplusplus
+/** C++ compatibility macro that avoids confusing indentation programs */
+//extern "C" {
+#endif
 
 struct nagios_macros {
 	char *x[MACRO_X_COUNT];
@@ -345,5 +348,8 @@ int set_contact_address_environment_vars_r(nagios_macros *mac, int);
 
 #endif
 
-NAGIOS_END_DECL
+#ifdef __cplusplus
+//}
+#endif
+
 #endif

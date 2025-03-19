@@ -334,7 +334,7 @@ int broker_service_check(int type, int flags, int attr, service *svc, int check_
 
 
 /* send comment data to broker */
-void broker_comment_data(int type, int flags, int attr, int comment_type, int entry_type, char *host_name, char *svc_description, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long comment_id, struct timeval *timestamp) {
+void broker_comment_data(int type, int flags, int attr, int comment_type, int entry_type, char *host_name, char *svc_description, time_t entry_time, const char *author_name, char *comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long comment_id, struct timeval *timestamp) {
 	nebstruct_comment_data ds;
 
 	if(!(event_broker_options & BROKER_COMMENT_DATA))

@@ -137,7 +137,7 @@ int runcmd_cmd2strv(const char *str, int *out_argc, char **out_argv)
 		return RUNCMD_EINVAL;
 
 	len = strlen(str);
-	argz = malloc(len + 1);
+	argz = (char*)malloc(len + 1);
 	if (!argz)
 		return RUNCMD_EALLOC;
 
@@ -321,7 +321,7 @@ void runcmd_init(void)
 #endif
 
 	if (!pids)
-		pids = calloc(maxfd, sizeof(pid_t));
+		pids = (pid_t *)calloc(maxfd, sizeof(pid_t));
 }
 
 
@@ -352,7 +352,7 @@ int runcmd_open(const char *cmd, int *pfd, int *pfderr, char **env,
 	}
 
 	cmdlen = strlen(cmd);
-	argv = calloc((cmdlen / 2) + 5, sizeof(char *));
+	argv = (char**)calloc((cmdlen / 2) + 5, sizeof(char *));
 	if (!argv) {
 		return RUNCMD_EALLOC;
 	}

@@ -25,7 +25,7 @@ struct pcomp {
 
 static inline int path_components(const char *path)
 {
-	char *slash;
+	const char *slash;
 	int comps = 1;
 	if (!path)
 		return 0;
@@ -45,7 +45,7 @@ static char *pcomp_construct(struct pcomp *pcomp, int comps)
 		plen += pcomp[i].len + 1;
 	}
 
-	path = malloc(plen + 2);
+	path = (char *)malloc(plen + 2);
 
 	for (i = 0; i < comps; i++) {
 		if(pcomp[i].flags & PCOMP_IGNORE)
@@ -75,7 +75,7 @@ char *nspath_normalize(const char *orig_path)
 
 	rpath = strdup(orig_path);
 	comps = path_components(rpath);
-	pcomp = calloc(comps, sizeof(struct pcomp));
+	pcomp = (struct pcomp*)calloc(comps, sizeof(struct pcomp));
 	if (pcomp == NULL) {
 		free(rpath);
 		return NULL;

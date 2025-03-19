@@ -267,7 +267,7 @@ int qh_deregister_handler(const char *name)
 	struct query_handler *next = NULL;
 	struct query_handler *prev = NULL;
 
-	qh = dkhash_remove(qh_table, name, NULL);
+	qh = (query_handler*)dkhash_remove(qh_table, name, NULL);
 	if (qh == NULL) {
 		return 0;
 	}
@@ -318,7 +318,7 @@ int qh_register_handler(const char *name, const char *description, unsigned int 
 		return -1;
 	}
 
-	qh = calloc(1, sizeof(*qh));
+	qh = (query_handler*)calloc(1, sizeof(*qh));
 	if (qh == NULL) {
 		logit(NSLOG_RUNTIME_ERROR, TRUE, "qh: Failed to allocate memory for handler '%s'\n", name);
 		return -errno;
@@ -417,7 +417,7 @@ static int qh_core(int sd, char *buf, unsigned int len)
 
 		return 0;
 	}
-	space = memchr(buf, ' ', len);
+	space = (char *)memchr(buf, ' ', len);
 
 	if (space != NULL) {
 		*(space++) = 0;

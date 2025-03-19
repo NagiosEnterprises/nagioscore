@@ -17,20 +17,6 @@
 #define NAGIOS_MKVERSION(a, b, c) \
 	(((a) * 10000) + ((b) * 100) + (c))
 
-#ifdef __cplusplus
-/** C++ compatibility macro that avoids confusing indentation programs */
-# define NAGIOS_BEGIN_DECL extern "C" {
-/**
- * Use at end of header file declarations to obtain C++ compatibility
- * ... without confusing indentation programs
- */
-# define NAGIOS_END_DECL }
-#else
-/** C++ compatibility macro that avoids confusing indentation programs */
-# define NAGIOS_BEGIN_DECL /* nothing */
-/** C++ compatibility macro that avoid confusing indentation programs */
-# define NAGIOS_END_DECL /* more of nothing */
-#endif
 
 #ifndef NODOXY /* doxy comments are useless here */
 # ifndef __GNUC__

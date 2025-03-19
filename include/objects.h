@@ -26,7 +26,10 @@
 
 #include "common.h"
 
-NAGIOS_BEGIN_DECL
+#ifdef __cplusplus
+/** C++ compatibility macro that avoids confusing indentation programs */
+//extern "C" {
+#endif
 
 
 /*************** CURRENT OBJECT REVISION **************/
@@ -877,5 +880,8 @@ int fcache_objects(char *cache_file);
 int free_object_data(void);                             /* frees all allocated memory for the object definitions */
 
 
-NAGIOS_END_DECL
+#ifdef __cplusplus
+//}
+#endif
+
 #endif

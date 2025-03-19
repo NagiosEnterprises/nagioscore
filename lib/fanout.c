@@ -14,10 +14,10 @@ struct fanout_table {
 
 fanout_table *fanout_create(unsigned long size)
 {
-	fanout_table *t = calloc(1, sizeof(*t));
+	fanout_table *t = (fanout_table*)calloc(1, sizeof(*t));
 	if (!t)
 		return NULL;
-	t->entries = calloc(size, sizeof(struct fanout_entry *));
+	t->entries = (fanout_entry**)calloc(size, sizeof(struct fanout_entry *));
 	if (!t->entries) {
 		free(t);
 		return NULL;
@@ -60,7 +60,7 @@ int fanout_add(struct fanout_table *t, unsigned long key, void *data)
 	if (!t || !t->entries || !t->alloc || !data)
 		return -1;
 
-	entry = calloc(1, sizeof(*entry));
+	entry = (fanout_entry*)calloc(1, sizeof(*entry));
 	if (!entry)
 		return -1;
 

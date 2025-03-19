@@ -90,7 +90,7 @@ typedef struct xodtemplate_daterange_struct {
 
 /* TIMEPERIOD TEMPLATE STRUCTURE */
 typedef struct xodtemplate_timeperiod_struct {
-	char       *template;
+	char       *_template;
 	char       *name;
 	int        _config_file;
 	int        _start_line;
@@ -109,7 +109,7 @@ typedef struct xodtemplate_timeperiod_struct {
 
 /* COMMAND TEMPLATE STRUCTURE */
 typedef struct xodtemplate_command_struct {
-    char       *template;
+    char       *_template;
     char       *name;
     int        _config_file;
     int        _start_line;
@@ -126,7 +126,7 @@ typedef struct xodtemplate_command_struct {
 /* CONTACT TEMPLATE STRUCTURE */
 typedef struct xodtemplate_contact_struct {
 	unsigned int id;
-    char      *template;
+    char      *_template;
     char      *name;
     int        _config_file;
     int        _start_line;
@@ -177,7 +177,7 @@ typedef struct xodtemplate_contact_struct {
 
 /* CONTACTGROUP TEMPLATE STRUCTURE */
 typedef struct xodtemplate_contactgroup_struct {
-    char      *template;
+    char      *_template;
     char      *name;
     int        _config_file;
     int        _start_line;
@@ -204,7 +204,7 @@ typedef struct xodtemplate_contactgroup_struct {
 /* HOST TEMPLATE STRUCTURE */
 typedef struct xodtemplate_host_struct {
     unsigned int id;
-    char      *template;
+    char      *_template;
     char      *name;
     int        _config_file;
     int        _start_line;
@@ -313,7 +313,7 @@ typedef struct xodtemplate_host_struct {
 
 /* HOSTGROUP TEMPLATE STRUCTURE */
 typedef struct xodtemplate_hostgroup_struct {
-    char      *template;
+    char      *_template;
     char      *name;
     int        _config_file;
     int        _start_line;
@@ -346,7 +346,7 @@ typedef struct xodtemplate_hostgroup_struct {
 /* SERVICE TEMPLATE STRUCTURE */
 typedef struct xodtemplate_service_struct {
 	unsigned int id;
-    char       *template;
+    char       *_template;
     char       *name;
     int        _config_file;
     int        _start_line;
@@ -455,7 +455,7 @@ typedef struct xodtemplate_service_struct {
 
 /* SERVICEGROUP TEMPLATE STRUCTURE */
 typedef struct xodtemplate_servicegroup_struct {
-    char      *template;
+    char      *_template;
     char      *name;
     int        _config_file;
     int        _start_line;
@@ -487,7 +487,7 @@ typedef struct xodtemplate_servicegroup_struct {
 
 /* SERVICEDEPENDENCY TEMPLATE STRUCTURE */
 typedef struct xodtemplate_servicedependency_struct {
-    char       *template;
+    char       *_template;
     char       *name;
     int        _config_file;
     int        _start_line;
@@ -528,7 +528,7 @@ typedef struct xodtemplate_servicedependency_struct {
 
 /* SERVICEESCALATION TEMPLATE STRUCTURE */
 typedef struct xodtemplate_serviceescalation_struct {
-    char      *template;
+    char      *_template;
     char      *name;
     int        _config_file;
     int        _start_line;
@@ -567,7 +567,7 @@ typedef struct xodtemplate_serviceescalation_struct {
 
 /* HOSTDEPENDENCY TEMPLATE STRUCTURE */
 typedef struct xodtemplate_hostdependency_struct {
-    char      *template;
+    char      *_template;
     char      *name;
     int        _config_file;
     int        _start_line;
@@ -601,7 +601,7 @@ typedef struct xodtemplate_hostdependency_struct {
 /* HOSTESCALATION TEMPLATE STRUCTURE */
 typedef struct xodtemplate_hostescalation_struct {
 	unsigned int id;
-    char      *template;
+    char      *_template;
     char      *name;
     int        _config_file;
     int        _start_line;
@@ -636,7 +636,7 @@ typedef struct xodtemplate_hostescalation_struct {
 
 /* HOSTEXTINFO TEMPLATE STRUCTURE */
 typedef struct xodtemplate_hostextinfo_struct {
-    char       *template;
+    char       *_template;
     char       *name;
     int        _config_file;
     int        _start_line;
@@ -677,7 +677,7 @@ typedef struct xodtemplate_hostextinfo_struct {
 
 /* SERVICEEXTINFO TEMPLATE STRUCTURE */
 typedef struct xodtemplate_serviceextinfo_struct {
-    char       *template;
+    char       *_template;
     char       *name;
     int        _config_file;
     int        _start_line;

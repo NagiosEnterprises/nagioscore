@@ -2137,7 +2137,7 @@ int add_notification(nagios_macros *mac, contact *cntct) {
 		return OK;
 
 	/* allocate memory for a new contact in the notification list */
-	if((new_notification = malloc(sizeof(notification))) == NULL)
+	if((new_notification = (notification *)malloc(sizeof(notification))) == NULL)
 		return ERROR;
 
 	/* fill in the contact info */

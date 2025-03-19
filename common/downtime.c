@@ -468,9 +468,9 @@ int register_downtime(int type, unsigned long downtime_id) {
 
 	/* add a non-persistent comment to the host or service regarding the scheduled outage */
 	if(temp_downtime->type == SERVICE_DOWNTIME)
-		add_new_comment(SERVICE_COMMENT, DOWNTIME_COMMENT, svc->host_name, svc->description, temp_downtime->entry_time, ( NULL == temp_downtime->author ? "(Nagios Process)" : temp_downtime->author), temp_buffer, 0, COMMENTSOURCE_INTERNAL, FALSE, (time_t)0, &(temp_downtime->comment_id));
+		add_new_comment(SERVICE_COMMENT, DOWNTIME_COMMENT, svc->host_name, svc->description, temp_downtime->entry_time, (char *)(( NULL == temp_downtime->author ? "(Nagios Process)" : temp_downtime->author)), temp_buffer, 0, COMMENTSOURCE_INTERNAL, FALSE, (time_t)0, &(temp_downtime->comment_id));
 	else
-		add_new_comment(HOST_COMMENT, DOWNTIME_COMMENT, hst->name, NULL, temp_downtime->entry_time, ( NULL == temp_downtime->author ? "(Nagios Process)" : temp_downtime->author), temp_buffer, 0, COMMENTSOURCE_INTERNAL, FALSE, (time_t)0, &(temp_downtime->comment_id));
+		add_new_comment(HOST_COMMENT, DOWNTIME_COMMENT, hst->name, NULL, temp_downtime->entry_time, (char *)(( NULL == temp_downtime->author ? "(Nagios Process)" : temp_downtime->author)), temp_buffer, 0, COMMENTSOURCE_INTERNAL, FALSE, (time_t)0, &(temp_downtime->comment_id));
 
 	my_free(temp_buffer);
 
@@ -1347,7 +1347,7 @@ int sort_downtime(void) {
 	if(!unsorted_downtimes)
 		return OK;
 
-	if(!(array = malloc(sizeof(*array) * unsorted_downtimes)))
+	if(!(array = (scheduled_downtime **)malloc(sizeof(*array) * unsorted_downtimes)))
 		return ERROR;
 	while(scheduled_downtime_list) {
 		array[i++] = scheduled_downtime_list;
@@ -1379,7 +1379,7 @@ scheduled_downtime *find_downtime(int type, unsigned long downtime_id) {
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "find_downtime()\n");
 
-	dt = fanout_get(dt_fanout, downtime_id);
+	dt = (scheduled_downtime*)fanout_get(dt_fanout, downtime_id);
 	if (dt && (type == ANY_DOWNTIME || type == dt->type))
 		return dt;
 	return NULL;

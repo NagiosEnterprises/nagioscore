@@ -55,7 +55,7 @@ typedef struct object_json_cgi_data_struct {
 	/* Name of host for which details should be returned */
 	char *		host_name;
 	/* Host whose host name is host_name */
-	host *		host;
+	host *		_host;
 	/* Name of host whose hostgroup should be returned if hostgroupmember is 
 		specified */
 	char *		hostgroup_member_name;
@@ -65,16 +65,16 @@ typedef struct object_json_cgi_data_struct {
 	/* Name of hostgroup for which details should be returned */
 	char *		hostgroup_name;
 	/* Hostgroup whose name is hostgroup_name */
-	hostgroup *	hostgroup;
+	hostgroup *	_hostgroup;
 	/* Name of servicegroup for which details should be returned */
 	char *		servicegroup_name;
 	/* Servicegroup whose name is servicegroup_name */
-	servicegroup *	servicegroup;
+	servicegroup *	_servicegroup;
 	/* Name of service for which details should be returned */
 	char *		service_description;
 	/* Service whose host name is host_name and whose description is 
 		service_description*/
-	service *	service;
+	service *	_service;
 	/* Name of host for which servicegroup should be returned if 
 		servicegroupmemberhost and servicegroupmemberservice are specified */
 	char *		servicegroup_member_host_name;
@@ -94,11 +94,11 @@ typedef struct object_json_cgi_data_struct {
 	/* Name of contactgroup for which details should be returned */
 	char *		contactgroup_name;
 	/* Contactgroup whose name is contactgroup_name */
-	contactgroup *	contactgroup;
+	contactgroup *	_contactgroup;
 	/* Name of contact for which details should be returned */
 	char *		contact_name;
 	/* Contact whose contact name is contact_name */
-	contact *	contact;
+	contact *	_contact;
 	/* Name of contact whose contactgroup should be returned if 
 		contactgroupmember is specified */
 	char *		contactgroup_member_name;
@@ -108,7 +108,7 @@ typedef struct object_json_cgi_data_struct {
 	/* Name of timeperiod for which details should be returned */
 	char *		timeperiod_name;
 	/* Timeperiod whose timeperiod name is timeperiod_name */
-	timeperiod *timeperiod;
+	timeperiod *_timeperiod;
 	/* Name of check timeperiod for which details should be returned */
 	char *		check_timeperiod_name;
 	/* Timeperiod whose timeperiod name is check_timeperiod_name */
@@ -127,7 +127,7 @@ typedef struct object_json_cgi_data_struct {
 	/* Name of command for which details should be returned */
 	char *		command_name;
 	/* Command whose command name is command_name */
-	command *	command;
+	command *	_command;
 	/* Name of check command to be used as a selector */
 	char *		check_command_name;
 	/* Command whose command name is check_command_name */

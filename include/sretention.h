@@ -21,11 +21,17 @@
  *****************************************************************************/
 
 #include "common.h"
-NAGIOS_BEGIN_DECL
+#ifdef __cplusplus
+/** C++ compatibility macro that avoids confusing indentation programs */
+//extern "C" {
+#endif
 
 int initialize_retention_data(const char *);
 int cleanup_retention_data(void);
 int save_state_information(int);                 /* saves all host and state information */
 int read_initial_state_information(void);        /* reads in initial host and state information */
 
-NAGIOS_END_DECL
+#ifdef __cplusplus
+//}
+#endif
+

@@ -27,7 +27,7 @@ struct kvvec *kvvec_init(struct kvvec *kvv, int hint)
 
 struct kvvec *kvvec_create(int hint)
 {
-	struct kvvec *kvv = calloc(1, sizeof(*kvv));
+	struct kvvec *kvv = (kvvec*)calloc(1, sizeof(*kvv));
 	if (kvv && !kvvec_init(kvv, hint)) {
 		free(kvv);
 		return NULL;
@@ -45,7 +45,7 @@ int kvvec_resize(struct kvvec *kvv, int hint)
 	if (hint <= kvv->kv_alloc)
 		return 0;
 
-	kv = realloc(kvv->kv, sizeof(struct key_value) * hint);
+	kv = (key_value*)realloc(kvv->kv, sizeof(struct key_value) * hint);
 	if (!kv) {
 		if (kvv->kv)
 			free(kvv->kv);
@@ -192,7 +192,7 @@ struct kvvec_buf *kvvec2buf(struct kvvec *kvv, char kv_sep, char pair_sep, int o
 	if (!kvv)
 		return NULL;
 
-	kvvb = malloc(sizeof(struct kvvec_buf));
+	kvvb = (kvvec_buf*)malloc(sizeof(struct kvvec_buf));
 	if (!kvvb)
 		return NULL;
 
@@ -203,7 +203,7 @@ struct kvvec_buf *kvvec2buf(struct kvvec *kvv, char kv_sep, char pair_sep, int o
 		kvvb->bufsize += kv->key_len + kv->value_len;
 	}
 
-	kvvb->buf = malloc(kvvb->bufsize);
+	kvvb->buf = (char*)malloc(kvvb->bufsize);
 	if (!kvvb->buf) {
 		free(kvvb);
 		return NULL;
@@ -257,7 +257,7 @@ int buf2kvvec_prealloc(struct kvvec *kvv, char *str,
 			num_pairs++;
 		}
 
-		ptr = memchr(str + offset, pair_sep, len - offset);
+		ptr = (char *)memchr(str + offset, pair_sep, len - offset);
 		ptr++;
 		if (!ptr)
 			break;
@@ -285,11 +285,11 @@ int buf2kvvec_prealloc(struct kvvec *kvv, char *str,
 			return kvv->kv_pairs;
 		}
 
-		key_end_ptr = memchr(str + offset, kvsep, len - offset);
+		key_end_ptr = (char *)memchr(str + offset, kvsep, len - offset);
 		if (!key_end_ptr) {
 			break;
 		}
-		kv_end_ptr = memchr(key_end_ptr + 1, pair_sep, len - ((unsigned long)key_end_ptr - (unsigned long)str));
+		kv_end_ptr = (char *)memchr(key_end_ptr + 1, pair_sep, len - ((unsigned long)key_end_ptr - (unsigned long)str));
 		if (!kv_end_ptr) {
 			if (i != num_pairs - 1)
 				break;
@@ -300,7 +300,7 @@ int buf2kvvec_prealloc(struct kvvec *kvv, char *str,
 		kv = &kvv->kv[kvv->kv_pairs++];
 		kv->key_len = (unsigned long)key_end_ptr - ((unsigned long)str + offset);
 		if (flags & KVVEC_COPY) {
-			kv->key = malloc(kv->key_len + 1);
+			kv->key = (char *)malloc(kv->key_len + 1);
 			memcpy(kv->key, str + offset, kv->key_len);
 		} else {
 			kv->key = str + offset;
@@ -319,7 +319,7 @@ int buf2kvvec_prealloc(struct kvvec *kvv, char *str,
 		} else {
 			kv->value_len = (unsigned long)kv_end_ptr - ((unsigned long)str + offset);
 			if (flags & KVVEC_COPY) {
-				kv->value = malloc(kv->value_len + 1);
+				kv->value = (char *)malloc(kv->value_len + 1);
 				memcpy(kv->value, str + offset, kv->value_len);
 			} else {
 				kv->value = str + offset;

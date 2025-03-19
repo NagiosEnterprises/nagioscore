@@ -26,7 +26,10 @@
 #include "nebcallbacks.h"
 #include "nebmodules.h"
 
-NAGIOS_BEGIN_DECL
+#ifdef __cplusplus
+/** C++ compatibility macro that avoids confusing indentation programs */
+//extern "C" {
+#endif
 
 /***** MODULE STRUCTURES *****/
 
@@ -58,5 +61,8 @@ int neb_init_callback_list(void);
 int neb_free_callback_list(void);
 int neb_make_callbacks(int, void *);
 
-NAGIOS_END_DECL
+#ifdef __cplusplus
+//}
+#endif
+
 #endif

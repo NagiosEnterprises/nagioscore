@@ -60,7 +60,7 @@ int iocache_resize(iocache *ioc, unsigned long new_size)
 
 	iocache_move_data(ioc);
 
-	buf = realloc(ioc->ioc_buf, new_size);
+	buf = (char *)realloc(ioc->ioc_buf, new_size);
 	if (!buf)
 		return -1;
 	ioc->ioc_buf = buf;
@@ -149,7 +149,7 @@ char *iocache_use_delim(iocache *ioc, const char *delim, size_t delim_len, unsig
 	remains = iocache_available(ioc);
 	while (remains >= delim_len) {
 		unsigned long jump;
-		ptr = memchr(buf, *delim, remains - (delim_len - 1));
+		ptr = (char *)memchr(buf, *delim, remains - (delim_len - 1));
 		if (!ptr) {
 			return NULL;
 		}
@@ -173,9 +173,9 @@ iocache *iocache_create(unsigned long size)
 {
 	iocache *ioc;
 
-	ioc = calloc(1, sizeof(*ioc));
+	ioc = (iocache *)calloc(1, sizeof(*ioc));
 	if (ioc && size) {
-		ioc->ioc_buf = calloc(1, size);
+		ioc->ioc_buf = (char *)calloc(1, size);
 		if (!ioc->ioc_buf) {
 			free(ioc);
 			return NULL;

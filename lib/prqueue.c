@@ -38,12 +38,12 @@ prqueue_init(unsigned int n,
 {
 	prqueue_t *q;
 
-	if (!(q = calloc(1, sizeof(prqueue_t)))) {
+	if (!(q = (prqueue_t*)calloc(1, sizeof(prqueue_t)))) {
 		return NULL;
 	}
 
 	/* Need to allocate n+1 elements since element 0 isn't used. */
-	if (!(q->d = calloc(n + 1, sizeof(void *)))) {
+	if (!(q->d = (void**)calloc(n + 1, sizeof(void *)))) {
 		free(q);
 		return NULL;
 	}
@@ -134,7 +134,7 @@ percolate_down(prqueue_t *q, unsigned int i)
 int
 prqueue_insert(prqueue_t *q, void *d)
 {
-	void *tmp;
+	void **tmp;
 	unsigned int i;
 	unsigned int newsize;
 
@@ -145,7 +145,7 @@ prqueue_insert(prqueue_t *q, void *d)
 	/* allocate more memory if necessary */
 	if (q->size >= q->avail) {
 		newsize = q->size + q->step;
-		if (!(tmp = realloc(q->d, sizeof(void *) * newsize))) {
+		if (!(tmp = (void**)realloc(q->d, sizeof(void *) * newsize))) {
 			return 1;
 		}
 		q->d = tmp;

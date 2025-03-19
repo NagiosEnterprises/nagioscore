@@ -213,7 +213,7 @@ static int get_job_id(struct wproc_worker *wp)
 
 static struct wproc_job *get_job(struct wproc_worker *wp, int job_id)
 {
-	return fanout_remove(wp->jobs, job_id);
+	return (wproc_job *)fanout_remove(wp->jobs, job_id);
 }
 
 
@@ -222,7 +222,7 @@ static struct wproc_list *get_wproc_list(const char *cmd)
 	struct wproc_list *wp_list = NULL;
 	char *cmd_name             = NULL;
 	char *slash                = NULL;
-	char *space                = NULL;
+	const char *space                = NULL;
 
 	if (!specialized_workers) {
 		return &workers;
@@ -234,7 +234,7 @@ static struct wproc_list *get_wproc_list(const char *cmd)
 
 		int namelen = (unsigned long) space - (unsigned long) cmd;
 
-		cmd_name = calloc(1, namelen + 1);
+		cmd_name = (char *)calloc(1, namelen + 1);
 
 		/* not exactly optimal, but what the hells */
 		if (!cmd_name) {
@@ -245,9 +245,9 @@ static struct wproc_list *get_wproc_list(const char *cmd)
 		slash = strrchr(cmd_name, '/');
 	}
 
-	wp_list = dkhash_get(specialized_workers, cmd_name ? cmd_name : cmd, NULL);
+	wp_list = (wproc_list*)dkhash_get(specialized_workers, cmd_name ? cmd_name : cmd, NULL);
 	if (!wp_list && slash) {
-		wp_list = dkhash_get(specialized_workers, ++slash, NULL);
+		wp_list = (wproc_list*)dkhash_get(specialized_workers, ++slash, NULL);
 	}
 	if (wp_list != NULL) {
 		log_debug_info(DEBUGL_CHECKS, 1, "Found specialized worker(s) for '%s'", (slash && *slash != '/') ? slash : cmd_name);
@@ -306,7 +306,7 @@ static struct wproc_job *create_job(int type, void *arg, time_t timeout, const c
 		return NULL;
 	}
 
-	job = calloc(1, sizeof(*job));
+	job = (wproc_job*)calloc(1, sizeof(*job));
 	if (job == NULL) {
 
 		logit(NSLOG_RUNTIME_ERROR, TRUE, "Error: Failed to allocate memory for worker job: %s\n", strerror(errno));
@@ -380,7 +380,7 @@ static void destroy_job(struct wproc_job *job)
 
 	switch (job->type) {
 	case WPJOB_CHECK:
-		free_check_result(job->arg);
+		free_check_result((check_result*)job->arg);
 		free(job->arg);
 		break;
 
@@ -495,7 +495,7 @@ static int remove_specialized(void *data)
 	else if (to_remove == NULL) {
 
 		/* remove all specialised workers and their lists */
-		struct wproc_list *h = data;
+		struct wproc_list *h = (wproc_list*)data;
 		int i;
 
 		for (i = 0; i < h->len; i++) {
@@ -935,7 +935,7 @@ static int register_worker(int sd, char *buf, unsigned int len)
 	struct wproc_worker *worker;
 
 	logit(NSLOG_INFO_MESSAGE, TRUE, "wproc: Registry request: %s\n", buf);
-	if (!(worker = calloc(1, sizeof(*worker)))) {
+	if (!(worker = (wproc_worker*)calloc(1, sizeof(*worker)))) {
 		logit(NSLOG_RUNTIME_ERROR, TRUE, "wproc: Failed to allocate worker: %s\n", strerror(errno));
 		return 500;
 	}
@@ -967,16 +967,16 @@ static int register_worker(int sd, char *buf, unsigned int len)
 		else if (!strcmp(kv->key, "plugin")) {
 			struct wproc_list *command_handlers;
 			is_global = 0;
-			if (!(command_handlers = dkhash_get(specialized_workers, kv->value, NULL))) {
-				command_handlers = calloc(1, sizeof(struct wproc_list));
-				command_handlers->wps = calloc(1, sizeof(struct wproc_worker**));
+			if (!(command_handlers = (wproc_list*)dkhash_get(specialized_workers, kv->value, NULL))) {
+				command_handlers = (wproc_list*)calloc(1, sizeof(struct wproc_list));
+				command_handlers->wps = (wproc_worker**)calloc(1, sizeof(struct wproc_worker**));
 				command_handlers->len = 1;
 				command_handlers->wps[0] = worker;
 				dkhash_insert(specialized_workers, strdup(kv->value), NULL, command_handlers);
 			}
 			else {
 				command_handlers->len++;
-				command_handlers->wps = realloc(command_handlers->wps, command_handlers->len * sizeof(struct wproc_worker**));
+				command_handlers->wps = (wproc_worker**)realloc(command_handlers->wps, command_handlers->len * sizeof(struct wproc_worker**));
 				command_handlers->wps[command_handlers->len - 1] = worker;
 			}
 			worker->wp_list = command_handlers;
@@ -996,7 +996,7 @@ static int register_worker(int sd, char *buf, unsigned int len)
 
 	if (is_global) {
 		workers.len++;
-		workers.wps = realloc(workers.wps, workers.len * sizeof(struct wproc_worker *));
+		workers.wps = (wproc_worker**)realloc(workers.wps, workers.len * sizeof(struct wproc_worker *));
 		workers.wps[workers.len - 1] = worker;
 		worker->wp_list = &workers;
 	}
@@ -1022,7 +1022,7 @@ static int wproc_query_handler(int sd, char *buf, unsigned int len)
 		return 0;
 	}
 
-	if ((space = memchr(buf, ' ', len)) != NULL)
+	if ((space = (char*)memchr(buf, ' ', len)) != NULL)
 		*space = 0;
 
 	rbuf = space ? space + 1 : buf;
@@ -1047,7 +1047,7 @@ static int wproc_query_handler(int sd, char *buf, unsigned int len)
 
 static int spawn_core_worker(void)
 {
-	char *argvec[] = {nagios_binary_path, "--worker", qh_socket_path ? qh_socket_path : DEFAULT_QUERY_SOCKET, NULL};
+	char *argvec[] = {nagios_binary_path, (char *)"--worker", qh_socket_path ? qh_socket_path : (char *)DEFAULT_QUERY_SOCKET, NULL};
 	int ret;
 
 	if ((ret = spawn_helper(argvec)) < 0)
@@ -1219,7 +1219,7 @@ static wproc_object_job *create_object_job(char *cname, char *hname, char *sdesc
 {
 	wproc_object_job *oj;
 
-	oj = calloc(1, sizeof(*oj));
+	oj = (wproc_object_job*)calloc(1, sizeof(*oj));
 	if (oj) {
 		oj->host_name = hname;
 		if (cname)
@@ -1298,7 +1298,7 @@ int wproc_run_callback(char *cmd, int timeout,
 {
 	struct wproc_job *job;
 	struct wproc_callback_job *cj;
-	if (!(cj = calloc(1, sizeof(*cj))))
+	if (!(cj = (wproc_callback_job*)calloc(1, sizeof(*cj))))
 		return ERROR;
 	cj->callback = cb;
 	cj->data = data;

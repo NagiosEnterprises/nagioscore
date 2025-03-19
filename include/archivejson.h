@@ -67,34 +67,34 @@ typedef struct archive_json_cgi_data_struct {
 	/* Name of host for which details should be returned */
 	char *		host_name;
 	/* Host whose host name is host_name */
-	host *		host;
+	host *		_host;
 	/* Name of hostgroup for which details should be returned */
 	char *		hostgroup_name;
 	/* Hostgroup whose name is hostgroup_name */
-	hostgroup *	hostgroup;
+	hostgroup *	_hostgroup;
 	/* Name of servicegroup for which details should be returned */
 	char *		servicegroup_name;
 	/* Servicegroup whose name is servicegroup_name */
-	servicegroup *	servicegroup;
+	servicegroup *	_servicegroup;
 	/* Name of service for which details should be returned */
 	char *		service_description;
 	/* Service whose host name is host_name and whose description is 
 		service_description*/
-	service *	service;
+	service *	_service;
 	/* Name of contact for which details should be returned */
 	char *		contact_name;
 	/* Contact whose contact name is contact_name */
-	contact *	contact;
+	contact *	_contact;
 	/* Name of contactgroup for which details should be returned */
 	char *		contactgroup_name;
 	/* Contactgroup whose name is contactgroup_name */
-	contactgroup *	contactgroup;
+	contactgroup *	_contactgroup;
 	/* Notification method */
 	char *		notification_method;
 	/* Report timeperiod name */
 	char *		timeperiod_name;
 	/* Timeperiod whose name is timeperiod_name */
-	timeperiod *timeperiod;
+	timeperiod *_timeperiod;
 	/* Assumed initial host state */
 	int			assumed_initial_host_state;
 	/* Assumed initial service state */

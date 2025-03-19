@@ -1929,7 +1929,7 @@ int grab_standard_hostgroup_macro_r(nagios_macros *mac, int macro_type, hostgrou
 				}
 			if(!temp_len) {
 				/* empty group, so return the nul string */
-				*output = calloc(1, 1);
+				*output = (char*)calloc(1, 1);
 				return OK;
 				}
 
@@ -2281,7 +2281,7 @@ int grab_standard_servicegroup_macro_r(nagios_macros *mac, int macro_type, servi
 				}
 			if(!temp_len) {
 				/* empty group, so return the nul string */
-				*output = calloc(1, 1);
+				*output = (char*)calloc(1, 1);
 				return OK;
 				}
 			/* allocate or reallocate the memory buffer */
@@ -3317,7 +3317,7 @@ struct kvvec * macros_to_kvv(nagios_macros *mac) {
 	if(FALSE == enable_environment_macros) return NULL;
 
 	/* Create the kvvec to hold the macros */
-	if((kvvp = calloc(1, sizeof(struct kvvec))) == NULL) return NULL;
+	if((kvvp = (kvvec*)calloc(1, sizeof(struct kvvec))) == NULL) return NULL;
 	if(!kvvec_init(kvvp, MACRO_X_COUNT + MAX_COMMAND_ARGUMENTS + MAX_CONTACT_ADDRESSES + 4)) return NULL;
 
 	add_macrox_environment_vars_r(mac, kvvp);

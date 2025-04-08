@@ -239,8 +239,8 @@ int schedule_downtime(int type, char *host_name, char *service_description, time
 
 	/* don't add old or invalid downtimes */
 	if(start_time >= end_time || end_time <= time(NULL)) {
-		log_debug_info(DEBUGL_DOWNTIME, 1, "Invalid start (%lu) or end (%lu) times\n",
-				start_time, end_time);
+		log_debug_info(DEBUGL_DOWNTIME, 1, "Invalid start (%llu) or end (%llu) times\n",
+				(unsigned long long)start_time, (unsigned long long)end_time);
 		return ERROR;
 		}
 

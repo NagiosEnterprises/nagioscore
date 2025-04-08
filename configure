@@ -4449,6 +4449,12 @@ then :
   printf "%s\n" "#define HAVE_SYS_MSG_H 1" >>confdefs.h
 
 fi
+ac_fn_c_check_header_compile "$LINENO" "poll.h" "ac_cv_header_poll_h" "$ac_includes_default"
+if test "x$ac_cv_header_poll_h" = xyes
+then :
+  printf "%s\n" "#define HAVE_POLL_H 1" >>confdefs.h
+
+fi
 ac_fn_c_check_header_compile "$LINENO" "sys/poll.h" "ac_cv_header_sys_poll_h" "$ac_includes_default"
 if test "x$ac_cv_header_sys_poll_h" = xyes
 then :

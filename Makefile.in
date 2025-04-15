@@ -397,7 +397,7 @@ install-classicui:
 
 install-init:
 	$(INSTALL) -m 755 -d $(INIT_OPTS) $(DESTDIR)$(INIT_DIR)
-	$(INSTALL) -m 755 $(INIT_OPTS) startup/$(BLD_INIT) $(DESTDIR)$(INIT_DIR)/$(INIT_FILE)
+	$(INSTALL) -m 644 $(INIT_OPTS) startup/$(BLD_INIT) $(DESTDIR)$(INIT_DIR)/$(INIT_FILE)
 
 install-daemoninit: install-init
 	@if [ x$(INIT_TYPE) = xsysv ]; then \

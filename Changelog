@@ -6,6 +6,7 @@ Nagios Core 4 Change Log
 -------------------
 * Update quickstart and documentations links (Aaron Cieslicki)
 * Remove null coalescing operators and fix some php errors (Dylan Anderson and Robert Högberg)
+* Lower permissions for nagios.service to meet secuirty standards from RHEL (Nate Nelson)
 
 4.5.9 - 2024-12-19
 ------------------

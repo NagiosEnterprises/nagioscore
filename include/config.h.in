@@ -290,9 +290,9 @@
 #include <sys/un.h>
 #endif
 
-#undef HAVE_SYS_POLL_H
-#ifdef HAVE_SYS_POLL_H
-#include <sys/poll.h>
+#undef HAVE_POLL_H
+#ifdef HAVE_POLL_H
+#include <poll.h>
 #endif
 
 #undef HAVE_GETOPT_H

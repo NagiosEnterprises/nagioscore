@@ -113,7 +113,7 @@ test_xsddefault: test_xsddefault.o $(XSD_OBJS) $(TAPOBJ)
 
 test: $(TESTS) smallconfig var
 	HARNESS_PERL=$(srcdir)/test_each.t perl -MTest::Harness -e '$$Test::Harness::switches=""; runtests(map { "./$$_" } @ARGV)' $(TESTS) 2>&1
-	if which valgrind >/dev/null 2>&1; then 	\
+	if command -v valgrind >/dev/null 2>&1; then 	\
 		valgrind ./test_macros;					\
 		valgrind ./test_checks;					\
 	fi

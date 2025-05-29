@@ -279,10 +279,10 @@ if test "x$MAIL_PROG" = "xno"; then
 fi 
 dnl Fix for systems that don't (yet) have mail/mailx installed...
 if test "x$MAIL_PROG" = "x"; then
-	if which mail >/dev/null; then
-		MAIL_PROG=`which mail`
-	elif which sendmail >/dev/null; then
-		MAIL_PROG=`which sendmail`
+	if command -v mail >/dev/null; then
+		MAIL_PROG=$(command -v mail)
+	elif command -v sendmail >/dev/null; then
+		MAIL_PROG=$(command -v sendmail)
 	else
 		MAIL_PROG="/bin/mail"
 	fi
@@ -290,14 +290,14 @@ fi
 AC_SUBST(MAIL_PROG)
 
 dnl Determine location of the rm binary
-BIN_RM=`which rm`
+BIN_RM=$(command -v rm)
 if test $? -ne 0; then
 	BIN_RM='/bin/rm'
 fi
 AC_SUBST(BIN_RM)
 
 dnl Determine location of the kill binary
-BIN_KILL=`which kill`
+BIN_KILL=$(command -v kill)
 if test $? -ne 0; then
 	BIN_KILL='/bin/kill'
 fi

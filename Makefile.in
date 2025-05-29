@@ -264,7 +264,7 @@ test-perl: cgis
 	cd t && $(MAKE) test
 
 coverage: test
-	@if ! which lcov >/dev/null 2>&1; then \
+	@if ! command -v lcov >/dev/null 2>&1; then \
 		echo "ERROR: You must install lcov and genhtml first"; \
 	else \
 		lcov -c -d . -o nagioscore.info-file; \
@@ -401,23 +401,23 @@ install-init:
 
 install-daemoninit: install-init
 	@if [ x$(INIT_TYPE) = xsysv ]; then \
-		if which chkconfig >/dev/null 2>&1; then \
+		if command -v chkconfig >/dev/null 2>&1; then \
 			chkconfig --add nagios; \
-		elif which update-rc.d >/dev/null 2>&1; then \
+		elif command -v update-rc.d >/dev/null 2>&1; then \
 			update-rc.d nagios defaults; \
 		fi \
 	elif [ x$(INIT_TYPE) = xsystemd ]; then \
-		if which systemctl >/dev/null 2>&1; then \
+		if command -v systemctl >/dev/null 2>&1; then \
 			systemctl daemon-reload; \
 			systemctl enable nagios.service; \
 		fi; \
 		chmod 0644 $(INIT_DIR)/$(INIT_FILE); \
 	elif [ x$(INIT_TYPE) = xupstart ]; then \
-		if which initctl >/dev/null 2>&1; then \
+		if command -v initctl >/dev/null 2>&1; then \
 			initctl reload-configuration; \
 		fi \
 	elif [ x$(INIT_TYPE) = xopenrc ]; then \
-		if which rc-update >/dev/null 2>&1; then \
+		if command -v rc-update >/dev/null 2>&1; then \
 			rc-update add nagios default; \
 		fi \
 	fi

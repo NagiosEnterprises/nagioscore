@@ -295,13 +295,6 @@
 #include <poll.h>
 #endif
 
-#undef HAVE_SYS_POLL_H
-#ifndef HAVE_POLL_H
- #ifdef HAVE_SYS_POLL_H
-  #include <sys/poll.h>
- #endif
-#endif
-
 #undef HAVE_GETOPT_H
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>

@@ -10,7 +10,7 @@
 #include <string.h>
 #include <sys/wait.h>
 #include <fcntl.h>
-#include <sys/poll.h>
+#include <poll.h>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <netinet/in.h>

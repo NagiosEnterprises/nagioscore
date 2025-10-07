@@ -353,8 +353,8 @@ void init_timing_loop(void) {
 					mult_factor * scheduling_info.service_inter_check_delay;
 			if(check_delay > check_window(temp_service)) {
 				log_debug_info(DEBUGL_EVENTS, 0,
-						"  Fixing check time %lu secs too far away\n",
-						check_delay - check_window(temp_service));
+						"  Fixing check time %llu secs too far away\n",
+						(unsigned long long)(check_delay - check_window(temp_service)));
 				fixed_services++;
 				check_delay = ranged_urand(0, check_window(temp_service));
 				log_debug_info(DEBUGL_EVENTS, 0, "  New check offset: %d\n",
@@ -505,8 +505,8 @@ void init_timing_loop(void) {
 		 */
 		check_delay = mult_factor * scheduling_info.host_inter_check_delay;
 		if(check_delay > check_window(temp_host)) {
-			log_debug_info(DEBUGL_EVENTS, 1, "Fixing check time (off by %lu)\n",
-					check_delay - check_window(temp_host));
+			log_debug_info(DEBUGL_EVENTS, 1, "Fixing check time (off by %llu)\n",
+					(unsigned long long)(check_delay - check_window(temp_host)));
 			fixed_hosts++;
 			check_delay = ranged_urand(0, check_window(temp_host));
 			}

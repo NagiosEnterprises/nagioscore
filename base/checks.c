@@ -2031,12 +2031,12 @@ void check_for_orphaned_services(void)
 		if (expected_time < current_time) {
 
 			/* log a warning */
-			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: The check of service '%s' on host '%s' looks like it was orphaned (results never came back; last_check=%lu; next_check=%lu).  I'm scheduling an immediate check of the service...\n", temp_service->description, temp_service->host_name, temp_service->last_check, temp_service->next_check);
+			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: The check of service '%s' on host '%s' looks like it was orphaned (results never came back; last_check=%llu; next_check=%llu).  I'm scheduling an immediate check of the service...\n", temp_service->description, temp_service->host_name, (unsigned long long)temp_service->last_check, (unsigned long long)temp_service->next_check);
 
 			log_debug_info(DEBUGL_CHECKS, 1, "Service '%s' on host '%s' was orphaned, so we're scheduling an immediate check...\n", temp_service->description, temp_service->host_name);
-			log_debug_info(DEBUGL_CHECKS, 1, "  next_check=%lu (%s); last_check=%lu (%s);\n",
-						   temp_service->next_check, ctime(&temp_service->next_check),
-						   temp_service->last_check, ctime(&temp_service->last_check));
+			log_debug_info(DEBUGL_CHECKS, 1, "  next_check=%llu (%s); last_check=%llu (%s);\n",
+						   (unsigned long long)temp_service->next_check, ctime(&temp_service->next_check),
+						   (unsigned long long)temp_service->last_check, ctime(&temp_service->last_check));
 
 			/* decrement the number of running service checks */
 			if (currently_running_service_checks > 0) {

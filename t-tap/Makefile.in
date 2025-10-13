@@ -24,6 +24,7 @@ TESTS += test_downtime
 TESTS += test_nagios_config
 TESTS += test_timeperiods
 TESTS += test_macros
+TESTS += test_notifications
 
 XSD_OBJS = $(BLD_CGI)/statusdata-cgi.o $(BLD_CGI)/xstatusdata-cgi.o
 XSD_OBJS += $(BLD_CGI)/objects-cgi.o $(BLD_CGI)/xobjects-cgi.o
@@ -104,12 +105,15 @@ test_timeperiods: test_timeperiods.o $(TP_OBJS) $(TAPOBJ)
 test_macros: test_macros.o $(TP_OBJS) $(TAPOBJ)
 	$(CC) $(CFLAGS) -o $@ $^ $(BLD_BASE)/checks.o $(BROKER_LDFLAGS) $(LDFLAGS) $(MATHLIBS) $(SOCKETLIBS) $(LIBS)
 
+test_notifications: test_notifications.o $(BLD_BASE)/notifications.o $(BLD_BASE)/checks.o $(BLD_BASE)/utils.o $(BLD_COMMON)/shared.o $(BLD_BASE)/objects-base.o $(TAPOBJ)
+	$(CC) $(CFLAGS) -o $@ $^ $(LIBS) $(MATHLIBS)
+
 test_xsddefault: test_xsddefault.o $(XSD_OBJS) $(TAPOBJ)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 test: $(TESTS) smallconfig var
 	HARNESS_PERL=$(srcdir)/test_each.t perl -MTest::Harness -e '$$Test::Harness::switches=""; runtests(map { "./$$_" } @ARGV)' $(TESTS) 2>&1
-	if which valgrind >/dev/null 2>&1; then 	\
+	if command -v valgrind >/dev/null 2>&1; then 	\
 		valgrind ./test_macros;					\
 		valgrind ./test_checks;					\
 	fi

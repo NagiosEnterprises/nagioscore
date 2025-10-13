@@ -9,3 +9,6 @@ void wproc_reap(int jobs, int msecs)
 
 int get_desired_workers(int desired_workers) 
 { return 4; }
+
+int wproc_notify(char *cname, char *hname, char *sdesc, char *cmd, nagios_macros *mac)
+{ return OK; }

@@ -210,7 +210,7 @@ int worker_buf2kvvec_prealloc(struct kvvec *kvv, char *buf, unsigned long len, i
 
 #define kvvec_add_tv(kvv, key, value) \
 	do { \
-		const char *buf = mkstr("%ld.%06ld", value.tv_sec, value.tv_usec); \
+		const char *buf = mkstr("%llu.%06llu", (unsigned long long)value.tv_sec, (unsigned long long)value.tv_usec); \
 		kvvec_addkv_wlen(kvv, key, sizeof(key) - 1, buf, strlen(buf)); \
 	} while (0)
 

@@ -2425,8 +2425,8 @@ int process_check_result_file(const char *fname)
 				&& (current_time - (strtoul(val, NULL, 0)) > max_check_result_file_age)) {
 
 				log_debug_info(DEBUGL_CHECKS, 1, 
-					"Skipping check_result because file_time is %s and max cr file age is %lu", 
-					val, max_check_result_file_age);
+					"Skipping check_result because file_time is %s and max cr file age is %llu",
+					val, (unsigned long long)max_check_result_file_age);
 				break;
 			}
 		}

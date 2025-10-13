@@ -533,7 +533,7 @@ int log_debug_info(int level, int verbosity, const char *fmt, ...) {
 
 	/* write the timestamp */
 	gettimeofday(&current_time, NULL);
-	fprintf(debug_file_fp, "[%lu.%06lu] [%03d.%d] [pid=%lu] ", current_time.tv_sec, current_time.tv_usec, level, verbosity, (unsigned long)getpid());
+	fprintf(debug_file_fp, "[%llu.%06llu] [%03d.%d] [pid=%lu] ", (unsigned long long)current_time.tv_sec, (unsigned long long)current_time.tv_usec, level, verbosity, (unsigned long)getpid());
 
 	/* write the data */
 	va_start(ap, fmt);

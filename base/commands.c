@@ -35,7 +35,6 @@
 extern int sigrestart;
 
 static int command_file_fd;
-static FILE *command_file_fp;
 static int command_file_created = FALSE;
 
 /* The command file worker process */
@@ -117,7 +116,7 @@ int close_command_file(void)
 	command_file_created = FALSE;
 
 	/* close the command file */
-	fclose(command_file_fp);
+	close(command_file_fd);
 
 	/* unlink the pipe */
 	unlink(command_file);
@@ -5391,7 +5390,7 @@ void clear_host_flapping_state(host *hst) {
 
 		/* should we send a recovery notification? */
 		if (hst->current_state == HOST_UP && hst->check_flapping_recovery_notification == TRUE) {
-			host_notification(hst, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE);
+			host_notification(hst, NOTIFICATION_RECOVERY, NULL, NULL, NOTIFICATION_OPTION_NONE);
 		}
 	}
 
@@ -5448,7 +5447,7 @@ void clear_service_flapping_state(service *svc) {
 
 		/* should we send a recovery notification? */
 		if (svc->current_state == STATE_OK && svc->check_flapping_recovery_notification == TRUE) {
-			service_notification(svc, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE);
+			service_notification(svc, NOTIFICATION_RECOVERY, NULL, NULL, NOTIFICATION_OPTION_NONE);
 		}
 	}
 

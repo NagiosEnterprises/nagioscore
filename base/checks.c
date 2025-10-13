@@ -1064,8 +1064,8 @@ static inline void host_propagate_checks_to_immediate_parents(host * hst, int pa
 	log_debug_info(DEBUGL_CHECKS, 1, "Propagating checks to parent host(s)...\n");
 	for(temp_hostsmember = hst->parent_hosts; temp_hostsmember != NULL; temp_hostsmember = temp_hostsmember->next) {
 		parent_host = temp_hostsmember->host_ptr;
-		if ((parent_host_up == TRUE  && parent_host->current_state == HOST_UP) 
-			|| ((parent_host_up == FALSE && parent_host->current_state != HOST_UP))) {
+		if ((parent_host_up == TRUE  && parent_host->current_state != HOST_UP) 
+			|| ((parent_host_up == FALSE && parent_host->current_state == HOST_UP))) {
 
 			log_debug_info(DEBUGL_CHECKS, 1, "Check of parent host '%s' queued.\n", parent_host->name);
 			schedule_host_check(parent_host, current_time, CHECK_OPTION_DEPENDENCY_CHECK);
@@ -1207,6 +1207,8 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 	char * old_plugin_output       = NULL;
 
 	host * hst                     = NULL;
+
+	int notification_type          = NOTIFICATION_NORMAL;
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "handle_async_service_check_result()\n");
 
@@ -1606,6 +1608,12 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 	}
 
 
+	// Recovery notification was not sent
+	if(svc->notified_on != 0 && svc->current_state == STATE_OK && svc->state_type == HARD_STATE) {
+		notification_type = NOTIFICATION_RECOVERY;
+		send_notification = TRUE;
+	}
+
 	if (send_notification == TRUE) {
 
 		/* send notification */
@@ -1617,12 +1625,6 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 			}
 		}
 	}
-
-	/* the service recovered, so reset the current notification number and state flags (after the recovery notification has gone out) */
-	if(svc->current_state == STATE_OK && svc->state_type == HARD_STATE && hard_state_change == TRUE) {
-		svc->current_notification_number = 0;
-		svc->notified_on = 0;
-		}
 
 	if (obsess_over_services == TRUE) {
 		obsessive_compulsive_service_check_processor(svc);
@@ -1642,7 +1644,6 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 
 		/* Reset attempts */
 		if (hard_state_change == TRUE) {
-			svc->current_notification_number = 0;
 			svc->host_problem_at_last_check = FALSE;
 		}
 
@@ -2039,12 +2040,12 @@ void check_for_orphaned_services(void)
 		if (expected_time < current_time) {
 
 			/* log a warning */
-			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: The check of service '%s' on host '%s' looks like it was orphaned (results never came back; last_check=%lu; next_check=%lu).  I'm scheduling an immediate check of the service...\n", temp_service->description, temp_service->host_name, temp_service->last_check, temp_service->next_check);
+			logit(NSLOG_RUNTIME_WARNING, TRUE, "Warning: The check of service '%s' on host '%s' looks like it was orphaned (results never came back; last_check=%llu; next_check=%llu).  I'm scheduling an immediate check of the service...\n", temp_service->description, temp_service->host_name, (unsigned long long)temp_service->last_check, (unsigned long long)temp_service->next_check);
 
 			log_debug_info(DEBUGL_CHECKS, 1, "Service '%s' on host '%s' was orphaned, so we're scheduling an immediate check...\n", temp_service->description, temp_service->host_name);
-			log_debug_info(DEBUGL_CHECKS, 1, "  next_check=%lu (%s); last_check=%lu (%s);\n",
-						   temp_service->next_check, ctime(&temp_service->next_check),
-						   temp_service->last_check, ctime(&temp_service->last_check));
+			log_debug_info(DEBUGL_CHECKS, 1, "  next_check=%llu (%s); last_check=%llu (%s);\n",
+						   (unsigned long long)temp_service->next_check, ctime(&temp_service->next_check),
+						   (unsigned long long)temp_service->last_check, ctime(&temp_service->last_check));
 
 			/* decrement the number of running service checks */
 			if (currently_running_service_checks > 0) {
@@ -2262,6 +2263,8 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 	int log_event            = FALSE;
 
 	char * old_plugin_output = NULL;
+
+	int notification_type    = NOTIFICATION_NORMAL;
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "handle_async_host_check_result()\n");
 
@@ -2515,12 +2518,6 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 		}
 	}
 
-    /* the host recovered, so reset the current notification number and state flags (after the recovery notification has gone out) */
-    if(hst->current_state == HOST_UP && hst->state_type == HARD_STATE && hard_state_change == TRUE) {
-        hst->current_notification_number = 0;
-        hst->notified_on = 0;
-        }
-        
 	if (obsess_over_hosts == TRUE) {
 		obsessive_compulsive_host_check_processor(hst);
 	}

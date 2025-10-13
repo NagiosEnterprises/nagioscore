@@ -6,6 +6,7 @@ $cfg['cgi_config_file']='@sysconfdir@/cgi.cfg';  // location of the CGI config f
 
 $cfg['cgi_base_url']='@cgiurl@';
 
+$cfg['theme']='dark'; // Valid themes are "dark" or "light". Defaults to dark if something else or not set
 
 // FILE LOCATION DEFAULTS
 $cfg['main_config_file']='@sysconfdir@/nagios.cfg';  // default location of the main Nagios config file

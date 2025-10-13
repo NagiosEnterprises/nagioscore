@@ -324,7 +324,8 @@ void set_service_flap(service *svc, double percent_change, double high_threshold
 #endif
 
 	/* see if we should check to send a recovery notification out when flapping stops */
-	if(svc->current_state != STATE_OK && svc->current_notification_number > 0)
+	/* If the check result that causes the service to go into flapping status is STATUS_OK, we still want recovery notification */
+	if(svc->current_notification_number > 0)
 		svc->check_flapping_recovery_notification = TRUE;
 	else
 		svc->check_flapping_recovery_notification = FALSE;
@@ -373,8 +374,9 @@ void clear_service_flap(service *svc, double percent_change, double high_thresho
 		service_notification(svc, NOTIFICATION_FLAPPINGSTOP, NULL, NULL, NOTIFICATION_OPTION_NONE);
 
 		/* should we send a recovery notification? */
-		if(svc->check_flapping_recovery_notification == TRUE && svc->current_state == STATE_OK)
-			service_notification(svc, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE);
+		if(svc->check_flapping_recovery_notification == TRUE && svc->current_state == STATE_OK) {
+			service_notification(svc, NOTIFICATION_RECOVERY, NULL, NULL, NOTIFICATION_OPTION_NONE);
+		}
 	}
 
 	/* clear the recovery notification flag */
@@ -414,7 +416,8 @@ void set_host_flap(host *hst, double percent_change, double high_threshold, doub
 #endif
 
 	/* see if we should check to send a recovery notification out when flapping stops */
-	if(hst->current_state != HOST_UP && hst->current_notification_number > 0)
+	/* If the check result that causes the host to go into flapping status is HOST_UP, we still want recovery notification */
+	if(hst->current_notification_number > 0)
 		hst->check_flapping_recovery_notification = TRUE;
 	else
 		hst->check_flapping_recovery_notification = FALSE;
@@ -463,8 +466,9 @@ void clear_host_flap(host *hst, double percent_change, double high_threshold, do
 		host_notification(hst, NOTIFICATION_FLAPPINGSTOP, NULL, NULL, NOTIFICATION_OPTION_NONE);
 
 		/* should we send a recovery notification? */
-		if(hst->check_flapping_recovery_notification == TRUE && hst->current_state == HOST_UP)
-			host_notification(hst, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE);
+		if(hst->check_flapping_recovery_notification == TRUE && hst->current_state == HOST_UP) {
+			host_notification(hst, NOTIFICATION_RECOVERY, NULL, NULL, NOTIFICATION_OPTION_NONE);
+		}
 	}
 
 	/* clear the recovery notification flag */
@@ -652,8 +656,9 @@ void handle_host_flap_detection_disabled(host *hst) {
 		host_notification(hst, NOTIFICATION_FLAPPINGDISABLED, NULL, NULL, NOTIFICATION_OPTION_NONE);
 
 		/* should we send a recovery notification? */
-		if(hst->check_flapping_recovery_notification == TRUE && hst->current_state == HOST_UP)
-			host_notification(hst, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE);
+		if(hst->check_flapping_recovery_notification == TRUE && hst->current_state == HOST_UP) {
+			host_notification(hst, NOTIFICATION_RECOVERY, NULL, NULL, NOTIFICATION_OPTION_NONE);
+		}
 
 		/* clear the recovery notification flag */
 		hst->check_flapping_recovery_notification = FALSE;
@@ -766,8 +771,9 @@ void handle_service_flap_detection_disabled(service *svc) {
 		service_notification(svc, NOTIFICATION_FLAPPINGDISABLED, NULL, NULL, NOTIFICATION_OPTION_NONE);
 
 		/* should we send a recovery notification? */
-		if(svc->check_flapping_recovery_notification == TRUE && svc->current_state == STATE_OK)
-			service_notification(svc, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE);
+		if(svc->check_flapping_recovery_notification == TRUE && svc->current_state == STATE_OK) {
+			service_notification(svc, NOTIFICATION_RECOVERY, NULL, NULL, NOTIFICATION_OPTION_NONE);
+		}
 
 		/* clear the recovery notification flag */
 		svc->check_flapping_recovery_notification = FALSE;

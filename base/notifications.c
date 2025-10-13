@@ -98,14 +98,19 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 	/* check the viability of sending out a service notification */
 	if(check_service_notification_viability(svc, type, options) == ERROR) {
 		log_debug_info(DEBUGL_NOTIFICATIONS, 0, "Notification viability test failed.  No notification will be sent out.\n");
+		// Recovery notification wasn't sent because they don't want it. Still have to modify values
+		if(type == NOTIFICATION_RECOVERY && ! flag_isset(svc->notification_options, OPT_RECOVERY)) {
+			svc->notified_on = 0;
+			svc->current_notification_number = 0;
+			}
 		/* Set next_notification time if we're in a downtime and
 			notification_interval = zero, otherwise if the service
 			doesn't recover after downtime ends, it will never send
 			the notification */
-			if (svc->notification_interval == 0.0) {
-				if (temp_host->scheduled_downtime_depth > 0 || svc->scheduled_downtime_depth > 0)
-					svc->next_notification = current_time;
-				}
+		if (svc->notification_interval == 0.0) {
+			if (temp_host->scheduled_downtime_depth > 0 || svc->scheduled_downtime_depth > 0)
+				svc->next_notification = current_time;
+			}
 		return ERROR;
 		}
 
@@ -212,7 +217,7 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 			mac.x[MACRO_NOTIFICATIONTYPE] = "DOWNTIMECANCELLED";
 		else if(type == NOTIFICATION_CUSTOM)
 			mac.x[MACRO_NOTIFICATIONTYPE] = "CUSTOM";
-		else if(svc->current_state == STATE_OK)
+		else if(type == NOTIFICATION_RECOVERY)
 			mac.x[MACRO_NOTIFICATIONTYPE] = "RECOVERY";
 		else
 			mac.x[MACRO_NOTIFICATIONTYPE] = "PROBLEM";
@@ -276,7 +281,7 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 		clear_servicegroup_macros_r(&mac);
 		clear_datetime_macros_r(&mac);
 
-		if(type == NOTIFICATION_NORMAL || type == NOTIFICATION_STALKING) {
+		if(type == NOTIFICATION_NORMAL || type == NOTIFICATION_STALKING || type == NOTIFICATION_RECOVERY) {
 
 			/* adjust last/next notification time and notification flags if we notified someone */
 			if(contacts_notified > 0) {
@@ -289,8 +294,14 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 				/* update the last notification time for this service (this is needed for rescheduling later notifications) */
 				svc->last_notification = current_time;
 
-				/* update notifications flags */
-				add_notified_on(svc, svc->current_state);
+				/* update notifications flags, make sure to consider recovery */
+				if (type == NOTIFICATION_NORMAL) {
+					add_notified_on(svc, svc->current_state);
+					} 
+				else {
+					svc->notified_on = 0;
+					svc->current_notification_number = 0;
+					}
 				}
 
 			/* we didn't end up notifying anyone */
@@ -609,6 +620,22 @@ int check_service_notification_viability(service *svc, int type, int options) {
 	if(temp_host->current_state != STATE_UP && temp_host->state_type == HARD_STATE) {
 		log_debug_info(DEBUGL_NOTIFICATIONS, 1, "The host is either down or unreachable, so we won't notify contacts about this service.\n");
 		return ERROR;
+		}
+
+	/* If all of the host parents are down, don't notify */
+	if (temp_host->parent_hosts != NULL) {
+		int bad_parents = 0, total_parents = 0;
+		hostsmember *temp_hostsmember = NULL;
+
+		for(temp_hostsmember = temp_host->parent_hosts; temp_hostsmember != NULL; temp_hostsmember = temp_hostsmember->next) {
+			if (temp_hostsmember->host_ptr->current_state != HOST_UP)
+				bad_parents += !!temp_hostsmember->host_ptr->current_state;
+			total_parents++;
+			}
+		if(bad_parents == total_parents) {
+			log_debug_info(DEBUGL_NOTIFICATIONS, 1, "This service has a host with no good parents, so notification will be blocked.\n");
+			return ERROR;
+			}
 		}
 
 	/* don't notify if we haven't waited long enough since the last time (and the service is not marked as being volatile) */
@@ -1073,6 +1100,11 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 
 	/* check viability of sending out a host notification */
 	if(check_host_notification_viability(hst, type, options) == ERROR) {
+		// Recovery notification wasn't sent because they don't want it. Still have to modify values
+		if(type == NOTIFICATION_RECOVERY && ! flag_isset(hst->notification_options, OPT_RECOVERY)) {
+			hst->notified_on = 0;
+			hst->current_notification_number = 0;
+			}
 		log_debug_info(DEBUGL_NOTIFICATIONS, 0, "Notification viability test failed.  No notification will be sent out.\n");
 		return ERROR;
 		}
@@ -1177,7 +1209,7 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 			mac.x[MACRO_NOTIFICATIONTYPE] = "DOWNTIMECANCELLED";
 		else if(type == NOTIFICATION_CUSTOM)
 			mac.x[MACRO_NOTIFICATIONTYPE] = "CUSTOM";
-		else if(hst->current_state == HOST_UP)
+		else if(type == NOTIFICATION_RECOVERY)
 			mac.x[MACRO_NOTIFICATIONTYPE] = "RECOVERY";
 		else
 			mac.x[MACRO_NOTIFICATIONTYPE] = "PROBLEM";
@@ -1241,7 +1273,7 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 		clear_hostgroup_macros_r(&mac);
 		clear_datetime_macros_r(&mac);
 
-		if(type == NOTIFICATION_NORMAL || type == NOTIFICATION_STALKING) {
+		if(type == NOTIFICATION_NORMAL || type == NOTIFICATION_STALKING || type == NOTIFICATION_RECOVERY) {
 
 			/* adjust last/next notification time and notification flags if we notified someone */
 			if(contacts_notified > 0) {
@@ -1253,7 +1285,13 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 				hst->last_notification = current_time;
 
 				/* update notifications flags */
-				add_notified_on(hst, hst->current_state);
+				if(type == NOTIFICATION_NORMAL) {
+					add_notified_on(hst, hst->current_state);
+					}
+				else {
+					hst->notified_on = 0;
+					hst->current_notification_number = 0;
+					}
 
 				log_debug_info(DEBUGL_NOTIFICATIONS, 0, "%d contacts were notified.  Next possible notification time: %s", contacts_notified, ctime(&hst->next_notification));
 				}
@@ -1464,21 +1502,13 @@ int check_host_notification_viability(host *hst, int type, int options) {
 		}
 
 	/* see if we should notify about problems with this host */
-	if((hst->notification_options & (1 << hst->current_state)) == FALSE) {
+	if(should_notify(hst) == FALSE) {
 		log_debug_info(DEBUGL_NOTIFICATIONS, 1, "We shouldn't notify about %s status for this host.\n", host_state_name(hst->current_state));
 		return ERROR;
 		}
-	if(hst->current_state == HOST_UP) {
-
-		if((hst->notification_options & OPT_RECOVERY) == FALSE) {
-			log_debug_info(DEBUGL_NOTIFICATIONS, 1, "We shouldn't notify about RECOVERY states for this host.\n");
-			return ERROR;
-			}
-		if(!hst->notified_on) {
-			log_debug_info(DEBUGL_NOTIFICATIONS, 1, "We shouldn't notify about this recovery.\n");
-			return ERROR;
-			}
-
+	if(hst->current_state == HOST_UP && hst->notified_on == 0) {
+		log_debug_info(DEBUGL_NOTIFICATIONS, 1, "We shouldn't notify about this recovery.\n");
+		return ERROR;
 		}
 
 	/* see if enough time has elapsed for first notification (Mathias Sundman) */

@@ -1208,7 +1208,9 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 
 	host * hst                     = NULL;
 
-	int notification_type          = NOTIFICATION_NORMAL;
+	/* initialize notification type for sending service notifications */
+	int notification_type = NOTIFICATION_NORMAL;
+
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "handle_async_service_check_result()\n");
 
@@ -1579,9 +1581,6 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 		svc->last_problem_id = svc->current_problem_id;
 		svc->current_problem_id = 0L;
 	}
-
-	/* initialize notification type for sending service notifications */
-	int notification_type = NOTIFICATION_NORMAL;
 
 	/* volatile service gets everything in non-ok hard state */
 	if ((svc->current_state != STATE_OK) 
@@ -2264,7 +2263,9 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 
 	char * old_plugin_output = NULL;
 
-	int notification_type    = NOTIFICATION_NORMAL;
+	/* initialize notification type for sending host notifications */
+	int notification_type = NOTIFICATION_NORMAL;
+
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "handle_async_host_check_result()\n");
 
@@ -2492,9 +2493,6 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 	if (hst->current_attempt == HOST_UP) {
 		hst->current_attempt = 1;
 	}
-
-	/* initialize notification type for sending host notifications */
-	int notification_type = NOTIFICATION_NORMAL;
 
 	/* if we're stalking this state type AND the plugin output changed since last check, log it now.. */
 	if (should_stalk(hst) && compare_strings(old_plugin_output, hst->plugin_output)) {

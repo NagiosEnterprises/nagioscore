@@ -1,8 +1,8 @@
 <?php
 include_once(dirname(__FILE__).'/includes/utils.inc.php');
 
-$this_version = '4.5.9';
-$this_year = '2024';
+$this_version = '4.5.10';
+$this_year = '2025';
 $theme = isset($cfg['theme']) ? $cfg['theme'] : 'dark';
 if ($theme != 'dark' && $theme != 'light') {
 	$theme = 'dark';
@@ -72,7 +72,7 @@ if ($theme != 'dark' && $theme != 'light') {
 <div id="currentversioninfo">
 	<div>
 		<div class="version">Version <b><?php echo $this_version; ?></b></div>
-		<div class="releasedate">December 19, 2024</div>
+		<div class="releasedate">October 28, 2025</div>
 	</div>
 	<div><span id="core-status"></span></div>
 	<a class="checkforupdates" href="https://www.nagios.org/checkforupdates/?version=<?php echo $this_version; ?>&amp;product=nagioscore" target="_blank">Check for updates</a>

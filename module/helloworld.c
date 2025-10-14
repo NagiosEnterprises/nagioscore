@@ -2,7 +2,7 @@
  *
  * HELLOWORLD.C - Example of a simple NEB module
  *
- * Copyright (c) 2003-2024 Ethan Galstad (https://www.nagios.org)
+ * Copyright (c) 2003-2025 Ethan Galstad (https://www.nagios.org)
  *
  * Description:
  *
@@ -58,13 +58,13 @@ int nebmodule_init(int flags, char *args, nebmodule *handle) {
 	/* set some info - this is completely optional, as Nagios doesn't do anything with this data */
 	neb_set_module_info(helloworld_module_handle, NEBMODULE_MODINFO_TITLE, "helloworld");
 	neb_set_module_info(helloworld_module_handle, NEBMODULE_MODINFO_AUTHOR, "Ethan Galstad");
-	neb_set_module_info(helloworld_module_handle, NEBMODULE_MODINFO_COPYRIGHT, "Copyright (c) 2003-2024 Ethan Galstad");
+	neb_set_module_info(helloworld_module_handle, NEBMODULE_MODINFO_COPYRIGHT, "Copyright (c) 2003-2025 Ethan Galstad");
 	neb_set_module_info(helloworld_module_handle, NEBMODULE_MODINFO_VERSION, "noversion");
 	neb_set_module_info(helloworld_module_handle, NEBMODULE_MODINFO_LICENSE, "GPL v2");
 	neb_set_module_info(helloworld_module_handle, NEBMODULE_MODINFO_DESC, "A simple example to get you started with Nagios Event Broker (NEB) modules.");
 
 	/* log module info to the Nagios log file */
-	write_to_all_logs("helloworld: Copyright (c) 2003-2024 Ethan Galstad (egalstad@nagios.org)", NSLOG_INFO_MESSAGE);
+	write_to_all_logs("helloworld: Copyright (c) 2003-2025 Ethan Galstad (egalstad@nagios.org)", NSLOG_INFO_MESSAGE);
 
 	/* log a message to the Nagios log file */
 	snprintf(temp_buffer, sizeof(temp_buffer) - 1, "helloworld: Hello world!\n");

@@ -1,6 +1,6 @@
 # generated automatically by aclocal 1.17 -*- Autoconf -*-
 
-# Copyright (C) 1996-2024 Free Software Foundation, Inc.
+# Copyright (C) 1996-2025 Free Software Foundation, Inc.
 
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -9081,7 +9081,7 @@ m4_ifndef([_LT_PROG_F77],		[AC_DEFUN([_LT_PROG_F77])])
 m4_ifndef([_LT_PROG_FC],		[AC_DEFUN([_LT_PROG_FC])])
 m4_ifndef([_LT_PROG_CXX],		[AC_DEFUN([_LT_PROG_CXX])])
 
-# Copyright (C) 2002-2024 Free Software Foundation, Inc.
+# Copyright (C) 2002-2025 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -9119,7 +9119,7 @@ _AM_AUTOCONF_VERSION(m4_defn([AC_AUTOCONF_VERSION]))])
 
 # AM_AUX_DIR_EXPAND                                         -*- Autoconf -*-
 
-# Copyright (C) 2001-2024 Free Software Foundation, Inc.
+# Copyright (C) 2001-2025 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -9171,7 +9171,7 @@ am_aux_dir=`cd "$ac_aux_dir" && pwd`
 
 # AM_CONDITIONAL                                            -*- Autoconf -*-
 
-# Copyright (C) 1997-2024 Free Software Foundation, Inc.
+# Copyright (C) 1997-2025 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -9202,7 +9202,7 @@ AC_CONFIG_COMMANDS_PRE(
 Usually this means the macro was only invoked conditionally.]])
 fi])])
 
-# Copyright (C) 1999-2024 Free Software Foundation, Inc.
+# Copyright (C) 1999-2025 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -9393,7 +9393,7 @@ _AM_SUBST_NOTMAKE([am__nodep])dnl
 
 # Generate code to set up dependency tracking.              -*- Autoconf -*-
 
-# Copyright (C) 1999-2024 Free Software Foundation, Inc.
+# Copyright (C) 1999-2025 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -9461,7 +9461,7 @@ AC_DEFUN([AM_OUTPUT_DEPENDENCY_COMMANDS],
 
 # Do all the work for Automake.                             -*- Autoconf -*-
 
-# Copyright (C) 1996-2024 Free Software Foundation, Inc.
+# Copyright (C) 1996-2025 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -9638,7 +9638,7 @@ for _am_header in $config_headers :; do
 done
 echo "timestamp for $_am_arg" >`AS_DIRNAME(["$_am_arg"])`/stamp-h[]$_am_stamp_count])
 
-# Copyright (C) 2001-2024 Free Software Foundation, Inc.
+# Copyright (C) 2001-2025 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -9659,7 +9659,7 @@ if test x"${install_sh+set}" != xset; then
 fi
 AC_SUBST([install_sh])])
 
-# Copyright (C) 2003-2024 Free Software Foundation, Inc.
+# Copyright (C) 2003-2025 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -9681,7 +9681,7 @@ AC_SUBST([am__leading_dot])])
 # Add --enable-maintainer-mode option to configure.         -*- Autoconf -*-
 # From Jim Meyering
 
-# Copyright (C) 1996-2024 Free Software Foundation, Inc.
+# Copyright (C) 1996-2025 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -9716,7 +9716,7 @@ AC_MSG_CHECKING([whether to enable maintainer-specific portions of Makefiles])
 
 # Check to see how 'make' treats includes.	            -*- Autoconf -*-
 
-# Copyright (C) 2001-2024 Free Software Foundation, Inc.
+# Copyright (C) 2001-2025 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -9759,7 +9759,7 @@ AC_SUBST([am__quote])])
 
 # Fake the existence of programs that GNU maintainers use.  -*- Autoconf -*-
 
-# Copyright (C) 1997-2024 Free Software Foundation, Inc.
+# Copyright (C) 1997-2025 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -9793,7 +9793,7 @@ fi
 
 # Helper functions for option handling.                     -*- Autoconf -*-
 
-# Copyright (C) 2001-2024 Free Software Foundation, Inc.
+# Copyright (C) 2001-2025 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -9822,7 +9822,7 @@ AC_DEFUN([_AM_SET_OPTIONS],
 AC_DEFUN([_AM_IF_OPTION],
 [m4_ifset(_AM_MANGLE_OPTION([$1]), [$2], [$3])])
 
-# Copyright (C) 1999-2024 Free Software Foundation, Inc.
+# Copyright (C) 1999-2025 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -9869,7 +9869,7 @@ AC_LANG_POP([C])])
 # For backward compatibility.
 AC_DEFUN_ONCE([AM_PROG_CC_C_O], [AC_REQUIRE([AC_PROG_CC])])
 
-# Copyright (C) 2022-2024 Free Software Foundation, Inc.
+# Copyright (C) 2022-2025 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -9885,7 +9885,7 @@ AS_IF([(rm -f && rm -fr && rm -rf) 2>/dev/null], [], [am__rm_f_notfound='""'])
 AC_SUBST(am__rm_f_notfound)
 ])
 
-# Copyright (C) 2001-2024 Free Software Foundation, Inc.
+# Copyright (C) 2001-2025 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -9904,7 +9904,7 @@ AC_DEFUN([AM_RUN_LOG],
 
 # Check to make sure that the build environment is sane.    -*- Autoconf -*-
 
-# Copyright (C) 1996-2024 Free Software Foundation, Inc.
+# Copyright (C) 1996-2025 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -10129,7 +10129,7 @@ AC_CONFIG_COMMANDS_PRE(
 rm -f conftest.file
 ])
 
-# Copyright (C) 2009-2024 Free Software Foundation, Inc.
+# Copyright (C) 2009-2025 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -10200,7 +10200,7 @@ AC_DEFUN([AM_SILENT_RULES],
 [AC_REQUIRE([_AM_SILENT_RULES])
 AM_DEFAULT_VERBOSITY=m4_if([$1], [yes], [0], [1])])
 
-# Copyright (C) 2001-2024 Free Software Foundation, Inc.
+# Copyright (C) 2001-2025 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -10228,7 +10228,7 @@ fi
 INSTALL_STRIP_PROGRAM="\$(install_sh) -c -s"
 AC_SUBST([INSTALL_STRIP_PROGRAM])])
 
-# Copyright (C) 2006-2024 Free Software Foundation, Inc.
+# Copyright (C) 2006-2025 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -10247,7 +10247,7 @@ AC_DEFUN([AM_SUBST_NOTMAKE], [_AM_SUBST_NOTMAKE($@)])
 
 # Check how to create a tarball.                            -*- Autoconf -*-
 
-# Copyright (C) 2004-2024 Free Software Foundation, Inc.
+# Copyright (C) 2004-2025 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -10382,7 +10382,7 @@ AC_SUBST([am__tar])
 AC_SUBST([am__untar])
 ]) # _AM_PROG_TAR
 
-# Copyright (C) 2022-2024 Free Software Foundation, Inc.
+# Copyright (C) 2022-2025 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,

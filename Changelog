@@ -8,6 +8,8 @@ Nagios Core 4 Change Log
 * Remove null coalescing operators and fix some php errors (Dylan Anderson and Robert Högberg)
 * Replace sys/poll.h with poll.h (Michael Orlitzky) 
 * Fix musl 64bit time_t on 32bit arm (Doug Nazar)
+* Removed Ubuntu 20 From Testin (Doug Nazar)
+* Changed 'which' to 'command -v' in autoconf scripts (Michael Orlitzsky)
 
 4.5.9 - 2024-12-19
 ------------------

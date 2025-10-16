@@ -1,7 +1,7 @@
 Nagios 4.x
 ==========
 
-![Nagios!](./html/images/Nagios-clearbg.png)
+![Nagios!](html/images/Nagios-clearbg.png)
 
 [![Nagios Core Tests](https://github.com/NagiosEnterprises/nagioscore/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/NagiosEnterprises/nagioscore/actions/workflows/test.yml?query=branch%3Amaster)
 

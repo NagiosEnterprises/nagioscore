@@ -101,12 +101,12 @@ if ($theme != 'dark' && $theme != 'light') {
 </div>
 
 <div id="mainsplash">
-	<a href="https://www.nagios.org/launch?utm_campaign=csp&utm_source=nagioscore&utm_medium=splash_thumbnail&utm_content=<?php echo $this_version; ?>" target="_blank"><img src="images/csp-dashboard.avif" /></a>
+	<a href="https://www.nagios.org/?utm_campaign=csp&utm_source=nagioscore&utm_medium=splash_thumbnail&utm_content=<?php echo $this_version; ?>" target="_blank"><img src="images/csp-dashboard.avif" /></a>
 	<div id="splashtext">
 		<div id="splashtexttitle">Meet Nagios Core Services Platform</div>
 		<div>The next generation of Open Source powered monitoring with advanced dashboards, monitoring wizards, and much more!</div>
 		<div id="splashbuttons">
-			<a id="splashlearnmore" href="https://www.nagios.org/launch?utm_campaign=csp&utm_source=nagioscore&utm_medium=splash_button&utm_content=<?php echo $this_version; ?>" target="_blank">Learn More</a>
+			<a id="splashlearnmore" href="https://www.nagios.org/?utm_campaign=csp&utm_source=nagioscore&utm_medium=splash_button&utm_content=<?php echo $this_version; ?>#csp-section-home" target="_blank">Learn More</a>
 			<a id="splashnewsletter" href="https://www.nagios.org/newsletter?utm_campaign=csp&utm_source=nagioscore&utm_medium=splash_newsletter_link&utm_content=<?php echo $this_version; ?>" target="_blank">Newsletter Sign-Up</a>
 		</div>
 	</div>

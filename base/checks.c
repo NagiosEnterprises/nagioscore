@@ -2504,6 +2504,11 @@ int handle_async_host_check_result(host *hst, check_result *cr)
                 }
 	}
 
+	if(hst->notified_on != 0 && hst->current_state == HOST_UP && hst->state_type == HARD_STATE) {
+		notification_type = NOTIFICATION_RECOVERY;
+		send_notification = TRUE;
+	}
+
 	if (send_notification == TRUE) {
 
 		/* send notifications */

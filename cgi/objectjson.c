@@ -2871,6 +2871,8 @@ void json_object_host_details(json_object *json_details, unsigned format_options
 #endif
 		json_bitmask(json_details, format_options, "stalking_options",
 				temp_host->stalking_options, svm_option_types);
+		json_object_append_boolean(json_details, "stalking_notify",
+				temp_host->stalking_notify);
 #if 0
 		}
 #endif
@@ -3720,6 +3722,8 @@ void json_object_service_details(json_object *json_details,
 #endif
 		json_bitmask(json_details, format_options, "stalking_options",
 				temp_service->stalking_options, svm_option_types);
+		json_object_append_boolean(json_details, "stalking_notify",
+				temp_service->stalking_notify);
 #if 0
 		}
 #endif

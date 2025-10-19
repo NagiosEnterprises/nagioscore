@@ -2602,6 +2602,10 @@ int xodtemplate_add_object_property(char *input, int options) {
 					}
 				temp_host->have_stalking_options = TRUE;
 				}
+			else if(!strcmp(variable, "stalking_notify")) {
+				temp_host->stalking_notify = (atoi(value) > 0) ? TRUE : FALSE;
+				temp_host->have_stalking_notify = TRUE;
+				}
 			else if(!strcmp(variable, "process_perf_data")) {
 				temp_host->process_perf_data = (atoi(value) > 0) ? TRUE : FALSE;
 				temp_host->have_process_perf_data = TRUE;
@@ -3075,6 +3079,10 @@ int xodtemplate_add_object_property(char *input, int options) {
 						}
 					}
 				temp_service->have_stalking_options = TRUE;
+				}
+			else if(!strcmp(variable, "stalking_notify")) {
+				temp_service->stalking_notify = (atoi(value) > 0) ? TRUE : FALSE;
+				temp_service->have_stalking_notify = TRUE;
 				}
 			else if(!strcmp(variable, "process_perf_data")) {
 				temp_service->process_perf_data = (atoi(value) > 0) ? TRUE : FALSE;
@@ -5809,6 +5817,7 @@ int xodtemplate_resolve_host(xodtemplate_host *this_host) {
 		xod_inherit(this_host, template_host, notification_interval);
 		xod_inherit(this_host, template_host, first_notification_delay);
 		xod_inherit(this_host, template_host, stalking_options);
+		xod_inherit(this_host, template_host, stalking_notify);
 		xod_inherit(this_host, template_host, process_perf_data);
 		xod_inherit(this_host, template_host, hourly_value);
 
@@ -5936,6 +5945,7 @@ int xodtemplate_resolve_service(xodtemplate_service *this_service) {
 		xod_inherit(this_service, template_service, notification_interval);
 		xod_inherit(this_service, template_service, first_notification_delay);
 		xod_inherit(this_service, template_service, stalking_options);
+		xod_inherit(this_service, template_service, stalking_notify);
 		xod_inherit(this_service, template_service, process_perf_data);
 		xod_inherit(this_service, template_service, retain_status_information);
 		xod_inherit(this_service, template_service, retain_nonstatus_information);
@@ -7769,7 +7779,7 @@ int xodtemplate_register_host(xodtemplate_host *this_host) {
 		return OK;
 
 	/* add the host definition */
-	new_host = add_host(this_host->host_name, this_host->display_name, this_host->alias, this_host->address, this_host->check_period, this_host->initial_state, this_host->check_interval, this_host->retry_interval, this_host->max_check_attempts, this_host->notification_options, this_host->notification_interval, this_host->first_notification_delay, this_host->notification_period, this_host->notifications_enabled, this_host->check_command, this_host->active_checks_enabled, this_host->passive_checks_enabled, this_host->event_handler, this_host->event_handler_enabled, this_host->event_handler_period, this_host->flap_detection_enabled, this_host->low_flap_threshold, this_host->high_flap_threshold, this_host->flap_detection_options, this_host->stalking_options, this_host->process_perf_data, this_host->check_freshness, this_host->freshness_threshold, this_host->notes, this_host->notes_url, this_host->action_url, this_host->icon_image, this_host->icon_image_alt, this_host->vrml_image, this_host->statusmap_image, this_host->x_2d, this_host->y_2d, this_host->have_2d_coords, this_host->x_3d, this_host->y_3d, this_host->z_3d, this_host->have_3d_coords, TRUE, this_host->retain_status_information, this_host->retain_nonstatus_information, this_host->obsess, this_host->hourly_value);
+	new_host = add_host(this_host->host_name, this_host->display_name, this_host->alias, this_host->address, this_host->check_period, this_host->initial_state, this_host->check_interval, this_host->retry_interval, this_host->max_check_attempts, this_host->notification_options, this_host->notification_interval, this_host->first_notification_delay, this_host->notification_period, this_host->notifications_enabled, this_host->check_command, this_host->active_checks_enabled, this_host->passive_checks_enabled, this_host->event_handler, this_host->event_handler_enabled, this_host->event_handler_period, this_host->flap_detection_enabled, this_host->low_flap_threshold, this_host->high_flap_threshold, this_host->flap_detection_options, this_host->stalking_options, this_host->stalking_notify, this_host->process_perf_data, this_host->check_freshness, this_host->freshness_threshold, this_host->notes, this_host->notes_url, this_host->action_url, this_host->icon_image, this_host->icon_image_alt, this_host->vrml_image, this_host->statusmap_image, this_host->x_2d, this_host->y_2d, this_host->have_2d_coords, this_host->x_3d, this_host->y_3d, this_host->z_3d, this_host->have_3d_coords, TRUE, this_host->retain_status_information, this_host->retain_nonstatus_information, this_host->obsess, this_host->hourly_value);
 
 
 	/* return with an error if we couldn't add the host */
@@ -7880,7 +7890,7 @@ int xodtemplate_register_service(xodtemplate_service *this_service) {
 		return OK;
 
 	/* add the service */
-	new_service = add_service(this_service->host_name, this_service->service_description, this_service->display_name, this_service->check_period, this_service->initial_state, this_service->max_check_attempts, this_service->parallelize_check, this_service->passive_checks_enabled, this_service->check_interval, this_service->retry_interval, this_service->notification_interval, this_service->first_notification_delay, this_service->notification_period, this_service->notification_options, this_service->notifications_enabled, this_service->is_volatile, this_service->event_handler, this_service->event_handler_enabled, this_service->event_handler_period, this_service->check_command, this_service->active_checks_enabled, this_service->flap_detection_enabled, this_service->low_flap_threshold, this_service->high_flap_threshold, this_service->flap_detection_options, this_service->stalking_options, this_service->process_perf_data, this_service->check_freshness, this_service->freshness_threshold, this_service->notes, this_service->notes_url, this_service->action_url, this_service->icon_image, this_service->icon_image_alt, this_service->retain_status_information, this_service->retain_nonstatus_information, this_service->obsess, this_service->hourly_value);
+	new_service = add_service(this_service->host_name, this_service->service_description, this_service->display_name, this_service->check_period, this_service->initial_state, this_service->max_check_attempts, this_service->parallelize_check, this_service->passive_checks_enabled, this_service->check_interval, this_service->retry_interval, this_service->notification_interval, this_service->first_notification_delay, this_service->notification_period, this_service->notification_options, this_service->notifications_enabled, this_service->is_volatile, this_service->event_handler, this_service->event_handler_enabled, this_service->event_handler_period, this_service->check_command, this_service->active_checks_enabled, this_service->flap_detection_enabled, this_service->low_flap_threshold, this_service->high_flap_threshold, this_service->flap_detection_options, this_service->stalking_options, this_service->stalking_notify, this_service->process_perf_data, this_service->check_freshness, this_service->freshness_threshold, this_service->notes, this_service->notes_url, this_service->action_url, this_service->icon_image, this_service->icon_image_alt, this_service->retain_status_information, this_service->retain_nonstatus_information, this_service->obsess, this_service->hourly_value);
 
 	/* return with an error if we couldn't add the service */
 	if(new_service == NULL) {

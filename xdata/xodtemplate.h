@@ -242,6 +242,7 @@ typedef struct xodtemplate_host_struct {
     double    notification_interval;
     double    first_notification_delay;
     int       stalking_options;
+    int       stalking_notify;
     int       process_perf_data;
     char      *notes;
     char      *notes_url;
@@ -298,6 +299,7 @@ typedef struct xodtemplate_host_struct {
     unsigned have_notification_interval : 1;
     unsigned have_first_notification_delay : 1;
     unsigned have_stalking_options : 1;
+    unsigned have_stalking_notify : 1;
     unsigned have_process_perf_data : 1;
     unsigned have_2d_coords : 1;
     unsigned have_3d_coords : 1;
@@ -386,6 +388,7 @@ typedef struct xodtemplate_service_struct {
     char       *contact_groups;
     char       *contacts;
     int        stalking_options;
+    int        stalking_notify;
     int        process_perf_data;
     char       *notes;
     char       *notes_url;
@@ -440,6 +443,7 @@ typedef struct xodtemplate_service_struct {
     unsigned have_notification_interval : 1;
     unsigned have_first_notification_delay : 1;
     unsigned have_stalking_options : 1;
+    unsigned have_stalking_notify : 1;
     unsigned have_process_perf_data : 1;
     unsigned have_retain_status_information : 1;
     unsigned have_retain_nonstatus_information : 1;

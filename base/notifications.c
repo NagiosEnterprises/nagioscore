@@ -295,7 +295,7 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 				svc->last_notification = current_time;
 
 				/* update notifications flags, make sure to consider recovery */
-				if (type == NOTIFICATION_NORMAL) {
+				if (type == NOTIFICATION_NORMAL || type == NOTIFICATION_STALKING) {
 					add_notified_on(svc, svc->current_state);
 					} 
 				else {
@@ -1285,7 +1285,7 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 				hst->last_notification = current_time;
 
 				/* update notifications flags */
-				if(type == NOTIFICATION_NORMAL) {
+				if(type == NOTIFICATION_NORMAL || type == NOTIFICATION_STALKING) {
 					add_notified_on(hst, hst->current_state);
 					}
 				else {

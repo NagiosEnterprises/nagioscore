@@ -11,6 +11,7 @@ Nagios Core 4 Change Log
 * Removed Ubuntu 20 From Testin (Doug Nazar)
 * Changed 'which' to 'command -v' in autoconf scripts (Michael Orlitzsky)
 * Fixed NULL Pointer dereference in Update Chack API response parsing (Ankur Patel)
+- Fixed missing image (J. Winters-Brown)
 
 4.5.9 - 2024-12-19
 ------------------

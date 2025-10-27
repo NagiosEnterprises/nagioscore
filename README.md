@@ -1,7 +1,7 @@
 Nagios 4.x
 ==========
 
-![Nagios!](https://www.nagios.com/wp-content/uploads/2015/05/Nagios-Black-500x124.png)
+![Nagios!](https://www.nagios.com/wp-content/uploads/2025/08/NagiosFullLogo_CoreBlack.png)
 
 [![Nagios Core Tests](https://github.com/NagiosEnterprises/nagioscore/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/NagiosEnterprises/nagioscore/actions/workflows/test.yml?query=branch%3Amaster)
 

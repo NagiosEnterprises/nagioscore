@@ -3437,6 +3437,10 @@ int query_update_api(void) {
 			var = strtok(ptr, "=");
 			val = strtok(NULL, "\n");
 
+			/* skip malformed lines to prevent NULL pointer dereference */
+			if(var == NULL || val == NULL)
+				continue;
+
 			if(!strcmp(var, "UPDATE_AVAILABLE")) {
 				update_available = atoi(val);
 				/* we were successful */

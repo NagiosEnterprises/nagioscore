@@ -8,10 +8,10 @@ Nagios Core 4 Change Log
 * Remove null coalescing operators and fix some php errors (Dylan Anderson and Robert Högberg)
 * Replace sys/poll.h with poll.h (Michael Orlitzky) 
 * Fix musl 64bit time_t on 32bit arm (Doug Nazar)
-* Removed Ubuntu 20 From Testin (Doug Nazar)
-* Changed 'which' to 'command -v' in autoconf scripts (Michael Orlitzsky)
-* Fixed NULL Pointer dereference in Update Chack API response parsing (Ankur Patel)
-- Fixed missing image (J. Winters-Brown)
+* Remove Ubuntu 20 From Testing (Doug Nazar)
+* Change 'which' to 'command -v' in autoconf scripts (Michael Orlitzsky)
+* Fix NULL Pointer dereference in Update Chack API response parsing (Ankur Patel)
+- Fix missing image (J. Winters-Brown)
 
 4.5.9 - 2024-12-19
 ------------------

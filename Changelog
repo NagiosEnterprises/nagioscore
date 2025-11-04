@@ -2,6 +2,10 @@
 Nagios Core 4 Change Log
 ########################
 
+4.5.11 - 2025-xx-xx
+-------------------
+* Fix order of Event Queue Initialization (Bryan Heden)
+
 4.5.10 - 2025-10-28
 -------------------
 * Update quickstart and documentations links (Aaron Cieslicki)

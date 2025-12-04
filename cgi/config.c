@@ -464,6 +464,7 @@ void display_hosts(void) {
 	printf("<TH CLASS='data'>Event Handler Period</TH>");
 	printf("<TH CLASS='data'>Enable Event Handler</TH>");
 	printf("<TH CLASS='data'>Stalking Options</TH>\n");
+	printf("<TH CLASS='data'>Stalking Notify</TH>\n");
 	printf("<TH CLASS='data'>Enable Flap Detection</TH>");
 	printf("<TH CLASS='data'>Low Flap Threshold</TH>");
 	printf("<TH CLASS='data'>High Flap Threshold</TH>");
@@ -649,6 +650,10 @@ void display_hosts(void) {
 				}
 			if(options == 0)
 				printf("None");
+			printf("</TD>\n");
+
+			printf("<TD CLASS='%s'>", bg_class);
+			printf("%s\n", (temp_host->stalking_notify == TRUE) ? "Yes" : "No");
 			printf("</TD>\n");
 
 			printf("<TD CLASS='%s'>", bg_class);
@@ -1213,6 +1218,7 @@ void display_services(void) {
 	printf("<TH CLASS='data'>Event Handler Period</TH>");
 	printf("<TH CLASS='data'>Enable Event Handler</TH>");
 	printf("<TH CLASS='data'>Stalking Options</TH>\n");
+	printf("<TH CLASS='data'>Stalking Notify</TH>\n");
 	printf("<TH CLASS='data'>Enable Flap Detection</TH>");
 	printf("<TH CLASS='data'>Low Flap Threshold</TH>");
 	printf("<TH CLASS='data'>High Flap Threshold</TH>");
@@ -1395,6 +1401,10 @@ void display_services(void) {
 				}
 			if(options == 0)
 				printf("None");
+			printf("</TD>\n");
+
+			printf("<TD CLASS='%s'>", bg_class);
+			printf("%s\n", (temp_service->stalking_notify == TRUE) ? "Yes" : "No");
 			printf("</TD>\n");
 
 			printf("<TD CLASS='%s'>", bg_class);

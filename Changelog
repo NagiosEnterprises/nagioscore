@@ -5,6 +5,7 @@ Nagios Core 4 Change Log
 4.5.11 - 2025-xx-xx
 -------------------
 * Fix order of Event Queue Initialization (Bryan Heden)
+* Added 'stalking_notify' logic for both Host and Service based objects (Ramiro Fróes Ferrão)
 
 4.5.10 - 2025-10-28
 -------------------

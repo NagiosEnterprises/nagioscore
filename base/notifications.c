@@ -51,7 +51,7 @@ const char *notification_reason_name(unsigned int reason_type)
 		"NORMAL", "ACKNOWLEDGEMENT",
 		"FLAPPINGSTART", "FLAPPINGSTOP", "FLAPPINGDISABLED",
 		"DOWNTIMESTART", "DOWNTIMEEND", "DOWNTIMECANCELLED",
-		"CUSTOM"
+		"CUSTOM", "RECOVERY", "STALKING"
 	};
 
 	if (reason_type < ARRAY_SIZE(names))

@@ -3303,7 +3303,7 @@ void fcache_host(FILE *fp, host *temp_host)
 	fprintf(fp, "\tnotifications_enabled\t%d\n", temp_host->notifications_enabled);
 	fprintf(fp, "\tnotification_interval\t%f\n", temp_host->notification_interval);
 	fprintf(fp, "\tfirst_notification_delay\t%f\n", temp_host->first_notification_delay);
-	fprintf(fp, "\tstalking_options\t%s\n", opts2str(temp_host->stalking_options, host_flag_map, 'u'));
+	fprintf(fp, "\tstalking_options\t%s\n", opts2str(temp_host->stalking_options, host_flag_map, 'o'));
 	fprintf(fp, "\tstalking_notify\t%d\n", temp_host->stalking_notify);
 	fprintf(fp, "\tprocess_perf_data\t%d\n", temp_host->process_performance_data);
 	if(temp_host->icon_image)

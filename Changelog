@@ -2,7 +2,7 @@
 Nagios Core 4 Change Log
 ########################
 
-4.5.11 - 2025-xx-xx
+4.5.11 - 2026-01-15
 -------------------
 * Fix order of Event Queue Initialization (Bryan Heden)
 * Fix double-negatives in template-processing related error messages (Vanush Paturyan)

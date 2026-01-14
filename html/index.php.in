@@ -28,7 +28,7 @@ if ("@COREWINDOW@" == "yes" && isset($_GET['corewindow'])) {
 		$url = "main.php";
 }
 
-$this_year = '2025';
+$this_year = '2026';
 $theme = $cfg['theme'] ?? 'dark';
 if ($theme != 'dark' && $theme != 'light') {
 	$theme = 'dark';

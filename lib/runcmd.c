@@ -58,10 +58,10 @@ static pid_t *pids = NULL;
  * adequate and the program will die with SIGSEGV if it isn't and the
  * upper boundary is breached. */
 #ifdef OPEN_MAX
-# define maxfd OPEN_MAX
+static int maxfd = OPEN_MAX;
 #else
 # ifndef _SC_OPEN_MAX /* sysconf macro unavailable, so guess */
-#  define maxfd 256
+static int maxfd = 256;
 # else
 static int maxfd = 0;
 # endif /* _SC_OPEN_MAX */

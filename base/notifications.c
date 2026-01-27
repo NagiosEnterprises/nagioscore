@@ -1366,10 +1366,7 @@ int check_host_notification_viability(host *hst, int type, int options) {
 			if(timeperiod_start == (time_t)0)
 				hst->next_notification = (time_t)(current_time + (60 * 60 * 24 * 365));
 
-			/* else use the next valid notification time, but only if it's later than the already-scheduled notification time
-			 * (which may have been set based on notification_interval). This prevents overwriting a properly calculated
-			 * interval-based notification time with just "the start of the next notification period", which would cause
-			 * notifications to fire every period instead of respecting the notification_interval */
+			/* else use the next valid notification time, but only if it's later than the already-scheduled notification time */
 			else if(hst->next_notification < timeperiod_start)
 				hst->next_notification = timeperiod_start;
 

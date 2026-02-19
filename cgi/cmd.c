@@ -112,7 +112,7 @@ int string_to_time(char *, time_t *);
 
 int main(void) {
 	int result = OK;
-	int formid_ok = OK;
+	int formid_ok = ERROR;
 
 	/* Initialize shared configuration variables */                             
 	init_shared_cfg_vars(1);
@@ -219,7 +219,6 @@ int main(void) {
         }
 
 	if (cookie_form_id && *cookie_form_id) {
-		formid_ok = ERROR;
 		if (form_id && *form_id) {
 			if (!strcmp(form_id, cookie_form_id))
 				formid_ok = OK;
@@ -241,7 +240,7 @@ int main(void) {
 	/* the user wants to commit the command */
 	else if(command_mode == CMDMODE_COMMIT) {
 		if (formid_ok == ERROR)	/* we're expecting an id but it wasn't there... */
-			printf("<p>Error: Invalid form id!</p>\n");
+			printf("<p>Error: Invalid or missing CSRF cookie!</p>\n");
 		else
 			commit_command_data(command_type);
 	}
@@ -280,8 +279,28 @@ void cgicfg_callback(const char *var, const char *val)
 	strip_html_brackets(ecmd->default_comment);
 }
 
+/* generates and sets a pseudo-random cookie if one is not already set */
+void set_cookie() {
+	if (!(cookie_form_id && *cookie_form_id)) {
+		unsigned long long n = ((unsigned long long)rand() << 32) | rand();
+		char buffer[32];
+
+		snprintf(buffer, sizeof(buffer), "%llx", n);
+
+		cookie_form_id = strdup(buffer);
+		if (!cookie_form_id) {
+			fprintf(stderr, "Memory allocation failed\n");
+			exit(1);
+		}
+
+		printf("Set-Cookie: NagFormId=%s; SameSite=Strict\r\n", cookie_form_id);
+	}
+}
+
 
 void document_header(int use_stylesheet) {
+
+	set_cookie();
 
 	if(content_type == WML_CONTENT) {
 

@@ -42,11 +42,6 @@ if ($theme != 'dark' && $theme != 'light') {
 	<title>Nagios: <?php echo $_SERVER['SERVER_NAME']; ?></title>
 	<link rel="shortcut icon" href="images/favicon.ico" type="image/ico">
 
-	<script LANGUAGE="javascript">
-		var n = Math.round(Math.random() * 10000000000);
-		document.cookie = "NagFormId=" + n.toString(16);
-	</script>
-
 	<style>
 		#root {
 			display: flex;

@@ -4,7 +4,7 @@ Nagios Core 4 Change Log
 
 4.5.12 - 2026-03-18
 -------------------
-* Fix vulnerabilities in CSRF cookie (Emmett Kapsner)
+* Fix vulnerabilities in CSRF cookie (Thanks SeungMyung Lee) (Emmett Kapsner)
 * Fix runcmd compile error by replacing maxfd macro with a static variable (Leon Adomaitis)
 
 4.5.11 - 2026-01-15

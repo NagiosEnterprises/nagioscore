@@ -404,6 +404,21 @@ navbar_search_for_aliases=1
 
 
 
+# CGI CSRF COOKIE CHECK BEHAVIOR
+# This option controls how the CGI handles a missing CSRF Cookie.
+# 0 (default): Fail closed - reject the request if the CSRF cookie is
+# missing or invalid. This is more secure.
+# 1: Fail open - allow the request even if the CSRF cookie check fails.
+# This reduces CSRF protection but may be required for some third-party
+# integrations.
+#
+# WARNING: Enabling fail open weakens security and should only be used
+# if you fully understand the risk.
+
+#cgi_cookie_fail_open=0
+
+
+
 # COMMAND COMMENTS
 # These options control whether or not comments are required, optional,
 # or not allowed for specific commands. The format for each line is:

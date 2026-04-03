@@ -72,6 +72,7 @@ int             navbar_search_aliases = TRUE;
 int		ack_no_sticky  = FALSE;
 int		ack_no_send    = FALSE;
 int		tac_cgi_hard_only = FALSE;
+int		cgi_cookie_fail_open = FALSE;
 
 time_t          this_scheduled_log_rotation = 0L;
 time_t          last_scheduled_log_rotation = 0L;
@@ -443,6 +444,8 @@ int read_cgi_config_file(const char *filename, read_config_callback callback) {
 			ack_no_send = (atoi(val) > 0) ? TRUE : FALSE;
 		else if(!strcmp(var, "tac_cgi_hard_only"))
 			tac_cgi_hard_only = (atoi(val) > 0) ? TRUE : FALSE;
+		else if (!strcmp(var, "cgi_cookie_fail_open"))
+			cgi_cookie_fail_open = (atoi(val) > 0) ? TRUE : FALSE;
 		else if (callback)
 			(*callback)(var,val);
 		}

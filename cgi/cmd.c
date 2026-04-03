@@ -44,6 +44,7 @@ extern int  lock_author_names;
 
 extern int ack_no_sticky;
 extern int ack_no_send;
+extern int cgi_cookie_fail_open;
 
 #define MAX_AUTHOR_LENGTH	64
 #define MAX_COMMENT_LENGTH	1024
@@ -112,7 +113,6 @@ int string_to_time(char *, time_t *);
 
 int main(void) {
 	int result = OK;
-	int formid_ok = ERROR;
 
 	/* Initialize shared configuration variables */                             
 	init_shared_cfg_vars(1);
@@ -217,6 +217,8 @@ int main(void) {
 
 		return OK;
         }
+
+	int formid_ok = cgi_cookie_fail_open ? OK : ERROR;
 
 	if (cookie_form_id && *cookie_form_id) {
 		if (form_id && *form_id) {

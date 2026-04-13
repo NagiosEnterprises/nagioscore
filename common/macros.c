@@ -755,6 +755,7 @@ int grab_macrox_value_r(nagios_macros *mac, int macro_type, char *arg1, char *ar
 		case MACRO_HOSTANDSERVICESIMPORTANCE:
 		case MACRO_HOSTNOTIFICATIONENABLED:
 		case MACRO_HOSTNOTIFICATIONPERIOD:
+		case MACRO_HOSTCHECKSOURCE:
 
 			/* a standard host macro */
 			if(arg2 == NULL) {
@@ -891,6 +892,7 @@ int grab_macrox_value_r(nagios_macros *mac, int macro_type, char *arg1, char *ar
 		case MACRO_SERVICEIMPORTANCE:
 		case MACRO_SERVICENOTIFICATIONENABLED:
 		case MACRO_SERVICENOTIFICATIONPERIOD:
+		case MACRO_SERVICECHECKSOURCE:
 
 			/* use saved service pointer */
 			if(arg1 == NULL && arg2 == NULL) {
@@ -1677,6 +1679,10 @@ int grab_standard_host_macro_r(nagios_macros *mac, int macro_type, host *temp_ho
 			if(temp_host->check_command)
 				*output = temp_host->check_command;
 			break;
+		case MACRO_HOSTCHECKSOURCE:
+			if(temp_host->check_source)
+				*output = temp_host->check_source;
+			break;
 #ifdef NSCORE
 		case MACRO_HOSTATTEMPT:
 			*output = (char *)mkstr("%d", temp_host->current_attempt);
@@ -2047,6 +2053,10 @@ int grab_standard_service_macro_r(nagios_macros *mac, int macro_type, service *t
 		case MACRO_SERVICECHECKCOMMAND:
 			if(temp_service->check_command)
 				*output = temp_service->check_command;
+			break;
+		case MACRO_SERVICECHECKSOURCE:
+			if(temp_service->check_source)
+				*output = temp_service->check_source;
 			break;
 #ifdef NSCORE
 		case MACRO_SERVICECHECKTYPE:
@@ -2848,6 +2858,8 @@ int init_macrox_names(void) {
 	add_macrox_name(SERVICENOTIFICATIONENABLED);
 	add_macrox_name(HOSTNOTIFICATIONPERIOD);
 	add_macrox_name(SERVICENOTIFICATIONPERIOD);
+	add_macrox_name(HOSTCHECKSOURCE);
+	add_macrox_name(SERVICECHECKSOURCE);
 
 	return OK;
 	}

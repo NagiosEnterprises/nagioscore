@@ -4,6 +4,7 @@ Nagios Core 4 Change Log
 
 4.5.13 - 2026-xx-xx
 -------------------
+* Add HOSTCHECKSOURCE and SERVICECHECKSOURCE macros (#1044) (Emmett Kapsner)
 * Add cgi_cookie_fail_open config option that allows for third-party integrations to use cmd.cgi (Emmett Kapsner)
 
 4.5.12 - 2026-03-25

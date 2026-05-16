@@ -1699,7 +1699,7 @@ inline void schedule_service_check(service *svc, time_t check_time, int options)
 
 	/* we may have to nudge this check a bit */
 	if (options == CHECK_OPTION_DEPENDENCY_CHECK) {
-		if (svc->last_check + cached_service_check_horizon > check_time) {
+		if (svc->last_check <= time(NULL) && svc->last_check + cached_service_check_horizon > check_time) {
 			log_debug_info(DEBUGL_CHECKS, 0, "Last check result is recent enough (%s)", ctime(&svc->last_check));
 			return;
 		}
@@ -3122,12 +3122,14 @@ int run_async_host_check(host *hst, int check_options, double latency, int sched
 
 	/* abort if check is already running or was recently completed */
 	if (!(check_options & CHECK_OPTION_FORCE_EXECUTION)) {
+		time_t current_time = time(NULL);
+
 		if (hst->is_executing == TRUE) {
 			log_debug_info(DEBUGL_CHECKS, 1, "A check of this host is already being executed, so we'll pass for the moment...\n");
 			return ERROR;
 		}
 
-		if (hst->last_check + cached_host_check_horizon > time(NULL)) {
+		if (hst->last_check <= current_time && hst->last_check + cached_host_check_horizon > current_time) {
 			log_debug_info(DEBUGL_CHECKS, 0, "Host '%s' was last checked within its cache horizon. Aborting check\n", hst->name);
 			return ERROR;
 		}

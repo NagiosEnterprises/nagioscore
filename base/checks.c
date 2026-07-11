@@ -1602,6 +1602,11 @@ int handle_async_service_check_result(service *svc, check_result *cr)
                 if (svc->stalking_notify == TRUE && svc->state_type == HARD_STATE) {
 			send_notification = TRUE;
 			notification_type = NOTIFICATION_STALKING;
+
+			svc->problem_has_been_acknowledged = FALSE;
+			svc->acknowledgement_type = ACKNOWLEDGEMENT_NONE;
+			delete_service_acknowledgement_comments(svc);
+
 			log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Notifying due to state stalking, old: [%s], new: [%s]\n", old_plugin_output, svc->plugin_output);
 		}
 	}
@@ -2499,8 +2504,14 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 		log_event = TRUE;
 
 		if (hst->stalking_notify == TRUE && hst->state_type == HARD_STATE) {
-                        send_notification = TRUE;
+			send_notification = TRUE;
 			notification_type = NOTIFICATION_STALKING;
+
+			hst->problem_has_been_acknowledged = FALSE;
+			hst->acknowledgement_type = ACKNOWLEDGEMENT_NONE;
+			delete_host_acknowledgement_comments(hst);
+
+			log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Notifying due to state stalking, old: [%s], new: [%s]\n", old_plugin_output, hst->plugin_output);
                 }
 	}
 

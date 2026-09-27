@@ -1,14 +1,147 @@
+/* config.cgi - object configuration viewer */
 
-.config { }
+/* quirks mode: tables do not inherit the font size */
+body.config table { font-size: inherit; }
 
-.dataTitle {  text-align: center;  font-weight: bold;  font-size: 12pt; }
+/* header: info box left, object type selector right */
+body.config > table:first-of-type { margin: 0 0 20px; }
+body.config > table:first-of-type > tbody > tr > td { padding: 0; vertical-align: top !important; }
+body.config > table:first-of-type > tbody > tr > td:last-child { text-align: right; }
 
-TABLE.data {  background-color: white;  padding: 2px; border-collapse:separate;}
-TH.data {  background-color: white;  text-align: left;  background-color: #999797;  }
-.dataOdd {  background-color: #DBDBDB; }
-.dataEven {  background-color: #C4C2C2; }
+body.config > table:first-of-type form table {
+	display: inline-grid;
+	grid-template-rows: auto auto;
+	grid-auto-flow: column;
+	align-items: end;
+	gap: 6px 10px;
+	padding: 14px 16px;
+	text-align: left;
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	box-shadow: var(--shadow);
+}
+body.config > table:first-of-type form table > tbody,
+body.config > table:first-of-type form table > tbody > tr { display: contents; }
+body.config > table:first-of-type form table td { padding: 0; }
+body.config > table:first-of-type form table td:has(input[type=submit]) { grid-row: 2; }
+body.config > table:first-of-type form table select,
+body.config > table:first-of-type form table input[type=text] { width: 200px; min-width: 0; }
 
-.reportSelectTitle {  text-align: center;  font-weight: bold;  font-size: 12pt; }
-.reportSelectSubTitle {  text-align: left;  font-weight: bold;  font-size: 10pt; }
-.reportSelectItem {  text-align: left; }
+/* object type selector page (config.cgi without parameters) */
+.reportSelectTitle {
+	margin: 12px 0 16px;
+	font-size: 20px;
+	font-weight: 650;
+	letter-spacing: -0.01em;
+	text-align: left;
+	color: var(--text);
+}
 
+body.config > br { display: none; }
+
+body.config > form > div[align=center] { text-align: left; }
+body.config > form > div[align=center] > table {
+	min-width: 320px;
+	padding: 18px 20px;
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: 12px;
+	border-collapse: separate;
+	box-shadow: var(--shadow);
+}
+body.config > form > div[align=center] > table td { padding: 4px 0; }
+body.config > form > div[align=center] select { width: 100%; }
+body.config > form > div[align=center] input[type=submit] { margin-top: 10px; }
+
+.reportSelectSubTitle {
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: .06em;
+	text-transform: uppercase;
+	text-align: left;
+	color: var(--muted);
+}
+.reportSelectItem { text-align: left; }
+.reportSelectItem select { min-width: 200px; }
+
+/* object listing */
+.dataTitle {
+	margin: 4px 0 14px;
+	font-size: 20px;
+	font-weight: 650;
+	text-align: left;
+	color: var(--text);
+}
+body.config p { margin: 0; }
+body.config div[align=center] { text-align: left; }
+
+/* the tables get very wide (hosts has ~40 columns): scroll them in place */
+body.config table.data {
+	display: block;
+	width: auto;
+	max-width: 100%;
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
+	padding: 0;
+	scrollbar-width: thin;
+}
+/* keep the rows full width when the table is narrower than the page */
+body.config table.data > tbody { display: table; width: 100%; }
+
+body.config table.data > tbody > tr > th {
+	position: sticky;
+	top: 0;
+	font-size: 10.5px;
+}
+
+body.config table.data > tbody > tr > td {
+	padding: 8px 12px;
+	white-space: nowrap;
+	max-width: 520px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	color: var(--text);
+}
+
+/* first column (object name) stays visible while scrolling sideways */
+body.config table.data > tbody > tr > td:first-child,
+body.config table.data > tbody > tr > th:first-child {
+	position: sticky;
+	left: 0;
+	z-index: 1;
+	font-weight: 600;
+	background: var(--surface);
+	box-shadow: 1px 0 0 var(--border);
+}
+body.config table.data > tbody > tr > th:first-child { background: var(--surface-2); z-index: 2; }
+body.config table.data > tbody > tr:hover > td:first-child { background: var(--surface-hover); }
+
+.dataOdd, .dataEven { background: transparent; }
+
+/* nested tables used for time ranges, members, ... */
+body.config table.data table td { padding: 1px 12px 1px 0; border: 0; white-space: nowrap; }
+
+/* command expansion form */
+body.config table.data form { display: flex; gap: 8px; margin: 0; }
+body.config table.data form input[type=text] { flex: 1; min-width: 240px; width: auto; }
+body.config table.data td:has(form) { white-space: normal; max-width: none; }
+body.config table.data td:has(> br:only-child) { width: 0; padding: 0; }
+
+@media (max-width: 760px) {
+	body.config > table:first-of-type,
+	body.config > table:first-of-type > tbody,
+	body.config > table:first-of-type > tbody > tr,
+	body.config > table:first-of-type > tbody > tr > td { display: block; width: auto !important; }
+	body.config > table:first-of-type > tbody > tr > td + td { margin-top: 12px; }
+	body.config table.infoBox { max-width: none; }
+	body.config > table:first-of-type > tbody > tr > td:last-child { text-align: left; }
+	body.config > table:first-of-type form table { display: grid; grid-template-rows: none; grid-auto-flow: row; width: 100%; box-sizing: border-box; }
+	body.config > table:first-of-type form table td:has(input[type=submit]) { grid-row: auto; }
+	body.config > table:first-of-type form table select,
+	body.config > table:first-of-type form table input[type=text] { width: 100%; }
+	body.config > form > div[align=center] > table { width: 100%; min-width: 0; box-sizing: border-box; }
+	body.config table.data > tbody > tr > td { max-width: 260px; }
+	body.config table.data form { flex-wrap: wrap; }
+	body.config table.data form input[type=text] { min-width: 0; width: 100%; }
+}

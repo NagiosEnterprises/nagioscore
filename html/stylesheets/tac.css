@@ -1,86 +1,493 @@
+/*
+ * Tactical Overview (tac.cgi)
+ *
+ * The CGI prints deeply nested layout tables. We dissolve the wrappers with
+ * "display: contents" so the real content blocks (info box, performance,
+ * health, outages, hosts, services, features) become items of one page grid,
+ * and turn each of them into a card. Colors come from common.css tokens only.
+ */
 
-.tac {  background-color: black;  background: black;  color: white;  background-color: black; margin:10px;} 
+body.tac {
+	display: grid;
+	grid-template-columns: repeat(12, minmax(0, 1fr));
+	gap: 16px;
+	align-items: stretch;
+	max-width: 1480px;
+}
 
-.infoBoxBadProcStatus { color: red; }
+body.tac > br,
+body.tac > p:empty,
+body.tac > p:not(:has(table)) {
+	display: none;
+}
 
-body.tac a,a:visited {  color: black; }
-body.tac a:active,a:hover: {text-decoration:underline;}
-body.tac table.infoBox {background-color:#C4C2C2;color:black;}
+/* the vidbox ("Page Tour") must stay out of the grid flow */
+body.tac > .vidboxContainer, body.tac > .vidboxTab { grid-column: auto; }
 
-.title { text-align: left;   font-weight: bold;  font-size: large;  background-color: black;  color: white; }
-.titleItem { text-align: left;   font-weight: bold;  background-color: black;  color: white; }
-.infoBoxBadProcStatus { text-align: left;   font-weight: bold;  background-color: #C4C2C2;  color: red; }
 
-.healthTitle { text-align: left;   font-weight: bold;  font-size: 10pt;  background-color: #999797;  color: black; }
-.healthBox { text-align: left;   font-weight: bold;  background-color: #C4C2C2;  color: white; }
-.healthItem { text-align: left;   font-weight: bold;  font-size: 10pt;  background-color: #C4C2C2;  color: black; }
-.healthBar { text-align: left;   font-weight: bold;  background-color: gray;  color: white; }
+/* ---------------------------------------------------------------- dissolve wrappers */
 
-.perfTitle { text-align: left;   font-weight: bold;  font-size: 10pt;  background-color: #999797;  color: black;  text-decoration: none; }
-.perfBox { text-align: left;   font-weight: bold;  background-color: #C4C2C2;  color: white; }
-.perfItem { text-align: left;   font-weight: bold;  font-size: 10pt;  background-color: #C4C2C2;  color: black;  text-decoration: none; }
-.perfValue { text-align: left;   font-size: 10pt;  background-color: #C4C2C2;  color: black;  text-decoration: none; }
+/* header table around the info box */
+body.tac > table:first-child,
+body.tac > table:first-child > tbody,
+body.tac > table:first-child > tbody > tr,
+body.tac > table:first-child > tbody > tr > td {
+	display: contents;
+}
 
-.featureTitle { text-align: left;   font-weight: bold;  font-size: 10pt;  background-color: #999797;  color: black; }
-.featureHeader { text-align: center;   font-weight: bold;  font-size: 10pt;  background-color: #C4C2C2;  color: black; }
+/* wrappers around the performance / health / outage cards */
+body.tac :is(p, table, tbody, tr, td):has(td:is(.perfTitle, .healthTitle, .outageTitle)):not(table:has(> tbody > tr > td:is(.perfTitle, .healthTitle, .outageTitle)) *):not(table:has(> tbody > tr > td:is(.perfTitle, .healthTitle, .outageTitle))) {
+	display: contents;
+}
 
-.featureEnabled { text-align: center;   font-weight: bold;  font-size: 10pt;  background-color: #ccffcc;  color: #8f8f8f; }
-.featureDisabled { text-align: center;   font-weight: bold;  font-size: 10pt;  background-color: #ffcccc;  color: #b3b3b3; }
+/* empty spacer cells next to those cards */
+body.tac tr:has(td:is(.perfTitle, .healthTitle, .outageTitle)) > td:not(:has(td:is(.perfTitle, .healthTitle, .outageTitle))):not(:is(.perfTitle, .healthTitle, .outageTitle)) {
+	display: none;
+}
 
-.featureEnabledFlapDetection { text-align: center;   font-weight: bold;  font-size: 10pt;  background-color: #ccffcc;  color: #8f8f8f; }
-.featureDisabledFlapDetection { text-align: center;   font-weight: bold;  font-size: 10pt;  background-color: #ffcccc;  color: #b3b3b3; }
-.featureItemEnabledServiceFlapDetection { text-align: left;   background-color: #ccffcc;  color: black; }
-.featureItemDisabledServiceFlapDetection { text-align: left;   background-color: #ff0000;  color: black; }
-.featureItemEnabledHostFlapDetection { text-align: left;   background-color: #ccffcc;  color: black; }
-.featureItemDisabledHostFlapDetection { text-align: left;   background-color: #ff0000;  color: black; }
-.featureItemServicesNotFlapping { text-align: left;   background-color: #ccffcc;  color: black; }
-.featureItemServicesFlapping { text-align: left;   background-color: #ff0000;  color: black; }
-.featureItemHostsNotFlapping { text-align: left;   background-color: #ccffcc;  color: black; }
-.featureItemHostsFlapping { text-align: left;   background-color: #ff0000;  color: black; }
+/* paragraphs around the host / service / feature cards */
+body.tac > p:has(> table.tac) { display: contents; }
 
-.featureEnabledNotifications { text-align: center;   font-weight: bold;  font-size: 10pt;  background-color: #ccffcc;  color: #8f8f8f; }
-.featureDisabledNotifications { text-align: center;   font-weight: bold;  font-size: 10pt;  background-color: #ffcccc;  color: #b3b3b3; }
-.featureItemEnabledServiceNotifications { text-align: left;   background-color: #ccffcc;  color: black; }
-.featureItemDisabledServiceNotifications { text-align: left;   background-color: #ff0000;  color: black; }
-.featureItemEnabledHostNotifications { text-align: left;   background-color: #ccffcc;  color: black; }
-.featureItemDisabledHostNotifications { text-align: left;   background-color: #ff0000;  color: black; }
 
-.featureEnabledHandlers { text-align: center;   font-weight: bold;  font-size: 10pt;  background-color: #ccffcc;  color: #8f8f8f; }
-.featureDisabledHandlers { text-align: center;   font-weight: bold;  font-size: 10pt;  background-color: #ffcccc;  color: #b3b3b3; }
-.featureItemEnabledServiceHandlers { text-align: left;   background-color: #ccffcc;  color: black; }
-.featureItemDisabledServiceHandlers { text-align: left;   background-color: #ff0000;  color: black; }
-.featureItemEnabledHostHandlers { text-align: left;   background-color: #ccffcc;  color: black; }
-.featureItemDisabledHostHandlers { text-align: left;   background-color: #ff0000;  color: black; }
+/* ---------------------------------------------------------------- cards */
 
-.featureEnabledActiveChecks { text-align: center;   font-weight: bold;  font-size: 10pt;  background-color: #ccffcc;  color: #8f8f8f; }
-.featureDisabledActiveChecks { text-align: center;   font-weight: bold;  font-size: 10pt;  background-color: #ffcccc;  color: #b3b3b3; }
-.featureItemEnabledActiveServiceChecks { text-align: left;   background-color: #ccffcc;  color: black; }
-.featureItemDisabledActiveServiceChecks { text-align: left;   background-color: #ff0000;  color: black; }
-.featureItemEnabledActiveHostChecks { text-align: left;   background-color: #ccffcc;  color: black; }
-.featureItemDisabledActiveHostChecks { text-align: left;   background-color: #ff0000;  color: black; }
+body.tac table.infoBox,
+body.tac table:has(> tbody > tr > td:is(.perfTitle, .healthTitle)),
+body.tac table.tac {
+	display: flex;
+	flex-direction: column;
+	width: auto !important;
+	max-width: none;
+	margin: 0;
+	padding: 16px 18px;
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	box-shadow: var(--shadow);
+	box-sizing: border-box;
+	border-spacing: 0;
+}
 
-.featureEnabledPassiveChecks { text-align: center;   font-weight: bold;  font-size: 10pt;  background-color: #ccffcc;  color: #8f8f8f; }
-.featureDisabledPassiveChecks { text-align: center;   font-weight: bold;  font-size: 10pt;  background-color: #ffcccc;  color: #b3b3b3; }
-.featureItemEnabledPassiveServiceChecks { text-align: left;   background-color: #ccffcc;  color: black; }
-.featureItemDisabledPassiveServiceChecks { text-align: left;   background-color: #ff0000;  color: black; }
-.featureItemEnabledPassiveHostChecks { text-align: left;   background-color: #ccffcc;  color: black; }
-.featureItemDisabledPassiveHostChecks { text-align: left;   background-color: #ff0000;  color: black; }
+body.tac table.infoBox > tbody,
+body.tac table.infoBox > tbody > tr,
+body.tac table.infoBox > tbody > tr > td {
+	display: block;
+	padding: 0;
+}
 
-.outageTitle { text-align: left;   font-weight: bold;  font-size: 10pt;  background-color: #999797;  color: black; }
-.outageHeader { text-align: center;   font-weight: bold;  font-size: 10pt;  background-color: #C4C2C2;  color: black;  text-decoration: none; }
+/* grid placement: info | performance | health, then outages | hosts, ... */
+body.tac table.infoBox { order: 1; }
+body.tac table:has(> tbody > tr > td.perfTitle) { order: 2; }
+body.tac table:has(> tbody > tr > td.healthTitle) { order: 3; }
+body.tac table.tac:has(td.outageTitle) { order: 4; }
+body.tac table.tac:has(td.hostTitle) { order: 5; }
+body.tac table.tac:has(td.serviceTitle) { order: 6; }
+body.tac table.tac:has(td.featureTitle) { order: 7; }
 
-.outageImportantProblem { text-align: left;   background-color: #ff0000;  color: black; }
-.outageUnimportantProblem { text-align: left;   background-color: #ffcccc;  color: black; }
+body.tac table.infoBox { grid-column: span 4; }
+body.tac table:has(> tbody > tr > td.perfTitle) { grid-column: span 5; }
+body.tac table:has(> tbody > tr > td.healthTitle) { grid-column: span 3; }
+body.tac table.tac:has(td.outageTitle) { grid-column: span 3; }
+body.tac table.tac:has(td.hostTitle) { grid-column: span 9; }
+body.tac table.tac:has(td.serviceTitle),
+body.tac table.tac:has(td.featureTitle) { grid-column: 1 / -1; }
 
-.hostTitle { text-align: left;   font-weight: bold;  font-size: 10pt;  background-color: #999797;  color: black; }
-.hostHeader { text-align: center;   font-weight: bold;  font-size: 10pt;  background-color: #C4C2C2;  color: black;  text-decoration: none; }
+/* card titles */
+body.tac td:is(.perfTitle, .healthTitle, .outageTitle, .hostTitle, .serviceTitle, .featureTitle) {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	height: auto !important;
+	padding: 0 0 14px;
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: .07em;
+	text-transform: uppercase;
+	color: var(--muted);
+	background: none;
+	white-space: nowrap;
+}
 
-.hostImportantProblem { text-align: left;   background-color: #ff0000;  color: black; }
-.hostUnimportantProblem { text-align: left;   background-color: #ffcccc;  color: black; }
+body.tac td:is(.perfTitle, .healthTitle, .outageTitle, .hostTitle, .serviceTitle, .featureTitle)::before {
+	content: "";
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: var(--accent);
+	box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
+}
 
-.serviceTitle { text-align: left;   font-weight: bold;  font-size: 10pt;  background-color: #999797;  color: black; }
-.serviceHeader { text-align: center;   font-weight: bold;  font-size: 10pt;  background-color: #C4C2C2;  color: black;  text-decoration: none; }
+body.tac a.perfTitle { font-size: inherit; margin: 0; letter-spacing: inherit; }
+body.tac a.perfTitle:link, body.tac a.perfTitle:visited { color: inherit; }
+body.tac a.perfTitle:hover { color: var(--text); text-decoration: none; }
 
-.serviceImportantProblem { text-align: left;   background-color: #ff0000;  color: black; }
-.serviceUnimportantProblem { text-align: left;   background-color: #ffcccc;  color: black; }
 
+/* ---------------------------------------------------------------- performance card */
+
+body.tac table:has(> tbody > tr > td.perfTitle) > tbody,
+body.tac table:has(> tbody > tr > td.perfTitle) > tbody > tr,
+body.tac table:has(> tbody > tr > td.perfTitle) > tbody > tr > td:not(.perfTitle),
+body.tac td.perfTitle + td,
+body.tac table:has(> tbody > tr > td.perfBox),
+body.tac table:has(> tbody > tr > td.perfBox) > tbody,
+body.tac table:has(> tbody > tr > td.perfBox) > tbody > tr,
+body.tac td.perfBox {
+	display: block;
+	padding: 0;
+	background: none;
+}
+
+body.tac td.perfBox > table { width: 100%; border-spacing: 0; }
+
+body.tac td.perfItem, body.tac td.perfValue {
+	padding: 8px 0;
+	font-size: 12.5px;
+	font-weight: normal;
+	background: none;
+	border-top: 1px solid var(--border);
+}
+body.tac td.perfBox tr:first-child > td { border-top: 0; padding-top: 0; }
+body.tac td.perfItem { padding-right: 16px; }
+body.tac td.perfValue { text-align: right; }
+
+body.tac a.perfItem:link, body.tac a.perfItem:visited { color: var(--muted); }
+body.tac a.perfValue:link, body.tac a.perfValue:visited {
+	color: var(--text);
+	font-family: var(--font-mono);
+	font-size: 12px;
+	font-variant-numeric: tabular-nums;
+}
+body.tac a.perfItem:hover, body.tac a.perfValue:hover { color: var(--link); text-decoration: none; }
+
+
+/* ---------------------------------------------------------------- health card */
+
+body.tac table:has(> tbody > tr > td.healthTitle) > tbody,
+body.tac table:has(> tbody > tr > td.healthTitle) > tbody > tr,
+body.tac table:has(> tbody > tr > td.healthTitle) > tbody > tr > td:not(.healthTitle),
+body.tac table:has(> tbody > tr > td.healthBox),
+body.tac table:has(> tbody > tr > td.healthBox) > tbody,
+body.tac table:has(> tbody > tr > td.healthBox) > tbody > tr,
+body.tac td.healthBox {
+	display: block;
+	padding: 0;
+	background: none;
+}
+
+body.tac td.healthBox > table,
+body.tac td.healthBox > table > tbody { display: block; width: 100%; }
+
+body.tac td.healthBox tr {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 0 0 18px;
+}
+body.tac td.healthBox tr:last-child { padding-bottom: 2px; }
+
+body.tac td.healthItem {
+	padding: 0;
+	font-size: 12.5px;
+	font-weight: 500;
+	color: var(--text);
+	background: none;
+}
+
+body.tac td.healthBar {
+	width: 100px !important;
+	height: 8px;
+	padding: 0;
+	border-radius: 999px;
+	background: var(--surface-2);
+	box-shadow: inset 0 0 0 1px var(--border);
+	overflow: hidden;
+	line-height: 0;
+}
+
+/* the bar is an <img width="N%"> thermometer; hide the bitmap, paint our own */
+body.tac td.healthBar img {
+	display: block;
+	height: 8px !important;
+	border-radius: 999px;
+	object-position: -9999px 0;
+	background: var(--ok);
+	box-shadow: 0 0 12px color-mix(in srgb, var(--ok) 60%, transparent);
+}
+body.tac td.healthBar img[src*="thermwarn"] {
+	background: var(--warning);
+	box-shadow: 0 0 12px color-mix(in srgb, var(--warning) 60%, transparent);
+}
+body.tac td.healthBar img[src*="thermcrit"] {
+	background: var(--critical);
+	box-shadow: 0 0 12px color-mix(in srgb, var(--critical) 60%, transparent);
+}
+
+/* with typed attr() the bar can use the full card width */
+@supports (width: calc(attr(width type(<number>), 0) * 1%)) {
+	body.tac td.healthBar { width: 100% !important; }
+	body.tac td.healthBar img { width: calc(attr(width type(<number>), 0) * 1%) !important; }
+}
+
+
+/* ---------------------------------------------------------------- tile tables: outages, hosts, services, features */
+
+body.tac table.tac > tbody {
+	display: grid;
+	grid-template-columns: repeat(5, minmax(0, 1fr));
+	column-gap: 12px;
+}
+body.tac table.tac:has(td.hostTitle) > tbody { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+body.tac table.tac:has(td.outageTitle) > tbody { grid-template-columns: minmax(0, 1fr); }
+
+body.tac table.tac > tbody > tr { display: contents; }
+body.tac table.tac > tbody > tr:first-child > td { grid-column: 1 / -1; }
+
+/* per column status color */
+body.tac table.tac > tbody > tr > td { --c: var(--pending); }
+body.tac table.tac:has(td.hostTitle) > tbody > tr > td:nth-child(1) { --c: var(--critical); }
+body.tac table.tac:has(td.hostTitle) > tbody > tr > td:nth-child(2) { --c: var(--unreachable); }
+body.tac table.tac:has(td.hostTitle) > tbody > tr > td:nth-child(3) { --c: var(--ok); }
+body.tac table.tac:has(td.serviceTitle) > tbody > tr > td:nth-child(1) { --c: var(--critical); }
+body.tac table.tac:has(td.serviceTitle) > tbody > tr > td:nth-child(2) { --c: var(--warning); }
+body.tac table.tac:has(td.serviceTitle) > tbody > tr > td:nth-child(3) { --c: var(--unknown); }
+body.tac table.tac:has(td.serviceTitle) > tbody > tr > td:nth-child(4) { --c: var(--ok); }
+body.tac table.tac:has(td.outageTitle) > tbody > tr > td { --c: var(--ok); }
+body.tac table.tac:has(:is(.outageImportantProblem, .outageUnimportantProblem)) > tbody > tr > td { --c: var(--critical); }
+
+/* tile head: "1 Down", "10 Ok", "Flap Detection" ... */
+body.tac td:is(.hostHeader, .serviceHeader, .outageHeader, .featureHeader) {
+	position: relative;
+	width: auto !important;
+	padding: 14px 14px 6px;
+	text-align: left;
+	font-size: 17px;
+	font-weight: 650;
+	letter-spacing: -0.01em;
+	background: var(--surface-2);
+	border: 1px solid var(--border);
+	border-bottom: 0;
+	border-radius: 8px 8px 0 0;
+	white-space: nowrap;
+}
+
+body.tac td:is(.hostHeader, .serviceHeader, .outageHeader)::before {
+	content: "";
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	margin: 0 9px 2px 0;
+	border-radius: 50%;
+	background: var(--c);
+	vertical-align: middle;
+}
+
+body.tac a:is(.hostHeader, .serviceHeader, .outageHeader):link,
+body.tac a:is(.hostHeader, .serviceHeader, .outageHeader):visited {
+	color: var(--text);
+}
+body.tac a:is(.hostHeader, .serviceHeader, .outageHeader):hover { color: var(--link); text-decoration: none; }
+
+body.tac td.featureHeader {
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: .02em;
+	color: var(--text);
+}
+
+/* tile body: the problem breakdown under each head */
+body.tac table.tac > tbody > tr:nth-child(3) > td {
+	min-height: 44px;
+	padding: 4px 14px 14px;
+	background: var(--surface-2);
+	border: 1px solid var(--border);
+	border-top: 0;
+	border-radius: 0 0 8px 8px;
+	margin-bottom: 12px;
+}
+body.tac table.tac > tbody > tr:nth-child(3) > td,
+body.tac table.tac > tbody > tr:nth-child(3) > td table,
+body.tac table.tac > tbody > tr:nth-child(3) > td tbody,
+body.tac table.tac > tbody > tr:nth-child(3) > td tr {
+	display: block;
+	width: auto !important;
+}
+body.tac table.tac > tbody > tr:nth-child(3) > td td {
+	display: block;
+	width: auto !important;
+}
+:where(body.tac table.tac > tbody > tr:nth-child(3) > td td) { padding: 0; }
+body.tac table.tac > tbody > tr:nth-child(3) > td :is(td[width="25"], td[width="10"]) { display: none; }
+
+/* column with unhandled problems: tint the whole tile */
+body.tac table.tac > tbody:has(> tr:nth-child(3) > td:nth-child(1) :is(.hostImportantProblem, .serviceImportantProblem, .outageImportantProblem)) > tr:not(:first-child) > td:nth-child(1),
+body.tac table.tac > tbody:has(> tr:nth-child(3) > td:nth-child(2) :is(.hostImportantProblem, .serviceImportantProblem, .outageImportantProblem)) > tr:not(:first-child) > td:nth-child(2),
+body.tac table.tac > tbody:has(> tr:nth-child(3) > td:nth-child(3) :is(.hostImportantProblem, .serviceImportantProblem, .outageImportantProblem)) > tr:not(:first-child) > td:nth-child(3),
+body.tac table.tac > tbody:has(> tr:nth-child(3) > td:nth-child(4) :is(.hostImportantProblem, .serviceImportantProblem, .outageImportantProblem)) > tr:not(:first-child) > td:nth-child(4),
+body.tac table.tac > tbody:has(> tr:nth-child(3) > td:nth-child(5) :is(.hostImportantProblem, .serviceImportantProblem, .outageImportantProblem)) > tr:not(:first-child) > td:nth-child(5) {
+	background: color-mix(in srgb, var(--c) 11%, var(--surface-2));
+	border-color: color-mix(in srgb, var(--c) 45%, var(--border));
+}
+body.tac table.tac > tbody:has(> tr:nth-child(3) > td:nth-child(1) :is(.hostImportantProblem, .serviceImportantProblem, .outageImportantProblem)) > tr:nth-child(2) > td:nth-child(1)::before,
+body.tac table.tac > tbody:has(> tr:nth-child(3) > td:nth-child(2) :is(.hostImportantProblem, .serviceImportantProblem, .outageImportantProblem)) > tr:nth-child(2) > td:nth-child(2)::before,
+body.tac table.tac > tbody:has(> tr:nth-child(3) > td:nth-child(3) :is(.hostImportantProblem, .serviceImportantProblem, .outageImportantProblem)) > tr:nth-child(2) > td:nth-child(3)::before,
+body.tac table.tac > tbody:has(> tr:nth-child(3) > td:nth-child(4) :is(.hostImportantProblem, .serviceImportantProblem, .outageImportantProblem)) > tr:nth-child(2) > td:nth-child(4)::before,
+body.tac table.tac > tbody:has(> tr:nth-child(3) > td:nth-child(5) :is(.hostImportantProblem, .serviceImportantProblem, .outageImportantProblem)) > tr:nth-child(2) > td:nth-child(5)::before {
+	box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 25%, transparent), 0 0 12px var(--c);
+	animation: tac-pulse 2s ease-in-out infinite;
+}
+
+@keyframes tac-pulse {
+	50% { opacity: .45; }
+}
+
+/* problem breakdown entries as chips */
+body.tac table.tac td:is(.hostImportantProblem, .hostUnimportantProblem, .serviceImportantProblem,
+	.serviceUnimportantProblem, .outageImportantProblem, .outageUnimportantProblem) {
+	display: block;
+	margin: 6px 0 0;
+	padding: 5px 9px;
+	font-size: 12px;
+	font-weight: 500;
+	border-radius: 6px;
+	background: var(--surface);
+	border: 1px solid var(--border);
+}
+body.tac table.tac td:is(.hostImportantProblem, .hostUnimportantProblem, .serviceImportantProblem,
+	.serviceUnimportantProblem, .outageImportantProblem, .outageUnimportantProblem) {
+	padding: 5px 9px;
+}
+body.tac table.tac td:is(.hostImportantProblem, .serviceImportantProblem, .outageImportantProblem) {
+	background: color-mix(in srgb, var(--c) 18%, var(--surface));
+	border-color: color-mix(in srgb, var(--c) 45%, transparent);
+}
+body.tac :is(.hostImportantProblem, .hostUnimportantProblem, .serviceImportantProblem,
+	.serviceUnimportantProblem, .outageImportantProblem, .outageUnimportantProblem) a:link,
+body.tac :is(.hostImportantProblem, .hostUnimportantProblem, .serviceImportantProblem,
+	.serviceUnimportantProblem, .outageImportantProblem, .outageUnimportantProblem) a:visited {
+	display: block;
+	color: var(--muted);
+}
+body.tac :is(.hostImportantProblem, .serviceImportantProblem, .outageImportantProblem) a:link,
+body.tac :is(.hostImportantProblem, .serviceImportantProblem, .outageImportantProblem) a:visited {
+	color: var(--text);
+	font-weight: 600;
+}
+body.tac :is(.hostImportantProblem, .hostUnimportantProblem, .serviceImportantProblem,
+	.serviceUnimportantProblem, .outageImportantProblem, .outageUnimportantProblem) a:hover {
+	color: var(--link);
+	text-decoration: none;
+}
+
+
+/* ---------------------------------------------------------------- monitoring features */
+
+/* the enabled/disabled gif becomes a status pill (still a link to the toggle command) */
+body.tac td.featureHeader ~ td, body.tac table.tac > tbody > tr:nth-child(3) > td a:has(> img[src*="tacenabled"]),
+body.tac table.tac > tbody > tr:nth-child(3) > td a:has(> img[src*="tacdisabled"]) {
+	text-decoration: none;
+}
+
+body.tac a:has(> img[src*="tacenabled"]), body.tac a:has(> img[src*="tacdisabled"]) {
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+	margin: 4px 0 8px;
+	padding: 4px 10px 4px 8px;
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: .05em;
+	text-transform: uppercase;
+	border-radius: 999px;
+}
+body.tac a:has(> img[src*="tacenabled"]) { color: var(--ok); background: var(--ok-soft); }
+body.tac a:has(> img[src*="tacdisabled"]) { color: var(--critical); background: var(--critical-soft); }
+body.tac a:has(> img[src*="tacenabled"])::before, body.tac a:has(> img[src*="tacdisabled"])::before {
+	content: "";
+	width: 7px;
+	height: 7px;
+	border-radius: 50%;
+	background: currentColor;
+}
+body.tac a:has(> img[src*="tacenabled"])::after { content: "Enabled"; }
+body.tac a:has(> img[src*="tacdisabled"])::after { content: "Disabled"; }
+body.tac a:has(> img[src*="tacenabled"]):hover, body.tac a:has(> img[src*="tacdisabled"]):hover { filter: brightness(1.15); }
+body.tac a > img[src*="tacenabled"], body.tac a > img[src*="tacdisabled"] { display: none; }
+
+/* feature cells and their item lists */
+body.tac td[class^="featureEnabled"], body.tac td[class^="featureDisabled"] {
+	background: none;
+	font-size: 12px;
+	font-weight: normal;
+	text-align: left;
+	color: var(--muted);
+}
+
+body.tac td[class^="featureItem"] {
+	position: relative;
+	padding: 3px 0 3px 14px !important;
+	font-size: 12px;
+	background: none;
+	color: var(--muted);
+}
+body.tac td[class^="featureItem"]::before {
+	content: "";
+	position: absolute;
+	left: 0;
+	top: 9px;
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: var(--ok);
+}
+body.tac td:is([class^="featureItemDisabled"], .featureItemServicesFlapping, .featureItemHostsFlapping) {
+	color: var(--critical);
+	font-weight: 600;
+}
+body.tac td:is([class^="featureItemDisabled"], .featureItemServicesFlapping, .featureItemHostsFlapping)::before {
+	background: var(--critical);
+}
+body.tac td[class^="featureItem"] a:link, body.tac td[class^="featureItem"] a:visited { color: inherit; }
+
+
+/* ---------------------------------------------------------------- responsive */
+
+@media (max-width: 1180px) {
+	body.tac table.infoBox,
+	body.tac table:has(> tbody > tr > td.perfTitle) { grid-column: span 6; }
+	body.tac table:has(> tbody > tr > td.healthTitle),
+	body.tac table.tac:has(td.outageTitle) { grid-column: span 6; }
+	body.tac table.tac:has(td.hostTitle) { grid-column: 1 / -1; }
+}
+
+@media (max-width: 760px) {
+	body.tac { gap: 12px; }
+	body.tac > * { grid-column: 1 / -1 !important; }
+	body.tac table.infoBox,
+	body.tac table:has(> tbody > tr > td:is(.perfTitle, .healthTitle)),
+	body.tac table.tac { grid-column: 1 / -1 !important; padding: 14px; }
+
+	body.tac td.perfItem { font-size: 12px; }
+	body.tac a.perfValue:link, body.tac a.perfValue:visited { font-size: 11px; white-space: nowrap; }
+
+	/* two tiles per row; place each head directly above its body */
+	body.tac table.tac > tbody { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; column-gap: 10px; }
+	body.tac table.tac:has(td.outageTitle) > tbody { grid-template-columns: minmax(0, 1fr) !important; }
+	body.tac table.tac > tbody > tr:nth-child(2) > td:nth-child(1) { grid-area: 2 / 1; }
+	body.tac table.tac > tbody > tr:nth-child(3) > td:nth-child(1) { grid-area: 3 / 1; }
+	body.tac table.tac > tbody > tr:nth-child(2) > td:nth-child(2) { grid-area: 2 / 2; }
+	body.tac table.tac > tbody > tr:nth-child(3) > td:nth-child(2) { grid-area: 3 / 2; }
+	body.tac table.tac > tbody > tr:nth-child(2) > td:nth-child(3) { grid-area: 4 / 1; }
+	body.tac table.tac > tbody > tr:nth-child(3) > td:nth-child(3) { grid-area: 5 / 1; }
+	body.tac table.tac > tbody > tr:nth-child(2) > td:nth-child(4) { grid-area: 4 / 2; }
+	body.tac table.tac > tbody > tr:nth-child(3) > td:nth-child(4) { grid-area: 5 / 2; }
+	body.tac table.tac > tbody > tr:nth-child(2) > td:nth-child(5) { grid-area: 6 / 1; }
+	body.tac table.tac > tbody > tr:nth-child(3) > td:nth-child(5) { grid-area: 7 / 1; }
+
+	body.tac td:is(.hostHeader, .serviceHeader, .outageHeader) { font-size: 15px; padding: 12px 12px 4px; }
+	body.tac table.tac > tbody > tr:nth-child(3) > td { padding: 2px 12px 12px; margin-bottom: 10px; }
+	body.tac td.featureHeader { white-space: normal; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	body.tac td::before { animation: none !important; }
+}

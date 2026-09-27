@@ -1,338 +1,813 @@
+/*
+ * Nagios Core - common styles shared by all pages and CGIs.
+ *
+ * Design tokens live on :root. Colors follow the OS color scheme by default;
+ * the "dark" / "light" class on <html> (set from $cfg['theme'] by the PHP
+ * pages, and pushed into CGI pages by the index.php shell) forces a theme.
+ * Page specific stylesheets must only use these tokens for colors.
+ */
 
-/***************** common to all pages, moved to this stylesheet ********************/
+:root {
+	--font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+	--font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	--radius: 10px;
+	--radius-sm: 6px;
 
-/* default font size for all elements */
-* {font-size:8pt;}
+	/*
+	 * light theme: darker status colors for contrast on light surfaces,
+	 * and an off-white palette so large pages don't glare
+	 */
+	--ok: #15803d;
+	--warning: #b45309;
+	--unknown: #c2410c;
+	--critical: #dc2626;
+	--unreachable: #be123c;
+	--pending: #64748b;
+	--info: #2563eb;
+	--accent: #15803d;
+	--accent-fg: #ffffff;
+
+	--bg: #e9ecf1;
+	--surface: #f8f9fb;
+	--surface-2: #eff2f6;
+	--surface-hover: #f1f4f8;
+	--border: #d9dee6;
+	--border-strong: #c3cad5;
+	--text: #111827;
+	--muted: #6b7280;
+	--link: #2563eb;
+	--link-hover: #1d4ed8;
+	--shadow: 0 1px 2px rgba(16, 24, 40, 0.05), 0 1px 3px rgba(16, 24, 40, 0.06);
+	--shadow-lg: 0 12px 32px -12px rgba(16, 24, 40, 0.25);
+
+	/* legacy names used by older stylesheets */
+	--foreground: var(--text);
+	--background: var(--bg);
+	--input: var(--surface);
+
+	color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root:not(.light) {
+		--ok: #22c55e;
+		--warning: #f59e0b;
+		--unknown: #f97316;
+		--critical: #ef4444;
+		--unreachable: #e11d48;
+		--pending: #94a3b8;
+		--info: #3b82f6;
+		--accent: #22c55e;
+		--accent-fg: #06180d;
+		--bg: #0b0e13;
+		--surface: #121720;
+		--surface-2: #171d28;
+		--surface-hover: #1a2130;
+		--border: #232b38;
+		--border-strong: #313b4b;
+		--text: #e6e9ef;
+		--muted: #8b95a7;
+		--link: #7cb4ff;
+		--link-hover: #a5cbff;
+		--shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+		--shadow-lg: 0 16px 40px -16px rgba(0, 0, 0, 0.7);
+		color-scheme: dark;
+	}
+}
+
+:root.dark {
+	--ok: #22c55e;
+	--warning: #f59e0b;
+	--unknown: #f97316;
+	--critical: #ef4444;
+	--unreachable: #e11d48;
+	--pending: #94a3b8;
+	--info: #3b82f6;
+	--accent: #22c55e;
+	--accent-fg: #06180d;
+	--bg: #0b0e13;
+	--surface: #121720;
+	--surface-2: #171d28;
+	--surface-hover: #1a2130;
+	--border: #232b38;
+	--border-strong: #313b4b;
+	--text: #e6e9ef;
+	--muted: #8b95a7;
+	--link: #7cb4ff;
+	--link-hover: #a5cbff;
+	--shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+	--shadow-lg: 0 16px 40px -16px rgba(0, 0, 0, 0.7);
+	color-scheme: dark;
+}
+
+/*
+ * soft tints: always mixed from the bright status hues, so light mode gets
+ * clean pastel tints instead of muddy ones from its darker text colors
+ */
+:root {
+	--ok-soft: color-mix(in srgb, #22c55e 14%, transparent);
+	--warning-soft: color-mix(in srgb, #f59e0b 16%, transparent);
+	--unknown-soft: color-mix(in srgb, #f97316 15%, transparent);
+	--critical-soft: color-mix(in srgb, #ef4444 14%, transparent);
+	--unreachable-soft: color-mix(in srgb, #e11d48 14%, transparent);
+	--pending-soft: color-mix(in srgb, #94a3b8 18%, transparent);
+	--info-soft: color-mix(in srgb, #3b82f6 13%, transparent);
+}
+
+
+/* ---------------------------------------------------------------- base */
+
+html {
+	-webkit-text-size-adjust: 100%;
+	text-size-adjust: 100%;
+}
 
 body {
-	font-family: verdana,arial,serif;
-	font-weight: normal;
-	}
-
-/* most other link color scheme blue/light blue */
-a:link,a:visited {
-  text-decoration: none;
-  color: #40529b; /* blue */
-  /* color: #DEE7C6; pale yellow */ 
-}
-a:hover,a:active {
-  text-decoration: underline;
-  /* color: #3f5bcd; gold */
-  color: #8391cd;      /*dark blue */
-  /*color: #8391cd; */
+	margin: 0;
+	padding: 20px 24px 40px;
+	background: var(--bg);
+	color: var(--text);
+	font-family: var(--font);
+	font-size: 13px;
+	line-height: 1.45;
+	-webkit-font-smoothing: antialiased;
 }
 
-table {border-collapse:collapse;}
-th {  font-size: 10pt;  text-align: left;  background-color: #999797;  }
-
-.infoBox { border: 1px solid #AAA;  padding: 2px; font-size:8pt; margin-bottom:3px;}
-.linkBox { padding: 3px; font-size:8pt; border: 1px solid #AAA;}
-.infoBoxTitle {  font-size: 10pt;  font-weight: bold;  }
-.infoBoxTitle {   font-size: 10pt;  font-weight: bold; }
-.infoBoxBadProcStatus { color: red; }
-a.homepageURL:hover {  color: red; }
-
-
-/* feedback messages */
-.errorMessage {  text-align: center;  color: red;  font-weight: bold;  font-size: 12pt; }
-.errorDescription {  text-align: center;  font-weight: bold;  font-size: 12pt; }
-.warningMessage {  text-align: center;  color: red;  font-weight: bold;  font-size: 10pt; }
-.infoMessage {  text-align: center;  color: red;  font-weight: bold; }
-
-/* nav and option boxes on several pages */ 
-.navBoxTitle {  font-size: 10pt;  font-weight: bold; }
-.navBoxItem {  font-size: 8pt;  font-weight: bold;  color: red; }
-.navBoxDate {  font-size: 8pt;  font-weight: bold; }
-.navBoxFile {  font-size: 8pt;  font-weight: bold;  text-align: center; }
-/* option boxes */
-.optBox { font-size: 10pt;  font-weight: bold; }
-.optBoxItem {  font-size: 8pt;  font-weight: bold;  color: red; }
-.optBoxTitle {  font-weight: bold;  font-size: 10pt; }
-.optBoxValue {  font-size: 8pt;  font-style: italic; }
-
-
-
-/* *********navbar frame specific styles ********************* */
-
-/* navbar */
-body.navbar {
-	background-color: black;
-	color: white; 
-	}
-/* navbar links
-body.navbar a:link,a:visited {
-  text-decoration: none;
-  color: #DEE7C6;  pale yellow 
+/* old CGIs set font sizes on many elements; keep them readable and uniform */
+td, th, div, p, span, li, input, select, textarea, button, label, font {
+	font-size: inherit;
+	font-family: inherit;
 }
-body.navbar a:hover,a:active {
- text-decoration: underline;
-  color: #3f5bcd; gold 
+
+a:link, a:visited {
+	color: var(--link);
+	text-decoration: none;
 }
-*/
-.navbarlogo {
-	margin: 0 0 10px 0;
-	}
+a:hover, a:active {
+	color: var(--link-hover);
+	text-decoration: underline;
+	text-underline-offset: 2px;
+}
+
+a img, img { border: 0; }
+
+hr {
+	border: 0;
+	border-top: 1px solid var(--border);
+	margin: 16px 0;
+}
+
+pre, code, tt {
+	font-family: var(--font-mono);
+	font-size: 12px;
+}
+
+b, strong { font-weight: 600; }
+
+
+/* ---------------------------------------------------------------- tables */
+
+table {
+	/* quirks mode (CGIs have no doctype) would reset tables to 16px */
+	font-size: inherit;
+	border-collapse: collapse;
+	border-spacing: 0;
+	border-color: var(--border);
+}
+
+th {
+	font-size: 11px;
+	font-weight: 600;
+	text-align: left;
+	text-transform: uppercase;
+	letter-spacing: .04em;
+	color: var(--muted);
+	background: transparent;
+}
+
+th a:link, th a:visited { color: var(--muted); }
+
+/*
+ * "data" tables: the big list tables used by most CGIs. Page stylesheets
+ * add their own class names to this rule set.
+ */
+table.data, table.status, table.notifications, table.logEntries,
+table.comment, table.downtime, table.queue, table.outages, table.avail,
+table.summary, table.config {
+	width: 100%;
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	border-collapse: separate;
+	overflow: hidden;
+	box-shadow: var(--shadow);
+}
+
+table.data > tbody > tr > th, table.status > tbody > tr > th,
+table.notifications > tbody > tr > th, table.logEntries > tbody > tr > th,
+table.comment > tbody > tr > th, table.downtime > tbody > tr > th,
+table.queue > tbody > tr > th, table.outages > tbody > tr > th,
+table.avail > tbody > tr > th, table.summary > tbody > tr > th,
+table.config > tbody > tr > th {
+	padding: 10px 12px;
+	background: var(--surface-2);
+	border-bottom: 1px solid var(--border);
+	white-space: nowrap;
+}
+
+table.data > tbody > tr > td, table.status > tbody > tr > td,
+table.notifications > tbody > tr > td, table.logEntries > tbody > tr > td,
+table.comment > tbody > tr > td, table.downtime > tbody > tr > td,
+table.queue > tbody > tr > td, table.outages > tbody > tr > td,
+table.avail > tbody > tr > td, table.summary > tbody > tr > td,
+table.config > tbody > tr > td {
+	padding: 9px 12px;
+	border-bottom: 1px solid var(--border);
+	vertical-align: middle;
+}
+
+table.data > tbody > tr:last-child > td, table.status > tbody > tr:last-child > td,
+table.notifications > tbody > tr:last-child > td, table.logEntries > tbody > tr:last-child > td,
+table.comment > tbody > tr:last-child > td, table.downtime > tbody > tr:last-child > td,
+table.queue > tbody > tr:last-child > td, table.outages > tbody > tr:last-child > td,
+table.avail > tbody > tr:last-child > td, table.summary > tbody > tr:last-child > td,
+table.config > tbody > tr:last-child > td {
+	border-bottom: 0;
+}
+
+table.data > tbody > tr:hover > td, table.status > tbody > tr:hover > td,
+table.notifications > tbody > tr:hover > td, table.logEntries > tbody > tr:hover > td,
+table.comment > tbody > tr:hover > td, table.downtime > tbody > tr:hover > td,
+table.queue > tbody > tr:hover > td, table.outages > tbody > tr:hover > td,
+table.config > tbody > tr:hover > td {
+	background-color: var(--surface-hover);
+}
+
+/* nested layout tables inside cells must stay invisible */
+table.data table, table.status table, table.comment table, table.downtime table {
+	background: transparent;
+	border: 0;
+	box-shadow: none;
+}
+
+/* zebra classes used everywhere: neutral, the hover/row borders do the work */
+.dataEven, .dataOdd, .statusEven, .statusOdd, .commentEven, .commentOdd,
+.downtimeEven, .downtimeOdd, .queueEven, .queueOdd, .notificationsEven,
+.notificationsOdd, .logEntriesEven, .logEntriesOdd {
+	background: transparent;
+	color: var(--text);
+}
+
+/* wrapper added by the shell around tables that overflow on small screens */
+.table-scroll {
+	max-width: 100%;
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
+	border-radius: var(--radius);
+}
+
+
+/* ---------------------------------------------------------------- forms */
+
+input[type=text], input[type=password], input[type=number], input[type=search],
+input:not([type]), select, textarea {
+	height: 34px;
+	padding: 0 10px;
+	color: var(--text);
+	background: var(--surface);
+	border: 1px solid var(--border-strong);
+	border-radius: var(--radius-sm);
+	font-size: 13px;
+	box-sizing: border-box;
+	vertical-align: middle;
+	transition: border-color .15s, box-shadow .15s;
+}
+
+textarea {
+	height: auto;
+	min-height: 80px;
+	padding: 8px 10px;
+	line-height: 1.4;
+}
+
+select { padding-right: 28px; }
+
+input:focus, select:focus, textarea:focus {
+	outline: none;
+	border-color: var(--accent);
+	box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+input[type=submit], input[type=button], input[type=reset], button {
+	height: 34px;
+	padding: 0 16px;
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--accent-fg);
+	background: var(--accent);
+	border: 0;
+	border-radius: var(--radius-sm);
+	cursor: pointer;
+	vertical-align: middle;
+	transition: filter .15s, transform .1s;
+}
+
+input[type=reset], input[type=button] {
+	color: var(--text);
+	background: var(--surface-2);
+	border: 1px solid var(--border-strong);
+}
+
+input[type=submit]:hover, input[type=button]:hover, input[type=reset]:hover, button:hover {
+	filter: brightness(1.08);
+}
+
+input[type=submit]:active, input[type=button]:active, button:active {
+	transform: translateY(1px);
+}
+
+input[type=checkbox], input[type=radio] {
+	accent-color: var(--accent);
+	width: 15px;
+	height: 15px;
+	vertical-align: middle;
+}
+
+fieldset {
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	padding: 12px 16px;
+}
+legend { color: var(--muted); font-weight: 600; padding: 0 6px; }
+
+
+/* ---------------------------------------------------------------- CGI page header */
+
+/* three column header most CGIs print (info box | totals | links) */
+table.headertable {
+	width: 100%;
+	margin: 0 0 20px;
+}
+
+table.headertable > tbody > tr > td {
+	padding: 0 16px 0 0;
+	vertical-align: top;
+}
+
+/* info box: "Current Network Status", "Last Updated", ... */
+table.infoBox {
+	padding: 0;
+	width: 100%;
+	max-width: 420px;
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	border-collapse: separate;
+	background: var(--surface);
+	box-shadow: var(--shadow);
+	margin: 0 0 10px;
+}
+
+td.infoBox, .infoBox {
+	padding: 12px 14px;
+	color: var(--muted);
+	font-size: 12px;
+	line-height: 1.6;
+	border: 0;
+}
+
+table.infoBox td.infoBox { padding: 12px 14px; }
+
+.infoBoxTitle {
+	font-size: 15px;
+	font-weight: 600;
+	color: var(--text);
+	margin: 0 0 4px;
+}
+
+.infoBoxBadProcStatus {
+	display: inline-block;
+	margin-top: 6px;
+	padding: 2px 8px;
+	font-size: 11px;
+	font-weight: 600;
+	color: var(--critical);
+	background: var(--critical-soft);
+	border-radius: 999px;
+}
+
+.infoBox i { font-style: normal; color: var(--text); font-weight: 600; }
+
+/* link box under the info box */
+table.linkBox {
+	border: 0;
+	margin: 0;
+}
+
+td.linkBox, .linkBox {
+	padding: 2px 0;
+	border: 0;
+	font-size: 12px;
+	line-height: 1.9;
+}
+
+td.linkBox a::before {
+	content: "\2192\00a0";
+	color: var(--muted);
+}
+
+a.homepageURL:hover { color: var(--link-hover); }
+
+/* big page title below the header */
+table.pageTitle { width: 100%; margin: 0 0 8px; }
+
+.statusTitle, .dataTitle, .pageTitle, .commentTitle, .downtimeTitle,
+.queueTitle, div.perfTitle, .infoTitle, .mainTitle, .reportTitle {
+	font-size: 20px;
+	font-weight: 650;
+	letter-spacing: -0.01em;
+	color: var(--text);
+	text-align: left;
+	margin: 4px 0 12px;
+}
+
+.dataSubTitle, .statusSubTitle, .subTitle {
+	font-size: 13px;
+	color: var(--muted);
+}
+
+/* totals boxes (hosts / services) */
+div.hostTotals, div.serviceTotals {
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: .05em;
+	color: var(--muted);
+	margin: 0 0 8px;
+}
+
+table.hostTotals, table.serviceTotals {
+	border-collapse: separate;
+	border-spacing: 6px 0;
+	margin: 0 -6px 6px;
+}
+
+th.hostTotals, th.serviceTotals {
+	padding: 0 0 4px;
+	text-align: center;
+	font-size: 10px;
+	border: 0;
+}
+
+th.hostTotals a:link, th.hostTotals a:visited,
+th.serviceTotals a:link, th.serviceTotals a:visited {
+	color: var(--muted);
+	font-style: normal;
+}
+th.hostTotals em, th.serviceTotals em { font-style: normal; }
+
+td.hostTotals, td.serviceTotals,
+td[class^=hostTotals], td[class^=serviceTotals] {
+	min-width: 56px;
+	padding: 8px 10px;
+	text-align: center;
+	font-size: 18px;
+	font-weight: 650;
+	font-variant-numeric: tabular-nums;
+	color: var(--text);
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: var(--radius-sm);
+}
+
+td.hostTotalsUP, td.serviceTotalsOK {
+	color: var(--ok); background: var(--ok-soft); border-color: transparent;
+}
+td.serviceTotalsWARNING {
+	color: var(--warning); background: var(--warning-soft); border-color: transparent;
+}
+td.serviceTotalsUNKNOWN {
+	color: var(--unknown); background: var(--unknown-soft); border-color: transparent;
+}
+td.hostTotalsDOWN, td.serviceTotalsCRITICAL, td.hostTotalsPROBLEMS, td.serviceTotalsPROBLEMS {
+	color: var(--critical); background: var(--critical-soft); border-color: transparent;
+}
+td.hostTotalsUNREACHABLE {
+	color: var(--unreachable); background: var(--unreachable-soft); border-color: transparent;
+}
+td.hostTotalsPENDING, td.serviceTotalsPENDING {
+	color: var(--pending); background: var(--pending-soft); border-color: transparent;
+}
+
+
+/* ---------------------------------------------------------------- status colors */
+
+/*
+ * Status cells ("statusOK", "statusBGCRITICAL", ...) render as colored
+ * badges. Page stylesheets may refine, but should not recolor them.
+ */
+.statusOK, .statusHOSTUP, .statusUP { --s: var(--ok); --s-soft: var(--ok-soft); }
+.statusWARNING { --s: var(--warning); --s-soft: var(--warning-soft); }
+.statusUNKNOWN { --s: var(--unknown); --s-soft: var(--unknown-soft); }
+.statusCRITICAL, .statusHOSTDOWN, .statusDOWN { --s: var(--critical); --s-soft: var(--critical-soft); }
+.statusHOSTUNREACHABLE, .statusUNREACHABLE { --s: var(--unreachable); --s-soft: var(--unreachable-soft); }
+.statusPENDING, .statusHOSTPENDING { --s: var(--pending); --s-soft: var(--pending-soft); }
+
+.statusBGWARNING { --row: var(--warning-soft); }
+.statusBGUNKNOWN { --row: var(--unknown-soft); }
+.statusBGCRITICAL, .statusBGDOWN { --row: var(--critical-soft); }
+.statusBGUNREACHABLE { --row: var(--unreachable-soft); }
+
+td.statusOK:not(:has(*)), td.statusWARNING:not(:has(*)), td.statusUNKNOWN:not(:has(*)), td.statusCRITICAL:not(:has(*)),
+td.statusPENDING:not(:has(*)), td.statusHOSTUP:not(:has(*)), td.statusHOSTDOWN:not(:has(*)),
+td.statusHOSTUNREACHABLE:not(:has(*)), td.statusHOSTPENDING:not(:has(*)), td.statusUP:not(:has(*)), td.statusDOWN:not(:has(*)),
+td.statusUNREACHABLE:not(:has(*)) {
+	color: var(--s);
+	font-weight: 700;
+	font-size: 11px;
+	letter-spacing: .04em;
+	text-transform: uppercase;
+	white-space: nowrap;
+	background: transparent;
+}
+
+/* the actual badge; ::before draws the dot */
+td.statusOK:not(:has(*))::before, td.statusWARNING:not(:has(*))::before, td.statusUNKNOWN:not(:has(*))::before,
+td.statusCRITICAL:not(:has(*))::before, td.statusPENDING:not(:has(*))::before, td.statusHOSTUP:not(:has(*))::before,
+td.statusHOSTDOWN:not(:has(*))::before, td.statusHOSTUNREACHABLE:not(:has(*))::before,
+td.statusHOSTPENDING:not(:has(*))::before, td.statusUP:not(:has(*))::before, td.statusDOWN:not(:has(*))::before,
+td.statusUNREACHABLE:not(:has(*))::before {
+	content: "";
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	margin: 0 7px 1px 0;
+	border-radius: 50%;
+	background: var(--s);
+	box-shadow: 0 0 0 3px var(--s-soft);
+	vertical-align: middle;
+}
+
+td[class^=statusBG] { background: var(--row, transparent); }
+
+/* generic state text classes used in several CGIs */
+.hostUP, .serviceOK, .hostup, .serviceok { color: var(--ok); font-weight: 600; }
+.serviceWARNING, .servicewarning { color: var(--warning); font-weight: 600; }
+.serviceUNKNOWN, .serviceunknown { color: var(--unknown); font-weight: 600; }
+.hostDOWN, .serviceCRITICAL, .hostdown, .servicecritical { color: var(--critical); font-weight: 600; }
+.hostUNREACHABLE, .hostunreachable { color: var(--unreachable); font-weight: 600; }
+
+
+/* ---------------------------------------------------------------- messages */
+
+.errorMessage, .warningMessage, .infoMessage, .errorDescription {
+	max-width: 640px;
+	margin: 16px auto;
+	padding: 12px 16px;
+	text-align: left;
+	font-size: 13px;
+	font-weight: 600;
+	border-radius: var(--radius);
+	border: 1px solid;
+}
+
+.errorMessage { color: var(--critical); background: var(--critical-soft); border-color: color-mix(in srgb, var(--critical) 35%, transparent); }
+.warningMessage { color: var(--warning); background: var(--warning-soft); border-color: color-mix(in srgb, var(--warning) 35%, transparent); }
+.infoMessage { color: var(--info); background: var(--info-soft); border-color: color-mix(in srgb, var(--info) 35%, transparent); }
+.errorDescription { color: var(--text); background: var(--surface); border-color: var(--border); font-weight: normal; }
+
+.infoBoxBadProcStatus a, .errorMessage a { color: inherit; text-decoration: underline; }
+
+
+/* ---------------------------------------------------------------- nav / option boxes */
+
+.navBox, .optBox {
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+}
+
+.navBoxTitle, .optBoxTitle {
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--text);
+}
+.navBoxItem, .optBoxItem {
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--muted);
+}
+.navBoxDate, .navBoxFile, .optBoxValue { font-size: 12px; color: var(--muted); }
+.optBoxValue { font-style: normal; }
+
+
+/* ---------------------------------------------------------------- misc */
+
+#pagelimit {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px 16px;
+	margin: 0 0 12px;
+	color: var(--muted);
+}
+
+#pagelimit label { margin-right: 6px; }
+
+.pagenumber, .pagination a {
+	display: inline-block;
+	min-width: 28px;
+	padding: 4px 8px;
+	margin: 0 2px;
+	text-align: center;
+	border: 1px solid var(--border);
+	border-radius: var(--radius-sm);
+	background: var(--surface);
+}
+
+.itemTotalsTitle, .results {
+	margin: 12px 0;
+	color: var(--muted);
+	font-size: 12px;
+	font-style: normal;
+}
+
+/* the old gif sort arrows */
+th img[src*="up.gif"], th img[src*="down.gif"] {
+	opacity: .45;
+	vertical-align: middle;
+	margin-left: 2px;
+}
+th img[src*="up.gif"]:hover, th img[src*="down.gif"]:hover { opacity: 1; }
+
+.dot-enabled { color: var(--ok); }
+.dot-disabled { color: var(--critical); }
+.dot-passiveonly { color: var(--warning); }
+
+
+/* ---------------------------------------------------------------- logos */
 
 .nlogo {
-  mask: url(../images/logos/nagios-n-logo.svg) no-repeat center / contain;
-  height: 32px;
-  background-color: #000;
+	mask: url(../images/logos/nagios-n-logo.svg) no-repeat center / contain;
+	-webkit-mask: url(../images/logos/nagios-n-logo.svg) no-repeat center / contain;
+	height: 32px;
+	background-color: var(--text);
 }
 
 .fulllogo {
-  mask: url(../images/logos/horizontal-nagios-full-logo.svg) no-repeat center / contain;
-  height: 39px;
-  width: 140px;
-  background-color: #FFF;
+	mask: url(../images/logos/horizontal-nagios-full-logo.svg) no-repeat center / contain;
+	-webkit-mask: url(../images/logos/horizontal-nagios-full-logo.svg) no-repeat center / contain;
+	height: 30px;
+	width: 116px;
+	background-color: var(--text);
 }
 
-.navsection {
-	margin: 5px 0 10px 0;
-	/*color: #AAA; */
-	}
-	
-.navsectiontitle {
-	font-size: 9pt;
-	font-weight: bold;
-	border:1px solid #AAA;
-	padding: 2px;
-	text-align:center;
-	}
 
-div.navsectionlinks {
-	margin: 3px 0 0 0;
-	}
+/* ---------------------------------------------------------------- navigation (shell + side.php) */
 
-ul.navsectionlinks {
-	margin: 0px;
-	padding: 0px;
-	list-style: none;
-	}
-
-ul.navsectionlinks li {
-	}
-
-/* main nav links */
-ul.navsectionlinks li a:link,ul.navsectionlinks li a:visited {
-	/*color: #DEE7C6; */ 
-	font-weight: bold;
-	font-size: 8pt;
-	text-decoration: none;	
-	padding: 0 0 0 15px;
-	background: transparent url(../images/greendot.gif) no-repeat scroll 0 0; 
-  	color: #DEE7C6; /* pale yellow */ 
-	}
-ul.navsectionlinks li a:hover ,ul.navsectionlinks li a:active{
-	/*color: #8391cd;*/
-	color:#FFC47F;   /*    this one was working before   */
-	background: transparent url(../images/orangedot.gif) no-repeat scroll 0 0;
-  /*	color: #3f5bcd;  gold */
-	}	
-
-
-ul.navsectionlinks li ul {
-	margin: 0px;
-	padding: 0 0 0 30px;
-	}
-
-ul.navsectionlinks li ul li {
-	}
-
-
-/* sub links on main nav */
-ul.navsectionlinks li ul li a:link,ul.navsectionlinks li ul li a:visited  {
-/*	color: #DEE7C6;  */
-	background: none; 
-	padding: 0;
-	font-weight: normal;
-  	color: #DEE7C6; /* pale yellow */ 
-	}
-
-ul.navsectionlinks li ul li a:hover,ul.navsectionlinks li ul li a:active  {
-	background: none;  
-	color:#FFC47F; 
-	}
-
-ul.navsectionlinks li ul li ul {
-	margin: 0px;
-	padding: 0 0 0 15px;
-	}
-
-div.navsectionheader {
-  padding: 0;
-  margin: 0;
-}
-div.navsectionheader ul {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-div.navsectionheader ul li {
-  font-size: 9pt;
-  font-weight: bold;
-  padding: 0 0 0 15px;
-}
-div.navsectionheader ul li ul li {
-  font-weight: normal;
-}
-
-.navbarsearch {
-	margin: 5px 0 0 0;
-	}
-
-.navbarsearch fieldset {
-	border: none;
-	}
-
-.navbarsearch fieldset legend {
-	font-size: 8pt;
-	}
-
-.navbarsearch input{
-/*	font-size: 8pt; */
-	color: black;
-	background-color: white;
-	}
-
-
-
-	
-
-/* **************** main page *********************** */
-#splashpage{
-	text-align: center;
-	}
-	
-#maincopy{
-	margin: 0 0 15px 0;
-	}
-	
-#currentversioninfo {
-	font-size: 14pt;
+.nav {
 	display: flex;
 	flex-direction: column;
-	gap: 2rem;
-	}
-
-#currentversioninfo *{
-	font-size: 12pt;
-	}
-
-#currentversioninfo > div {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2rem;
+	gap: 18px;
+	padding: 4px 12px 24px;
+	font-size: 13.5px;
 }
 
-.dot-enabled {
-  color: #33FF00;
+.nav-section-title {
+	padding: 0 10px 6px;
+	font-size: 10.5px;
+	font-weight: 700;
+	letter-spacing: .08em;
+	text-transform: uppercase;
+	color: var(--muted);
 }
 
-.dot-disabled {
-  color: red;
+.nav ul { list-style: none; margin: 0; padding: 0; }
+
+.nav a:link, .nav a:visited, .nav .nav-label {
+	position: relative;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	min-height: 34px;
+	padding: 0 10px;
+	color: var(--text);
+	border-radius: 8px;
+	text-decoration: none;
+	transition: background .12s, color .12s;
 }
 
-#updateversioninfo{
-	margin: 15px auto 35px auto;
-	width: 400px;
+.nav .nav-label { color: var(--muted); cursor: default; }
+
+.nav a:hover { background: var(--surface-hover); color: var(--text); text-decoration: none; }
+
+.nav a.active {
+	background: color-mix(in srgb, var(--accent) 13%, transparent);
+	color: var(--text);
+	font-weight: 600;
+}
+.nav a.active::before {
+	content: "";
+	position: absolute;
+	left: -12px;
+	top: 8px;
+	bottom: 8px;
+	width: 3px;
+	border-radius: 0 3px 3px 0;
+	background: var(--accent);
+}
+
+.nav svg {
+	flex: none;
+	width: 17px;
+	height: 17px;
+	stroke: currentColor;
+	fill: none;
+	stroke-width: 1.8;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+	opacity: .75;
+}
+
+.nav ul ul { margin: 2px 0 4px 18px; padding-left: 10px; border-left: 1px solid var(--border); }
+.nav ul ul a:link, .nav ul ul a:visited { min-height: 30px; font-size: 13px; color: var(--muted); }
+.nav ul ul a:hover, .nav ul ul a.active { color: var(--text); }
+.nav ul ul a.active::before { display: none; }
+
+.nav-badge {
+	margin-left: auto;
+	min-width: 20px;
+	padding: 1px 7px;
+	font-size: 11px;
+	font-weight: 700;
+	text-align: center;
+	border-radius: 999px;
+	font-variant-numeric: tabular-nums;
+}
+.nav-badge[hidden] { display: none; }
+.nav-badge.crit { color: #fff; background: var(--critical); }
+.nav-badge.warn { color: #1c1300; background: var(--warning); }
+.nav-badge.ok { color: var(--ok); background: var(--ok-soft); }
+
+.nav-search { position: relative; padding: 0 2px; }
+.nav-search svg {
+	position: absolute;
+	left: 12px;
+	top: 50%;
+	transform: translateY(-50%);
+	width: 15px;
+	height: 15px;
+	stroke: var(--muted);
+	fill: none;
+	stroke-width: 2;
+	pointer-events: none;
+}
+.nav-search input[type=text] {
+	width: 100%;
+	height: 36px;
+	padding-left: 32px;
+	background: var(--surface-2);
+	border-color: var(--border);
+	font-size: 14px;
+}
+
+/* side.php used standalone (old frameset links) */
+body.navbar { padding: 16px 0; background: var(--surface); }
+body.navbar .navbarlogo { padding: 0 22px 16px; }
+
+
+/* ---------------------------------------------------------------- small screens */
+
+@media (max-width: 760px) {
+	body { padding: 14px 12px 32px; }
+
+	/* stack the three column CGI header */
+	table.headertable, table.headertable > tbody, table.headertable > tbody > tr,
+	table.headertable > tbody > tr > td,
+	table.pageTitle, table.pageTitle > tbody, table.pageTitle > tbody > tr,
+	table.pageTitle > tbody > tr > td {
+		display: block;
+		width: auto !important;
 	}
-.updatechecksdisabled{
-	background-color: #FF9F9F;
-	border: 1px solid red;
-	padding: 10px;
-	}
-.updatechecksdisabled div.warningmessage{
-	font-weight: bold;
-	}
-#updateversioninfo div.submessage{
-	clear: left;
-	}
-.updateavailable{
-	background-color: #9FD4FF;
-	border: 1px solid blue;
-	padding: 10px;
-	}
-.updateavailable div.updatemessage{
-	font-size: 12pt;
-	font-weight: bold;
+	table.headertable > tbody > tr > td { padding: 0 0 14px; text-align: left !important; }
+	table.pageTitle > tbody > tr > td:empty { display: none; }
+	table.infoBox { max-width: none; }
+
+	table.hostTotals, table.serviceTotals { border-spacing: 4px 0; margin: 0 -4px 6px; }
+	td.hostTotals, td.serviceTotals, td[class^=hostTotals], td[class^=serviceTotals] {
+		min-width: 0;
+		padding: 6px 4px;
+		font-size: 15px;
 	}
 
-#mainsplash {
-  display: grid;
-  max-width: 1400px;
-  margin: auto;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 100px;
-  padding: 120px 60px 120px 60px;
-}
-
-@media (width <= 1200px) {
-  #mainsplash {
-    grid-template-columns: repeat(1, minmax(0, 1fr));
-    padding: 60px;
-  }
-}
-
-#mainsplash img {
-  max-width: 100%;
-  margin: 0;
-}
-
-#splashtext {
-  text-align: left;
-  font-size: large;
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
-  justify-content: center;
-}
-
-#splashtexttitle {
-  font-size: 2.25rem; /* 36px */
-  line-height: 2.5rem;
-  font-weight: 700;
-}
-
-#splashbuttons {
-  display: flex;
-  gap: 32px;
-  align-items: center;
-}
-
-#splashlearnmore {
-  background-color: #4D89F9;
-  color: white;
-  padding: 16px;
-  border-radius: 0.5rem;
-}
-
-#splashlearnmore:hover {
-  text-decoration: none;
-}
-
-#splashnewsletter {
-  text-decoration: underline;
-}
-
-#splashpage #mainfooter{
-	/*margin: 100px 0 0 0;*/
-	margin: auto;
-	width: 800px;
-	clear: both;
-	font-size: 8pt;
-	padding-top: 35px;
+	.statusTitle, .dataTitle, .pageTitle, .commentTitle, .downtimeTitle,
+	.queueTitle, div.perfTitle, .infoTitle, .mainTitle, .reportTitle {
+		font-size: 18px;
 	}
 
-#splashpage #mainfooter .disclaimer{
-	/*width: 80%;*/
-	margin: auto;
+	input[type=text], input[type=password], input:not([type]), select, textarea {
+		font-size: 16px;
+		height: 40px;
 	}
-#splashpage #mainfooter .logos{
-	margin: 15px 0 0 0;
-	}
-
-
-a img {
-	border: none;
-	}
+	input[type=submit], input[type=button], input[type=reset], button { height: 40px; }
+}

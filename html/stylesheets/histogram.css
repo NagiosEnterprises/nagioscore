@@ -1,14 +1,2 @@
-.histogram { }
-
-.dataTitle { text-align: center;  font-weight: bold;  font-size: 12pt; }
-
-.reportRange { text-align: center;  font-weight: bold;  font-size: 10pt; }
-.reportDuration { text-align: center; }
-.reportTime { text-align: center; }
-
-.reportSelectTitle { text-align: center;  font-weight: bold;  font-size: 12pt; }
-.reportSelectSubTitle { text-align: right;  font-size: 10pt; }
-.reportSelectItem { text-align: left; }
-
-.helpfulHint { text-align: left;  font-style: italic;  text-align: center; }
-
+/* Alert histogram (histogram.cgi). Shared report layout lives in reports.css. */
+@import url(reports.css);

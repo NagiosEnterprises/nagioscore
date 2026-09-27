@@ -1,26 +1,45 @@
+/* Notifications (notifications.cgi). Shared report layout lives in reports.css. */
+@import url(reports.css);
 
-.notifications { }
+body.notifications div[align=center i] { text-align: left; }
 
-.dataTitle {  text-align: center;  font-weight: bold;  font-size: 12pt; }
+/* notification type cells */
+td[class^=notifications][class$=OK], td.notificationsHOSTUP { color: var(--ok); }
+td.notificationsWARNING { color: var(--warning); }
+td.notificationsUNKNOWN { color: var(--unknown); }
+td.notificationsCRITICAL, td.notificationsHOSTDOWN { color: var(--critical); }
+td.notificationsHOSTUNREACHABLE { color: var(--unreachable); }
+td.notificationsACKNOWLEDGEMENT, td.notificationsHOSTACKNOWLEDGEMENT { color: var(--info); }
+td.notificationsCUSTOM, td.notificationsHOSTCUSTOM { color: var(--muted); }
+td.notificationsDOWNTIME, td.notificationsHOSTDOWNTIME { color: var(--info); }
 
+td.notificationsOK, td.notificationsWARNING, td.notificationsUNKNOWN, td.notificationsCRITICAL,
+td.notificationsACKNOWLEDGEMENT, td.notificationsCUSTOM, td.notificationsDOWNTIME,
+td.notificationsHOSTUP, td.notificationsHOSTDOWN, td.notificationsHOSTUNREACHABLE,
+td.notificationsHOSTACKNOWLEDGEMENT, td.notificationsHOSTCUSTOM, td.notificationsHOSTDOWNTIME {
+	font-weight: 600;
+	white-space: nowrap;
+	background: transparent;
+}
 
-TABLE.notifications {  font-size: 10pt;  background-color: white;  padding: 5px; border-collapse:separate; }
-TH.notifications {  font-size: 10pt;  text-align: left;  background-color: #999797;   }
-.notificationsOdd {  background-color: #DBDBDB; }
-.notificationsEven {  background-color: #C4C2C2; }
+td.notificationsOK::before, td.notificationsWARNING::before, td.notificationsUNKNOWN::before,
+td.notificationsCRITICAL::before, td.notificationsACKNOWLEDGEMENT::before,
+td.notificationsCUSTOM::before, td.notificationsDOWNTIME::before, td.notificationsHOSTUP::before,
+td.notificationsHOSTDOWN::before, td.notificationsHOSTUNREACHABLE::before,
+td.notificationsHOSTACKNOWLEDGEMENT::before, td.notificationsHOSTCUSTOM::before,
+td.notificationsHOSTDOWNTIME::before {
+	content: "";
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	margin: 0 8px 1px 0;
+	border-radius: 50%;
+	background: currentColor;
+	box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 18%, transparent);
+	vertical-align: middle;
+}
 
-.notificationsOK {  background-color: #33FF00; }
-.notificationsUNKNOWN {  background-color: #FF9900; }
-.notificationsWARNING {  background-color: #FFFF00; }
-.notificationsCRITICAL {  background-color: #F83838; }
-.notificationsACKNOWLEDGEMENT {  background-color: #AAAAAA; }
-.notificationsCUSTOM {  background-color: #778899; }
-.notificationsDOWNTIME {  background-color: #07C7C7; }
-
-.notificationsHOSTUP {  background-color: #33FF00; }
-.notificationsHOSTDOWN {  background-color: #F83838; }
-.notificationsHOSTUNREACHABLE {  background-color: #F83838; }
-.notificationsHOSTACKNOWLEDGEMENT {  background-color: #AAAAAA; }
-.notificationsHOSTCUSTOM {  background-color: #778899; }
-.notificationsHOSTDOWNTIME {  background-color: #07C7C7; }
-
+/* keep the short columns on one line (mobile shows cards instead) */
+@media (min-width: 761px) {
+	table.notifications td:nth-child(-n+5) { white-space: nowrap; }
+}

@@ -1,58 +1,7 @@
+/* Availability reports (avail.cgi). Shared report layout lives in reports.css. */
+@import url(reports.css);
 
-.avail {  background-color: white;  color: black;  font-size: 10pt; }
-
-.reportRange {  text-align: center;  font-weight: bold;  font-size: 10pt; }
-.reportDuration {  text-align: center;  }
-.reportTime {  text-align: center;  }
-
-.dataTitle {  text-align: center;  font-weight: bold;  font-size: 12pt; }
-
-TABLE.data {  font-size: 10pt;  background-color: white;  padding: 2px;border-collapse:separate; }
-
-/* TH.data {  font-size: 10pt;  background-color: white;  text-align: left;  background-color: #999797;  color: #DCE5C1; } */
-.dataOdd {   background-color: #DBDBDB; }
-.dataEven {   background-color: #C4C2C2; }
-
-.optionBoxTitle {  text-align: center;  font-weight: bold;  font-size: 10pt; }
-.optionBox {  font-size: 10pt;  background-color: #EEEEF4;  padding: 2px; }
-
-.hostUP {   text-align: left;  background-color: #33FF00;  font-weight: bold; }
-.hostDOWN {   text-align: left;  background-color: #F83838;  font-weight: bold; }
-.hostUNREACHABLE {    text-align: left;  background-color: #F83838;  font-weight: bold; }
-
-.serviceOK {    text-align: left;  background-color: #33FF00;  font-weight: bold; }
-.serviceWARNING {   text-align: left;  background-color: #FFFF00;  font-weight: bold; }
-.serviceUNKNOWN {    text-align: left;  background-color: #FF9900;  font-weight: bold; }
-.serviceCRITICAL {  text-align: left;  background-color: #F83838;  font-weight: bold; }
-
-.optBox { font-size: 10pt;  font-weight: bold; }
-.optBoxItem {   font-weight: bold;  color: red; }
-
-.helpfulHint {  text-align: left;   font-style: italic;  text-align: center; }
-
-.dateSelectTitle {  text-align: center;  font-weight: bold;  font-size: 12pt; }
-.dateSelectSubTitle {  text-align: left;  font-weight: bold;  font-size: 10pt; }
-.dateSelectItem {  text-align: left;  }
-
-.reportSelectTip {  text-align: left;   font-style: italic; }
-.reportSelectTitle {  text-align: center;  font-weight: bold;  font-size: 12pt; }
-.reportSelectSubTitle {  text-align: right;  font-size: 10pt; }
-.reportSelectItem {  text-align: left;  }
-
-TABLE.logEntries {   background-color: white;  padding: 3px; }
-TH.logEntries {  font-size: 10pt;  background-color: white;  text-align: left;  background-color: #999797;  color: #DCE5C1; }
-.logEntriesEven {   background-color: white;  text-align: left;  background-color: #C4C2C2;  color: black; }
-.logEntriesOdd {   background-color: white;  text-align: left;  background-color: #DBDBDB;  color: black; }
-
-.logEntriesINDETERMINATE {   background-color: #ACACAC; }
-
-.logEntriesOK {   background-color: #33FF00; }
-.logEntriesUNKNOWN {   background-color: #FF9900; }
-.logEntriesWARNING {   background-color: #FFFF00; }
-.logEntriesCRITICAL {   background-color: #F83838; }
-.logEntriesUP {   background-color: #33FF00; }
-.logEntriesDOWN {   background-color: #F83838; }
-.logEntriesUNREACHABLE {   background-color: #F83838; }
-
-
-
+/* the host/service percentage columns are dense: keep them on one line */
+body.avail table.data td { white-space: nowrap; }
+body.avail table.data td:first-child { white-space: normal; }
+body.avail table.data td:last-child:not(:only-child) { white-space: normal; }

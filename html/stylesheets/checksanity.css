@@ -1,22 +1,22 @@
 
-.extinfo { font-size: 10pt; }
+.extinfo { font-size: 13px; }
 
 
-.Title {  font-size: large;  text-align: center;  font-weight: bold; }
-.SectionTitle {  font-size: 12pt;  text-align: center;  font-weight: bold; }
+.Title {  font-size: 20px;  text-align: left;  font-weight: bold; }
+.SectionTitle {  font-size: 15px;  text-align: left;  font-weight: bold; }
 
 
-.DynamicData {  font-size: 10pt;  background-color: white;  padding: 2px; }
-.StaticData {  font-size: 10pt;  background-color: white;  padding: 2px; }
-.TableHeader {  font-size: 10pt;  background-color: #999797;  color: #DCE5C1;  text-align: left;  font-weight: bold; }
+.DynamicData {  font-size: 13px;  background-color: var(--surface);  padding: 2px; }
+.StaticData {  font-size: 13px;  background-color: var(--surface);  padding: 2px; }
+.TableHeader {  font-size: 13px;  background-color: var(--surface-2);  color: var(--muted);  text-align: left;  font-weight: bold; }
 
-.Item {  font-size: 10pt;  text-align: left;  background-color: #C4C2C2;  font-weight: bold; }
-.DataSource {  font-size: 10pt;  text-align: left;  background-color: #C4C2C2; }
-.Number {  font-size: 10pt;  text-align: left;  background-color: #C4C2C2; }
+.Item {  font-size: 13px;  text-align: left;  background-color: transparent;  font-weight: bold; }
+.DataSource {  font-size: 13px;  text-align: left;  background-color: transparent; }
+.Number {  font-size: 13px;  text-align: left;  background-color: transparent; }
 
-.Value {  font-size: 10pt;  text-align: left;  background-color: #C4C2C2;  font-weight: bold; }
-.ValueOk {  font-size: 10pt;  text-align: left;  background-color: #33FF00;  font-weight: bold; }
-.ValueError {  font-size: 10pt;  text-align: left;  background-color: #F83838;  font-weight: bold; }
+.Value {  font-size: 13px;  text-align: left;  background-color: transparent;  font-weight: bold; }
+.ValueOk {  font-size: 13px;  text-align: left;  color: var(--ok); background-color: var(--ok-soft);  font-weight: bold; }
+.ValueError {  font-size: 13px;  text-align: left;  color: var(--critical); background-color: var(--critical-soft);  font-weight: bold; }
 
 
 

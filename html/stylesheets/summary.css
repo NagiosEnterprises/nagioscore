@@ -1,40 +1,77 @@
+/* Alert summary (summary.cgi). Shared report layout lives in reports.css. */
+@import url(reports.css);
 
-.summary {  }
+/* two wizard cards (standard + custom report) on one page */
+body.summary .dateSelectTitle:first-of-type { margin-top: 12px; }
 
-.reportRange {  text-align: center;  font-weight: bold;  font-size: 10pt; }
-.reportDuration {  text-align: center; }
-.reportTime {  text-align: center; }
+.reportDataEven, .reportDataOdd { padding: 9px 12px; background: transparent; }
 
-.reportDataEven {  background-color: #B4B5CC;  padding: 2px; }
-.reportDataOdd {  background-color: #CDCEE9;  padding: 2px; }
+/* "Report Options Summary" box in the header */
+table:has(> tbody > tr > td.optBoxTitle) {
+	margin-left: auto;
+	padding: 12px 14px;
+	border-collapse: separate;
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	box-shadow: var(--shadow);
+	text-align: left;
+}
+td.optBoxTitle { padding: 0 6px 8px; font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+table:has(> tbody > tr > td.optBoxTitle) td { padding: 3px 6px; font-size: 12px; }
+table:has(> tbody > tr > td.optBoxTitle) td.optBoxItem { font-size: 12px; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--muted); white-space: nowrap; }
+td.optBoxValue { color: var(--text); font-size: 12px; }
+table:has(> tbody > tr > td.optBoxTitle) input[type=submit] { width: 100%; margin-top: 10px; }
 
-.dataTitle {  text-align: center;  font-weight: bold;  font-size: 12pt; }
-.dataSubTitle {  text-align: center;  font-weight: bold;  font-size: 10pt; }
+/* section headings of the totals reports */
+body.summary > .dataSubTitle, body.summary > div > .dataSubTitle {
+	margin: 28px 0 12px;
+	font-size: 16px;
+	font-weight: 650;
+	color: var(--text);
+}
 
-TABLE.data {  font-size: 10pt;  background-color: white;  padding: 2px; border-collapse:separate;}
-TH.data {  font-size: 10pt; text-align: left;  background-color: #999797;  }
-.dataOdd {  font-size: 9pt;  background-color: #DBDBDB; }
-.dataEven {  font-size: 9pt;  background-color: #C4C2C2; }
+/* alert totals: outer wrapper table becomes a card holding host + service tables */
+table.reportDataOdd, table.reportDataEven {
+	width: 100%;
+	margin: 0 0 20px;
+	border: 1px solid var(--border) !important;
+	border-radius: 14px;
+	border-collapse: separate;
+	background: var(--surface-2);
+	overflow: hidden;
+}
+table.reportDataOdd > tbody > tr > td, table.reportDataEven > tbody > tr > td { padding: 14px; border: 0; }
+table.reportDataOdd table:not(.data), table.reportDataEven table:not(.data) { width: 100%; border-collapse: separate; border-spacing: 0; }
+table.reportDataOdd table:not(.data) > tbody > tr > td, table.reportDataEven table:not(.data) > tbody > tr > td {
+	width: 50%;
+	padding: 0 8px;
+	vertical-align: top;
+	text-align: left;
+}
+table.reportDataOdd .dataSubTitle, table.reportDataEven .dataSubTitle {
+	margin: 0 0 8px;
+	text-align: left;
+	color: var(--text);
+	font-weight: 600;
+	font-size: 13px;
+}
+table.reportDataOdd table.data td:not(:first-child), table.reportDataEven table.data td:not(:first-child) { text-align: right; }
+table.reportDataOdd table.data th:not(:first-child), table.reportDataEven table.data th:not(:first-child) { text-align: right; }
 
-.hostUP {  font-size: 9pt;  text-align: left;  background-color: #33FF00; }
-.hostDOWN {  font-size: 9pt;  text-align: left;  background-color: #F83838; }
-.hostUNREACHABLE {  font-size: 9pt;  text-align: left;  background-color: #F83838; }
+@media (max-width: 760px) {
+	table:has(> tbody > tr > td.optBoxTitle) { width: 100%; margin: 0; box-sizing: border-box; }
+	table.reportDataOdd > tbody > tr > td, table.reportDataEven > tbody > tr > td { padding: 10px 6px; }
+	table.reportDataOdd table:not(.data), table.reportDataEven table:not(.data),
+	table.reportDataOdd table:not(.data) > tbody, table.reportDataEven table:not(.data) > tbody,
+	table.reportDataOdd table:not(.data) > tbody > tr, table.reportDataEven table:not(.data) > tbody > tr,
+	table.reportDataOdd table:not(.data) > tbody > tr > td, table.reportDataEven table:not(.data) > tbody > tr > td {
+		display: block;
+		width: auto;
+	}
+	table.reportDataOdd table:not(.data) > tbody > tr > td + td, table.reportDataEven table:not(.data) > tbody > tr > td + td { margin-top: 16px; }
+}
 
-.serviceOK {  font-size: 9pt;  text-align: left;  background-color: #33FF00; }
-.serviceWARNING {  font-size: 9pt;  text-align: left;  background-color: #FFFF00; }
-.serviceUNKNOWN {  font-size: 9pt;  text-align: left;  background-color: #FF9900; }
-.serviceCRITICAL {  font-size: 9pt;  text-align: left;  background-color: #F83838; }
-
-
-.helpfulHint {  text-align: left;  font-style: italic;  text-align: center; }
-
-.dateSelectTitle {  text-align: center;  font-weight: bold;  font-size: 12pt; }
-.dateSelectSubTitle {  text-align: left;  font-weight: bold;  font-size: 10pt; }
-.dateSelectItem {  text-align: left; }
-
-.reportSelectTip {  text-align: left;  font-style: italic; }
-
-.reportSelectTitle {  text-align: center;  font-weight: bold;  font-size: 12pt; }
-.reportSelectSubTitle {  text-align: right;  font-size: 10pt; }
-.reportSelectItem {  text-align: left; }
-
+/* summary.cgi leaves the "Displaying all ..." div open around the result table */
+.dataSubTitle table { font-size: 13px; font-weight: normal; color: var(--text); text-align: left; }
+.dataSubTitle table th { font-size: 11px; font-weight: 600; color: var(--muted); }

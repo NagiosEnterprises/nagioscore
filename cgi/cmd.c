@@ -1027,7 +1027,7 @@ void request_command_data(int cmd) {
 	printf("<TR><TD CLASS='optBoxItem'>\n");
 	printf("<form method='post' action='%s'>\n", COMMAND_CGI);
 	if (cookie_form_id && *cookie_form_id)
-		printf("<INPUT TYPE='hidden' NAME='nagFormId' VALUE='%s'\n", cookie_form_id);
+		printf("<INPUT TYPE='hidden' NAME='nagFormId' VALUE='%s'>\n", cookie_form_id);
 	printf("<TABLE CELLSPACING=0 CELLPADDING=0 CLASS='optBox'>\n");
 
 	printf("<tr><td><INPUT TYPE='HIDDEN' NAME='cmd_typ' VALUE='%d'><INPUT TYPE='HIDDEN' NAME='cmd_mod' VALUE='%d'></td></tr>\n", cmd, CMDMODE_COMMIT);

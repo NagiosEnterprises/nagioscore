@@ -1,6 +1,8 @@
 /* Styles for the body as whole */
 body {
 	margin: 0;
+	padding: 0;
+	background: var(--bg);
 }
 
 /* Styles for the map header div */
@@ -8,7 +10,7 @@ div#header-container {
 	position: absolute;
 	top: 1px;
 	left: 1px;
-	width: 320px;
+	width: min(320px, calc(100vw - 16px));
 	z-index: 30;
 }
 

@@ -75,6 +75,7 @@ none:
 		@echo "   install                          install-base"
 		@echo "   install-cgis                     install-html"
 		@echo "   install-webconf                  install-config"
+		@echo "   install-webconf-formauth"
 		@echo "   install-init                     install-daemoninit" 
 		@echo "   install-commandmode              install-groups-users"
 		@echo "   install-exfoliation              install-classicui"
@@ -140,6 +141,10 @@ all:
 	@echo "  make install-webconf"
 	@echo "     - This installs the Apache config file for the Nagios"
 	@echo "       web interface"
+	@echo ""
+	@echo "  make install-webconf-formauth"
+	@echo "     - Same as install-webconf, but uses a login page instead"
+	@echo "       of the HTTP Basic Auth dialog (needs mod_auth_form)"
 	@echo ""
 	@echo "  make install-exfoliation"
 	@echo "     - This installs the Exfoliation theme for the Nagios"
@@ -355,6 +360,22 @@ install-webconf:
 
 	@echo ""
 	@echo "*** Nagios/Apache conf file installed ***"
+	@echo ""
+
+install-webconf-formauth:
+	$(INSTALL) -m 640 sample-config/httpd-formauth.conf $(DESTDIR)$(HTTPD_CONF)/nagios.conf
+	secret=`head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \\n'`; \
+		sed -i.bak "s/CHANGE_ME/$$secret/" $(DESTDIR)$(HTTPD_CONF)/nagios.conf && \
+		rm -f $(DESTDIR)$(HTTPD_CONF)/nagios.conf.bak
+	if [ $(LN_HTTPD_SITES_ENABLED) -eq 1 ]; then \
+		$(LN_S) $(DESTDIR)$(HTTPD_CONF)/nagios.conf $(DESTDIR)/etc/apache2/sites-enabled/nagios.conf; \
+	fi
+
+	@echo ""
+	@echo "*** Nagios/Apache conf file with form login installed ***"
+	@echo ""
+	@echo "Enable the required Apache modules, e.g. on Debian/Ubuntu:"
+	@echo "  a2enmod auth_form request session session_cookie session_crypto"
 	@echo ""
 
 install-exfoliation:

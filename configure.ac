@@ -959,6 +959,7 @@ perl subst sample-config/nagios.cfg
 perl subst sample-config/cgi.cfg
 perl subst sample-config/resource.cfg
 perl subst sample-config/httpd.conf
+perl subst sample-config/httpd-formauth.conf
 perl subst sample-config/mrtg.cfg
 
 perl subst sample-config/template-object/templates.cfg

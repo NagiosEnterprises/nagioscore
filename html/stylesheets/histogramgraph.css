@@ -1,53 +1,54 @@
 /* General text style */
 text {
+	fill: var(--text, black);
 	font-family: sans-serif;
 	font-size: 11px;
 }
 
 /* Colors for text representing states */
 text.up {
-	fill: rgb(0, 128, 0);
+	fill: var(--ok, rgb(0, 128, 0));
 }
 text.down {
-	fill: rgb(255, 0, 0);
+	fill: var(--critical, rgb(255, 0, 0));
 }
 text.unreachable {
-	fill: rgb(128, 0, 0);
+	fill: var(--unreachable, rgb(128, 0, 0));
 }
 text.ok {
-	fill: rgb(0, 128, 0);
+	fill: var(--ok, rgb(0, 128, 0));
 }
 text.warning {
-	fill: rgb(176, 178, 20);
+	fill: var(--warning, rgb(176, 178, 20));
 }
 text.unknown {
-	fill: rgb(255, 100, 25);
+	fill: var(--unknown, rgb(255, 100, 25));
 }
 text.critical {
-	fill: rgb(255, 0, 0);
+	fill: var(--critical, rgb(255, 0, 0));
 }
 
 /* Colors for text representing states */
 path.up {
-	stroke: rgb(0, 128, 0);
+	stroke: var(--ok, rgb(0, 128, 0));
 }
 path.down {
-	stroke: rgb(255, 0, 0);
+	stroke: var(--critical, rgb(255, 0, 0));
 }
 path.unreachable {
-	stroke: rgb(128, 0, 0);
+	stroke: var(--unreachable, rgb(128, 0, 0));
 }
 path.ok {
-	stroke: rgb(0, 128, 0);
+	stroke: var(--ok, rgb(0, 128, 0));
 }
 path.warning {
-	stroke: rgb(176, 178, 20);
+	stroke: var(--warning, rgb(176, 178, 20));
 }
 path.unknown {
-	stroke: rgb(255, 100, 25);
+	stroke: var(--unknown, rgb(255, 100, 25));
 }
 path.critical {
-	stroke: rgb(255, 0, 0);
+	stroke: var(--critical, rgb(255, 0, 0));
 }
 
 /* Class to hide elements */
@@ -79,7 +80,7 @@ g#yaxis text {
 g#xaxis line,
 g#yaxis line {
 	stroke-width: 1;
-	stroke: #c0c0c0;
+	stroke: var(--border, #c0c0c0);
 	stroke-dasharray: 2,4;
 	pointer-events: none;
 }
@@ -117,7 +118,7 @@ g.summary .value {
 
 g.summary line {
 	stroke-width: 1;
-	stroke: black;
+	stroke: var(--border-strong, black);
 }
 
 /* Styles for menu button */
@@ -133,5 +134,5 @@ div#menubutton {
 div#menubutton button {
 	padding: 0px;
 	border: none;
-	background-color: white;
+	background-color: transparent;
 }

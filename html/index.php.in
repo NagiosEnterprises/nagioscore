@@ -1,5 +1,6 @@
 <?php
 require_once(dirname(__FILE__).'/config.inc.php');
+require_once(dirname(__FILE__).'/includes/nav.inc.php');
 
 // Allow specifying main window URL for permalinks, etc.
 $url = 'main.php';
@@ -12,15 +13,15 @@ if ("@COREWINDOW@" == "yes" && isset($_GET['corewindow'])) {
 
 	// Build the base url.
 	$url = htmlentities($a['path']).'?';
-	$url = (isset($a['host'])) ? $a['scheme'].'://'.$a['host'].$url : '/'.$url;
+	$url = (isset($a['host'])) ? $a['scheme'].'://'.$a['host'].$url : '/'.ltrim($url, '/');
 
 	$query = isset($a['query']) ? $a['query'] : '';
 	$pairs = explode('&', $query);
 	foreach ($pairs as $pair) {
 		$v = explode('=', $pair);
 		if (is_array($v)) {
-			$key = urlencode($v[0]);
-			$val = urlencode(isset($v[1]) ? $v[1] : '');
+			$key = urlencode(urldecode($v[0]));
+			$val = urlencode(urldecode(isset($v[1]) ? $v[1] : ""));
 			$url .= "&$key=$val";
 		}
 	}
@@ -29,51 +30,368 @@ if ("@COREWINDOW@" == "yes" && isset($_GET['corewindow'])) {
 }
 
 $this_year = '2026';
-$theme = $cfg['theme'] ?? 'dark';
+$this_version = '4.5.14';
+// empty theme class: follow the operating system setting
+$theme = $cfg['theme'] ?? 'auto';
 if ($theme != 'dark' && $theme != 'light') {
-	$theme = 'dark';
+	$theme = '';
 }
 ?>
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN" "http://www.w3.org/TR/html4/frameset.dtd">
-
+<!DOCTYPE html>
 <html class="<?= $theme ?>">
 <head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 	<meta name="ROBOTS" content="NOINDEX, NOFOLLOW">
-	<title>Nagios: <?php echo $_SERVER['SERVER_NAME']; ?></title>
+	<title>Nagios: <?php echo htmlspecialchars($_SERVER['SERVER_NAME']); ?></title>
 	<link rel="shortcut icon" href="images/favicon.ico" type="image/ico">
-
+	<link rel="stylesheet" href="stylesheets/common.css?<?php echo $this_version; ?>">
+	<script>
+		// Apply a theme picked with the toggle before anything is painted.
+		try {
+			var t = localStorage.getItem('nagios-theme');
+			if (t === 'dark' || t === 'light' || t === 'auto')
+				document.documentElement.className = t === 'auto' ? '' : t;
+		} catch (e) {}
+	</script>
 	<style>
-		#root {
-			display: flex;
-			margin:0;
+		:root { --sidebar: 256px; --topbar: 56px; }
+		html, body { height: 100%; }
+		body {
+			margin: 0;
+			padding: 0;
+			overflow: hidden;
+			background: var(--bg);
 		}
-
-		:root {
-			--border: #28303E
-		}
-
-		.light {
-			--border: #D6D6D6
-		}
-
-		iframe[name="side"] {
+		.shell {
+			display: grid;
+			grid-template-columns: var(--sidebar) 1fr;
 			height: 100vh;
-			width: 200px;
-			border: none;
+			height: 100dvh;
+		}
+		.sidebar {
+			display: flex;
+			flex-direction: column;
+			min-height: 0;
+			background: var(--surface);
 			border-right: 1px solid var(--border);
 		}
+		.brand {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			padding: 18px 20px 16px;
+		}
+		.brand .status-dots { display: flex; gap: 5px; }
+		.brand .status-dots span { width: 7px; height: 7px; border-radius: 50%; }
+		.brand .status-dots span:nth-child(1) { background: var(--ok); }
+		.brand .status-dots span:nth-child(2) { background: var(--warning); }
+		.brand .status-dots span:nth-child(3) { background: var(--critical); }
+		.sidebar .nav {
+			flex: 1;
+			min-height: 0;
+			overflow-y: auto;
+			overscroll-behavior: contain;
+			scrollbar-width: thin;
+		}
+		.sidebar-footer {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+			border-top: 1px solid var(--border);
+			color: var(--muted);
+			font-size: 12px;
+		}
+		.avatar {
+			flex: none;
+			display: grid;
+			place-items: center;
+			width: 30px;
+			height: 30px;
+			border-radius: 50%;
+			font-weight: 700;
+			color: var(--accent-fg);
+			background: linear-gradient(135deg, var(--ok), #16a34a);
+			text-transform: uppercase;
+		}
+		.who { flex: 1; min-width: 0; line-height: 1.3; }
+		.who b { display: block; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+		.icon-btn {
+			flex: none;
+			display: grid;
+			place-items: center;
+			width: 36px;
+			height: 36px;
+			padding: 0;
+			color: var(--muted);
+			background: transparent;
+			border: 1px solid var(--border);
+			border-radius: 8px;
+		}
+		.icon-btn:hover { color: var(--text); background: var(--surface-hover); filter: none; }
+		.icon-btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+		/* the toggle shows the active mode: auto (OS), dark or light */
+		.theme-toggle svg { display: none; }
+		:root:not(.dark):not(.light) .theme-toggle .auto,
+		.dark .theme-toggle .moon,
+		.light .theme-toggle .sun { display: block; }
 
+		.content { position: relative; min-width: 0; display: flex; flex-direction: column; }
+		.topbar { display: none; }
 		iframe[name="main"] {
-			height: 100vh;
+			flex: 1;
 			width: 100%;
-			border: none;
+			border: 0;
+			background: var(--bg);
+		}
+		.loading-bar {
+			position: absolute;
+			top: 0; left: 0;
+			height: 2px;
+			width: 0;
+			background: linear-gradient(90deg, var(--ok), var(--warning), var(--critical));
+			opacity: 0;
+			transition: width 1.5s cubic-bezier(.1, .7, .1, 1), opacity .3s;
+			z-index: 5;
+		}
+		.loading .loading-bar { width: 80%; opacity: 1; }
+		.scrim { display: none; }
+
+		@media (max-width: 900px) {
+			.shell { grid-template-columns: 1fr; }
+			.sidebar {
+				position: fixed;
+				inset: 0 auto 0 0;
+				width: min(300px, 86vw);
+				z-index: 30;
+				transform: translateX(-102%);
+				transition: transform .25s cubic-bezier(.2, .8, .2, 1);
+				box-shadow: var(--shadow-lg);
+				padding-top: env(safe-area-inset-top);
+			}
+			.nav-open .sidebar { transform: none; }
+			.scrim {
+				display: block;
+				position: fixed;
+				inset: 0;
+				z-index: 20;
+				background: rgba(0, 0, 0, .45);
+				opacity: 0;
+				pointer-events: none;
+				transition: opacity .25s;
+				-webkit-backdrop-filter: blur(2px);
+				backdrop-filter: blur(2px);
+			}
+			.nav-open .scrim { opacity: 1; pointer-events: auto; }
+			.topbar {
+				display: flex;
+				align-items: center;
+				gap: 12px;
+				height: var(--topbar);
+				padding: env(safe-area-inset-top) 12px 0;
+				background: var(--surface);
+				border-bottom: 1px solid var(--border);
+			}
+			.topbar .title {
+				flex: 1;
+				min-width: 0;
+				font-size: 15px;
+				font-weight: 600;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+			.topbar .fulllogo { width: 84px; height: 22px; flex: none; }
+			.topbar .nav-badge { margin: 0; }
+			.nav a:link, .nav a:visited { min-height: 42px; }
+			.nav ul ul a:link, .nav ul ul a:visited { min-height: 38px; }
+		}
+		@media (prefers-reduced-motion: reduce) {
+			.sidebar, .scrim, .loading-bar { transition: none; }
 		}
 	</style>
 </head>
 
-<body id="root">
-	<iframe src="side.php" name="side"></iframe>
-	<iframe src="<?php echo $url; ?>" name="main"></iframe>
+<body>
+<div class="shell" id="shell">
+	<aside class="sidebar" id="sidebar">
+		<div class="brand">
+			<a href="main.php" target="main" aria-label="Nagios home"><div class="fulllogo"></div></a>
+			<div class="status-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+		</div>
+		<?php print_nav($cfg, 'main'); ?>
+		<div class="sidebar-footer">
+<?php $user = $_SERVER['REMOTE_USER'] ?? ''; if ($user !== '') { ?>
+			<div class="avatar" aria-hidden="true"><?php echo htmlspecialchars(substr($user, 0, 1)); ?></div>
+			<div class="who"><b><?php echo htmlspecialchars($user); ?></b>Nagios Core <?php echo $this_version; ?></div>
+<?php } else { ?>
+			<div class="who"><b>Nagios Core</b><?php echo $this_version; ?></div>
+<?php } ?>
+			<button type="button" class="icon-btn theme-toggle" id="theme-toggle" aria-label="Theme">
+				<svg class="auto" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/></svg>
+				<svg class="moon" viewBox="0 0 24 24"><path d="M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10z"/></svg>
+				<svg class="sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+			</button>
+		</div>
+	</aside>
+	<div class="scrim" id="scrim"></div>
+
+	<main class="content">
+		<header class="topbar">
+			<button type="button" class="icon-btn" id="menu-btn" aria-label="Open menu" aria-controls="sidebar" aria-expanded="false">
+				<svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+			</button>
+			<div class="title" id="page-title">Nagios</div>
+			<span class="nav-badge" id="badge-top" hidden></span>
+		</header>
+		<div class="loading-bar" aria-hidden="true"></div>
+		<iframe src="<?php echo $url; ?>" name="main" id="main-frame" title="Nagios content"></iframe>
+	</main>
+</div>
+
+<script>
+(function() {
+	var root = document.documentElement;
+	var shell = document.getElementById('shell');
+	var frame = document.getElementById('main-frame');
+	var cgi = <?php echo json_encode($cfg['cgi_base_url']); ?>;
+	var mobile = window.matchMedia('(max-width: 900px)');
+
+	/* ---- theme ---- */
+	// '' = follow the OS (prefers-color-scheme), 'dark' / 'light' = forced
+	function currentMode() {
+		return root.classList.contains('dark') ? 'dark' : root.classList.contains('light') ? 'light' : '';
+	}
+	var themeBtn = document.getElementById('theme-toggle');
+	var modeLabel = { '': 'Theme: automatic (system)', dark: 'Theme: dark', light: 'Theme: light' };
+	function labelToggle() {
+		themeBtn.title = modeLabel[currentMode()];
+		themeBtn.setAttribute('aria-label', modeLabel[currentMode()]);
+	}
+	labelToggle();
+	themeBtn.addEventListener('click', function() {
+		var next = { '': 'dark', dark: 'light', light: '' }[currentMode()];
+		root.className = next;
+		try { localStorage.setItem('nagios-theme', next || 'auto'); } catch (e) {}
+		labelToggle();
+		themeFrame(frame.contentDocument);
+	});
+	function themeFrame(doc) {
+		if (!doc || !doc.documentElement) return;
+		var el = doc.documentElement;
+		el.classList.remove('dark', 'light');
+		el.classList.add('in-shell');
+		if (currentMode()) el.classList.add(currentMode());
+	}
+
+	/* ---- mobile drawer ---- */
+	var menuBtn = document.getElementById('menu-btn');
+	function setNav(open) {
+		shell.classList.toggle('nav-open', open);
+		menuBtn.setAttribute('aria-expanded', open);
+	}
+	menuBtn.addEventListener('click', function() { setNav(!shell.classList.contains('nav-open')); });
+	document.getElementById('scrim').addEventListener('click', function() { setNav(false); });
+	document.addEventListener('keydown', function(e) { if (e.key === 'Escape') setNav(false); });
+	document.getElementById('sidebar').addEventListener('click', function(e) {
+		var a = e.target.closest('a');
+		if (a && a.target === 'main') {
+			setNav(false);
+			shell.classList.add('loading');
+		}
+	});
+	document.querySelector('.nav-search').addEventListener('submit', function() {
+		setNav(false);
+		shell.classList.add('loading');
+	});
+
+	/* ---- highlight the menu entry of the page shown in the frame ---- */
+	var links = Array.prototype.slice.call(document.querySelectorAll('.nav a[target=main]'));
+	function markActive(loc) {
+		var params = new URLSearchParams(loc.search), best = null, bestScore = -1;
+		links.forEach(function(a) {
+			a.classList.remove('active');
+			var u = new URL(a.href, location.href), score = 0, ok = u.pathname === loc.pathname;
+			// the most specific link whose query parameters all match wins
+			u.searchParams.forEach(function(v, k) {
+				if (params.get(k) === v) score++; else ok = false;
+			});
+			if (ok && score > bestScore) { best = a; bestScore = score; }
+		});
+		if (best) best.classList.add('active');
+	}
+
+	/* ---- make wide tables scroll inside the page instead of the page itself ---- */
+	function wrapWideTables(doc) {
+		var body = doc.body;
+		if (!body) return;
+		var width = body.clientWidth;
+		Array.prototype.forEach.call(doc.querySelectorAll('table'), function(t) {
+			if (t.parentElement.closest('table') || t.parentElement.classList.contains('table-scroll')) return;
+			if (t.offsetWidth <= width + 1) return;
+			var w = doc.createElement('div');
+			w.className = 'table-scroll';
+			t.parentNode.insertBefore(w, t);
+			w.appendChild(t);
+		});
+	}
+
+	/* ---- frame lifecycle ---- */
+	var watched = null;
+	function watchForNewDocument() {
+		// Theme the next document as soon as it exists to avoid a flash.
+		var old = frame.contentDocument;
+		var tries = 0;
+		(function poll() {
+			var d = frame.contentDocument;
+			if (d && d !== old && d.documentElement) { themeFrame(d); return; }
+			if (++tries < 400) setTimeout(poll, 15);
+		})();
+	}
+	frame.addEventListener('load', function() {
+		shell.classList.remove('loading');
+		var win, doc;
+		try { win = frame.contentWindow; doc = frame.contentDocument; } catch (e) { return; }
+		if (!doc) return;
+		themeFrame(doc);
+		wrapWideTables(doc);
+		markActive(win.location);
+		document.getElementById('page-title').textContent = (doc.title || 'Nagios').trim();
+		document.title = 'Nagios: ' + (doc.title || '').trim();
+		win.addEventListener('beforeunload', function() {
+			shell.classList.add('loading');
+			watchForNewDocument();
+		});
+		win.addEventListener('resize', function() { wrapWideTables(doc); });
+	});
+
+	/* ---- problem counters in the menu ---- */
+	function badge(id, n, cls) {
+		var el = document.getElementById(id);
+		if (!el) return;
+		el.hidden = !n;
+		el.textContent = n;
+		el.className = 'nav-badge ' + cls;
+	}
+	function refreshCounts() {
+		Promise.all([
+			fetch(cgi + '/statusjson.cgi?query=hostcount', { credentials: 'same-origin' }).then(function(r) { return r.json(); }),
+			fetch(cgi + '/statusjson.cgi?query=servicecount', { credentials: 'same-origin' }).then(function(r) { return r.json(); })
+		]).then(function(res) {
+			var h = res[0].data.count, s = res[1].data.count;
+			var hostProblems = h.down + h.unreachable;
+			var svcProblems = s.critical + s.warning + s.unknown;
+			badge('badge-hosts', hostProblems, 'crit');
+			badge('badge-services', svcProblems, s.critical ? 'crit' : 'warn');
+			badge('badge-problems', hostProblems + svcProblems, (h.down || s.critical) ? 'crit' : 'warn');
+			badge('badge-top', hostProblems + svcProblems, (h.down || s.critical) ? 'crit' : 'warn');
+		}).catch(function() {});
+	}
+	refreshCounts();
+	setInterval(refreshCounts, 60000);
+})();
+</script>
 </body>
 
 </html>

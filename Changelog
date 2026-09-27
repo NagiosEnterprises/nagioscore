@@ -2,6 +2,13 @@
 Nagios Core 4 Change Log
 ########################
 
+4.5.15 - TBD
+-------------------
+* Redesign the web UI: modern dark/light theme that follows the OS, sidebar navigation with live problem counts, mobile friendly layout (Stephan Ferraro)
+* Add optional form based login page (Apache mod_auth_form) that works with password managers, installed via make install-webconf-formauth (Stephan Ferraro)
+* Fix unclosed hidden nagFormId input in cmd.cgi that broke the command form markup (Stephan Ferraro)
+* Fix corewindow permalinks producing protocol-relative URLs and double encoded query values (Stephan Ferraro)
+
 4.5.14 - 2026-08-05
 -------------------
 * Fix vulnerabilities in notification macros, which are now being sanitized (Thanks Zach Hanley of Horizon3.ai) (Emmett Kapsner)

@@ -1,15 +1,103 @@
+/*
+ * Network outages (outages.cgi). The list itself uses the shared
+ * "table.data" style from common.css; colors come from its tokens only.
+ */
 
-.outages { }
+body.outages { max-width: 1480px; }
 
-.itemTotalsTitle { text-align: center; }
+/* header: only the info box is used */
+body.outages > table:first-of-type > tbody > tr > td:not(:first-child) { display: none; }
+body.outages > table:first-of-type > tbody > tr > td:first-child { width: auto; }
+body.outages table.infoBox { max-width: 520px; }
 
-.dataTitle {  text-align: center;  font-weight: bold;  font-size: 12pt; }
-TABLE.data {  font-size: 10pt;  background-color: white;  padding: 2px; border-collapse:separate;}
-TH.data {  font-size: 10pt;   text-align: left;  background-color: #999797;   }
-.dataOdd {  font-size: 10pt;  background-color: #DBDBDB; }
-.dataEven {  font-size: 10pt;  background-color: #C4C2C2; }
+body.outages > p:empty { display: none; }
+body.outages div[align] { text-align: left; }
 
-.hostUP {  font-size: 10pt;  text-align: left;  background-color: #33FF00;  font-weight: bold; }
-.hostDOWN {  font-size: 10pt;  text-align: left;  background-color: #F83838;  font-weight: bold; }
-.hostUNREACHABLE {  font-size: 10pt;  text-align: left;  background-color: #F83838;  font-weight: bold; }
+body.outages div.dataTitle { margin: 20px 0 12px; }
 
+body.outages div[align]:has(> table.data) {
+	max-width: 100%;
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
+	border-radius: var(--radius);
+}
+
+body.outages table.data td { font-size: 12.5px; }
+
+/* severity number */
+body.outages table.data td:first-child {
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+	color: var(--critical);
+}
+
+/* state column: pill */
+body.outages td:is(.hostUP, .hostDOWN, .hostUNREACHABLE) {
+	--s: var(--critical);
+	font-size: 10.5px;
+	font-weight: 700;
+	letter-spacing: .06em;
+	color: var(--s);
+	white-space: nowrap;
+}
+body.outages td.hostUP { --s: var(--ok); }
+body.outages td.hostUNREACHABLE { --s: var(--unreachable); }
+body.outages td:is(.hostUP, .hostDOWN, .hostUNREACHABLE)::before {
+	content: "";
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	margin: 0 7px 1px 0;
+	border-radius: 50%;
+	background: var(--s);
+	box-shadow: 0 0 0 3px color-mix(in srgb, var(--s) 20%, transparent);
+	vertical-align: middle;
+}
+
+/* action icons */
+body.outages table.data td:last-child { white-space: nowrap; }
+body.outages table.data td:last-child a {
+	display: inline-grid;
+	place-items: center;
+	width: 30px;
+	height: 30px;
+	border-radius: 6px;
+}
+body.outages table.data td:last-child a:hover { background: var(--surface-2); }
+body.outages table.data img { opacity: .8; vertical-align: middle; }
+body.outages table.data a:hover img { opacity: 1; }
+
+/* "No outages" footer */
+body.outages div.itemTotalsTitle {
+	margin: 12px 0;
+	text-align: left;
+}
+body.outages table.data:not(:has(td)) {
+	border-bottom-left-radius: 0;
+	border-bottom-right-radius: 0;
+}
+body.outages div[align]:has(> table.data):not(:has(table.data td)) ~ div.itemTotalsTitle {
+	margin: 0;
+	padding: 28px 16px;
+	text-align: center;
+	font-size: 13px;
+	color: var(--muted);
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-top: 0;
+	border-radius: 0 0 var(--radius) var(--radius);
+}
+body.outages div[align]:has(> table.data):not(:has(table.data td)) ~ div.itemTotalsTitle::before {
+	content: "";
+	display: block;
+	width: 10px;
+	height: 10px;
+	margin: 0 auto 10px;
+	border-radius: 50%;
+	background: var(--ok);
+	box-shadow: 0 0 0 5px var(--ok-soft), 0 0 18px var(--ok);
+}
+
+@media (max-width: 760px) {
+	body.outages table.infoBox { max-width: none; }
+}

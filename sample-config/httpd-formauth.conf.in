@@ -1,0 +1,108 @@
+# SAMPLE CONFIG SNIPPETS FOR APACHE WEB SERVER - FORM BASED LOGIN
+#
+# Alternative to httpd.conf that shows a login page (username +
+# password form, works with password managers) instead of the
+# HTTP Basic Auth browser dialog. Users and passwords still come
+# from @sysconfdir@/htpasswd.users, so existing accounts keep working.
+#
+# Requires Apache 2.4 with these modules enabled:
+#   mod_auth_form mod_request mod_session mod_session_cookie mod_session_crypto
+# On Debian/Ubuntu:
+#   a2enmod auth_form request session session_cookie session_crypto
+#
+# IMPORTANT: Replace every "CHANGE_ME" passphrase below with the same
+# long random secret. It encrypts the session cookie, which contains
+# the user's credentials. If you serve Nagios over HTTPS (recommended),
+# add ";secure" to every SessionCookieName line.
+#
+# Install with "make install-webconf-formauth" instead of
+# "make install-webconf".
+
+ScriptAlias @cgiurl@ "@sbindir@"
+
+<Directory "@sbindir@">
+#  SSLRequireSSL
+   Options ExecCGI
+   AllowOverride None
+
+   AuthType Form
+   AuthName "Nagios Access"
+   AuthFormProvider file
+   AuthUserFile @sysconfdir@/htpasswd.users
+   AuthFormLoginRequiredLocation "@htmurl@/login.php?next=%{REQUEST_URI}"
+
+   Session On
+   SessionCookieName nagios_session path=/;httponly;samesite=lax
+   SessionCryptoPassphrase CHANGE_ME
+   SessionMaxAge 28800
+
+   <RequireAll>
+      Require valid-user
+#     Require host 127.0.0.1
+   </RequireAll>
+</Directory>
+
+Alias @htmurl@ "@datadir@"
+
+<Directory "@datadir@">
+#  SSLRequireSSL
+   Options None
+   AllowOverride None
+
+   AuthType Form
+   AuthName "Nagios Access"
+   AuthFormProvider file
+   AuthUserFile @sysconfdir@/htpasswd.users
+   AuthFormLoginRequiredLocation "@htmurl@/login.php?next=%{REQUEST_URI}"
+
+   Session On
+   SessionCookieName nagios_session path=/;httponly;samesite=lax
+   SessionCryptoPassphrase CHANGE_ME
+   SessionMaxAge 28800
+
+   <RequireAll>
+      Require valid-user
+#     Require host 127.0.0.1
+   </RequireAll>
+
+   # The login page and the logo it shows must be reachable without a session.
+   <Files "login.php">
+      Require all granted
+   </Files>
+</Directory>
+
+<Directory "@datadir@/images/logos">
+   Require all granted
+</Directory>
+
+# Receives the login form. Redirects to the requested page on success
+# and back to the login page on failure.
+<Location "@htmurl@/dologin">
+   SetHandler form-login-handler
+   AuthType Form
+   AuthName "Nagios Access"
+   AuthFormProvider file
+   AuthUserFile @sysconfdir@/htpasswd.users
+   AuthFormLoginRequiredLocation "@htmurl@/login.php?error=1"
+   AuthFormLoginSuccessLocation "@htmurl@/"
+
+   Session On
+   SessionCookieName nagios_session path=/;httponly;samesite=lax
+   SessionCryptoPassphrase CHANGE_ME
+   SessionMaxAge 28800
+
+   Require valid-user
+</Location>
+
+# Ends the session and returns to the login page.
+<Location "@htmurl@/logout">
+   SetHandler form-logout-handler
+   AuthFormLogoutLocation "@htmurl@/login.php?loggedout=1"
+
+   Session On
+   SessionCookieName nagios_session path=/;httponly;samesite=lax
+   SessionCryptoPassphrase CHANGE_ME
+   SessionMaxAge 1
+
+   Require all granted
+</Location>

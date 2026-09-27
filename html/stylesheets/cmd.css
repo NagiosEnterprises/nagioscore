@@ -1,14 +1,165 @@
+/* cmd.cgi - external command forms */
 
-.cmd { }
+body.cmd {
+	max-width: 820px;
+	margin: 0 auto;
+}
 
-.cmdType {  font-size: 10pt;  font-weight: bold;  text-align: center;  color: red; }
+/* header: only the info box is used, let it span the column */
+body.cmd > table:first-of-type table.infoBox { max-width: none; }
+body.cmd > table:first-of-type > tbody > tr > td { width: auto; padding: 0; }
+body.cmd > table:first-of-type > tbody > tr > td:empty { display: none; }
 
-.commandDescription {   text-align: center;  background-color: #DBDBDB;  padding: 5px; }
-.descriptionTitle {  font-size: 10pt;  text-align: center;  font-weight: bold; }
+/* quirks mode: tables do not inherit the font size */
+body.cmd table { font-size: inherit; }
 
-.optBox {   text-align: left;  padding: 5px;  background-color: #C4C2C2; }
-.optBoxTitle {  font-size: 10pt;  text-align: center;  font-weight: bold; }
-.optBoxItem {  font-size: 10pt;  text-align: left;  background-color: #C4C2C2; }
-.optBoxRequiredItem {  font-size: 10pt;  text-align: left;  color: red;  background-color: #C4C2C2; }
+/* "You are requesting to ..." acts as the page title */
+.cmdType {
+	margin: 8px 0 18px;
+	font-size: 20px;
+	font-weight: 650;
+	letter-spacing: -0.01em;
+	text-align: left;
+	color: var(--text);
+}
+body.cmd p { margin: 0; }
 
+/* the two column layout table around the form; stack it */
+body.cmd div[align=center] > table,
+body.cmd div[align=center] > table > tbody,
+body.cmd div[align=center] > table > tbody > tr,
+body.cmd div[align=center] > table > tbody > tr > td {
+	display: block;
+	width: auto !important;
+	text-align: left;
+}
 
+.optBoxTitle, .descriptionTitle {
+	margin: 0 0 8px;
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: .08em;
+	text-transform: uppercase;
+	text-align: left;
+	color: var(--muted);
+}
+.descriptionTitle { margin-top: 20px; }
+
+/* form card */
+table.optBox {
+	width: 100%;
+	border: 1px solid var(--border);
+	border-radius: 12px;
+	border-collapse: separate;
+	background: var(--surface);
+	box-shadow: var(--shadow);
+	padding: 8px 4px;
+}
+
+table.optBox td {
+	padding: 7px 16px;
+	border: 0;
+	background: transparent;
+	vertical-align: middle;
+	color: var(--text);
+}
+
+.optBox, .optBoxItem, .optBoxRequiredItem {
+	background: transparent;
+	font-size: 13px;
+	text-align: left;
+}
+
+/* label column */
+td.optBoxItem:first-child, td.optBoxRequiredItem {
+	width: 34%;
+	color: var(--muted);
+	font-weight: 500;
+	white-space: nowrap;
+}
+
+td.optBoxRequiredItem { color: var(--text); }
+td.optBoxRequiredItem::after {
+	content: " *";
+	color: var(--critical);
+	font-weight: 700;
+}
+
+/* rows that only hold hidden inputs or <br> spacers */
+table.optBox tr:not(:has(td + td)):not(:has(input:not([type=hidden]), select, textarea)) {
+	display: none;
+}
+
+/* the submit row gets a divider */
+table.optBox tr:has(input[type=submit]) > td {
+	padding-top: 14px;
+	border-top: 1px solid var(--border);
+}
+
+table.optBox b { font-weight: normal; }
+
+table.optBox input[type=text], table.optBox select, table.optBox textarea {
+	width: 100%;
+	max-width: 420px;
+	height: 36px;
+}
+
+table.optBox input[disabled], table.optBox input[readonly] {
+	color: var(--muted);
+	background: var(--surface-2);
+	border-color: var(--border);
+	cursor: not-allowed;
+}
+
+/* "If Flexible, Duration: [2] Hours [0] Minutes" */
+table.optBox table { border: 0; }
+table.optBox table td { padding: 0 8px 0 0; color: var(--muted); }
+table.optBox input[size="2"] {
+	width: 64px;
+	text-align: center;
+}
+
+table.optBox input[type=checkbox] { width: 18px; height: 18px; }
+
+/* description card */
+table.commandDescription {
+	border-spacing: 0;
+	width: 100%;
+	border: 1px solid var(--border);
+	border-radius: 12px;
+	border-collapse: separate;
+	background: var(--surface-2);
+}
+
+td.commandDescription, .commandDescription {
+	padding: 14px 16px;
+	text-align: left;
+	font-size: 13px;
+	line-height: 1.6;
+	color: var(--muted);
+	background: transparent;
+	border: 0;
+}
+td.commandDescription b, td.commandDescription i { color: var(--text); }
+
+body.cmd .infoMessage, body.cmd .errorMessage {
+	max-width: none;
+	margin: 16px 0;
+	font-weight: 500;
+}
+
+/* result page after a command was submitted */
+body.cmd .infoMessage a, body.cmd .errorMessage a { color: inherit; text-decoration: underline; }
+
+@media (max-width: 640px) {
+	.cmdType { font-size: 18px; }
+	table.optBox tr { display: flex; flex-direction: column; padding: 4px 0; }
+	table.optBox td { padding: 3px 14px; }
+	td.optBoxItem:first-child, td.optBoxRequiredItem { width: auto; font-size: 12px; }
+	table.optBox td:empty { display: none; }
+	table.optBox input[type=text], table.optBox select { max-width: none; height: 42px; }
+	table.optBox table tr { flex-direction: row; align-items: center; }
+	table.optBox tr:has(input[type=submit]) > td:first-child { display: none; }
+	table.optBox tr:has(input[type=submit]) > td { border-top: 0; }
+	table.optBox input[type=submit], table.optBox input[type=reset] { height: 42px; padding: 0 22px; }
+}

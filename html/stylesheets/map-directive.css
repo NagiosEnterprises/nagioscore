@@ -14,7 +14,9 @@ div#spinner {
 div#mapsvg {
 	position: absolute;
 	border-style: solid;
-	border-color: #777777;
+	border-color: var(--border);
+	border-radius: 12px;
+	background: var(--surface);
 	border-width: 1px;
 	width: 600px;
 	height: 600px;
@@ -23,30 +25,34 @@ div#mapsvg {
 /* Styles for map elements */
 .link {
 	fill: none;
-	stroke: #cccccc;
+	stroke: var(--border-strong);
 	stroke-width: 1.5px;
 }
 
 .node circle {
-	fill: #ffffff;
-	stroke: #cccccc;
+	fill: var(--surface);
+	stroke: var(--border-strong);
 	stroke-width: 2px;
 }
 
 .node {
-	font-family: sans-serif;
+	font-family: var(--font);
+	fill: var(--text);
 }
 
 /* Styles for state popups */
 div#popup {
-	font-family: sans-serif;
-	font-size: 11px;
+	font-family: var(--font);
+	font-size: 12px;
+	color: var(--text);
 	position: absolute;
 	width: auto;
 	height: auto;
-	padding: 3px;
-	border: 1px solid black;
-	background-color: #ffffcc;
+	padding: 8px 10px;
+	border: 1px solid var(--border-strong);
+	border-radius: 10px;
+	background-color: var(--surface);
+	box-shadow: var(--shadow-lg);
 	pointer-events: none;
 }
 
@@ -56,6 +62,8 @@ div#popup td {
 
 div#popup .popup-label {
 	text-align: right;
+	color: var(--muted);
+	padding-right: 8px;
 }
 
 div#popup .popup-value {
@@ -64,28 +72,28 @@ div#popup .popup-value {
 
 /* Colors for text representing states */
 .up {
-	color: rgb(0, 128, 0);
+	color: var(--ok);
 }
 .down {
-	color: rgb(255, 0, 0);
+	color: var(--critical);
 }
 .unreachable {
-	color: rgb(128, 0, 0);
+	color: var(--unreachable);
 }
 .ok {
-	color: rgb(0, 128, 0);
+	color: var(--ok);
 }
 .warning {
-	color: rgb(176, 178, 20);
+	color: var(--warning);
 }
 .unknown {
-	color: rgb(255, 100, 25);
+	color: var(--unknown);
 }
 .critical {
-	color: rgb(255, 0, 0);
+	color: var(--critical);
 }
 .pending {
-	color: #ccc;
+	color: var(--pending);
 }
 
 /* Styles for labels in partition displays */
@@ -102,5 +110,6 @@ div#menubutton {
 div#menubutton button {
 	padding: 0px;
 	border: none;
-	background-color: white;
+	background-color: transparent;
+	color: var(--text);
 }

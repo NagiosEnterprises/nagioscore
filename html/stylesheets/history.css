@@ -1,9 +1,2 @@
-
-.history {}
-
-.dataTitle {  text-align: center;  font-weight: bold;  font-size: 12pt; }
-
-.logEntries {  }
-
-.dateTimeBreak {  font-size: 10pt;  font-weight: bold;  color: red; }
-
+/* Alert history (history.cgi). Shared report and event log styles live in reports.css. */
+@import url(reports.css);

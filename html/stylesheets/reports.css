@@ -1,0 +1,656 @@
+/*
+ * Shared layout for the report CGIs (avail, trends, history, summary,
+ * histogram, notifications, showlog). Imported by their page stylesheets.
+ * Colors come only from the tokens in common.css.
+ */
+
+/* quirks mode (no doctype) resets the font size of tables to "medium" */
+table { font-size: inherit; }
+
+/* stray line breaks between report sections */
+body.avail > br, body.summary > br, body.trends > br, body.histogram > br { display: none; }
+
+/* ---------------------------------------------------------------- page header */
+
+/* these CGIs print the three column header without the "headertable" class */
+body.avail > table:first-of-type, body.trends > table:first-of-type,
+body.history > table:first-of-type, body.summary > table:first-of-type,
+body.histogram > table:first-of-type, body.notifications > table:first-of-type,
+body.showlog > table:first-of-type {
+	width: 100%;
+	margin: 0 0 24px;
+}
+
+body.avail > table:first-of-type > tbody > tr > td, body.trends > table:first-of-type > tbody > tr > td,
+body.history > table:first-of-type > tbody > tr > td, body.summary > table:first-of-type > tbody > tr > td,
+body.histogram > table:first-of-type > tbody > tr > td, body.notifications > table:first-of-type > tbody > tr > td,
+body.showlog > table:first-of-type > tbody > tr > td {
+	padding: 0 16px 0 0;
+	vertical-align: top;
+}
+
+body.avail > table:first-of-type > tbody > tr > td:last-child,
+body.trends > table:first-of-type > tbody > tr > td:last-child,
+body.history > table:first-of-type > tbody > tr > td:last-child,
+body.summary > table:first-of-type > tbody > tr > td:last-child,
+body.histogram > table:first-of-type > tbody > tr > td:last-child,
+body.notifications > table:first-of-type > tbody > tr > td:last-child,
+body.showlog > table:first-of-type > tbody > tr > td:last-child {
+	padding-right: 0;
+}
+
+/* the old decorative report icons next to the title */
+img[src$="/trends.gif"], img[src$="/history.gif"], img[src$="/notify.gif"],
+img[src$="/histogram.png"], img[src$="/trendshost.png"], img[src$="/trendssvc.png"] {
+	display: none;
+}
+
+/* the middle header column: what the report is about */
+body > table:first-of-type > tbody > tr > td > br { display: none; }
+
+body > table:first-of-type .dataTitle, td[align=center i] > .dataTitle {
+	margin: 0 0 8px;
+	font-size: 20px;
+	text-align: center;
+}
+
+.reportRange, .reportDuration, .reportTime, .navBoxDate {
+	text-align: center;
+	color: var(--muted);
+	font-size: 12px;
+	font-weight: normal;
+}
+
+.reportRange {
+	display: block;
+	width: fit-content;
+	margin: 0 auto 6px;
+	padding: 4px 12px;
+	color: var(--text);
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+	background: var(--surface-2);
+	border: 1px solid var(--border);
+	border-radius: 999px;
+}
+
+.reportTime { margin: 0 0 8px; font-size: 11px; }
+
+.helpfulHint, .reportSelectTip {
+	max-width: 560px;
+	margin: 10px auto;
+	color: var(--muted);
+	font-size: 12px;
+	font-style: normal;
+	text-align: center;
+}
+
+
+/* ---------------------------------------------------------------- option box (right header column) */
+
+table.optBox {
+	margin-left: auto;
+	padding: 10px 12px;
+	border-collapse: separate;
+	border-spacing: 0;
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	box-shadow: var(--shadow);
+	text-align: left;
+}
+
+/* wizard pages print an empty option box */
+table.optBox:not(:has(input, select)),
+body > table:first-of-type td > table:not([class]):not(:has(input, select, a, img)) {
+	display: none;
+}
+
+table.optBox td {
+	padding: 4px 6px;
+	vertical-align: bottom;
+	font-weight: 600;
+	font-size: 11px;
+	letter-spacing: .03em;
+	color: var(--muted);
+}
+
+table.optBox td:has(> select), table.optBox td:has(> input:not([type=hidden])) {
+	padding-bottom: 10px;
+}
+
+table.optBox select { width: 100%; min-width: 150px; font-weight: normal; letter-spacing: 0; }
+table.optBox input[type=text] { width: 64px; }
+table.optBox input[type=submit] { width: 100%; }
+table.optBox input[type=checkbox] { margin: 0 6px 0 0; }
+
+
+/* ---------------------------------------------------------------- wizard steps */
+
+.reportSelectTitle, .dateSelectTitle {
+	margin: 28px 0 14px;
+	font-size: 20px;
+	font-weight: 650;
+	letter-spacing: -0.01em;
+	text-align: center;
+	color: var(--text);
+}
+
+/* the form card */
+div[align=center i] > form > table:not([class]) {
+	width: 100%;
+	max-width: 560px;
+	margin: 0 auto;
+	padding: 10px 6px;
+	text-align: left;
+	border-collapse: separate;
+	border-spacing: 0;
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: 14px;
+	box-shadow: var(--shadow);
+}
+
+div[align=center i] > form > table:not([class]) > tbody > tr > td {
+	padding: 8px 18px;
+	vertical-align: middle;
+}
+
+td.reportSelectSubTitle, td.dateSelectSubTitle {
+	width: 40%;
+	text-align: left;
+	color: var(--muted);
+	font-size: 12.5px;
+	font-weight: 500;
+}
+
+/* "If Custom Report Period..." acts as a section heading */
+tr:has(> td.reportSelectSubTitle:only-child) > td {
+	padding-top: 14px !important;
+	padding-bottom: 0 !important;
+	white-space: nowrap;
+	color: var(--text);
+	font-weight: 600;
+	font-size: 11px;
+	letter-spacing: .05em;
+	text-transform: uppercase;
+}
+
+/* spacer rows (<td colspan=2><br></td>) become hairline dividers */
+tr:has(> td[colspan="2"] > br:only-child) > td {
+	height: 1px;
+	padding: 8px 0 !important;
+	font-size: 0;
+	line-height: 0;
+	background: linear-gradient(var(--border), var(--border)) center / calc(100% - 36px) 1px no-repeat;
+}
+
+td.reportSelectItem, td.dateSelectItem, div[align=center i] > form > table td.optBoxItem {
+	color: var(--text);
+	font-weight: normal;
+	font-size: 13px;
+	letter-spacing: 0;
+}
+
+div[align=center i] > form > table:not([class]) select {
+	width: 100%;
+	max-width: 280px;
+}
+
+div[align=center i] > form > table:not([class]) select[name$=mon] { width: 132px; }
+td.reportSelectItem input[name$=day] { width: 52px; text-align: center; }
+td.reportSelectItem input[name$=year] { width: 72px; text-align: center; }
+td.reportSelectItem input[name=backtrack] { width: 64px; text-align: center; }
+
+div[align=center i] > form > table:not([class]) input[type=submit] {
+	height: 40px;
+	padding: 0 22px;
+	margin: 8px 0 4px;
+	font-size: 14px;
+}
+
+.dateSelectItem { color: var(--text); }
+
+
+/* ---------------------------------------------------------------- report tables */
+
+body.avail div[align=center i]:has(> table.data, > table.logEntries),
+body.summary div[align=center i]:has(> table.data) { text-align: left; }
+
+.dataTitle {
+	margin: 32px 0 12px;
+	font-size: 16px;
+	font-weight: 650;
+	text-align: left;
+	color: var(--text);
+}
+
+.dataSubTitle {
+	margin: 8px 0 12px;
+	color: var(--muted);
+	font-size: 13px;
+	font-weight: normal;
+	text-align: left;
+}
+
+table.data td, table.logEntries td, table.notifications td {
+	font-variant-numeric: tabular-nums;
+}
+
+/* state cells: colored text with a dot, like the status pages */
+td.hostUP, td.hostDOWN, td.hostUNREACHABLE,
+td.serviceOK, td.serviceWARNING, td.serviceUNKNOWN, td.serviceCRITICAL {
+	font-weight: 600;
+	white-space: nowrap;
+	background: transparent;
+}
+td.hostUP, td.serviceOK { color: var(--ok); }
+td.serviceWARNING { color: var(--warning); }
+td.serviceUNKNOWN { color: var(--unknown); }
+td.hostDOWN, td.serviceCRITICAL { color: var(--critical); }
+td.hostUNREACHABLE { color: var(--unreachable); }
+
+/* state label cells spanning several rows (avail breakdowns) */
+td[rowspan].hostUP, td[rowspan].hostDOWN, td[rowspan].hostUNREACHABLE,
+td[rowspan].serviceOK, td[rowspan].serviceWARNING, td[rowspan].serviceUNKNOWN,
+td[rowspan].serviceCRITICAL, td[rowspan].dataEven, td[rowspan].dataOdd {
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: .05em;
+	text-transform: uppercase;
+	vertical-align: top !important;
+	border-right: 1px solid var(--border);
+}
+
+td[rowspan].hostUP::before, td[rowspan].hostDOWN::before, td[rowspan].hostUNREACHABLE::before,
+td[rowspan].serviceOK::before, td[rowspan].serviceWARNING::before,
+td[rowspan].serviceUNKNOWN::before, td[rowspan].serviceCRITICAL::before,
+td.logEntriesOK::before, td.logEntriesWARNING::before, td.logEntriesUNKNOWN::before,
+td.logEntriesCRITICAL::before, td.logEntriesUP::before, td.logEntriesDOWN::before,
+td.logEntriesUNREACHABLE::before, td.logEntriesINDETERMINATE::before {
+	content: "";
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	margin: 0 8px 1px 0;
+	border-radius: 50%;
+	background: currentColor;
+	box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 18%, transparent);
+	vertical-align: middle;
+}
+
+/* "Total" rows of a state block get a soft tint */
+tr.hostUP > td, tr.serviceOK > td { background: var(--ok-soft); }
+tr.serviceWARNING > td { background: var(--warning-soft); }
+tr.serviceUNKNOWN > td { background: var(--unknown-soft); }
+tr.hostDOWN > td, tr.serviceCRITICAL > td { background: var(--critical-soft); }
+tr.hostUNREACHABLE > td { background: var(--unreachable-soft); }
+tr.hostUP > td, tr.hostDOWN > td, tr.hostUNREACHABLE > td, tr.serviceOK > td,
+tr.serviceWARNING > td, tr.serviceUNKNOWN > td, tr.serviceCRITICAL > td {
+	font-weight: 600;
+}
+
+/* spacer row before the "All" totals */
+table.data tr:has(> td[colspan]:empty) > td { padding: 0 !important; height: 6px; background: var(--surface-2); }
+
+/* avail log entries table */
+td.logEntriesOK, td.logEntriesUP { color: var(--ok); font-weight: 600; }
+td.logEntriesWARNING { color: var(--warning); font-weight: 600; }
+td.logEntriesUNKNOWN { color: var(--unknown); font-weight: 600; }
+td.logEntriesCRITICAL, td.logEntriesDOWN { color: var(--critical); font-weight: 600; }
+td.logEntriesUNREACHABLE { color: var(--unreachable); font-weight: 600; }
+td.logEntriesINDETERMINATE { color: var(--pending); font-weight: 600; }
+td.logEntriesEven, td.logEntriesOdd { background: transparent; color: var(--text); }
+
+/* empty result tables: show a friendly placeholder instead of a bare header */
+table.logEntries:not(:has(tr + tr))::after,
+table.notifications:not(:has(tr + tr))::after {
+	content: "No entries for this period";
+	display: table-caption;
+	caption-side: bottom;
+	padding: 20px;
+	color: var(--muted);
+	text-align: center;
+	font-size: 12px;
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-top: 0;
+	border-radius: 0 0 var(--radius) var(--radius);
+}
+
+.infoMessage a { color: inherit; }
+
+/* "[ View full log entries ]" is just a link, not a message */
+.infoMessage:has(> a:only-child) {
+	max-width: none;
+	margin: -4px 0 10px;
+	padding: 0;
+	background: none;
+	border: 0;
+	font-weight: 500;
+	font-size: 12px;
+	text-align: left;
+}
+.infoMessage:has(> a:only-child) a { color: var(--link); text-decoration: none; }
+
+/* the border=1 attribute of the log table draws cell grid lines */
+table.logEntries > tbody > tr > th, table.logEntries > tbody > tr > td {
+	border-width: 0 0 1px !important;
+	border-style: solid !important;
+	border-color: var(--border) !important;
+}
+
+/* small state trends bar in availability reports */
+a:has(> img[src*="smallimage"]) {
+	display: inline-block;
+	max-width: 100%;
+	line-height: 0;
+	overflow: hidden;
+	border: 1px solid var(--border-strong);
+	border-radius: 6px;
+}
+
+img[src*="smallimage"] {
+	max-width: 100%;
+	height: auto;
+	border: 0 !important;
+	border-radius: 6px;
+}
+
+
+/* ---------------------------------------------------------------- generated graphs */
+
+/*
+ * GD images (trends / histogram) are white. The card is drawn by the wrapper
+ * (a filter on the image would also invert its border and shadow).
+ */
+div[align=center i]:has(> img[name=trendsimage]), div[align=center i]:has(> img[name=histogramimage]) {
+	width: fit-content;
+	max-width: 100%;
+	margin: 8px auto 0;
+	overflow: hidden;
+	border: 1px solid var(--border);
+	border-radius: 14px;
+	box-shadow: var(--shadow-lg);
+	box-sizing: border-box;
+}
+
+img[name=trendsimage], img[name=histogramimage] {
+	display: block;
+	padding: 14px;
+	background: #fff;
+}
+
+/* histograms have no image map, so they may shrink with the page */
+img[name=histogramimage] { max-width: 100%; height: auto; box-sizing: border-box; }
+
+/* trends images use an image map and must keep their size: scroll instead */
+div[align=center i]:has(> img[name=trendsimage]) {
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
+}
+
+/* dark mode: invert the white graph so it blends in; hue-rotate keeps state colors */
+:root.dark img[name=trendsimage], :root.dark img[name=histogramimage],
+:root.dark img[src*="smallimage"] {
+	filter: invert(0.92) hue-rotate(180deg) saturate(1.3);
+}
+@media (prefers-color-scheme: dark) {
+	:root:not(.light) img[name=trendsimage], :root:not(.light) img[name=histogramimage],
+	:root:not(.light) img[src*="smallimage"] {
+		filter: invert(0.92) hue-rotate(180deg) saturate(1.3);
+	}
+}
+
+/* image map popup of the trends graph */
+#popup table { border: 0 !important; border-collapse: separate; }
+#popup td, #popup td.popupText {
+	padding: 8px 10px;
+	color: var(--text);
+	font-weight: normal;
+	font-size: 12px;
+	line-height: 1.5;
+	background: var(--surface) !important;
+	border: 1px solid var(--border-strong);
+	border-radius: 8px;
+	box-shadow: var(--shadow-lg);
+}
+
+
+/* ---------------------------------------------------------------- event logs (history, showlog) */
+
+.dateTimeBreak table {
+	width: 100% !important;
+	margin: 22px 0 10px;
+	border-collapse: collapse;
+}
+.dateTimeBreak table td { padding: 0; }
+.dateTimeBreak hr { margin: 0; border: 0; border-top: 1px solid var(--border); }
+
+td.dateTimeBreak {
+	width: 1%;
+	padding: 0 !important;
+	white-space: nowrap;
+	color: var(--muted);
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: .05em;
+	text-transform: uppercase;
+}
+td.dateTimeBreak::before { content: "\25CF\00a0\00a0"; color: var(--accent); }
+.dateTimeBreak table td:first-child { width: 14px !important; }
+.dateTimeBreak table td:first-child hr { width: 14px !important; }
+.dateTimeBreak table td:nth-child(2) { padding: 0 10px !important; text-align: left; }
+.dateTimeBreak table td:last-child { width: auto !important; }
+
+/* a block of log lines: timeline card; icons sit on a vertical line */
+div.logEntries:has(> img) {
+	position: relative;
+	padding: 12px 18px 12px 48px;
+	font-size: 12.5px;
+	line-height: 1.55;
+	color: var(--text);
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	box-shadow: var(--shadow);
+	overflow-wrap: break-word;
+}
+
+div.logEntries:has(> img)::before {
+	content: "";
+	position: absolute;
+	left: 28px;
+	top: 18px;
+	bottom: 18px;
+	width: 1px;
+	background: var(--border);
+}
+
+div.logEntries > img {
+	position: relative;
+	float: left;
+	width: 14px;
+	height: 14px;
+	margin: 0 0 10px -30px;
+	padding: 3px;
+	object-fit: contain;
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: 50%;
+}
+
+/* entries end with <br clear=all>: the icon's bottom margin spaces them out */
+
+/* empty log wrappers the CGIs print */
+div.logEntries:not(:has(img)):not(:has(.dateTimeBreak)) { display: none; }
+
+body.history > hr, body.showlog > hr { display: none; }
+div.logEntries > br:first-child, body.history > p > br:first-child { display: none; }
+body.showlog > p:first-of-type, body.history > p:first-of-type { margin: 0; }
+
+
+/* ---------------------------------------------------------------- archive navigation (history, showlog, notifications) */
+
+table.navBox {
+	margin: 0 auto;
+	padding: 8px 10px;
+	border-collapse: separate;
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	box-shadow: var(--shadow);
+}
+
+table.navBox td { padding: 2px 4px; vertical-align: middle; }
+table.navBox td[width] { width: 6px; }
+table.navBox img[src$="/empty.gif"] { width: 36px !important; }
+
+td.navBoxItem {
+	font-size: 10.5px;
+	font-weight: 600;
+	letter-spacing: .03em;
+	text-transform: uppercase;
+	color: var(--muted);
+	text-align: center;
+	white-space: nowrap;
+}
+
+td.navBoxDate { color: var(--text); font-size: 12px; line-height: 1.5; }
+.navBoxTitle { margin: 0 0 2px; font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+.navBoxFile { margin-top: 10px; text-align: center; font-size: 11px; color: var(--muted); font-family: var(--font-mono); overflow-wrap: anywhere; }
+
+/* replace the arrow gifs by round buttons */
+td.navBoxItem a:has(> img) {
+	display: grid;
+	place-items: center;
+	width: 34px;
+	height: 34px;
+	margin: 4px auto 0;
+	font-size: 16px;
+	font-weight: 600;
+	color: var(--text);
+	background: var(--surface-2);
+	border: 1px solid var(--border-strong);
+	border-radius: 50%;
+	text-decoration: none;
+	transition: background .15s, border-color .15s;
+}
+td.navBoxItem a:has(> img):hover { background: var(--surface-hover); border-color: var(--accent); }
+td.navBoxItem a > img { display: none; }
+td.navBoxItem a:has(> img[src$="/left.gif"])::before { content: "\2190"; }
+td.navBoxItem a:has(> img[src$="/right.gif"])::before { content: "\2192"; }
+
+
+/* ---------------------------------------------------------------- small screens */
+
+@media (max-width: 760px) {
+	/* stack the three header columns */
+	body.avail > table:first-of-type, body.trends > table:first-of-type,
+	body.history > table:first-of-type, body.summary > table:first-of-type,
+	body.histogram > table:first-of-type, body.notifications > table:first-of-type,
+	body.showlog > table:first-of-type,
+	body > table:first-of-type > tbody, body > table:first-of-type > tbody > tr,
+	body > table:first-of-type > tbody > tr > td {
+		display: block;
+		width: auto !important;
+	}
+	body > table:first-of-type > tbody > tr > td {
+		padding: 0 0 14px !important;
+		text-align: left !important;
+	}
+	body > table:first-of-type > tbody > tr > td:not(:has(*:not(br))) { display: none; }
+
+	body > table:first-of-type .dataTitle, td[align=center i] > .dataTitle { text-align: left; font-size: 18px; margin-top: 4px; }
+	.reportRange { margin: 0 0 6px; }
+	body > table:first-of-type .reportTime { text-align: left; }
+	.reportRange, .reportDuration { text-align: left; }
+	.reportDuration { padding-left: 2px; }
+
+	table.optBox { width: 100%; margin: 0; box-sizing: border-box; }
+	table.optBox select { min-width: 0; width: 100%; }
+	table.navBox { margin: 0; }
+
+	/* wizard forms: one field per row */
+	.reportSelectTitle, .dateSelectTitle { margin: 16px 0 12px; font-size: 18px; text-align: left; }
+	div[align=center i] > form > table:not([class]),
+	div[align=center i] > form > table:not([class]) > tbody,
+	div[align=center i] > form > table:not([class]) > tbody > tr,
+	div[align=center i] > form > table:not([class]) > tbody > tr > td {
+		display: block;
+		width: auto;
+		box-sizing: border-box;
+	}
+	div[align=center i] > form > table:not([class]) { padding: 8px 0; }
+	div[align=center i] > form > table:not([class]) > tbody > tr > td { padding: 4px 16px; }
+	div[align=center i] > form > table:not([class]) > tbody > tr > td:empty { display: none; }
+	td.reportSelectSubTitle, td.dateSelectSubTitle { padding-top: 12px !important; }
+	div[align=center i] > form > table:not([class]) select { max-width: none; }
+	div[align=center i] > form > table:not([class]) select[name$=mon] { width: auto; }
+	div[align=center i] > form > table:not([class]) input[type=submit] { width: 100%; margin-top: 12px; }
+
+	.dataTitle { margin-top: 24px; }
+	.navBoxFile { text-align: left; }
+
+	/* list tables become cards: one row = one card */
+	table.logEntries, body.summary table.data:has(> tbody > tr > th:nth-child(7):last-child),
+	table.notifications { display: block; }
+	table.logEntries > tbody, body.summary table.data:has(> tbody > tr > th:nth-child(7):last-child) > tbody,
+	table.notifications > tbody { display: block; }
+	table.logEntries > tbody > tr:first-child,
+	body.summary table.data:has(> tbody > tr > th:nth-child(7):last-child) > tbody > tr:first-child,
+	table.notifications > tbody > tr:first-child { display: none; }
+
+	table.logEntries > tbody > tr, body.summary table.data:has(> tbody > tr > th:nth-child(7):last-child) > tbody > tr,
+	table.notifications > tbody > tr {
+		display: grid;
+		grid-template-columns: 1fr auto;
+		gap: 4px 12px;
+		padding: 12px 14px;
+		border-bottom: 1px solid var(--border);
+	}
+	table.logEntries > tbody > tr:last-child, table.notifications > tbody > tr:last-child,
+	body.summary table.data > tbody > tr:last-child { border-bottom: 0; }
+
+	table.logEntries > tbody > tr > td, body.summary table.data:has(> tbody > tr > th:nth-child(7):last-child) > tbody > tr > td,
+	table.notifications > tbody > tr > td {
+		display: block;
+		padding: 0 !important;
+		border: 0 !important;
+		background: transparent;
+		white-space: normal;
+	}
+
+	/* avail log: type | duration / info / start | end */
+	table.logEntries td:nth-child(4) { grid-area: 1 / 1; }
+	table.logEntries td:nth-child(3) { grid-area: 1 / 2; color: var(--muted); font-size: 12px; text-align: right; }
+	table.logEntries td:nth-child(5) { grid-area: 2 / 1 / 3 / 3; }
+	table.logEntries td:nth-child(1) { grid-area: 3 / 1; color: var(--muted); font-size: 11.5px; }
+	table.logEntries td:nth-child(2) { grid-area: 3 / 2; color: var(--muted); font-size: 11.5px; text-align: right; }
+	table.logEntries td:nth-child(1)::before { content: "From "; }
+	table.logEntries td:nth-child(2)::before { content: "to "; }
+
+	/* summary alerts: host / service | state / info / time | alert type, state type */
+	body.summary table.data td:nth-child(3) { grid-area: 1 / 1; font-weight: 600; }
+	body.summary table.data td:nth-child(5) { grid-area: 1 / 2; text-align: right; }
+	body.summary table.data td:nth-child(4) { grid-area: 2 / 1 / 3 / 3; }
+	body.summary table.data td:nth-child(4):not(:has(a)) { display: none !important; }
+	body.summary table.data td:nth-child(7) { grid-area: 3 / 1 / 4 / 3; color: var(--muted); font-size: 12px; }
+	body.summary table.data td:nth-child(1) { grid-area: 4 / 1; color: var(--muted); font-size: 11.5px; }
+	body.summary table.data td:nth-child(2) { grid-area: 4 / 2; color: var(--muted); font-size: 11.5px; text-align: right; }
+	body.summary table.data td:nth-child(6) { display: none !important; }
+
+	/* notifications: host / service | type / info / time | contact */
+	table.notifications td:nth-child(1) { grid-area: 1 / 1; font-weight: 600; }
+	table.notifications td:nth-child(3) { grid-area: 1 / 2; text-align: right; }
+	table.notifications td:nth-child(2) { grid-area: 2 / 1 / 3 / 3; }
+	table.notifications td:nth-child(2):not(:has(a)) { display: none !important; }
+	table.notifications td:nth-child(7) { grid-area: 3 / 1 / 4 / 3; color: var(--muted); font-size: 12px; }
+	table.notifications td:nth-child(4) { grid-area: 4 / 1; color: var(--muted); font-size: 11.5px; }
+	table.notifications td:nth-child(5) { grid-area: 4 / 2; color: var(--muted); font-size: 11.5px; text-align: right; }
+	table.notifications td:nth-child(6) { display: none !important; }
+
+	div.logEntries:has(> img) { padding: 10px 12px 10px 42px; font-size: 12px; }
+	div.logEntries:has(> img)::before { left: 22px; }
+	div.logEntries > img { margin-left: -28px; }
+}

@@ -1,10 +1,137 @@
+/* statusmap.cgi - network map (server rendered image) */
 
 .statusmap {}
 
+/* quirks mode: tables do not inherit the font size */
+body.statusmap table { font-size: inherit; }
 
-.imageInfo { font-weight: bold;  text-align: center; }
+/* header: info box + links left, layout options right */
+body.statusmap > table:first-of-type { margin: 0 0 16px; }
+body.statusmap > table:first-of-type > tbody > tr > td { padding: 0; }
+body.statusmap > table:first-of-type > tbody > tr > td:empty { display: none; }
+body.statusmap table.linkBox { border: 0; margin-top: 6px; }
 
-.zoomTitle {  font-size: 12pt;  font-weight: bold; }
+/* layout options card */
+body.statusmap form table.optBox {
+	margin-left: auto;
+	padding: 12px 14px;
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: 12px;
+	border-collapse: separate;
+	box-shadow: var(--shadow);
+}
+body.statusmap form table.optBox > tbody > tr > td:first-child:not(:has(*:not(input[type=hidden]))) { display: none; }
+body.statusmap form table.optBox table { border-collapse: separate; border-spacing: 12px 8px; margin: -8px -12px; }
 
-.popupText {  font-weight: bold; }
+body.statusmap .optBoxItem {
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: .05em;
+	text-transform: uppercase;
+	color: var(--muted);
+	vertical-align: top;
+	white-space: nowrap;
+}
+body.statusmap .optBoxItem select,
+body.statusmap .optBoxItem input[type=text] {
+	margin-top: 5px;
+	font-weight: normal;
+	letter-spacing: 0;
+	text-transform: none;
+}
+body.statusmap .optBoxItem select:not([multiple]) { min-width: 190px; }
+body.statusmap .optBoxItem select[multiple] {
+	height: auto;
+	min-width: 190px;
+	padding: 4px;
+}
+body.statusmap .optBoxItem select[multiple] option { padding: 3px 6px; border-radius: 4px; }
+body.statusmap .optBoxItem input[type=text] { width: 80px; }
+body.statusmap .optBoxItem input[type=radio],
+body.statusmap .optBoxItem input[type=checkbox] { margin: 6px 6px 2px 0; }
+body.statusmap .optBoxItem:has(input[type=radio]) {
+	/* radio labels are plain text nodes, keep them readable */
+	text-transform: none;
+	letter-spacing: 0;
+	font-size: 13px;
+	font-weight: normal;
+	color: var(--text);
+	line-height: 1.9;
+}
+body.statusmap .optBoxItem input[type=submit] { margin-top: 18px; width: 100%; }
 
+/* "You have not supplied any host drawing coordinates..." */
+body.statusmap .imageInfo, body.statusmap div[align=center] > pre,
+body.statusmap div[align=center] {
+	font-family: var(--font);
+}
+.imageInfo { font-weight: 600; text-align: center; color: var(--muted); }
+
+.zoomTitle { font-size: 13px; font-weight: 600; color: var(--muted); }
+
+/* the map image: a canvas card that scrolls if the map is large */
+body.statusmap div[align=center]:has(> img[usemap]) {
+	max-width: 100%;
+	overflow: auto;
+	padding: 20px;
+	box-sizing: border-box;
+	background:
+		radial-gradient(circle, var(--border) 1px, transparent 1.2px) 0 0 / 22px 22px,
+		var(--surface);
+	border: 1px solid var(--border);
+	border-radius: 14px;
+	box-shadow: var(--shadow);
+}
+
+body.statusmap img[usemap] {
+	display: inline-block;
+	max-width: none;
+}
+
+/* The image is drawn by GD for a white page: flip its lightness in dark
+   mode (hue-rotate brings the state colors back). */
+@media (prefers-color-scheme: dark) {
+	:root:not(.light) body.statusmap img[usemap] { filter: invert(.9) hue-rotate(180deg) saturate(.85) brightness(1.05); }
+}
+:root.dark body.statusmap img[usemap] { filter: invert(.9) hue-rotate(180deg) saturate(.85) brightness(1.05); }
+
+/* host popup (built by inline JavaScript with bgcolor tables) */
+div#popup {
+	z-index: 50 !important;
+	pointer-events: none;
+}
+div#popup > table {
+	border: 1px solid var(--border-strong) !important;
+	border-radius: 10px;
+	border-collapse: separate;
+	overflow: hidden;
+	background: var(--surface) !important;
+	box-shadow: var(--shadow-lg);
+}
+div#popup td { background: transparent !important; border: 0 !important; }
+.popupText {
+	font-size: 12px;
+	font-weight: normal;
+	color: var(--text);
+	padding: 2px 6px;
+}
+.popupText table td { color: var(--muted); padding: 1px 8px 1px 0; }
+.popupText b { color: var(--text); }
+.popupText img { vertical-align: middle; margin-right: 6px; }
+.popupText font[color=green] { color: var(--ok); }
+.popupText font[color=red] { color: var(--critical); }
+.popupText font[color=orange] { color: var(--unknown); }
+
+@media (max-width: 760px) {
+	body.statusmap > table:first-of-type,
+	body.statusmap > table:first-of-type > tbody,
+	body.statusmap > table:first-of-type > tbody > tr,
+	body.statusmap > table:first-of-type > tbody > tr > td { display: block; width: auto !important; }
+	body.statusmap > table:first-of-type > tbody > tr > td + td { margin-top: 12px; }
+	body.statusmap table.infoBox { max-width: none; }
+	body.statusmap form table.optBox { width: 100%; margin: 0; box-sizing: border-box; }
+	body.statusmap .optBoxItem select:not([multiple]), body.statusmap .optBoxItem select[multiple] { min-width: 0; width: 100%; }
+	body.statusmap .optBoxItem { white-space: normal; width: 50%; }
+	body.statusmap div[align=center]:has(> img[usemap]) { padding: 10px; }
+}

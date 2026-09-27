@@ -1,96 +1,685 @@
-
-.extinfo { }
-
-DIV.dataTitle { text-align: center;  font-weight: bold;  font-size: 12pt; }
-DIV.data { text-align: center;  font-size: 12pt; }
-
-DIV.perfTypeTitle { text-align: right;  font-weight: bold;  font-size: 10pt; }
 /*
-TABLE.data { font-size: 10pt;  background-color: white;  padding: 2px; border-collapse:separate;}
-TH.data { font-size: 10pt;  text-align: left;  background-color: #999797;  }
-*/
+ * Extended information (extinfo.cgi): process info, host / service detail,
+ * comments, performance info, host- / servicegroup info, downtime and the
+ * scheduling queue. Colors come from common.css tokens only.
+ */
 
-.dataOdd { font-size: 10pt;  background-color: #DBDBDB; }
-.dataEven { font-size: 10pt;  background-color: #C4C2C2; }
+/* ---------------------------------------------------------------- icons */
 
+/*
+ * The CGI prints old gif icons. We keep the <img> (and its link / tooltip)
+ * but hide the bitmap and paint a line icon through a CSS mask instead.
+ */
+body.extinfo {
+	--i-slash: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M5.6 5.6l12.8 12.8'/%3E%3C/svg%3E");
+	--i-check-circle: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M8 12l3 3 5-6'/%3E%3C/svg%3E");
+	--i-clock: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M12 7v5l3 2'/%3E%3C/svg%3E");
+	--i-inbox: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 13h4l2 3h4l2-3h4'/%3E%3Cpath d='M5 6h14l1 7v5H4v-5z'/%3E%3C/svg%3E");
+	--i-bell: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 16V11a6 6 0 0 1 12 0v5l2 2H4z'/%3E%3Cpath d='M10 21h4'/%3E%3C/svg%3E");
+	--i-bell-off: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 16V11a6 6 0 0 1 9.5-4.9M18 11v5l2 2H8'/%3E%3Cpath d='M10 21h4M3 3l18 18'/%3E%3C/svg%3E");
+	--i-moon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10z'/%3E%3C/svg%3E");
+	--i-pin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z'/%3E%3Ccircle cx='12' cy='9' r='2.5'/%3E%3C/svg%3E");
+	--i-message: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 12a8 8 0 0 1-12 7l-5 1 1-4a8 8 0 1 1 16-4z'/%3E%3C/svg%3E");
+	--i-trash: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13'/%3E%3C/svg%3E");
+	--i-power: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3v9'/%3E%3Cpath d='M6.3 6.3a8 8 0 1 0 11.4 0'/%3E%3C/svg%3E");
+	--i-rotate: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 11a8 8 0 1 0-2.3 5.7'/%3E%3Cpath d='M20 4v7h-7'/%3E%3C/svg%3E");
+	--i-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l5 5 9-10'/%3E%3C/svg%3E");
+	--i-x: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 6l12 12M18 6L6 18'/%3E%3C/svg%3E");
+	--i-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14M13 6l6 6-6 6'/%3E%3C/svg%3E");
+	--i-dot: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='4' fill='black'/%3E%3C/svg%3E");
+}
 
-.commandTitle { text-align: center;  font-weight: bold;  font-size: 12pt; }
+body.extinfo img:is([src$="/disabled.gif"], [src$="/ndisabled.gif"], [src$="/enabled.gif"],
+	[src$="/delay.gif"], [src$="/passiveonly.gif"], [src$="/notify.gif"], [src$="/downtime.gif"],
+	[src$="/status3.gif"], [src$="/comment.gif"], [src$="/delete.gif"], [src$="/stop.gif"],
+	[src$="/restart.gif"], [src$="/ack.gif"], [src$="/noack.gif"]) {
+	--icon: var(--i-dot);
+	--ic: var(--muted);
+	display: inline-block;
+	width: 16px !important;
+	height: 16px !important;
+	object-position: -9999px 0;
+	background: var(--ic);
+	-webkit-mask: var(--icon) center / contain no-repeat;
+	mask: var(--icon) center / contain no-repeat;
+	vertical-align: middle;
+}
 
-TABLE.command { font-size: 10pt;  background-color: #DBDBDB; padding: 3px; }
-.command { font-size: 10pt; padding: 2px; }
-
-.commentTitle { text-align: center;  font-weight: bold;  font-size: 12pt; }
-DIV.commentNav { font-size: 10pt;  text-align: center; }
-A.commentNav { font-size: 10pt; }
-
-TABLE.comment { font-size: 10pt;  background-color: white;  padding: 2px; border-collapse:separate;}
-TH.comment { font-size: 10pt;  text-align: left;  background-color: #999797; }
-.commentOdd { font-size: 9pt;  background-color: #DBDBDB; }
-.commentEven { font-size: 9pt;  background-color: #C4C2C2; }
-DIV.comment,A.comment { font-size: 10pt;  background-color: white;  text-align: center; }
-
-.downtimeTitle { text-align: center;  font-weight: bold;  font-size: 12pt; }
-DIV.downtimeNav { font-size: 10pt;  text-align: center; }
-A.downtimeNav { font-size: 10pt; }
-
-TABLE.downtime { font-size: 10pt;  background-color: white;  padding: 2px; border-collapse:separate;}
-TH.downtime { font-size: 10pt;   text-align: left;  background-color: #999797; }
-.downtimeOdd { font-size: 9pt;  background-color: #DBDBDB; }
-.downtimeEven { font-size: 9pt;  background-color: #C4C2C2; }
-
-.notificationsENABLED { font-size: 10pt;  text-align: left;  background-color: #33FF00;  font-weight: bold; }
-.notificationsDISABLED { font-size: 10pt;  text-align: left;  background-color: #F83838;  font-weight: bold; }
-
-.checksENABLED { font-size: 10pt;  text-align: left;  background-color: #33FF00;  font-weight: bold; }
-.checksDISABLED { font-size: 10pt;  text-align: left;  background-color: #F83838;  font-weight: bold; }
-
-.eventhandlersENABLED { font-size: 10pt;  text-align: left;  background-color: #33FF00;  font-weight: bold; }
-.eventhandlersDISABLED { font-size: 10pt;  text-align: left;  background-color: #F83838;  font-weight: bold; }
-
-.flapdetectionENABLED { font-size: 10pt;  text-align: left;  background-color: #33FF00;  font-weight: bold; }
-.flapdetectionDISABLED { font-size: 10pt;  text-align: left;  background-color: #F83838;  font-weight: bold; }
-
-.notflapping { font-size: 10pt;  text-align: left;  background-color: #33FF00;  font-weight: bold; float: left; }
-.flapping { font-size: 10pt;  text-align: left;  background-color: #F83838;  font-weight: bold; float: left; }
-
-.downtimeACTIVE { font-size: 10pt;  text-align: left;  background-color: #F83838;  font-weight: bold; float: left; }
-.downtimeINACTIVE { font-size: 10pt;  text-align: left;  background-color: #33FF00;  font-weight: bold; float: left; }
-
-.processOK { font-size: 10pt;  background-color: #33FF00;  font-weight: bold; }
-.processUNKNOWN { font-size: 10pt;  background-color: #FF9900;  font-weight: bold; }
-.processWARNING { font-size: 10pt;  background-color: #FFFF00;  font-weight: bold; }
-.processCRITICAL { font-size: 10pt;  background-color: #F83838;  font-weight: bold; }
-
-.modeACTIVE { font-size: 10pt;  background-color: #33FF00;  font-weight: bold; }
-.modeSTANDBY { font-size: 10pt;  background-color: #FFFF00;  font-weight: bold; }
-
-.hostUP { font-size: 10pt;  text-align: left;  background-color: #33FF00;  font-weight: bold; float: left; }
-.hostDOWN { font-size: 10pt;  text-align: left;  background-color: #F83838;  font-weight: bold; float: left; }
-.hostUNREACHABLE { font-size: 10pt;  text-align: left;  background-color: #F83838;  font-weight: bold; float: left; }
-
-.serviceOK { font-size: 10pt;  text-align: left;  background-color: #33FF00;  font-weight: bold; float: left; }
-.serviceWARNING { font-size: 10pt;  text-align: left;  background-color: #FFFF00;  font-weight: bold; float: left; }
-.serviceUNKNOWN { font-size: 10pt;  text-align: left;  background-color: #FF9900;  font-weight: bold; float: left; }
-.serviceCRITICAL { font-size: 10pt;  text-align: left;  background-color: #F83838;  font-weight: bold; float: left; }
-
-.commandPanel { background-color: white; }
-.commentPanel { background-color: white; }
-
-.stateInfoPanel { background-color: white; }
-.stateStatisticsPanel { background-color: white; }
-.stateInfoTable1 { font-size: 10pt;  background-color: #DBDBDB; }
-.stateInfoTable2 { font-size: 10pt;  background-color: #C4C2C2; }
-
-.dataVar { font-size: 10pt; }
-.dataVal { font-size: 10pt; }
-
-.queueTitle { text-align: center;  font-weight: bold;  font-size: 12pt; }
-
-TABLE.queue { font-size: 10pt;  background-color: white;  padding: 2px; border-collapse:separate;}
-TH.queue { font-size: 10pt;  text-align: left;  background-color: #999797; }
-.queueOdd { font-size: 9pt;  background-color: #DBDBDB; }
-.queueEven { font-size: 9pt;  background-color: #C4C2C2; }
-.queueENABLED { font-size: 9pt;  background-color: #33FF00; }
-.queueDISABLED { font-size: 9pt;  background-color: #F83838; }
+body.extinfo img[src$="/disabled.gif"]    { --icon: var(--i-slash);        --ic: var(--critical); }
+body.extinfo img[src$="/ndisabled.gif"]   { --icon: var(--i-bell-off);     --ic: var(--critical); }
+body.extinfo img[src$="/enabled.gif"]     { --icon: var(--i-check-circle); --ic: var(--ok); }
+body.extinfo img[src$="/delay.gif"]       { --icon: var(--i-clock);        --ic: var(--info); }
+body.extinfo img[src$="/passiveonly.gif"] { --icon: var(--i-inbox);        --ic: var(--muted); }
+body.extinfo img[src$="/notify.gif"]      { --icon: var(--i-bell);         --ic: var(--warning); }
+body.extinfo img[src$="/downtime.gif"]    { --icon: var(--i-moon);         --ic: var(--link); }
+body.extinfo img[src$="/status3.gif"]     { --icon: var(--i-pin);          --ic: var(--link); }
+body.extinfo img[src$="/comment.gif"]     { --icon: var(--i-message);      --ic: var(--link); }
+body.extinfo img[src$="/delete.gif"]      { --icon: var(--i-trash);        --ic: var(--critical); }
+body.extinfo img[src$="/stop.gif"]        { --icon: var(--i-power);        --ic: var(--critical); }
+body.extinfo img[src$="/restart.gif"]     { --icon: var(--i-rotate);       --ic: var(--warning); }
+body.extinfo img[src$="/ack.gif"]         { --icon: var(--i-check);        --ic: var(--ok); }
+body.extinfo img[src$="/noack.gif"]       { --icon: var(--i-x);            --ic: var(--muted); }
 
 
+/* ---------------------------------------------------------------- page header */
+
+body.extinfo { max-width: 1480px; }
+body.extinfo > br, body.extinfo > p:empty, body.extinfo > table:first-of-type td:not(.infoBox) > br,
+body.extinfo > div > br, body.extinfo td.commentPanel > br { display: none; }
+
+body.extinfo > table:first-of-type,
+body.extinfo > table:first-of-type > tbody { display: block; width: 100%; }
+
+body.extinfo > table:first-of-type > tbody > tr {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: stretch;
+	gap: 16px;
+	margin: 0 0 20px;
+}
+
+body.extinfo > table:first-of-type > tbody > tr > td:first-child { display: contents; }
+body.extinfo > table:first-of-type > tbody > tr > td:not(:has(*:not(table, tbody, tr, td))),
+body.extinfo > table:first-of-type > tbody > tr > td:not(:first-child):not(:has(:is(div, img, a))) {
+	display: none;
+}
+
+body.extinfo td.infoBox { vertical-align: top; }
+body.extinfo table.infoBox {
+	flex: 1 1 280px;
+	max-width: none;
+	margin: 0;
+}
+
+/* related links */
+body.extinfo table.linkBox {
+	flex: 1 1 260px;
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	border-collapse: separate;
+	background: var(--surface);
+	box-shadow: var(--shadow);
+}
+body.extinfo td.linkBox { padding: 10px 8px; line-height: 1.5; vertical-align: top; }
+body.extinfo td.linkBox a:link, body.extinfo td.linkBox a:visited {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 5px 8px;
+	border-radius: 6px;
+	color: var(--text);
+}
+body.extinfo td.linkBox a:hover { background: var(--surface-hover); text-decoration: none; color: var(--link); }
+body.extinfo td.linkBox a::before {
+	content: "";
+	flex: none;
+	width: 14px;
+	height: 14px;
+	background: var(--muted);
+	-webkit-mask: var(--i-arrow) center / contain no-repeat;
+	mask: var(--i-arrow) center / contain no-repeat;
+}
+body.extinfo td.linkBox a:hover::before { background: var(--link); }
+
+/* identity "hero" (host / service / group name) */
+body.extinfo > table:first-of-type > tbody > tr > td:nth-child(2):has(div.dataTitle) {
+	order: -1;
+	flex: 2 1 380px;
+	position: relative;
+	padding: 22px 24px;
+	text-align: left;
+	vertical-align: top;
+	background:
+		radial-gradient(500px circle at 0% 0%, color-mix(in srgb, var(--hero, var(--accent)) 14%, transparent), transparent 60%),
+		var(--surface);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	box-shadow: var(--shadow);
+	overflow: hidden;
+}
+
+body.extinfo > table:first-of-type td div.data {
+	margin: 14px 0 2px;
+	font-size: 10.5px;
+	font-weight: 700;
+	letter-spacing: .08em;
+	text-transform: uppercase;
+	color: var(--muted);
+	text-align: left;
+}
+body.extinfo > table:first-of-type td div.data:first-child { margin-top: 0; }
+
+body.extinfo > table:first-of-type td div.dataTitle {
+	margin: 0;
+	font-size: 15px;
+	font-weight: 600;
+	letter-spacing: 0;
+	text-align: left;
+	color: var(--text);
+}
+body.extinfo > table:first-of-type td div.dataTitle:nth-child(2) {
+	font-size: 28px;
+	font-weight: 700;
+	letter-spacing: -0.02em;
+	line-height: 1.15;
+	margin: 2px 0 2px;
+}
+
+/* tint the hero with the current state */
+body.extinfo:has(td.stateInfoTable1 tr:first-child :is(div.serviceWARNING)) { --hero: var(--warning); }
+body.extinfo:has(td.stateInfoTable1 tr:first-child :is(div.serviceUNKNOWN)) { --hero: var(--unknown); }
+body.extinfo:has(td.stateInfoTable1 tr:first-child :is(div.hostDOWN, div.serviceCRITICAL)) { --hero: var(--critical); }
+body.extinfo:has(td.stateInfoTable1 tr:first-child :is(div.hostUNREACHABLE)) { --hero: var(--unreachable); }
+
+/* the last line is the address */
+body.extinfo > table:first-of-type td div.data:last-child {
+	display: inline-block;
+	margin-top: 16px;
+	padding: 4px 10px;
+	font-family: var(--font-mono);
+	font-size: 12px;
+	font-weight: 500;
+	letter-spacing: 0;
+	text-transform: none;
+	color: var(--text);
+	background: var(--surface-2);
+	border: 1px solid var(--border);
+	border-radius: 6px;
+}
+
+
+/* ---------------------------------------------------------------- main panels */
+
+body.extinfo > div[align] { text-align: left; }
+
+/* two column layout: state information | commands; comments below */
+body.extinfo > div > table:has(table.command, td.stateInfoTable1, td.stateInfoPanel) {
+	display: block;
+	width: 100%;
+	border-spacing: 0;
+}
+body.extinfo > div > table:has(table.command, td.stateInfoTable1, td.stateInfoPanel) > tbody {
+	display: grid;
+	grid-template-columns: minmax(0, 1.7fr) minmax(300px, 1fr);
+	gap: 20px;
+	align-items: start;
+}
+body.extinfo > div > table:has(table.command, td.stateInfoTable1, td.stateInfoPanel) > tbody > tr { display: contents; }
+body.extinfo > div > table:has(table.command, td.stateInfoTable1, td.stateInfoPanel) > tbody > tr > td {
+	display: block;
+	padding: 0;
+	text-align: left;
+	min-width: 0;
+}
+body.extinfo > div > table:has(table.command, td.stateInfoTable1, td.stateInfoPanel) > tbody > tr > td[colspan] { grid-column: 1 / -1; }
+body.extinfo > div > table:has(table.command, td.stateInfoTable1, td.stateInfoPanel) > tbody > tr > td:not(:has(*:not(br, a[name]))) { display: none; }
+
+/* host/service group info: only the commands panel has content */
+body.extinfo > div > table:has(td.stateInfoPanel[rowspan]) > tbody { grid-template-columns: minmax(0, 560px); }
+
+/* wrappers inside the panels are just boxes */
+body.extinfo :is(td.stateInfoPanel, td.commandPanel) table:has(td.stateInfoTable1, td.stateInfoTable2):not(:has(> tbody > tr > td > table.command)),
+body.extinfo :is(td.stateInfoPanel, td.commandPanel) table:has(td.stateInfoTable1, td.stateInfoTable2):not(:has(> tbody > tr > td > table.command)) > tbody,
+body.extinfo :is(td.stateInfoPanel, td.commandPanel) table:has(td.stateInfoTable1, td.stateInfoTable2):not(:has(> tbody > tr > td > table.command)) > tbody > tr,
+body.extinfo :is(td.stateInfoPanel, td.commandPanel) table:has(td.stateInfoTable1, td.stateInfoTable2):not(:has(> tbody > tr > td > table.command)) > tbody > tr > td:not(.stateInfoTable1):not(.stateInfoTable2) {
+	display: block;
+	width: auto;
+	padding: 0;
+	border: 0;
+}
+body.extinfo td:is(.stateInfoPanel, .commandPanel, .commentPanel) { background: none; }
+body.extinfo > div > table > tbody > tr > td:has(> table > tbody > tr > td.commandPanel) > table { width: 100%; }
+
+/* panel titles */
+body.extinfo :is(td.stateInfoPanel, td.commandPanel, td.commentPanel, div[align] > table td) > div:is(.dataTitle, .commandTitle, .commentTitle),
+body.extinfo div.commandTitle, body.extinfo td.commentPanel div.commentTitle {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin: 0 0 10px;
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: .07em;
+	text-transform: uppercase;
+	text-align: left;
+	color: var(--muted);
+}
+
+/* cards */
+body.extinfo td.stateInfoTable1, body.extinfo td.stateInfoTable2,
+body.extinfo :is(td.commandPanel > table, table.command:has(> tbody > tr > td > table.command)) {
+	display: block;
+	margin: 0 0 16px;
+	padding: 6px 18px;
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	box-shadow: var(--shadow);
+}
+
+/* the process info card is wrapped in a table.data (styled as list table by common.css) */
+body.extinfo table.data:has(> tbody > tr > td.stateInfoTable1) {
+	display: block;
+	width: auto;
+	border: 0;
+	background: none;
+	box-shadow: none;
+	overflow: visible;
+}
+body.extinfo table.data:has(> tbody > tr > td.stateInfoTable1) > tbody,
+body.extinfo table.data:has(> tbody > tr > td.stateInfoTable1) > tbody > tr { display: block; }
+body.extinfo table.data > tbody > tr > td.stateInfoTable1 { border-bottom: 1px solid var(--border); padding: 6px 18px; }
+body.extinfo table.data > tbody > tr:hover > td.stateInfoTable1 { background: var(--surface); }
+
+/* key / value tables */
+body.extinfo :is(td.stateInfoTable1, td.stateInfoTable2) > table {
+	display: table !important;
+	width: 100% !important;
+	border-collapse: collapse;
+}
+body.extinfo :is(td.stateInfoTable1, td.stateInfoTable2) > table > tbody { display: table-row-group !important; }
+body.extinfo :is(td.stateInfoTable1, td.stateInfoTable2) > table > tbody > tr { display: table-row !important; }
+body.extinfo :is(td.stateInfoTable1, td.stateInfoTable2) > table > tbody > tr > :is(td, th) {
+	display: table-cell !important;
+	padding: 10px 0 !important;
+	border-top: 1px solid var(--border) !important;
+	vertical-align: top;
+}
+body.extinfo :is(td.stateInfoTable1, td.stateInfoTable2) > table > tbody > tr:first-child > :is(td, th) { border-top: 0 !important; }
+
+body.extinfo td.dataVar {
+	width: 36%;
+	padding-right: 16px !important;
+	font-size: 12.5px;
+	color: var(--muted);
+	white-space: normal !important;
+}
+body.extinfo td.dataVal {
+	font-size: 13px;
+	color: var(--text);
+	overflow-wrap: anywhere;
+}
+
+/* toggles (active checks, notifications, ...) as a compact grid of chips */
+body.extinfo td.stateInfoTable2:not(:has(th)) { padding: 14px; }
+body.extinfo td.stateInfoTable2:not(:has(th)) > table { display: block !important; }
+body.extinfo td.stateInfoTable2:not(:has(th)) > table > tbody {
+	display: grid !important;
+	grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+	gap: 8px;
+}
+body.extinfo td.stateInfoTable2:not(:has(th)) > table > tbody > tr {
+	display: flex !important;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	padding: 8px 10px 8px 12px;
+	background: var(--surface-2);
+	border: 1px solid var(--border);
+	border-radius: 8px;
+}
+body.extinfo td.stateInfoTable2:not(:has(th)) > table > tbody > tr > td {
+	display: block !important;
+	width: auto;
+	padding: 0 !important;
+	border: 0 !important;
+}
+
+/* performance info tables (they have a header row) */
+body.extinfo :is(td.stateInfoTable1, td.stateInfoTable2) th.data {
+	padding: 10px 12px 10px 0 !important;
+	font-size: 10.5px;
+	background: none;
+	color: var(--muted);
+	white-space: nowrap;
+}
+body.extinfo :is(td.stateInfoTable1, td.stateInfoTable2):has(th) td.dataVal {
+	padding-right: 12px !important;
+	font-family: var(--font-mono);
+	font-size: 12px;
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+}
+
+
+/* ---------------------------------------------------------------- state pills */
+
+body.extinfo div:is(.hostUP, .hostDOWN, .hostUNREACHABLE, .serviceOK, .serviceWARNING, .serviceUNKNOWN,
+	.serviceCRITICAL, .notificationsENABLED, .notificationsDISABLED, .checksENABLED, .checksDISABLED,
+	.eventhandlersENABLED, .eventhandlersDISABLED, .flapdetectionENABLED, .flapdetectionDISABLED,
+	.notflapping, .flapping, .downtimeACTIVE, .downtimeINACTIVE, .processOK, .processUNKNOWN,
+	.processWARNING, .processCRITICAL, .modeACTIVE, .modeSTANDBY) {
+	--s: var(--pending);
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	float: none;
+	margin: -2px 6px -2px 0;
+	padding: 3px 9px 3px 4px;
+	font-size: 10.5px;
+	font-weight: 700;
+	letter-spacing: .06em;
+	text-transform: uppercase;
+	white-space: nowrap;
+	color: var(--s);
+	background: color-mix(in srgb, var(--s) 15%, transparent);
+	border-radius: 999px;
+	vertical-align: middle;
+}
+body.extinfo div:is(.hostUP, .hostDOWN, .hostUNREACHABLE, .serviceOK, .serviceWARNING, .serviceUNKNOWN,
+	.serviceCRITICAL, .notificationsENABLED, .notificationsDISABLED, .checksENABLED, .checksDISABLED,
+	.eventhandlersENABLED, .eventhandlersDISABLED, .flapdetectionENABLED, .flapdetectionDISABLED,
+	.notflapping, .flapping, .downtimeACTIVE, .downtimeINACTIVE, .processOK, .processUNKNOWN,
+	.processWARNING, .processCRITICAL, .modeACTIVE, .modeSTANDBY)::before {
+	content: "";
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: currentColor;
+}
+
+body.extinfo div:is(.hostUP, .serviceOK, .notificationsENABLED, .checksENABLED, .eventhandlersENABLED,
+	.flapdetectionENABLED, .notflapping, .downtimeINACTIVE, .processOK, .modeACTIVE) { --s: var(--ok); }
+body.extinfo div:is(.serviceWARNING, .processWARNING, .modeSTANDBY) { --s: var(--warning); }
+body.extinfo div:is(.serviceUNKNOWN, .processUNKNOWN) { --s: var(--unknown); }
+body.extinfo div:is(.hostDOWN, .serviceCRITICAL, .notificationsDISABLED, .checksDISABLED,
+	.eventhandlersDISABLED, .flapdetectionDISABLED, .flapping, .processCRITICAL) { --s: var(--critical); }
+body.extinfo div.hostUNREACHABLE { --s: var(--unreachable); }
+body.extinfo div.downtimeACTIVE { --s: var(--info); }
+
+/* the current state is the headline of the state card */
+body.extinfo td.stateInfoTable1 tr:first-child div:is(.hostUP, .hostDOWN, .hostUNREACHABLE, .serviceOK,
+	.serviceWARNING, .serviceUNKNOWN, .serviceCRITICAL) {
+	padding: 5px 12px 5px 6px;
+	font-size: 12px;
+	box-shadow: 0 0 0 1px color-mix(in srgb, var(--s) 35%, transparent), 0 0 18px -4px var(--s);
+}
+body.extinfo td.stateInfoTable1 tr:first-child div:is(.hostUP, .hostDOWN, .hostUNREACHABLE, .serviceOK,
+	.serviceWARNING, .serviceUNKNOWN, .serviceCRITICAL)::before {
+	width: 8px;
+	height: 8px;
+}
+
+
+/* ---------------------------------------------------------------- command lists */
+
+body.extinfo :is(td.commandPanel > table, table.command:has(> tbody > tr > td > table.command)) { display: block; width: auto !important; padding: 6px; }
+body.extinfo :is(td.commandPanel > table, table.command:has(> tbody > tr > td > table.command)) > tbody,
+body.extinfo :is(td.commandPanel > table, table.command:has(> tbody > tr > td > table.command)) > tbody > tr,
+body.extinfo :is(td.commandPanel > table, table.command:has(> tbody > tr > td > table.command)) > tbody > tr > td { display: block; padding: 0; border: 0; }
+
+body.extinfo table.command:not(:has(table)),
+body.extinfo table.command:not(:has(table)) > tbody { display: block; width: 100%; }
+
+body.extinfo table.command:not(:has(table)) tr {
+	display: flex;
+	align-items: center;
+	gap: 0;
+	border-radius: 7px;
+	transition: background .12s;
+}
+body.extinfo table.command:not(:has(table)) tr:hover { background: var(--surface-hover); }
+body.extinfo table.command:not(:has(table)) tr > td:first-child {
+	flex: none;
+	display: grid;
+	place-items: center;
+	width: 36px;
+	height: 36px;
+	padding: 0;
+}
+body.extinfo table.command:not(:has(table)) td.command {
+	flex: 1;
+	min-width: 0;
+	padding: 0;
+	font-size: 13px;
+}
+body.extinfo table.command:not(:has(table)) td.command a:link,
+body.extinfo table.command:not(:has(table)) td.command a:visited {
+	display: block;
+	padding: 8px 10px 8px 0;
+	color: var(--text);
+}
+body.extinfo table.command:not(:has(table)) td.command a:hover { color: var(--link); text-decoration: none; }
+
+/* process info page: plain command table without nested one */
+body.extinfo > div > table > tbody > tr > td > table.command:not(:has(table.command)) {
+	display: block;
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	padding: 6px;
+}
+
+
+/* ---------------------------------------------------------------- comments, downtime, queue */
+
+body.extinfo td.commentPanel { margin-top: 8px; }
+
+/* "Add a new comment" / "Delete all comments" actions */
+body.extinfo td.commentPanel > table:not(.comment) { display: block; margin: 0 0 12px; }
+body.extinfo td.commentPanel > table:not(.comment) > tbody { display: block; }
+body.extinfo td.commentPanel > table:not(.comment) > tbody > tr { display: flex; flex-wrap: wrap; gap: 8px; }
+body.extinfo td.commentPanel > table:not(.comment) > tbody > tr > td { display: contents; }
+body.extinfo td.commentPanel > table:not(.comment) > tbody > tr > td:has(> img) { display: none; }
+
+body.extinfo a.comment:link, body.extinfo a.comment:visited,
+body.extinfo div.comment > a:link, body.extinfo div.comment > a:visited {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	height: 34px;
+	padding: 0 14px;
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--text);
+	background: var(--surface-2);
+	border: 1px solid var(--border-strong);
+	border-radius: var(--radius-sm);
+}
+body.extinfo a.comment:hover, body.extinfo div.comment > a:hover {
+	text-decoration: none;
+	background: var(--surface-hover);
+	border-color: var(--accent);
+}
+body.extinfo a.comment::before, body.extinfo div.comment > a::before {
+	content: "";
+	width: 15px;
+	height: 15px;
+	background: var(--link);
+	-webkit-mask: var(--i-message) center / contain no-repeat;
+	mask: var(--i-message) center / contain no-repeat;
+}
+body.extinfo a.comment[href*="cmd_typ=20"]::before, body.extinfo a.comment[href*="cmd_typ=21"]::before {
+	background: var(--critical);
+	-webkit-mask-image: var(--i-trash);
+	mask-image: var(--i-trash);
+}
+body.extinfo div.comment > a[href*="cmd_typ=55"]::before, body.extinfo div.comment > a[href*="cmd_typ=56"]::before {
+	-webkit-mask-image: var(--i-moon);
+	mask-image: var(--i-moon);
+}
+
+body.extinfo div.comment {
+	font-size: 0;
+	display: flex;
+	margin: 0 0 12px;
+	background: none;
+	text-align: left;
+}
+body.extinfo div.comment > img { display: none; }
+
+/* section navigation on the comment and downtime pages */
+body.extinfo :is(div.commentNav, div.downtimeNav) {
+	display: inline-flex;
+	gap: 4px;
+	margin: 0 0 24px;
+	padding: 4px;
+	font-size: 0;
+	color: transparent;
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: 999px;
+}
+body.extinfo :is(a.commentNav, a.downtimeNav):link,
+body.extinfo :is(a.commentNav, a.downtimeNav):visited {
+	padding: 6px 14px;
+	font-size: 12.5px;
+	font-weight: 600;
+	color: var(--muted);
+	border-radius: 999px;
+}
+body.extinfo :is(a.commentNav, a.downtimeNav):hover {
+	color: var(--text);
+	background: var(--surface-hover);
+	text-decoration: none;
+}
+
+body.extinfo > :is(div.commentTitle, div.downtimeTitle) {
+	margin: 28px 0 12px;
+	font-size: 18px;
+}
+body.extinfo > :is(div.commentNav, div.downtimeNav) + a + :is(div.commentTitle, div.downtimeTitle) { margin-top: 0; }
+
+/* wide list tables scroll inside their box on small screens */
+body.extinfo td.commentPanel > div,
+body.extinfo > div[align]:has(> table:is(.comment, .downtime, .queue)) {
+	max-width: 100%;
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
+	border-radius: var(--radius);
+}
+body.extinfo table:is(.comment, .downtime, .queue) td { white-space: nowrap; }
+body.extinfo table:is(.comment, .downtime, .queue) td:is(:nth-last-child(n+2)):not(:first-child) { white-space: normal; }
+
+body.extinfo > div[align] > table:is(.comment, .downtime, .queue),
+body.extinfo td.commentPanel table.comment { width: 100%; }
+
+body.extinfo table:is(.comment, .downtime, .queue) td { font-size: 12.5px; }
+body.extinfo table:is(.comment, .downtime, .queue) td[colspan] {
+	padding: 22px 12px !important;
+	text-align: center;
+	color: var(--muted);
+}
+body.extinfo table:is(.comment, .downtime, .queue) td:has(> a > img) { white-space: nowrap; }
+body.extinfo table:is(.comment, .downtime, .queue) a:has(> img) {
+	display: inline-grid;
+	place-items: center;
+	width: 30px;
+	height: 30px;
+	border-radius: 6px;
+}
+body.extinfo table:is(.comment, .downtime, .queue) a:has(> img):hover { background: var(--surface-2); }
+
+body.extinfo td:is(.queueENABLED, .queueDISABLED) {
+	color: var(--ok);
+	font-size: 10.5px !important;
+	font-weight: 700;
+	letter-spacing: .06em;
+}
+body.extinfo td.queueDISABLED { color: var(--critical); }
+body.extinfo td:is(.queueENABLED, .queueDISABLED)::before {
+	content: "";
+	display: inline-block;
+	width: 6px;
+	height: 6px;
+	margin: 0 7px 1px 0;
+	border-radius: 50%;
+	background: currentColor;
+	vertical-align: middle;
+}
+
+body.extinfo div.statusSort {
+	margin: 0 0 12px;
+	font-size: 12px;
+	color: var(--muted);
+	text-align: left;
+}
+body.extinfo div.statusSort b { color: var(--text); }
+
+
+/* ---------------------------------------------------------------- performance info (type=4) */
+
+body.extinfo > div[align] > table:has(div.perfTypeTitle) {
+	display: block;
+	width: 100%;
+}
+body.extinfo > div[align] > table:has(div.perfTypeTitle) > tbody {
+	display: grid;
+	grid-template-columns: 170px minmax(0, 1fr) minmax(0, 1.4fr);
+	gap: 16px;
+	align-items: start;
+}
+body.extinfo > div[align] > table:has(div.perfTypeTitle) > tbody > tr { display: contents; }
+body.extinfo > div[align] > table:has(div.perfTypeTitle) > tbody > tr > td {
+	display: block;
+	padding: 0;
+	min-width: 0;
+}
+body.extinfo > div[align] > table:has(div.perfTypeTitle) > tbody > tr > td > table,
+body.extinfo > div[align] > table:has(div.perfTypeTitle) > tbody > tr > td > table > tbody,
+body.extinfo > div[align] > table:has(div.perfTypeTitle) > tbody > tr > td > table > tbody > tr {
+	display: block;
+	width: 100%;
+	border: 0;
+}
+body.extinfo > div[align] > table:has(div.perfTypeTitle) td:is(.stateInfoTable1, .stateInfoTable2) {
+	margin: 0;
+	overflow-x: auto;
+}
+body.extinfo div.perfTypeTitle {
+	padding-top: 14px;
+	font-size: 14px;
+	font-weight: 600;
+	text-align: left;
+	color: var(--text);
+}
+body.extinfo > div[align] > div.dataTitle { margin: 0 0 16px; }
+
+
+/* ---------------------------------------------------------------- small screens */
+
+@media (max-width: 900px) {
+	body.extinfo > div > table:has(table.command, td.stateInfoTable1, td.stateInfoPanel) > tbody,
+	body.extinfo > div[align] > table:has(div.perfTypeTitle) > tbody {
+		grid-template-columns: minmax(0, 1fr);
+	}
+	body.extinfo > div[align] > table:has(div.perfTypeTitle) > tbody { gap: 10px; }
+	body.extinfo div.perfTypeTitle { padding-top: 18px; }
+}
+
+@media (max-width: 760px) {
+	/* phone: name first, then the actual state and commands; meta info last */
+	body.extinfo { display: flex; flex-direction: column; }
+	body.extinfo > table:first-of-type,
+	body.extinfo > table:first-of-type > tbody,
+	body.extinfo > table:first-of-type > tbody > tr { display: contents; }
+	body.extinfo > table:first-of-type > tbody > tr > td:nth-child(2):has(div.dataTitle) { order: -1; flex: none; margin-bottom: 16px; width: auto !important; }
+	body.extinfo table.linkBox { order: 4; flex: none; margin-top: 16px; }
+	body.extinfo table.infoBox { order: 5; flex: none; margin-top: 12px; }
+	body.extinfo:not(:has(table.linkBox)) table.infoBox { order: -1; margin: 0 0 16px; }
+	body.extinfo > table:first-of-type > tbody > tr > td:nth-child(2):has(div.dataTitle) { padding: 18px; }
+	body.extinfo > table:first-of-type td div.dataTitle:nth-child(2) { font-size: 23px; }
+
+	body.extinfo td.stateInfoTable1, body.extinfo td.stateInfoTable2 { padding: 4px 14px; }
+	body.extinfo td.stateInfoTable2:not(:has(th)) { padding: 10px; }
+	body.extinfo td.stateInfoTable2:not(:has(th)) > table > tbody { grid-template-columns: minmax(0, 1fr); }
+
+	/* stack label above value */
+	body.extinfo td.stateInfoTable1:not(:has(th)) > table > tbody > tr > td {
+		display: block !important;
+		width: auto;
+		padding: 0 !important;
+		border: 0 !important;
+	}
+	body.extinfo td.stateInfoTable1:not(:has(th)) > table > tbody > tr {
+		display: block !important;
+		padding: 10px 0;
+		border-top: 1px solid var(--border);
+	}
+	body.extinfo td.stateInfoTable1:not(:has(th)) > table > tbody > tr:first-child { border-top: 0; }
+	body.extinfo td.stateInfoTable1:not(:has(th)) td.dataVar { margin-bottom: 3px; font-size: 12px; }
+
+	body.extinfo table.command:not(:has(table)) tr > td:first-child { width: 40px; height: 44px; }
+
+	body.extinfo :is(div.commentNav, div.downtimeNav) { display: flex; width: fit-content; }
+}

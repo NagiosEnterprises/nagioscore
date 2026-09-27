@@ -1,37 +1,82 @@
+/* jsonquery.html - JSON query generator (the page only loads this file) */
+@import url("common.css");
+
 body, html {
 	margin: 0;
 	padding: 0;
 }
 
+body { padding: 24px; }
+
 #wrap {
-	width: 750px;
-	left: calc(50% - 375px);
-	background: #ddd;
-	position: absolute;
-	text-align: center;
-}
-
-#options {
-	width: 290px;
-	float: left;
-	background: #bbb;
-	padding-left: 5px;
-	padding-right: 5px;
+	display: grid;
+	grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+	grid-template-areas: "title title" "options results";
+	gap: 16px 20px;
+	max-width: 1180px;
+	margin: 0 auto;
 	text-align: left;
 }
 
-#results {
-	width: 440px;
-	float: right;
-	padding-left: 5px;
-	padding-right: 5px;
+#wrap h1 {
+	grid-area: title;
+	margin: 0 0 4px;
+	font-size: 22px;
+	font-weight: 700;
+	letter-spacing: -0.01em;
+}
+
+#options, #results {
+	float: none;
+	width: auto;
+	padding: 16px 18px;
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: 12px;
+	box-shadow: var(--shadow);
 	text-align: left;
+	min-width: 0;
+}
+
+#options { grid-area: options; align-self: start; }
+#results { grid-area: results; overflow-x: auto; }
+
+#options > p:first-child, #results > p:first-child { margin-top: 0; color: var(--muted); }
+
+#cgiform { width: 100%; border-collapse: separate; border-spacing: 0 8px; font-size: inherit; }
+#cgiform td { vertical-align: middle; }
+#cgiform td.label, #cgiform td:first-child {
+	padding-right: 12px;
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--muted);
+	white-space: nowrap;
+}
+#cgiform select, #cgiform input[type=text] { width: 100%; }
+
+#results p { word-break: break-all; }
+#results a { word-break: break-all; }
+#results pre {
+	padding: 12px 14px;
+	overflow-x: auto;
+	background: var(--surface-2);
+	border: 1px solid var(--border);
+	border-radius: 8px;
+	font-size: 12px;
+	line-height: 1.5;
+	white-space: pre;
+	word-break: normal;
 }
 
 #results p.error {
-	color: red;
+	color: var(--critical);
 }
 
 .required {
-	color: red;
+	color: var(--critical);
+}
+
+@media (max-width: 760px) {
+	body { padding: 14px 12px; }
+	#wrap { grid-template-columns: 1fr; grid-template-areas: "title" "options" "results"; }
 }

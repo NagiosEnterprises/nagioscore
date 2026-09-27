@@ -1,118 +1,127 @@
-/* vidbox */
+/* vidbox ("Page Tour" video helper) */
 div.vidboxContainer {
 	position: fixed;
 	background: transparent;
 	z-index: 100;
+	font-family: var(--font);
 }
 
-div.vidbox_ul {
-	left: 10px;
-	top: 10px
-}
+div.vidbox_ul { left: 16px; top: 16px; }
+div.vidbox_ur { right: 16px; top: 16px; }
+div.vidbox_ll { left: 16px; bottom: 16px; }
+div.vidbox_lr { right: 16px; bottom: 16px; }
 
-div.vidbox_ur {
-	right: 10px;
-	top: 10px;
-}
-
-div.vidbox_ll {
-	left: 10px;
-	bottom: 10px;
-}
-
-div.vidbox_lr {
-	right: 10px;
-	bottom: 10px;
-}
-
+/* closed: a small floating pill in the corner */
 .vidboxTab {
-	border: 1px solid var(--border);
-	border-bottom: none;
-	height: 30px;
-	width: 130px;
 	position: fixed;
 	z-index: 110;
-	text-align: center;
-	align-content: center;
-	background: var(--input);
-	color: var(--foreground);
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	height: 32px;
+	padding: 0 14px 0 12px;
+	box-sizing: border-box;
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--muted);
+	background: color-mix(in srgb, var(--surface) 88%, transparent);
+	border: 1px solid var(--border);
+	border-radius: 999px;
+	box-shadow: var(--shadow-lg);
+	-webkit-backdrop-filter: blur(8px);
+	backdrop-filter: blur(8px);
 	cursor: pointer;
-	border-top-left-radius: 8px;
-	border-top-right-radius: 8px;
+	user-select: none;
+	transition: color .15s, border-color .15s;
 }
 
-.vidboxTab_ul {
-	left: -55px;
-	top: 70px;
-	border-radius: 8px 8px 0px 0px;
-	transform: rotate(90deg);
-	height: 30px;
-	line-height: 25px !important;
+.vidboxTab:hover {
+	color: var(--text);
+	border-color: var(--border-strong);
 }
 
-.vidboxTab_ur {
-	right: -55px;
-	top: 70px;
-	border-radius: 8px 8px 0px 0px;
-	transform: rotate(270deg);
-	height: 30px;
-	line-height: 25px !important;
+.vidboxTab_ul, .vidboxTab_ur, .vidboxTab_ll, .vidboxTab_lr {
+	transform: none;
+	opacity: .75;
+}
+.vidboxTab_ul:hover, .vidboxTab_ur:hover, .vidboxTab_ll:hover, .vidboxTab_lr:hover { opacity: 1; }
+
+/* play triangle */
+.vidboxTab_ul::before, .vidboxTab_ur::before, .vidboxTab_ll::before, .vidboxTab_lr::before {
+	content: "";
+	width: 0;
+	height: 0;
+	border-style: solid;
+	border-width: 5px 0 5px 8px;
+	border-color: transparent transparent transparent var(--accent);
 }
 
-.vidboxTab_ll {
-	left: -55px;
-	bottom: 70px;
-	border-radius: 8px 8px 0px 0px;
-	transform: rotate(90deg);
-	height: 30px;
-	line-height: 25px !important;
-}
+.vidboxTab_ul { left: 16px; top: 16px; }
+.vidboxTab_ur { right: 16px; top: 16px; }
+.vidboxTab_ll { left: 16px; bottom: 16px; }
+.vidboxTab_lr { right: 16px; bottom: 16px; }
 
-.vidboxTab_lr {
-	right: -55px;
-	bottom: 70px;
-	border-radius: 8px 8px 0px 0px;
-	transform: rotate(270deg);
-	height: 30px;
-	line-height: 25px !important;
+/* open: the tab becomes the "Close" button on top of the frame */
+div.vidboxContainer > .vidboxTab {
+	float: right;
+	margin: 0 0 8px;
+	box-shadow: none;
+	opacity: 1;
 }
 
 .vidboxFrame {
-	background-color: var(--input);
-	color: var(--foreground);
-	border: 1px solid var(--border);
+	clear: both;
 	display: none;
+	padding: 12px;
 	text-align: center;
-	border-radius: 8px;
-	border-top-left-radius: 0px;
+	color: var(--text);
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: 14px;
+	box-shadow: var(--shadow-lg);
 }
 
 .vidboxCancel {
 	float: right;
 	cursor: pointer;
-	padding: 5px 20px 0 0;
-	color: var(--secondary-foreground);
+	padding: 0 4px 8px 0;
+	font-size: 12px;
+	color: var(--muted);
 }
+.vidboxCancel:hover { color: var(--text); text-decoration: underline; }
 
 .vidFrame {
-	width: 600px;
+	width: min(600px, calc(100vw - 56px));
 }
 
 .vidboxIframe {
-	margin-top: 10px;
+	display: block;
+	width: 100%;
+	height: auto;
+	aspect-ratio: 16 / 9;
+	margin-top: 4px;
+	border: 0;
+	border-radius: 10px;
+	background: #000;
 }
 
 .textFrame {
-	margin: 10px;
+	margin: 12px 4px 4px;
+	font-size: 13px;
 }
 
 .textFrame a:link,
 .textFrame a:visited {
-	color: var(--secondary-foreground);
+	color: var(--link);
 }
 
 .textFrame a:hover,
 .textFrame a:active {
 	text-decoration: underline;
-	color: var(--secondary-foreground);
+	color: var(--link-hover);
+}
+
+/* the video tour is not useful on phones and would cover content */
+@media (max-width: 640px) {
+	.vidboxTab, div.vidboxContainer { display: none; }
 }

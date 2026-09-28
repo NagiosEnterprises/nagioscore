@@ -31,6 +31,15 @@ new releases, bug reports, information on discussion forums, and more.
   notification and problem history, log file, etc.
 
 
+AI assistants (MCP)
+-------------------
+`mcp.cgi` is a built-in [Model Context Protocol](https://modelcontextprotocol.io)
+server. It lets AI assistants such as Claude query Nagios, acknowledge
+problems, schedule downtime or re-check services, and optionally change the
+object configuration, with the same permissions a user has in the web
+interface. See [docs/mcp-server.md](docs/mcp-server.md).
+
+
 Changes
 -------
 See the

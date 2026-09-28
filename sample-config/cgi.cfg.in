@@ -435,3 +435,36 @@ navbar_search_for_aliases=1
 #CMT_ACKNOWLEDGE_HOST_PROBLEM=2,"Problem is being looked into"
 #CMT_SCHEDULE_SVC_CHECK=1
 #CMT_SCHEDULE_HOST_DOWNTIME=0
+
+
+
+# MCP SERVER TOKEN FILE
+# mcp.cgi lets AI assistants query and operate Nagios through the Model
+# Context Protocol. Clients authenticate with bearer tokens that are stored
+# (as SHA-256 hashes) in this file. Create the first token on the server:
+#   @sbindir@/mcp.cgi --create-token --user nagiosadmin --scopes admin --label "my assistant"
+# The file must be readable and writable by the web server user. Without
+# tokens the MCP endpoint rejects every request.
+
+#mcp_token_file=@sysconfdir@/mcp-tokens.cfg
+
+# MCP SERVER: OBJECT CONFIGURATION CHANGES
+# Tokens with the 'config' scope can create, change and delete hosts,
+# services, groups, contacts and timeperiods through MCP. Every change is
+# shown as a diff, validated with "nagios -v" before it is written, backed
+# up, and followed by a reload. Changing configuration is powerful, so it
+# is off by default. The web server user needs write access to the object
+# files (e.g. group nagios with g+w); read-only files are left alone.
+
+#mcp_allow_config_changes=0
+
+# Command definitions run programs on this server; changing them through
+# MCP is equivalent to shell access and needs this extra switch.
+
+#mcp_allow_command_changes=0
+
+# Where new objects are written (default: <dir of nagios.cfg>/objects/mcp)
+# and which nagios binary validates changes (default: @bindir@/nagios).
+
+#mcp_config_dir=@sysconfdir@/objects/mcp
+#mcp_nagios_binary=@bindir@/nagios

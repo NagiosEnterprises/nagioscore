@@ -2,6 +2,11 @@
 Nagios Core 4 Change Log
 ########################
 
+4.5.15 - TBD
+-------------------
+* Add mcp.cgi, a Model Context Protocol server that lets AI assistants query and operate Nagios with bearer tokens, per-token scopes and the usual cgi.cfg permissions (Stephan Ferraro)
+* Add optional object configuration changes through MCP: planned as a diff, validated with nagios -v, backed up, applied in place and reloaded (Stephan Ferraro)
+
 4.5.14 - 2026-08-05
 -------------------
 * Fix vulnerabilities in notification macros, which are now being sanitized (Thanks Zach Hanley of Horizon3.ai) (Emmett Kapsner)

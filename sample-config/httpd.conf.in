@@ -5,6 +5,10 @@
 # configuration file.  Customize the paths, etc. as
 # needed to fit your system.
 
+# Public documentation and the token-authenticated MCP endpoint.
+AliasMatch ^/mcp/help/?$ "@datadir@/mcp.php"
+ScriptAliasMatch ^/mcp/?$ "@sbindir@/mcp.cgi"
+
 ScriptAlias @cgiurl@ "@sbindir@"
 
 <Directory "@sbindir@">
@@ -34,6 +38,21 @@ ScriptAlias @cgiurl@ "@sbindir@"
       AuthUserFile @sysconfdir@/htpasswd.users
       Require valid-user
    </IfVersion>
+
+   # The MCP server (for AI assistants) authenticates its clients with its
+   # own bearer tokens (see "mcp.cgi --create-token"), so Apache must not
+   # ask for a password and must pass the Authorization header through.
+   <Files "mcp.cgi">
+      <IfVersion >= 2.4.13>
+         Require all granted
+         CGIPassAuth On
+      </IfVersion>
+      <IfVersion < 2.4.13>
+         # CGIPassAuth needs Apache 2.4.13+; older versions need
+         # mod_rewrite: RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+         Require all denied
+      </IfVersion>
+   </Files>
 </Directory>
 
 Alias @htmurl@ "@datadir@"
@@ -65,4 +84,11 @@ Alias @htmurl@ "@datadir@"
       AuthUserFile @sysconfdir@/htpasswd.users
       Require valid-user
    </IfVersion>
+</Directory>
+
+# Public connection instructions contain no monitoring data or credentials.
+<Directory "@datadir@">
+   <Files "mcp.php">
+      Require all granted
+   </Files>
 </Directory>

@@ -47,7 +47,7 @@ JSONFLAGS=-DJSON_NAGIOS_4X
 LDFLAGS=@LDFLAGS@
 LIBS=@LIBS@
 
-CGIS=archivejson.cgi avail.cgi cmd.cgi config.cgi extinfo.cgi history.cgi notifications.cgi objectjson.cgi outages.cgi showlog.cgi status.cgi statusjson.cgi statuswml.cgi summary.cgi tac.cgi $(CGIEXTRAS)
+CGIS=archivejson.cgi avail.cgi cmd.cgi config.cgi extinfo.cgi history.cgi mcp.cgi notifications.cgi objectjson.cgi outages.cgi showlog.cgi status.cgi statusjson.cgi statuswml.cgi summary.cgi tac.cgi $(CGIEXTRAS)
 
 # Object functions
 ODATALIBS=objects-cgi.o xobjects-cgi.o
@@ -191,9 +191,30 @@ objectjson.cgi: $(srcdir)/objectjson.c $(CGIDEPS) jsonutils.o $(SRC_INCLUDE)/obj
 statusjson.cgi: $(srcdir)/statusjson.c $(CGIDEPS) jsonutils.o $(SRC_INCLUDE)/statusjson.h
 	$(CC) $(CFLAGS) $(JSONFLAGS) $(LDFLAGS) -o $@ $(srcdir)/statusjson.c $(CGILIBS) jsonutils.o $(LIBS)
 
+########## MCP SERVER ##########
+
+mcputils.o: $(srcdir)/mcputils.c $(SRC_INCLUDE)/mcputils.h
+	$(CC) $(CFLAGS) -c -o $@ $(srcdir)/mcputils.c
+
+mcpconfig.o: $(srcdir)/mcpconfig.c $(SRC_INCLUDE)/mcpconfig.h $(SRC_INCLUDE)/mcputils.h
+	$(CC) $(CFLAGS) -c -o $@ $(srcdir)/mcpconfig.c
+
+mcp.cgi: $(srcdir)/mcp.c $(CGIDEPS) mcputils.o mcpconfig.o extcmd_list.o $(SRC_INCLUDE)/mcputils.h $(SRC_INCLUDE)/mcpconfig.h
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(srcdir)/mcp.c mcputils.o mcpconfig.o extcmd_list.o $(CGILIBS) $(MATHLIBS) $(LIBS)
+
+test-mcputils: $(srcdir)/test-mcputils.c mcputils.o $(SRC_LIB)/t-utils.c $(SRC_LIB)/t-utils.h
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(srcdir)/test-mcputils.c mcputils.o $(SRC_LIB)/t-utils.c $(MATHLIBS)
+
+test-mcpconfig: $(srcdir)/test-mcpconfig.c mcpconfig.o mcputils.o $(SRC_LIB)/t-utils.c $(SRC_LIB)/t-utils.h
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(srcdir)/test-mcpconfig.c mcpconfig.o mcputils.o $(SRC_LIB)/t-utils.c $(MATHLIBS)
+
+test: test-mcputils test-mcpconfig
+	./test-mcputils
+	./test-mcpconfig
+
 
 clean:
-	rm -f $(CGIS)
+	rm -f $(CGIS) test-mcputils test-mcpconfig
 	rm -f *.o core gmon.out
 	rm -f *~ *.*~
 
@@ -217,4 +238,4 @@ install-basic:
 		$(INSTALL) -s -m 775 $(INSTALL_OPTS) $$file $(DESTDIR)$(CGIDIR); \
 	done
 
-.PHONY: libnagios
+.PHONY: libnagios test

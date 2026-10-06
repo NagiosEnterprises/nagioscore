@@ -50,6 +50,12 @@ Installation
 [Quickstart installation guides](https://assets.nagios.com/downloads/nagioscore/docs/nagioscore/4/en/quickstart.html)
 are available to help you get Nagios up and monitoring.
 
+The quickstart is the full step-by-step source of truth for packages,
+configure flags and service setup. One step worth knowing before you
+start the daemon: verify the configuration reports zero errors:
+
+    /usr/local/nagios/bin/nagios -v /usr/local/nagios/etc/nagios.cfg
+
 
 Documentation & Support
 -----------------------

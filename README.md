@@ -44,6 +44,13 @@ Download
 --------
 Latest releases can be downloaded from https://www.nagios.org/download/
 
+Prerequisites
+-------------
+
+Before installing Nagios Core, make sure your system has the required
+build tools and dependencies installed. A supported operating system,
+a C compiler, and the required development libraries are needed to
+build Nagios Core from source.
 
 Installation
 ------------

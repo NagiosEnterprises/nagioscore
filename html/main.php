@@ -98,6 +98,8 @@ if ($theme != 'dark' && $theme != 'light') {
 <?php
 	}
 ?>
+</div>
+
 
 <div style="padding: 60px 0 100px 0;">
 <div id="splashboxes">

@@ -1425,7 +1425,13 @@ char *json_escape_string(const char *src, const json_escape *escapes) {
 
 	/* Make a wide string copy of src */
 	wdest_len = mbstowcs(NULL, src, 0);
-	if(wdest_len <= 0) return NULL;
+	/* mbstowcs() returns (size_t)-1 on an invalid multibyte sequence, which
+		happens for non-UTF-8 bytes when the process locale fell back to
+		"C"/"POSIX" (the CGIs setlocale() from Accept-Language per request).
+		Caught here as unsigned, since the old "<= 0" test never fired for
+		(size_t)-1 and the following calloc(wdest_len + 1, ...) then wrapped
+		to 0, returning a tiny buffer that the next mbstowcs() overflowed. */
+	if(wdest_len == (size_t)-1 || wdest_len == 0) return NULL;
 	if((wdest = calloc(wdest_len + 1, sizeof(wchar_t))) == NULL) {
 		return NULL;
 		}
@@ -1470,7 +1476,7 @@ char *json_escape_string(const char *src, const json_escape *escapes) {
 
 	/* Covert the wide string back to a multibyte string */
 	dest_len = wcstombs(NULL, wdest, 0);
-	if(0 == dest_len) return NULL;
+	if(dest_len == (size_t)-1 || dest_len == 0) return NULL;
 	if((dest = calloc(dest_len + 1, sizeof(char))) == NULL) {
 		return NULL;
 		}

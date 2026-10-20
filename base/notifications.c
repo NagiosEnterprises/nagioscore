@@ -957,6 +957,8 @@ int create_notification_list_from_service(nagios_macros *mac, service *svc, int 
 	contact *temp_contact = NULL;
 	contactgroupsmember *temp_contactgroupsmember = NULL;
 	contactgroup *temp_contactgroup = NULL;
+	objectlist *list = NULL;
+	servicegroup *temp_servicegroup = NULL;
 	int escalate_notification = FALSE;
 
 
@@ -1053,6 +1055,37 @@ int create_notification_list_from_service(nagios_macros *mac, service *svc, int 
                                 	add_notification(mac, temp_contact);
 	                        else
 	                                log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Not adding contact '%s'\n",temp_contact->name);
+				}
+			}
+
+		/* add contacts/contactgroups from servicegroups this service belongs to */
+		log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Adding contacts from servicegroups for service to notification list.\n");
+		for(list = svc->servicegroups_ptr; list != NULL; list = list->next) {
+			temp_servicegroup = (servicegroup *)list->object_ptr;
+			if(temp_servicegroup == NULL)
+				continue;
+
+			for(temp_contactsmember = temp_servicegroup->contacts; temp_contactsmember != NULL; temp_contactsmember = temp_contactsmember->next) {
+				if((temp_contact = temp_contactsmember->contact_ptr) == NULL)
+					continue;
+				if(check_contact_service_notification_viability(temp_contact, svc, type, options) == OK)
+					add_notification(mac, temp_contact);
+				else
+					log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Not adding contact '%s'\n", temp_contact->name);
+				}
+
+			for(temp_contactgroupsmember = temp_servicegroup->contact_groups; temp_contactgroupsmember != NULL; temp_contactgroupsmember = temp_contactgroupsmember->next) {
+				log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Adding members of contact group '%s' for servicegroup '%s' to notification list.\n", temp_contactgroupsmember->group_name, temp_servicegroup->group_name);
+				if((temp_contactgroup = temp_contactgroupsmember->group_ptr) == NULL)
+					continue;
+				for(temp_contactsmember = temp_contactgroup->members; temp_contactsmember != NULL; temp_contactsmember = temp_contactsmember->next) {
+					if((temp_contact = temp_contactsmember->contact_ptr) == NULL)
+						continue;
+					if(check_contact_service_notification_viability(temp_contact, svc, type, options) == OK)
+						add_notification(mac, temp_contact);
+					else
+						log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Not adding contact '%s'\n", temp_contact->name);
+					}
 				}
 			}
 		}

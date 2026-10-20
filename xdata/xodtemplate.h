@@ -322,6 +322,8 @@ typedef struct xodtemplate_hostgroup_struct {
     char      *alias;
     char      *members;
     char      *hostgroup_members;
+    char      *contact_groups;
+    char      *contacts;
     char      *notes;
     char      *notes_url;
     char      *action_url;
@@ -333,6 +335,8 @@ typedef struct xodtemplate_hostgroup_struct {
 
     char have_members;
     char have_hostgroup_members;
+    char have_contact_groups;
+    char have_contacts;
     char have_notes;
     char have_notes_url;
     char have_action_url;

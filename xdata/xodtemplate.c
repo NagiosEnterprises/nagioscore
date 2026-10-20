@@ -1578,6 +1578,30 @@ int xodtemplate_add_object_property(char *input, int options) {
 					}
 				temp_hostgroup->have_hostgroup_members = TRUE;
 				}
+			else if(!strcmp(variable, "contact_groups")) {
+				if(*value == '\0') {
+					logit(NSLOG_CONFIG_WARNING, TRUE, "Error: Empty value for contact_groups (config file '%s', starting on line %d)\n", xodtemplate_config_file_name(temp_hostgroup->_config_file), temp_hostgroup->_start_line);
+					result = ERROR;
+					break;
+					}
+				if(strcmp(value, XODTEMPLATE_NULL)) {
+					if((temp_hostgroup->contact_groups = (char *)strdup(value)) == NULL)
+						result = ERROR;
+					}
+				temp_hostgroup->have_contact_groups = TRUE;
+				}
+			else if(!strcmp(variable, "contacts")) {
+				if(*value == '\0') {
+					logit(NSLOG_CONFIG_WARNING, TRUE, "Error: Empty value for contacts (config file '%s', starting on line %d)\n", xodtemplate_config_file_name(temp_hostgroup->_config_file), temp_hostgroup->_start_line);
+					result = ERROR;
+					break;
+					}
+				if(strcmp(value, XODTEMPLATE_NULL)) {
+					if((temp_hostgroup->contacts = (char *)strdup(value)) == NULL)
+						result = ERROR;
+					}
+				temp_hostgroup->have_contacts = TRUE;
+				}
 			else if(!strcmp(variable, "notes")) {
 				if(strcmp(value, XODTEMPLATE_NULL)) {
 					if((temp_hostgroup->notes = (char *)strdup(value)) == NULL)
@@ -4703,6 +4727,62 @@ int xodtemplate_duplicate_serviceescalation(xodtemplate_serviceescalation *temp_
 /******************************************************************/
 
 
+/* append a comma-separated source list onto a destination string */
+static int xodtemplate_append_string_list(char **dest, const char *src) {
+	char *new_str = NULL;
+
+	if(src == NULL || *src == '\0')
+		return OK;
+
+	if(*dest == NULL) {
+		if((*dest = (char *)strdup(src)) == NULL)
+			return ERROR;
+		return OK;
+		}
+
+	if((new_str = (char *)realloc(*dest, strlen(*dest) + strlen(src) + 2)) == NULL)
+		return ERROR;
+	*dest = new_str;
+	strcat(*dest, ",");
+	strcat(*dest, src);
+
+	return OK;
+	}
+
+
+/*
+ * Merge contacts/contact_groups from hostgroups that contain this host
+ * into the provided destination strings (used for service/escalation
+ * inheritance, matching how host contacts are inherited).
+ */
+static int xodtemplate_merge_hostgroup_contacts_for_host(xodtemplate_host *hst, char **contact_groups, char **contacts, char *have_contact_groups, char *have_contacts) {
+	xodtemplate_hostgroup *temp_hostgroup = NULL;
+
+	if(hst == NULL)
+		return OK;
+
+	for(temp_hostgroup = xodtemplate_hostgroup_list; temp_hostgroup != NULL; temp_hostgroup = temp_hostgroup->next) {
+		if(temp_hostgroup->register_object == FALSE)
+			continue;
+		if(temp_hostgroup->member_map == NULL || bitmap_isset(temp_hostgroup->member_map, hst->id) == 0)
+			continue;
+
+		if(temp_hostgroup->contact_groups != NULL) {
+			if(xodtemplate_append_string_list(contact_groups, temp_hostgroup->contact_groups) == ERROR)
+				return ERROR;
+			*have_contact_groups = TRUE;
+			}
+		if(temp_hostgroup->contacts != NULL) {
+			if(xodtemplate_append_string_list(contacts, temp_hostgroup->contacts) == ERROR)
+				return ERROR;
+			*have_contacts = TRUE;
+			}
+		}
+
+	return OK;
+	}
+
+
 /* inherit object properties */
 /* some missing defaults (notification options, etc.) are also applied here */
 int xodtemplate_inherit_object_properties(void) {
@@ -4731,11 +4811,13 @@ int xodtemplate_inherit_object_properties(void) {
 
 		/*
 		 * if the service has no contacts specified, it will inherit
-		 * them from the host
+		 * them from the host and from hostgroups the host belongs to
 		 */
 		if(temp_service->have_contact_groups == FALSE && temp_service->have_contacts == FALSE) {
 			xod_inherit_str(temp_service, temp_host, contact_groups);
 			xod_inherit_str(temp_service, temp_host, contacts);
+			if(xodtemplate_merge_hostgroup_contacts_for_host(temp_host, &temp_service->contact_groups, &temp_service->contacts, &temp_service->have_contact_groups, &temp_service->have_contacts) == ERROR)
+				return ERROR;
 			}
 
 		/* services inherit notification interval from host if not already specified */
@@ -4807,10 +4889,12 @@ int xodtemplate_inherit_object_properties(void) {
 		if(temp_hostescalation->contacts != NULL && temp_hostescalation->contacts[0] == '+')
 			xodtemplate_get_inherited_string(&temp_host->have_contacts, &temp_host->contacts, &temp_hostescalation->have_contacts, &temp_hostescalation->contacts);
 
-		/* host escalations inherit contacts from host if none are specified */
+		/* host escalations inherit contacts from host/hostgroups if none are specified */
 		if(temp_hostescalation->have_contact_groups == FALSE && temp_hostescalation->have_contacts == FALSE) {
 			xod_inherit_str(temp_hostescalation, temp_host, contact_groups);
 			xod_inherit_str(temp_hostescalation, temp_host, contacts);
+			if(xodtemplate_merge_hostgroup_contacts_for_host(temp_host, &temp_hostescalation->contact_groups, &temp_hostescalation->contacts, &temp_hostescalation->have_contact_groups, &temp_hostescalation->have_contacts) == ERROR)
+				return ERROR;
 			}
 
 		/* host escalations inherit notification interval from host if not already defined */
@@ -5434,6 +5518,8 @@ int xodtemplate_resolve_hostgroup(xodtemplate_hostgroup *this_hostgroup) {
 
 		xodtemplate_get_inherited_string(&template_hostgroup->have_members, &template_hostgroup->members, &this_hostgroup->have_members, &this_hostgroup->members);
 		xodtemplate_get_inherited_string(&template_hostgroup->have_hostgroup_members, &template_hostgroup->hostgroup_members, &this_hostgroup->have_hostgroup_members, &this_hostgroup->hostgroup_members);
+		xodtemplate_get_inherited_string(&template_hostgroup->have_contact_groups, &template_hostgroup->contact_groups, &this_hostgroup->have_contact_groups, &this_hostgroup->contact_groups);
+		xodtemplate_get_inherited_string(&template_hostgroup->have_contacts, &template_hostgroup->contacts, &this_hostgroup->have_contacts, &this_hostgroup->contacts);
 
 		xod_inherit_str(this_hostgroup, template_hostgroup, notes);
 		xod_inherit_str(this_hostgroup, template_hostgroup, notes_url);
@@ -7062,6 +7148,10 @@ static int xodtemplate_register_hostgroup_members(xodtemplate_hostgroup *this_ho
 {
 	objectlist *list;
 	struct hostgroup *hg;
+	contactgroupsmember *new_contactgroupsmember = NULL;
+	contactsmember *new_contactsmember = NULL;
+	char *contact_group = NULL;
+	char *contact_name = NULL;
 	int num_regs = 0;
 
 	if (!this_hostgroup->register_object)
@@ -7076,6 +7166,63 @@ static int xodtemplate_register_hostgroup_members(xodtemplate_hostgroup *this_ho
 			}
 		num_regs++;
 		}
+
+	/* add contact groups to the hostgroup (contacts are registered by now) */
+	if(this_hostgroup->contact_groups != NULL) {
+		contactgroupsmember *temp_contact_group = NULL;
+
+		for(contact_group = strtok(this_hostgroup->contact_groups, ","); contact_group != NULL; contact_group = strtok(NULL, ",")) {
+			int found_match = FALSE;
+
+			strip(contact_group);
+
+			if(hg->contact_groups != NULL) {
+				for(temp_contact_group = hg->contact_groups; temp_contact_group != NULL; temp_contact_group = temp_contact_group->next) {
+					if(!strcmp(temp_contact_group->group_name, contact_group)) {
+						found_match = TRUE;
+						break;
+						}
+					}
+				}
+
+			if(found_match == FALSE) {
+				new_contactgroupsmember = add_contactgroup_to_hostgroup(hg, contact_group);
+				if(new_contactgroupsmember == NULL) {
+					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add contactgroup '%s' to hostgroup '%s' (config file '%s', starting on line %d)\n", contact_group, hg->group_name, xodtemplate_config_file_name(this_hostgroup->_config_file), this_hostgroup->_start_line);
+					return -1;
+					}
+				}
+			}
+		}
+
+	/* add contacts to the hostgroup */
+	if(this_hostgroup->contacts != NULL) {
+		contactsmember *temp_contact = NULL;
+
+		for(contact_name = strtok(this_hostgroup->contacts, ","); contact_name != NULL; contact_name = strtok(NULL, ",")) {
+			int found_match = FALSE;
+
+			strip(contact_name);
+
+			if(hg->contacts != NULL) {
+				for(temp_contact = hg->contacts; temp_contact != NULL; temp_contact = temp_contact->next) {
+					if(!strcmp(temp_contact->contact_name, contact_name)) {
+						found_match = TRUE;
+						break;
+						}
+					}
+				}
+
+			if(found_match == FALSE) {
+				new_contactsmember = add_contact_to_hostgroup(hg, contact_name);
+				if(new_contactsmember == NULL) {
+					logit(NSLOG_CONFIG_ERROR, TRUE, "Error: Could not add contact '%s' to hostgroup '%s' (config file '%s', starting on line %d)\n", contact_name, hg->group_name, xodtemplate_config_file_name(this_hostgroup->_config_file), this_hostgroup->_start_line);
+					return -1;
+					}
+				}
+			}
+		}
+
 	return num_regs;
 	}
 
@@ -8849,6 +8996,8 @@ int xodtemplate_free_memory(void) {
 		my_free(this_hostgroup->name);
 		my_free(this_hostgroup->members);
 		my_free(this_hostgroup->hostgroup_members);
+		my_free(this_hostgroup->contact_groups);
+		my_free(this_hostgroup->contacts);
 		bitmap_destroy(this_hostgroup->member_map);
 		free_objectlist(&this_hostgroup->member_list);
 		free_objectlist(&this_hostgroup->group_list);

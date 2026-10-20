@@ -1861,6 +1861,8 @@ int create_notification_list_from_host(nagios_macros *mac, host *hst, int option
 	contact *temp_contact = NULL;
 	contactgroupsmember *temp_contactgroupsmember = NULL;
 	contactgroup *temp_contactgroup = NULL;
+	objectlist *list = NULL;
+	hostgroup *temp_hostgroup = NULL;
 	int escalate_notification = FALSE;
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "create_notification_list_from_host()\n");
@@ -1961,6 +1963,37 @@ int create_notification_list_from_host(nagios_macros *mac, host *hst, int option
 	                                add_notification(mac, temp_contact);
 	                        else
 	                                log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Not adding contact '%s'\n", temp_contact->name);
+				}
+			}
+
+		/* add contacts/contactgroups from hostgroups to which this hosts belongs */
+		log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Adding contacts from hostgroups for host to notification list.\n");
+		for(list = hst->hostgroups_ptr; list != NULL; list = list->next) {
+			temp_hostgroup = (hostgroup *)list->object_ptr;
+			if(temp_hostgroup == NULL)
+				continue;
+
+			for(temp_contactsmember = temp_hostgroup->contacts; temp_contactsmember != NULL; temp_contactsmember = temp_contactsmember->next) {
+				if((temp_contact = temp_contactsmember->contact_ptr) == NULL)
+					continue;
+				if(check_contact_host_notification_viability(temp_contact, hst, type, options) == OK)
+					add_notification(mac, temp_contact);
+				else
+					log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Not adding contact '%s'\n", temp_contact->name);
+				}
+
+			for(temp_contactgroupsmember = temp_hostgroup->contact_groups; temp_contactgroupsmember != NULL; temp_contactgroupsmember = temp_contactgroupsmember->next) {
+				log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Adding members of contact group '%s' for hostgroup '%s' to notification list.\n", temp_contactgroupsmember->group_name, temp_hostgroup->group_name);
+				if((temp_contactgroup = temp_contactgroupsmember->group_ptr) == NULL)
+					continue;
+				for(temp_contactsmember = temp_contactgroup->members; temp_contactsmember != NULL; temp_contactsmember = temp_contactsmember->next) {
+					if((temp_contact = temp_contactsmember->contact_ptr) == NULL)
+						continue;
+					if(check_contact_host_notification_viability(temp_contact, hst, type, options) == OK)
+						add_notification(mac, temp_contact);
+					else
+						log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Not adding contact '%s'\n", temp_contact->name);
+					}
 				}
 			}
 		}

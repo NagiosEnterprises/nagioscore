@@ -853,7 +853,10 @@ void display_hostgroups(void) {
 void display_servicegroups(void) {
 	servicegroup *temp_servicegroup;
 	servicesmember *temp_servicesmember;
+	contactsmember *temp_contactsmember;
+	contactgroupsmember *temp_contactgroupsmember;
 	int odd = 0;
+	int num_contacts = 0;
 	const char *bg_class = "";
 
 	/* see if user is authorized to view servicegroup information... */
@@ -873,6 +876,7 @@ void display_servicegroups(void) {
 	printf("<TH CLASS='data'>Group Name</TH>");
 	printf("<TH CLASS='data'>Description</TH>");
 	printf("<TH CLASS='data'>Service Members</TH>");
+	printf("<TH CLASS='data'>Contacts/Groups</TH>");
 	printf("<TH CLASS='data'>Notes</TH>");
 	printf("<TH CLASS='data'>Notes URL</TH>");
 	printf("<TH CLASS='data'>Action URL</TH>");
@@ -907,6 +911,24 @@ void display_servicegroups(void) {
 				printf("%s'>%s</A>\n", url_encode(temp_servicesmember->service_description), html_encode(temp_servicesmember->service_description, FALSE));
 				}
 
+			printf("</TD>\n");
+
+			printf("<TD CLASS='%s'>", bg_class);
+			num_contacts = 0;
+			for(temp_contactsmember = temp_servicegroup->contacts; temp_contactsmember != NULL; temp_contactsmember = temp_contactsmember->next) {
+				num_contacts++;
+				if(num_contacts > 1)
+					printf(", ");
+				printf("<A HREF='%s?type=contacts&expand=%s'>%s</A>\n", CONFIG_CGI, url_encode(temp_contactsmember->contact_name), html_encode(temp_contactsmember->contact_name, FALSE));
+				}
+			for(temp_contactgroupsmember = temp_servicegroup->contact_groups; temp_contactgroupsmember != NULL; temp_contactgroupsmember = temp_contactgroupsmember->next) {
+				num_contacts++;
+				if(num_contacts > 1)
+					printf(", ");
+				printf("<A HREF='%s?type=contactgroups&expand=%s'>%s</A>\n", CONFIG_CGI, url_encode(temp_contactgroupsmember->group_name), html_encode(temp_contactgroupsmember->group_name, FALSE));
+				}
+			if(num_contacts == 0)
+				printf("&nbsp;");
 			printf("</TD>\n");
 
 			printf("<TD CLASS='%s'>%s</TD>", bg_class, (temp_servicegroup->notes == NULL) ? "&nbsp;" : html_encode(temp_servicegroup->notes, FALSE));

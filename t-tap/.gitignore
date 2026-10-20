@@ -11,4 +11,5 @@ test_strtoul
 test_notifications
 test_stubs
 test_hostgroup_contacts
+test_servicegroup_contacts
 *.dSYM

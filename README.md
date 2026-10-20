@@ -5,6 +5,16 @@ Nagios 4.x
 
 [![Nagios Core Tests](https://github.com/NagiosEnterprises/nagioscore/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/NagiosEnterprises/nagioscore/actions/workflows/test.yml?query=branch%3Amaster)
 
+## Prerequisites
+
+Before installing Nagios Core, ensure that your system meets the requirements specified in the official installation documentation.
+
+- A supported operating system and the required development tools.
+- The dependencies required by the selected Nagios Core version.
+- Appropriate permissions to install and configure the monitoring software.
+
+For detailed installation requirements, refer to the official Nagios Core documentation.
+
 Nagios is a host/service/network monitoring program written in C and
 released under the GNU General Public License, version 2. CGI programs
 are included to allow you to view the current status, history, etc via

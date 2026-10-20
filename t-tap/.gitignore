@@ -10,4 +10,5 @@ test_downtime
 test_strtoul
 test_notifications
 test_stubs
+test_hostgroup_contacts
 *.dSYM

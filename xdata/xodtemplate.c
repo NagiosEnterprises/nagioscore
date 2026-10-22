@@ -10809,12 +10809,16 @@ int xodtemplate_clean_additive_strings(void) {
 	for(temp_hostgroup = xodtemplate_hostgroup_list; temp_hostgroup != NULL; temp_hostgroup = temp_hostgroup->next) {
 		xodtemplate_clean_additive_string(&temp_hostgroup->members);
 		xodtemplate_clean_additive_string(&temp_hostgroup->hostgroup_members);
+		xodtemplate_clean_additive_string(&temp_hostgroup->contacts);
+		xodtemplate_clean_additive_string(&temp_hostgroup->contact_groups);
 		}
 
 	/* resolve all servicegroup objects */
 	for(temp_servicegroup = xodtemplate_servicegroup_list; temp_servicegroup != NULL; temp_servicegroup = temp_servicegroup->next) {
 		xodtemplate_clean_additive_string(&temp_servicegroup->members);
 		xodtemplate_clean_additive_string(&temp_servicegroup->servicegroup_members);
+		xodtemplate_clean_additive_string(&temp_servicegroup->contacts);
+		xodtemplate_clean_additive_string(&temp_servicegroup->contact_groups);
 		}
 
 	/* resolve all servicedependency objects */

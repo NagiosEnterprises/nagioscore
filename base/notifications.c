@@ -45,6 +45,38 @@ static contact *find_contact_by_name_or_alias(const char *name)
 	return c;
 }
 
+/* add viable contacts from a contactsmember list to a service notification */
+static void add_service_notifications_from_contactlist(nagios_macros *mac, contactsmember *contact_list, service *svc, int type, int options)
+{
+	contactsmember *temp_contactsmember = NULL;
+	contact *temp_contact = NULL;
+
+	for(temp_contactsmember = contact_list; temp_contactsmember != NULL; temp_contactsmember = temp_contactsmember->next) {
+		if((temp_contact = temp_contactsmember->contact_ptr) == NULL)
+			continue;
+		if(check_contact_service_notification_viability(temp_contact, svc, type, options) == OK)
+			add_notification(mac, temp_contact);
+		else
+			log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Not adding contact '%s'\n", temp_contact->name);
+		}
+}
+
+/* add viable contacts from a contactsmember list to a host notification */
+static void add_host_notifications_from_contactlist(nagios_macros *mac, contactsmember *contact_list, host *hst, int type, int options)
+{
+	contactsmember *temp_contactsmember = NULL;
+	contact *temp_contact = NULL;
+
+	for(temp_contactsmember = contact_list; temp_contactsmember != NULL; temp_contactsmember = temp_contactsmember->next) {
+		if((temp_contact = temp_contactsmember->contact_ptr) == NULL)
+			continue;
+		if(check_contact_host_notification_viability(temp_contact, hst, type, options) == OK)
+			add_notification(mac, temp_contact);
+		else
+			log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Not adding contact '%s'\n", temp_contact->name);
+		}
+}
+
 const char *notification_reason_name(unsigned int reason_type)
 {
 	static const char *names[] = {
@@ -953,10 +985,10 @@ int should_service_notification_be_escalated(service *svc) {
 /* given a service, create a list of contacts to be notified, removing duplicates, checking contact notification viability */
 int create_notification_list_from_service(nagios_macros *mac, service *svc, int options, int *escalated, int type) {
 	serviceescalation *temp_se = NULL;
-	contactsmember *temp_contactsmember = NULL;
-	contact *temp_contact = NULL;
 	contactgroupsmember *temp_contactgroupsmember = NULL;
 	contactgroup *temp_contactgroup = NULL;
+	objectlist *list = NULL;
+	servicegroup *temp_servicegroup = NULL;
 	int escalate_notification = FALSE;
 
 
@@ -994,15 +1026,7 @@ int create_notification_list_from_service(nagios_macros *mac, service *svc, int 
 			log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Adding individual contacts from service escalation(s) to notification list.\n");
 
 			/* add all individual contacts for this escalation entry */
-			for(temp_contactsmember = temp_se->contacts; temp_contactsmember != NULL; temp_contactsmember = temp_contactsmember->next) {
-				if((temp_contact = temp_contactsmember->contact_ptr) == NULL)
-					continue;
-				/* check now if the contact can be notified */
-				if (check_contact_service_notification_viability(temp_contact, svc, type, options) == OK)
-					add_notification(mac, temp_contact);
-				else
-					log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Not adding contact '%s'\n",temp_contact->name);
-				}
+			add_service_notifications_from_contactlist(mac, temp_se->contacts, svc, type, options);
 
 			log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Adding members of contact groups from service escalation(s) to notification list.\n");
 
@@ -1011,15 +1035,7 @@ int create_notification_list_from_service(nagios_macros *mac, service *svc, int 
 				log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Adding members of contact group '%s' for service escalation to notification list.\n", temp_contactgroupsmember->group_name);
 				if((temp_contactgroup = temp_contactgroupsmember->group_ptr) == NULL)
 					continue;
-				for(temp_contactsmember = temp_contactgroup->members; temp_contactsmember != NULL; temp_contactsmember = temp_contactsmember->next) {
-					if((temp_contact = temp_contactsmember->contact_ptr) == NULL)
-						continue;
-					/* check now if the contact can be notified */
-					if (check_contact_service_notification_viability(temp_contact, svc, type, options) == OK)
-						add_notification(mac, temp_contact);
-					else
-						log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Not adding contact '%s'\n",temp_contact->name);
-					}
+				add_service_notifications_from_contactlist(mac, temp_contactgroup->members, svc, type, options);
 				}
 			}
 		}
@@ -1030,29 +1046,30 @@ int create_notification_list_from_service(nagios_macros *mac, service *svc, int 
 		log_debug_info(DEBUGL_NOTIFICATIONS, 1, "Adding normal contacts for service to notification list.\n");
 
 		/* add all individual contacts for this service */
-		for(temp_contactsmember = svc->contacts; temp_contactsmember != NULL; temp_contactsmember = temp_contactsmember->next) {
-			if((temp_contact = temp_contactsmember->contact_ptr) == NULL)
-				continue;
-			/* check now if the contact can be notified */
-                        if (check_contact_service_notification_viability(temp_contact, svc, type, options) == OK)
-                                add_notification(mac, temp_contact);
-                        else
-                                log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Not adding contact '%s'\n",temp_contact->name);
-			}
+		add_service_notifications_from_contactlist(mac, svc->contacts, svc, type, options);
 
 		/* add all contacts that belong to contactgroups for this service */
 		for(temp_contactgroupsmember = svc->contact_groups; temp_contactgroupsmember != NULL; temp_contactgroupsmember = temp_contactgroupsmember->next) {
 			log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Adding members of contact group '%s' for service to notification list.\n", temp_contactgroupsmember->group_name);
 			if((temp_contactgroup = temp_contactgroupsmember->group_ptr) == NULL)
 				continue;
-			for(temp_contactsmember = temp_contactgroup->members; temp_contactsmember != NULL; temp_contactsmember = temp_contactsmember->next) {
-				if((temp_contact = temp_contactsmember->contact_ptr) == NULL)
+			add_service_notifications_from_contactlist(mac, temp_contactgroup->members, svc, type, options);
+			}
+
+		/* add contacts/contactgroups from servicegroups this service belongs to */
+		log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Adding contacts from servicegroups for service to notification list.\n");
+		for(list = svc->servicegroups_ptr; list != NULL; list = list->next) {
+			temp_servicegroup = (servicegroup *)list->object_ptr;
+			if(temp_servicegroup == NULL)
+				continue;
+
+			add_service_notifications_from_contactlist(mac, temp_servicegroup->contacts, svc, type, options);
+
+			for(temp_contactgroupsmember = temp_servicegroup->contact_groups; temp_contactgroupsmember != NULL; temp_contactgroupsmember = temp_contactgroupsmember->next) {
+				log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Adding members of contact group '%s' for servicegroup '%s' to notification list.\n", temp_contactgroupsmember->group_name, temp_servicegroup->group_name);
+				if((temp_contactgroup = temp_contactgroupsmember->group_ptr) == NULL)
 					continue;
-	                        /* check now if the contact can be notified */
-	                        if (check_contact_service_notification_viability(temp_contact, svc, type, options) == OK)
-                                	add_notification(mac, temp_contact);
-	                        else
-	                                log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Not adding contact '%s'\n",temp_contact->name);
+				add_service_notifications_from_contactlist(mac, temp_contactgroup->members, svc, type, options);
 				}
 			}
 		}
@@ -1857,10 +1874,10 @@ int should_host_notification_be_escalated(host *hst) {
 /* given a host, create a list of contacts to be notified, removing duplicates, checking contact notification viability */
 int create_notification_list_from_host(nagios_macros *mac, host *hst, int options, int *escalated, int type) {
 	hostescalation *temp_he = NULL;
-	contactsmember *temp_contactsmember = NULL;
-	contact *temp_contact = NULL;
 	contactgroupsmember *temp_contactgroupsmember = NULL;
 	contactgroup *temp_contactgroup = NULL;
+	objectlist *list = NULL;
+	hostgroup *temp_hostgroup = NULL;
 	int escalate_notification = FALSE;
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "create_notification_list_from_host()\n");
@@ -1897,15 +1914,7 @@ int create_notification_list_from_host(nagios_macros *mac, host *hst, int option
 			log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Adding individual contacts from host escalation(s) to notification list.\n");
 
 			/* add all individual contacts for this escalation */
-			for(temp_contactsmember = temp_he->contacts; temp_contactsmember != NULL; temp_contactsmember = temp_contactsmember->next) {
-				if((temp_contact = temp_contactsmember->contact_ptr) == NULL)
-					continue;
-				/* check now if the contact can be notified */
-				if (check_contact_host_notification_viability(temp_contact, hst, type, options) == OK)
-					add_notification(mac, temp_contact);
-				else
-					log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Not adding contact '%s'\n", temp_contact->name);
-				}
+			add_host_notifications_from_contactlist(mac, temp_he->contacts, hst, type, options);
 
 			log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Adding members of contact groups from host escalation(s) to notification list.\n");
 
@@ -1914,15 +1923,7 @@ int create_notification_list_from_host(nagios_macros *mac, host *hst, int option
 				log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Adding members of contact group '%s' for host escalation to notification list.\n", temp_contactgroupsmember->group_name);
 				if((temp_contactgroup = temp_contactgroupsmember->group_ptr) == NULL)
 					continue;
-				for(temp_contactsmember = temp_contactgroup->members; temp_contactsmember != NULL; temp_contactsmember = temp_contactsmember->next) {
-					if((temp_contact = temp_contactsmember->contact_ptr) == NULL)
-						continue;
-	                                /* check now if the contact can be notified */
-	                                if (check_contact_host_notification_viability(temp_contact, hst, type, options) == OK)
-	                                        add_notification(mac, temp_contact);
-	                                else
-	                                        log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Not adding contact '%s'\n", temp_contact->name);
-					}
+				add_host_notifications_from_contactlist(mac, temp_contactgroup->members, hst, type, options);
 				}
 			}
 		}
@@ -1935,15 +1936,7 @@ int create_notification_list_from_host(nagios_macros *mac, host *hst, int option
 		log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Adding individual contacts for host to notification list.\n");
 
 		/* add all individual contacts for this host */
-		for(temp_contactsmember = hst->contacts; temp_contactsmember != NULL; temp_contactsmember = temp_contactsmember->next) {
-			if((temp_contact = temp_contactsmember->contact_ptr) == NULL)
-				continue;
-                        /* check now if the contact can be notified */
-                        if (check_contact_host_notification_viability(temp_contact, hst, type, options) == OK)
-                                add_notification(mac, temp_contact);
-                        else
-                                log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Not adding contact '%s'\n", temp_contact->name);
-			}
+		add_host_notifications_from_contactlist(mac, hst->contacts, hst, type, options);
 
 		log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Adding members of contact groups for host to notification list.\n");
 
@@ -1953,14 +1946,23 @@ int create_notification_list_from_host(nagios_macros *mac, host *hst, int option
 
 			if((temp_contactgroup = temp_contactgroupsmember->group_ptr) == NULL)
 				continue;
-			for(temp_contactsmember = temp_contactgroup->members; temp_contactsmember != NULL; temp_contactsmember = temp_contactsmember->next) {
-				if((temp_contact = temp_contactsmember->contact_ptr) == NULL)
+			add_host_notifications_from_contactlist(mac, temp_contactgroup->members, hst, type, options);
+			}
+
+		/* add contacts/contactgroups from hostgroups to which this hosts belongs */
+		log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Adding contacts from hostgroups for host to notification list.\n");
+		for(list = hst->hostgroups_ptr; list != NULL; list = list->next) {
+			temp_hostgroup = (hostgroup *)list->object_ptr;
+			if(temp_hostgroup == NULL)
+				continue;
+
+			add_host_notifications_from_contactlist(mac, temp_hostgroup->contacts, hst, type, options);
+
+			for(temp_contactgroupsmember = temp_hostgroup->contact_groups; temp_contactgroupsmember != NULL; temp_contactgroupsmember = temp_contactgroupsmember->next) {
+				log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Adding members of contact group '%s' for hostgroup '%s' to notification list.\n", temp_contactgroupsmember->group_name, temp_hostgroup->group_name);
+				if((temp_contactgroup = temp_contactgroupsmember->group_ptr) == NULL)
 					continue;
-	                        /* check now if the contact can be notified */
-	                        if (check_contact_host_notification_viability(temp_contact, hst, type, options) == OK)
-	                                add_notification(mac, temp_contact);
-	                        else
-	                                log_debug_info(DEBUGL_NOTIFICATIONS, 2, "Not adding contact '%s'\n", temp_contact->name);
+				add_host_notifications_from_contactlist(mac, temp_contactgroup->members, hst, type, options);
 				}
 			}
 		}

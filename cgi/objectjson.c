@@ -3116,7 +3116,11 @@ void json_object_hostgroup_details(json_object *json_details,
 		unsigned format_options, hostgroup *temp_hostgroup) {
 
 	json_array *json_members;
+	json_array *json_contactgroups;
+	json_array *json_contacts;
 	hostsmember *temp_member;
+	contactgroupsmember *temp_contact_groupsmember;
+	contactsmember *temp_contactsmember;
 
 	json_object_append_string(json_details, "group_name", &percent_escapes,
 			temp_hostgroup->group_name);
@@ -3130,6 +3134,24 @@ void json_object_hostgroup_details(json_object *json_details,
 				temp_member->host_name);
 		}
 	json_object_append_array(json_details, "members", json_members);
+
+	json_contactgroups = json_new_array();
+	for(temp_contact_groupsmember = temp_hostgroup->contact_groups;
+			temp_contact_groupsmember != NULL;
+			temp_contact_groupsmember = temp_contact_groupsmember->next) {
+		json_array_append_string(json_contactgroups, &percent_escapes,
+				temp_contact_groupsmember->group_name);
+		}
+	json_object_append_array(json_details, "contact_groups", json_contactgroups);
+
+	json_contacts = json_new_array();
+	for(temp_contactsmember = temp_hostgroup->contacts;
+			temp_contactsmember != NULL;
+			temp_contactsmember = temp_contactsmember->next) {
+		json_array_append_string(json_contacts, &percent_escapes,
+				temp_contactsmember->contact_name);
+		}
+	json_object_append_array(json_details, "contacts", json_contacts);
 
 	json_object_append_string(json_details, "notes", &percent_escapes,
 			temp_hostgroup->notes);
@@ -4031,7 +4053,11 @@ void json_object_servicegroup_details(json_object *json_details,
 		unsigned format_options, servicegroup *temp_servicegroup) {
 
 	json_array *json_members;
+	json_array *json_contactgroups;
+	json_array *json_contacts;
 	servicesmember *temp_member;
+	contactgroupsmember *temp_contact_groupsmember;
+	contactsmember *temp_contactsmember;
 	json_object *json_member;
 
 	json_object_append_string(json_details, "group_name", &percent_escapes,
@@ -4050,6 +4076,24 @@ void json_object_servicegroup_details(json_object *json_details,
 		json_array_append_object(json_members, json_member);
 		}
 	json_object_append_array(json_details, "members", json_members);
+
+	json_contactgroups = json_new_array();
+	for(temp_contact_groupsmember = temp_servicegroup->contact_groups;
+			temp_contact_groupsmember != NULL;
+			temp_contact_groupsmember = temp_contact_groupsmember->next) {
+		json_array_append_string(json_contactgroups, &percent_escapes,
+				temp_contact_groupsmember->group_name);
+		}
+	json_object_append_array(json_details, "contact_groups", json_contactgroups);
+
+	json_contacts = json_new_array();
+	for(temp_contactsmember = temp_servicegroup->contacts;
+			temp_contactsmember != NULL;
+			temp_contactsmember = temp_contactsmember->next) {
+		json_array_append_string(json_contacts, &percent_escapes,
+				temp_contactsmember->contact_name);
+		}
+	json_object_append_array(json_details, "contacts", json_contacts);
 
 	json_object_append_string(json_details, "notes", &percent_escapes,
 			temp_servicegroup->notes);

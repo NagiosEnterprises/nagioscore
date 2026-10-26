@@ -2,9 +2,12 @@
 Nagios Core 4 Change Log
 ########################
 
-4.5.15 - 2026-xx-xx
+4.6.0 - 2026-xx-xx
 -------------------
+* Add contacts and contactgroups to hostgroups and servicegroups (Emmett Kapsner)
+* Add HOSTCHECKSOURCE and SERVICECHECKSOURCE macros (Emmett Kapsner)
 * Fix heap-buffer-overflow in json_escape_string() on invalid multibyte input (Jun Kuriyama)
+* Update homepage to remove mention of CSP (Emmett Kapsner)
 
 4.5.14 - 2026-08-05
 -------------------

@@ -4017,7 +4017,7 @@ void compute_service_availability(time_t query_time, time_t start_time,
 			initial_service_state = assumed_initial_service_state;
 			break;
 		case AU_STATE_CURRENT_STATE:
-			if(service_status == NULL) {
+			if(service_status != NULL) {
 				switch(service_status->status) {
 				case SERVICE_OK:
 					initial_service_state = AU_STATE_SERVICE_OK;

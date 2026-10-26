@@ -3520,8 +3520,8 @@ void show_servicegroup_grid(servicegroup *temp_servicegroup) {
 			else
 				service_status_class = "PENDING";
 
-			printf("<a href='%s?type=%d&host=%s", EXTINFO_CGI, DISPLAY_SERVICE_INFO, url_encode(temp_servicestatus->host_name));
-			printf("&service=%s' class='status%s'>%s</a>&nbsp;", url_encode(temp_servicestatus->description), service_status_class, temp_servicestatus->description);
+			printf("<a href='%s?type=%d&host=%s", EXTINFO_CGI, DISPLAY_SERVICE_INFO, url_encode(temp_member2->host_name));
+			printf("&service=%s' class='status%s'>%s</a>&nbsp;", url_encode(temp_member2->service_description), service_status_class, temp_member2->service_description);
 
 			current_item++;
 			}
@@ -4765,8 +4765,8 @@ void show_hostgroup_grid(hostgroup *temp_hostgroup) {
 			else
 				service_status_class = "PENDING";
 
-			printf("<a href='%s?type=%d&host=%s", EXTINFO_CGI, DISPLAY_SERVICE_INFO, url_encode(temp_servicestatus->host_name));
-			printf("&service=%s' class='status%s'>%s</a>&nbsp;", url_encode(temp_servicestatus->description), service_status_class, temp_servicestatus->description);
+			printf("<a href='%s?type=%d&host=%s", EXTINFO_CGI, DISPLAY_SERVICE_INFO, url_encode(temp_service->host_name));
+			printf("&service=%s' class='status%s'>%s</a>&nbsp;", url_encode(temp_service->description), service_status_class, temp_service->description);
 
 			current_item++;
 			}

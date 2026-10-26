@@ -31,7 +31,7 @@ NAGIOS_BEGIN_DECL
 
 /*************** CURRENT OBJECT REVISION **************/
 
-#define CURRENT_OBJECT_STRUCTURE_VERSION        403     /* increment when changes are made to data structures... */
+#define CURRENT_OBJECT_STRUCTURE_VERSION        406     /* increment when changes are made to data structures... */
 /* Nagios 3 starts at 300, Nagios 4 at 400, etc. */
 
 
@@ -393,6 +393,8 @@ typedef struct hostgroup {
 	char 	*group_name;
 	char    *alias;
 	struct hostsmember *members;
+	struct contactgroupsmember *contact_groups;
+	struct contactsmember *contacts;
 	char    *notes;
 	char    *notes_url;
 	char    *action_url;
@@ -535,6 +537,8 @@ typedef struct servicegroup {
 	char 	*group_name;
 	char    *alias;
 	struct servicesmember *members;
+	struct contactgroupsmember *contact_groups;
+	struct contactsmember *contacts;
 	char    *notes;
 	char    *notes_url;
 	char    *action_url;
@@ -768,8 +772,12 @@ struct daterange *add_exception_to_timeperiod(timeperiod *, int, int, int, int, 
 struct timerange *add_timerange_to_daterange(daterange *, unsigned long, unsigned long);
 struct hostgroup *add_hostgroup(char *, char *, char *, char *, char *);						/* adds a hostgroup definition */
 struct hostsmember *add_host_to_hostgroup(hostgroup *, char *);						/* adds a host to a hostgroup definition */
+struct contactgroupsmember *add_contactgroup_to_hostgroup(hostgroup *, char *);					/* adds a contactgroup to a hostgroup definition */
+struct contactsmember *add_contact_to_hostgroup(hostgroup *, char *);						/* adds a contact to a hostgroup definition */
 struct servicegroup *add_servicegroup(char *, char *, char *, char *, char *);                                 /* adds a servicegroup definition */
 struct servicesmember *add_service_to_servicegroup(servicegroup *, char *, char *);                            /* adds a service to a servicegroup definition */
+struct contactgroupsmember *add_contactgroup_to_servicegroup(servicegroup *, char *);				/* adds a contactgroup to a servicegroup definition */
+struct contactsmember *add_contact_to_servicegroup(servicegroup *, char *);					/* adds a contact to a servicegroup definition */
 struct contactgroup *add_contactgroup(char *, char *);								/* adds a contactgroup definition */
 struct contactsmember *add_contact_to_contactgroup(contactgroup *, char *);					/* adds a contact to a contact group definition */
 struct command *add_command(char *, char *);									/* adds a command definition */
@@ -830,6 +838,9 @@ int is_contact_member_of_contactgroup(struct contactgroup *, struct contact *);	
 int is_contact_for_host(struct host *, struct contact *);			       /* tests whether or not a contact is a contact member for a specific host */
 int is_contactgroup_for_host(struct host *, struct contactgroup *);
 	/* tests whether a contact group is a contract group for a specific host */
+int is_contact_for_hostgroup(struct hostgroup *, struct contact *);			/* tests whether a contact is a contact for a hostgroup */
+int is_contactgroup_for_hostgroup(struct hostgroup *, struct contactgroup *);
+	/* tests whether a contactgroup is a contactgroup for a hostgroup */
 int is_escalated_contact_for_host(struct host *, struct contact *);                   /* checks whether or not a contact is an escalated contact for a specific host */
 int is_contact_for_host_escalation(hostescalation *, contact *);
 	/* tests whether a contact is an contact for a particular host escalation */
@@ -839,6 +850,9 @@ int is_contactgroup_for_host_escalation(hostescalation *, contactgroup *);
 int is_contact_for_service(struct service *, struct contact *);		       /* tests whether or not a contact is a contact member for a specific service */
 int is_contactgroup_for_service(struct service *, struct contactgroup *);
 	/* tests whether a contact group is a contract group for a specific service */
+int is_contact_for_servicegroup(struct servicegroup *, struct contact *);		/* tests whether a contact is a contact for a servicegroup */
+int is_contactgroup_for_servicegroup(struct servicegroup *, struct contactgroup *);
+	/* tests whether a contactgroup is a contactgroup for a servicegroup */
 int is_escalated_contact_for_host(struct host *, struct contact *);                   /* checks whether or not a contact is an escalated contact for a specific host */
 int is_escalated_contact_for_service(struct service *, struct contact *);             /* checks whether or not a contact is an escalated contact for a specific service */
 int is_contact_for_service_escalation(serviceescalation *, contact *);

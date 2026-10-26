@@ -938,6 +938,20 @@ customvariablesmember *add_custom_variable_to_host(host *hst, char *varname, cha
 
 
 
+/* add a new contactgroup to a hostgroup */
+contactgroupsmember *add_contactgroup_to_hostgroup(hostgroup *hg, char *group_name) {
+	return add_contactgroup_to_object(&hg->contact_groups, group_name);
+	}
+
+
+
+/* adds a contact to a hostgroup */
+contactsmember *add_contact_to_hostgroup(hostgroup *hg, char *contact_name) {
+	return add_contact_to_object(&hg->contacts, contact_name);
+	}
+
+
+
 /* add a new host group to the list in memory */
 hostgroup *add_hostgroup(char *name, char *alias, char *notes, char *notes_url, char *action_url) {
 	hostgroup *new_hostgroup = NULL;
@@ -1102,6 +1116,20 @@ servicegroup *add_servicegroup(char *name, char *alias, char *notes, char *notes
 		servicegroup_ary[new_servicegroup->id - 1]->next = new_servicegroup;
 	return new_servicegroup;
 	}
+
+
+/* add a new contactgroup to a servicegroup */
+contactgroupsmember *add_contactgroup_to_servicegroup(servicegroup *sg, char *group_name) {
+	return add_contactgroup_to_object(&sg->contact_groups, group_name);
+	}
+
+
+
+/* adds a contact to a servicegroup */
+contactsmember *add_contact_to_servicegroup(servicegroup *sg, char *contact_name) {
+	return add_contact_to_object(&sg->contacts, contact_name);
+	}
+
 
 
 /* add a new service to a service group */
@@ -2306,10 +2334,59 @@ int is_contact_member_of_contactgroup(contactgroup *group, contact *cntct) {
 	}
 
 /*  tests whether a contact is a contact for a particular host */
+int is_contact_for_hostgroup(hostgroup *hg, contact *cntct) {
+	contactsmember *temp_contactsmember = NULL;
+	contactgroupsmember *temp_contactgroupsmember = NULL;
+	contactgroup *temp_contactgroup = NULL;
+
+	if(hg == NULL || cntct == NULL) {
+		return FALSE;
+		}
+
+	/* search all individual contacts of this hostgroup */
+	for(temp_contactsmember = hg->contacts; temp_contactsmember != NULL; temp_contactsmember = temp_contactsmember->next) {
+		if(temp_contactsmember->contact_ptr == cntct)
+			return TRUE;
+		}
+
+	/* search all contactgroups of this hostgroup */
+	for(temp_contactgroupsmember = hg->contact_groups; temp_contactgroupsmember != NULL; temp_contactgroupsmember = temp_contactgroupsmember->next) {
+		temp_contactgroup = temp_contactgroupsmember->group_ptr;
+		if(is_contact_member_of_contactgroup(temp_contactgroup, cntct))
+			return TRUE;
+		}
+
+	return FALSE;
+	}
+
+
+
+/* tests whether a contactgroup is a contactgroup for a particular hostgroup */
+int is_contactgroup_for_hostgroup(hostgroup *hg, contactgroup *group) {
+	contactgroupsmember *temp_contactgroupsmember = NULL;
+
+	if(hg == NULL || group == NULL) {
+		return FALSE;
+		}
+
+	for(temp_contactgroupsmember = hg->contact_groups;
+			temp_contactgroupsmember != NULL;
+			temp_contactgroupsmember = temp_contactgroupsmember->next) {
+		if(temp_contactgroupsmember->group_ptr == group) {
+			return TRUE;
+			}
+		}
+
+	return FALSE;
+	}
+
+
+
 int is_contact_for_host(host *hst, contact *cntct) {
 	contactsmember *temp_contactsmember = NULL;
 	contactgroupsmember *temp_contactgroupsmember = NULL;
 	contactgroup *temp_contactgroup = NULL;
+	objectlist *list = NULL;
 
 	if(hst == NULL || cntct == NULL) {
 		return FALSE;
@@ -2328,6 +2405,12 @@ int is_contact_for_host(host *hst, contact *cntct) {
 			return TRUE;
 		}
 
+	/* search contacts/contactgroups from hostgroups this host belongs to */
+	for(list = hst->hostgroups_ptr; list != NULL; list = list->next) {
+		if(is_contact_for_hostgroup((hostgroup *)list->object_ptr, cntct) == TRUE)
+			return TRUE;
+		}
+
 	return FALSE;
 	}
 
@@ -2336,6 +2419,7 @@ int is_contact_for_host(host *hst, contact *cntct) {
 /*  tests whether a contactgroup is a contactgroup for a particular host */
 int is_contactgroup_for_host(host *hst, contactgroup *group) {
 	contactgroupsmember *temp_contactgroupsmember = NULL;
+	objectlist *list = NULL;
 
 	if(hst == NULL || group == NULL) {
 		return FALSE;
@@ -2348,6 +2432,12 @@ int is_contactgroup_for_host(host *hst, contactgroup *group) {
 		if(temp_contactgroupsmember->group_ptr == group) {
 			return TRUE;
 			}
+		}
+
+	/* search contactgroups from hostgroups this host belongs to */
+	for(list = hst->hostgroups_ptr; list != NULL; list = list->next) {
+		if(is_contactgroup_for_hostgroup((hostgroup *)list->object_ptr, group) == TRUE)
+			return TRUE;
 		}
 
 	return FALSE;
@@ -2430,11 +2520,61 @@ int is_contactgroup_for_host_escalation(hostescalation *escalation,
 
 
 
+/* tests whether a contact is a contact for a particular servicegroup */
+int is_contact_for_servicegroup(servicegroup *sg, contact *cntct) {
+	contactsmember *temp_contactsmember = NULL;
+	contactgroupsmember *temp_contactgroupsmember = NULL;
+	contactgroup *temp_contactgroup = NULL;
+
+	if(sg == NULL || cntct == NULL) {
+		return FALSE;
+		}
+
+	/* search all individual contacts of this servicegroup */
+	for(temp_contactsmember = sg->contacts; temp_contactsmember != NULL; temp_contactsmember = temp_contactsmember->next) {
+		if(temp_contactsmember->contact_ptr == cntct)
+			return TRUE;
+		}
+
+	/* search all contactgroups of this servicegroup */
+	for(temp_contactgroupsmember = sg->contact_groups; temp_contactgroupsmember != NULL; temp_contactgroupsmember = temp_contactgroupsmember->next) {
+		temp_contactgroup = temp_contactgroupsmember->group_ptr;
+		if(is_contact_member_of_contactgroup(temp_contactgroup, cntct))
+			return TRUE;
+		}
+
+	return FALSE;
+	}
+
+
+
+/* tests whether a contactgroup is a contactgroup for a particular servicegroup */
+int is_contactgroup_for_servicegroup(servicegroup *sg, contactgroup *group) {
+	contactgroupsmember *temp_contactgroupsmember = NULL;
+
+	if(sg == NULL || group == NULL) {
+		return FALSE;
+		}
+
+	for(temp_contactgroupsmember = sg->contact_groups;
+			temp_contactgroupsmember != NULL;
+			temp_contactgroupsmember = temp_contactgroupsmember->next) {
+		if(temp_contactgroupsmember->group_ptr == group) {
+			return TRUE;
+			}
+		}
+
+	return FALSE;
+	}
+
+
+
 /*  tests whether a contact is a contact for a particular service */
 int is_contact_for_service(service *svc, contact *cntct) {
 	contactsmember *temp_contactsmember = NULL;
 	contactgroupsmember *temp_contactgroupsmember = NULL;
 	contactgroup *temp_contactgroup = NULL;
+	objectlist *list = NULL;
 
 	if(svc == NULL || cntct == NULL)
 		return FALSE;
@@ -2453,6 +2593,12 @@ int is_contact_for_service(service *svc, contact *cntct) {
 
 		}
 
+	/* search contacts/contactgroups from servicegroups this service belongs to */
+	for(list = svc->servicegroups_ptr; list != NULL; list = list->next) {
+		if(is_contact_for_servicegroup((servicegroup *)list->object_ptr, cntct) == TRUE)
+			return TRUE;
+		}
+
 	return FALSE;
 	}
 
@@ -2461,6 +2607,7 @@ int is_contact_for_service(service *svc, contact *cntct) {
 /*  tests whether a contactgroup is a contactgroup for a particular service */
 int is_contactgroup_for_service(service *svc, contactgroup *group) {
 	contactgroupsmember *temp_contactgroupsmember = NULL;
+	objectlist *list = NULL;
 
 	if(svc == NULL || group == NULL)
 		return FALSE;
@@ -2472,6 +2619,12 @@ int is_contactgroup_for_service(service *svc, contactgroup *group) {
 		if(temp_contactgroupsmember->group_ptr == group) {
 			return TRUE;
 			}
+		}
+
+	/* search contactgroups from servicegroups this service belongs to */
+	for(list = svc->servicegroups_ptr; list != NULL; list = list->next) {
+		if(is_contactgroup_for_servicegroup((servicegroup *)list->object_ptr, group) == TRUE)
+			return TRUE;
 		}
 
 	return FALSE;
@@ -2735,6 +2888,22 @@ int free_object_data(void) {
 			this_hostsmember = next_hostsmember;
 			}
 
+		/* free memory for contact groups */
+		this_contactgroupsmember = this_hostgroup->contact_groups;
+		while(this_contactgroupsmember != NULL) {
+			next_contactgroupsmember = this_contactgroupsmember->next;
+			my_free(this_contactgroupsmember);
+			this_contactgroupsmember = next_contactgroupsmember;
+			}
+
+		/* free memory for contacts */
+		this_contactsmember = this_hostgroup->contacts;
+		while(this_contactsmember != NULL) {
+			next_contactsmember = this_contactsmember->next;
+			my_free(this_contactsmember);
+			this_contactsmember = next_contactsmember;
+			}
+
 		if (this_hostgroup->alias != this_hostgroup->group_name)
 			my_free(this_hostgroup->alias);
 		my_free(this_hostgroup->group_name);
@@ -2757,6 +2926,22 @@ int free_object_data(void) {
 			next_servicesmember = this_servicesmember->next;
 			my_free(this_servicesmember);
 			this_servicesmember = next_servicesmember;
+			}
+
+		/* free memory for contact groups */
+		this_contactgroupsmember = this_servicegroup->contact_groups;
+		while(this_contactgroupsmember != NULL) {
+			next_contactgroupsmember = this_contactgroupsmember->next;
+			my_free(this_contactgroupsmember);
+			this_contactgroupsmember = next_contactgroupsmember;
+			}
+
+		/* free memory for contacts */
+		this_contactsmember = this_servicegroup->contacts;
+		while(this_contactsmember != NULL) {
+			next_contactsmember = this_contactsmember->next;
+			my_free(this_contactsmember);
+			this_contactsmember = next_contactsmember;
 			}
 
 		if (this_servicegroup->alias != this_servicegroup->group_name)
@@ -3174,6 +3359,8 @@ void fcache_hostgroup(FILE *fp, hostgroup *temp_hostgroup)
 		for(list = temp_hostgroup->members; list; list = list->next)
 			fprintf(fp, "%s%s", list->host_name, list->next ? "," : " \n");
 	}
+	fcache_contactlist(fp, "\tcontacts\t", temp_hostgroup->contacts);
+	fcache_contactgrouplist(fp, "\tcontact_groups\t", temp_hostgroup->contact_groups);
 	if(temp_hostgroup->notes)
 		fprintf(fp, "\tnotes\t%s \n", temp_hostgroup->notes);
 	if(temp_hostgroup->notes_url)
@@ -3197,6 +3384,8 @@ void fcache_servicegroup(FILE *fp, servicegroup *temp_servicegroup)
 			fprintf(fp, "%s,%s%s", s->host_name, s->description, list->next ? "," : " \n");
 		}
 	}
+	fcache_contactlist(fp, "\tcontacts\t", temp_servicegroup->contacts);
+	fcache_contactgrouplist(fp, "\tcontact_groups\t", temp_servicegroup->contact_groups);
 	if(temp_servicegroup->notes)
 		fprintf(fp, "\tnotes\t%s \n", temp_servicegroup->notes);
 	if(temp_servicegroup->notes_url)

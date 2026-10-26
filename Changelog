@@ -2,6 +2,10 @@
 Nagios Core 4 Change Log
 ########################
 
+4.5.15 - 2026-xx-xx
+-------------------
+* Fix heap-buffer-overflow in json_escape_string() on invalid multibyte input (Jun Kuriyama)
+
 4.5.14 - 2026-08-05
 -------------------
 * Fix vulnerabilities in notification macros, which are now being sanitized (Thanks Zach Hanley of Horizon3.ai) (Emmett Kapsner)

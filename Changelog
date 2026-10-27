@@ -6,6 +6,7 @@ Nagios Core 4 Change Log
 -------------------
 * Add contacts and contactgroups to hostgroups and servicegroups (Emmett Kapsner)
 * Add HOSTCHECKSOURCE and SERVICECHECKSOURCE macros (Emmett Kapsner)
+* Fix archivejson.cgi and status.cgi grid view crashing on services without status data (Jun Kuriyama)
 * Fix heap-buffer-overflow in json_escape_string() on invalid multibyte input (Jun Kuriyama)
 * Fix host problem id being reset to 0 on a change between two problem states, e.g. UNREACHABLE to DOWN (#1061) (Jun Kuriyama)
 * Update homepage to remove mention of CSP (Emmett Kapsner)

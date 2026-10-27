@@ -970,7 +970,7 @@ static inline void host_state_or_hard_state_type_change(host * hst, int state_ch
 		}
 
 		/* clear the problem id when transitioning from a problem state to an OK state */
-		else {
+		else if (hst->current_state == HOST_UP) {
 			hst->last_problem_id = hst->current_problem_id;
 			hst->current_problem_id = 0L;
 		}

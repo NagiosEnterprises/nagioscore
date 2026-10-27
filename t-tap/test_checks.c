@@ -1040,11 +1040,14 @@ void run_active_host_tests()
     create_check_result(check_type, STATE_CRITICAL, "host down");
     chk_result->start_time.tv_sec = ORIG_START_TIME + 80L;
     chk_result->finish_time.tv_sec = ORIG_FINISH_TIME + 80L;
+    tmp = hst1->current_problem_id;
 
     handle_hst1();
 
     ok(hst1->current_state == STATE_UNREACHABLE,
         "Host state is UNREACHABLE");
+    ok(tmp != 0 && hst1->current_problem_id == tmp,
+        "Problem id kept from DOWN to UNREACHABLE new: %d, old: %d", hst1->current_problem_id, tmp);
     ok(hst1->state_type == HARD_STATE,
         "Host state type is hard");
     ok(hst1->current_attempt == 3,
@@ -1551,7 +1554,7 @@ int main(int argc, char **argv)
     accept_passive_service_checks   = TRUE;
 
     /* Increment this when the check_reaper test is fixed */
-    plan_tests(452);
+    plan_tests(453);
 
     time(&now);
 

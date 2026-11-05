@@ -3288,7 +3288,7 @@ int set_contact_address_environment_vars_r(nagios_macros *mac, int set) {
 		return OK;
 
 	for(x = 0; x < MAX_CONTACT_ADDRESSES; x++) {
-		asprintf(&varname, "CONTACTADDRESS%d", x);
+		asprintf(&varname, "CONTACTADDRESS%d", x + 1);
 		set_macro_environment_var(varname, mac->contact_ptr->address[x], set);
 		my_free(varname);
 		}
@@ -3561,7 +3561,7 @@ static int add_contact_address_environment_vars_r(nagios_macros *mac,
 		/* Allocate memory for each environment variable name, but not the 
 			values because when kvvec_destroy() is called, it is called with
 			KVVEC_FREE_KEYS */
-		asprintf(&varname, "%sCONTACTADDRESS%d", MACRO_ENV_VAR_PREFIX, x);
+		asprintf(&varname, "%sCONTACTADDRESS%d", MACRO_ENV_VAR_PREFIX, x + 1);
 		kvvec_addkv(kvvp, varname, mac->contact_ptr->address[x]);
 		}
 

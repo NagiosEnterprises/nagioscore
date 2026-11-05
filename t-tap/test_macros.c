@@ -351,19 +351,39 @@ void test_escaping(nagios_macros *mac)
     ALLOC_MACROS("$TOTALSERVICESCRITICALUNHANDLED$");
 }
 
+extern struct kvvec * macros_to_kvv(nagios_macros *);
+
+void test_contact_address_env_vars(nagios_macros *mac) {
+    contact ctc = { 0 };
+    struct kvvec *kvvp;
+    int x, found = 0;
+
+    ctc.address[0] = "first";
+    mac->contact_ptr = &ctc;
+    enable_environment_macros = TRUE;
+    kvvp = macros_to_kvv(mac);
+    for (x = 0; kvvp && x < kvvp->kv_pairs; x++) {
+        if (!strcmp(kvvp->kv[x].key, MACRO_ENV_VAR_PREFIX "CONTACTADDRESS1") && kvvp->kv[x].value && !strcmp(kvvp->kv[x].value, "first"))
+            found = 1;
+    }
+    ok(found, "address1 is exported as " MACRO_ENV_VAR_PREFIX "CONTACTADDRESS1");
+    mac->contact_ptr = NULL;
+}
+
 /*****************************************************************************/
 /*                             Main function                                 */
 /*****************************************************************************/
 
 int main(void) {
 
-    plan_tests(23);
+    plan_tests(24);
 
     reset_variables();
     setup_environment();
     setup_objects();
 
     test_escaping(mac);
+    test_contact_address_env_vars(mac);
 
     free_memory(mac);
     free(mac);

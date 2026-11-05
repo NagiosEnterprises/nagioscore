@@ -527,6 +527,33 @@ void run_host_tests() {
 
 }
 
+void run_recovery_escalation_tests() {
+
+    serviceescalation se = { 0 };
+    hostescalation he = { 0 };
+
+    create_objects(STATE_UP, HARD_STATE, "host up", STATE_OK, HARD_STATE, "service ok");
+
+    // Problem notifications 1 and 2 were sent, and only 2 went to this escalation
+    svc1->current_notification_number = 2;
+    se.service_ptr = svc1;
+    se.first_notification = 2;
+    se.last_notification = 2;
+    se.escalation_options = OPT_RECOVERY;
+    ok(is_valid_escalation_for_service_notification(svc1, &se, NOTIFICATION_OPTION_NONE) == TRUE,
+        "Service recovery goes to the escalation that got the last problem notification");
+
+    hst1->current_notification_number = 2;
+    he.host_ptr = hst1;
+    he.first_notification = 2;
+    he.last_notification = 2;
+    he.escalation_options = OPT_RECOVERY;
+    ok(is_valid_escalation_for_host_notification(hst1, &he, NOTIFICATION_OPTION_NONE) == TRUE,
+        "Host recovery goes to the escalation that got the last problem notification");
+
+    free_all();
+}
+
 int main(int argc, char **argv)
 {
     char cwd[1024];
@@ -538,12 +565,13 @@ int main(int argc, char **argv)
     
     time_t now = 0L;
 
-    plan_tests(42);
+    plan_tests(44);
 
     time(&now);
 
     run_service_tests();
     run_host_tests();
+    run_recovery_escalation_tests();
 
     return exit_status();
 }

@@ -923,11 +923,8 @@ int is_valid_escalation_for_service_notification(service *svc, serviceescalation
 	/* get the current time */
 	time(&current_time);
 
-	/* if this is a recovery, really we check for who got notified about a previous problem */
-	if(svc->current_state == STATE_OK)
-		notification_number = svc->current_notification_number - 1;
-	else
-		notification_number = svc->current_notification_number;
+	/* a recovery doesn't increase the number, so this is who got the last problem notification */
+	notification_number = svc->current_notification_number;
 
 	/* this entry if it is not for this service */
 	temp_service = se->service_ptr;
@@ -1811,11 +1808,8 @@ int is_valid_escalation_for_host_notification(host *hst, hostescalation *he, int
 	/* get the current time */
 	time(&current_time);
 
-	/* if this is a recovery, really we check for who got notified about a previous problem */
-	if(hst->current_state == HOST_UP)
-		notification_number = hst->current_notification_number - 1;
-	else
-		notification_number = hst->current_notification_number;
+	/* a recovery doesn't increase the number, so this is who got the last problem notification */
+	notification_number = hst->current_notification_number;
 
 	/* find the host this escalation entry is associated with */
 	temp_host = he->host_ptr;

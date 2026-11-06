@@ -540,13 +540,37 @@ void json_array_append_string(json_object *obj,
 
 	va_list a_list;
 	int		result;
+	char	*escaped_format;
 	char	*buf;
 
+	if(NULL == format) return;
+
+	/* Escape the format before formatting, as json_object_append_string()
+		does: callers pass the raw value as the format, and formatting it
+		unescaped would interpret any '%' in it (a value ending in '%' made
+		vasprintf() fail and the value was silently dropped). An empty
+		format has nothing to escape, and json_escape_string() returns NULL
+		for it. */
+	if((NULL != format_escapes) && ('\0' != *format)) {
+		if((escaped_format = json_escape_string(format, format_escapes))
+				== NULL) {
+			return;
+			}
+		}
+	else {
+		escaped_format = format;
+		}
+
 	va_start( a_list, format);
-	result = vasprintf(&buf, format, a_list);
+	result = vasprintf(&buf, escaped_format, a_list);
 	va_end( a_list);
+	if(escaped_format != format) {
+		free(escaped_format);
+		}
 	if(result >= 0) {
-		json_object_append_string(obj, NULL, format_escapes, buf);
+		/* buf is the final value: append it literally */
+		json_object_append_string(obj, NULL, NULL, "%s", buf);
+		free(buf);
 		}
 	}
 

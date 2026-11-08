@@ -27,6 +27,7 @@ TESTS += test_macros
 TESTS += test_notifications
 TESTS += test_hostgroup_contacts
 TESTS += test_servicegroup_contacts
+TESTS += test_jsonutils
 
 XSD_OBJS = $(BLD_CGI)/statusdata-cgi.o $(BLD_CGI)/xstatusdata-cgi.o
 XSD_OBJS += $(BLD_CGI)/objects-cgi.o $(BLD_CGI)/xobjects-cgi.o
@@ -115,6 +116,9 @@ test_hostgroup_contacts: test_hostgroup_contacts.o $(BLD_BASE)/objects-base.o $(
 
 test_servicegroup_contacts: test_servicegroup_contacts.o $(BLD_BASE)/objects-base.o $(BLD_COMMON)/shared.o $(TAPOBJ)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS) $(LIBS)
+
+test_jsonutils: test_jsonutils.o $(BLD_CGI)/jsonutils.o $(TAPOBJ)
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 test_xsddefault: test_xsddefault.o $(XSD_OBJS) $(TAPOBJ)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)

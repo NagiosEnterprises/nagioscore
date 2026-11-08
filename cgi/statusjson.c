@@ -2848,10 +2848,10 @@ int json_status_service_passes_host_selection(host *temp_host,
 	hoststatus *temp_hoststatus;
 	host *temp_host2;
 
-	/* Skip if user is not authorized for this service */
-	if(FALSE == is_authorized_for_host(temp_host, &current_authdata)) {
-		return 0;
-	}
+	/* No authorization check for the host here: a service contact may
+		view a service without being authorized for its host, as in
+		status.cgi. json_status_service_passes_service_selection() checks
+		is_authorized_for_service(), which covers host authorization. */
 
 	/* If the host parent was specified, skip the services whose host is 
 		not a child of the parent host specified */
